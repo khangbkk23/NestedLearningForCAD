@@ -1,0 +1,35 @@
+dataset:
+  name: "mvtec" 
+  root_dir: "data/mvtec"
+  # name: "visa"
+  # root_dir: "data/visa"
+  
+  img_size: 256
+  batch_size: 32
+  num_workers: 4
+
+model:
+  backbone: "vit_base_patch16_256"
+  embed_dim: 768
+  depth: 12
+  cms_levels: 3
+  k: 2
+  extract_layers: [3, 6, 9]
+
+memory:
+  coreset_sampling_ratio: 0.01
+  nearest_neighbors: 9
+  distance_metric: "cosine" 
+
+training:
+  epochs_per_task: 10
+  learning_rate: 0.0001
+  weight_decay: 0.00001
+  kd_loss_weight: 1.0
+  device: "cuda"
+  seed: 42
+
+logging:
+  experiment_name: "vit_cms_hybrid_cad"
+  results_dir: "results/"
+  save_models: true

@@ -8,8 +8,9 @@ __pycache__/
 *.py[cod]
 *$py.class
 *.so
-
-# Dataset directories
+tempCodeRunner.py
+*.pyc
+# Dataset dire\ctories
 data/
 datasets/
 *.tar.gz
