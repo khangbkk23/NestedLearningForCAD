@@ -3,10 +3,12 @@ dataset:
   root_dir: "data/mvtec"
   # name: "visa"
   # root_dir: "data/visa"
-  
   img_size: 256
   batch_size: 32
   num_workers: 4
+  split_ratio: 0.8
+  mean: [0.485, 0.456, 0.406]
+  std: [0.229, 0.224, 0.225]
 
 model:
   backbone: "vit_base_patch16_256"

@@ -8,7 +8,7 @@ __pycache__/
 *.py[cod]
 *$py.class
 *.so
-tempCodeRunner.py
+tempCodeRunnerFile.py
 *.pyc
 # Dataset dire\ctories
 data/

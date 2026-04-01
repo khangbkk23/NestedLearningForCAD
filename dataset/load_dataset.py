@@ -1,19 +1,19 @@
-import os
+import os, sys
 import glob
 from PIL import Image
 import torch
 from torch.utils.data import Dataset, DataLoader, ConcatDataset
 from torchvision import transforms
 
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from conf.config import load_config
+
 class ContinualAnomalyDataset(Dataset):
-    """
-    Unified Dataset class for Continual Anomaly Detection.
-    Handles directory structures for both MVTec AD and VisA datasets.
-    """
-    def __init__(self, root_dir, dataset_name, category, is_train=True, transform=None, mask_transform=None):
+    def __init__(self, root_dir, dataset_name, category, split_ratio=0.8, is_train=True, transform=None, mask_transform=None):
         self.root_dir = root_dir
         self.dataset_name = dataset_name.lower()
         self.category = category
+        self.split_ratio = split_ratio
         self.is_train = is_train
         self.transform = transform
         self.mask_transform = mask_transform
@@ -35,9 +35,6 @@ class ContinualAnomalyDataset(Dataset):
             raise ValueError(f"Dataset '{self.dataset_name}' is not supported.")
 
     def _load_mvtec(self, category_path):
-        """
-        Parse MVTec AD directory structure.
-        """
         if self.is_train:
             img_dir = os.path.join(category_path, 'train', 'good')
             imgs = sorted(glob.glob(os.path.join(img_dir, '*.png')))
@@ -65,30 +62,23 @@ class ContinualAnomalyDataset(Dataset):
                         self.mask_paths.append(os.path.join(gt_dir, mask_name))
 
     def _load_visa(self, category_path):
-        """
-        Parse VisA directory structure with 80/20 train/test split for normal samples.
-        """
         normal_dir = os.path.join(category_path, 'Data', 'Images', 'Normal')
         anomaly_dir = os.path.join(category_path, 'Data', 'Images', 'Anomaly')
         mask_dir = os.path.join(category_path, 'Data', 'Masks', 'Anomaly')
         
-        # Support both JPG and PNG extensions
         normal_imgs = sorted(glob.glob(os.path.join(normal_dir, '*.[pj][pn][gG]')))
-        split_idx = int(len(normal_imgs) * 0.8)
+        split_idx = int(len(normal_imgs) * self.split_ratio)
         
         if self.is_train:
-            # Training utilizes 80% of the normal samples
             self.image_paths.extend(normal_imgs[:split_idx])
             self.labels.extend([0] * split_idx)
             self.mask_paths.extend([None] * split_idx)
         else:
-            # Testing utilizes the remaining 20% normal samples
             test_normals = normal_imgs[split_idx:]
             self.image_paths.extend(test_normals)
             self.labels.extend([0] * len(test_normals))
             self.mask_paths.extend([None] * len(test_normals))
             
-            # Incorporate all anomaly samples
             anomaly_imgs = sorted(glob.glob(os.path.join(anomaly_dir, '*.[pj][pn][gG]')))
             self.image_paths.extend(anomaly_imgs)
             self.labels.extend([1] * len(anomaly_imgs))
@@ -114,7 +104,6 @@ class ContinualAnomalyDataset(Dataset):
             if self.mask_transform:
                 mask = self.mask_transform(mask)
         else:
-            # Generate a blank mask for normal samples to maintain tensor shape consistency
             _, h, w = image.shape
             mask = torch.zeros((1, h, w))
             
@@ -126,19 +115,21 @@ class ContinualAnomalyDataset(Dataset):
             'path': img_path
         }
 
-
 class ContinualStreamingManager:
     def __init__(self, config):
-        self.dataset_name = config['dataset']['name']
-        self.root_dir = config['dataset']['root_dir']
-        self.batch_size = config['dataset']['batch_size']
-        self.num_workers = config['dataset']['num_workers']
-        img_size = config['dataset']['img_size']
+        dataset_cfg = config['dataset']
+        
+        self.dataset_name = dataset_cfg['name']
+        self.root_dir = dataset_cfg['root_dir']
+        self.batch_size = dataset_cfg['batch_size']
+        self.num_workers = dataset_cfg['num_workers']
+        self.split_ratio = dataset_cfg['split_ratio']
+        img_size = dataset_cfg['img_size']
         
         self.transform = transforms.Compose([
             transforms.Resize((img_size, img_size)),
             transforms.ToTensor(),
-            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+            transforms.Normalize(mean=dataset_cfg['mean'], std=dataset_cfg['std'])
         ])
         
         self.mask_transform = transforms.Compose([
@@ -155,10 +146,6 @@ class ContinualStreamingManager:
         return sorted(categories)
 
     def get_next_task(self):
-        """
-        Yields dataloaders for the next incremental step.
-        Returns: (train_loader, cumulative_test_loader)
-        """
         if self.current_task_idx >= len(self.categories):
             return None, None
             
@@ -168,6 +155,7 @@ class ContinualStreamingManager:
             root_dir=self.root_dir, 
             dataset_name=self.dataset_name,
             category=current_category, 
+            split_ratio=self.split_ratio,
             is_train=True, 
             transform=self.transform, 
             mask_transform=self.mask_transform
@@ -177,6 +165,7 @@ class ContinualStreamingManager:
             root_dir=self.root_dir, 
             dataset_name=self.dataset_name,
             category=current_category, 
+            split_ratio=self.split_ratio,
             is_train=False,
             transform=self.transform, 
             mask_transform=self.mask_transform
@@ -202,3 +191,12 @@ class ContinualStreamingManager:
         
         self.current_task_idx += 1
         return train_loader, test_loader
+    
+if __name__ == "__main__":
+    config = load_config()
+    manager = ContinualStreamingManager(config)
+    
+    while True:
+        train_loader, test_loader = manager.get_next_task()
+        if train_loader is None:
+            break
