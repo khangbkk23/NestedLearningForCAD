@@ -1,8 +1,6 @@
 dataset:
-  name: "mvtec" 
+  name: "mvtec"
   root_dir: "data/mvtec"
-  # name: "visa"
-  # root_dir: "data/visa"
   img_size: 256
   batch_size: 32
   num_workers: 4
@@ -10,24 +8,36 @@ dataset:
   mean: [0.485, 0.456, 0.406]
   std: [0.229, 0.224, 0.225]
 
+  class_order: [
+    "bottle", "cable", "capsule", "carpet", "grid", 
+    "hazelnut", "leather", "metal_nut", "pill", "screw", 
+    "tile", "toothbrush", "transistor", "wood", "zipper"
+  ]
+
 model:
-  backbone: "vit_base_patch16_256"
+  backbone: "vit_base_patch16_224" 
   embed_dim: 768
   depth: 12
+  freeze_backbone: true
+
   cms_levels: 3
   k: 2
   extract_layers: [3, 6, 9]
 
 memory:
-  coreset_sampling_ratio: 0.01
+  coreset_sampling_ratio: 0.01 # Tỷ lệ nén memory (như PatchCore)
   nearest_neighbors: 9
-  distance_metric: "cosine" 
+  distance_metric: "cosine" # Cosine tốt hơn L2 ở không gian chiều cao (768)
 
 training:
-  epochs_per_task: 10
+  optimizer: "adamw" # Khuyên dùng AdamW cho kiến trúc liên quan đến Transformer
+  scheduler: "cosine" # Cosine Annealing LR
   learning_rate: 0.0001
   weight_decay: 0.00001
+  epochs_per_task: 10
+  
   kd_loss_weight: 1.0
+  
   device: "cuda"
   seed: 42
 
@@ -35,3 +45,4 @@ logging:
   experiment_name: "vit_cms_hybrid_cad"
   results_dir: "results/"
   save_models: true
+  log_frequency: 10

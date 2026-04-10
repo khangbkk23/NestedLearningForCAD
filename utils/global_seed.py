@@ -25,4 +25,4 @@ def set_seed(seed: int = 42, deterministic: bool = True):
     
 if __name__ == "__main__":
     config = load_config()
-    set_seed(config['seed'])
+    set_seed(config['training']['seed'])
