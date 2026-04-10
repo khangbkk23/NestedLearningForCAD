@@ -7,6 +7,7 @@ import torch
 from torch.utils.data import Dataset, DataLoader, ConcatDataset
 from torchvision import transforms
 import logging
+from dataset.noise import Simplex_CLASS
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from conf.config import load_config
@@ -122,11 +123,38 @@ class ContinualAnomalyDataset(Dataset):
         
         img = self.loader(img_path)
         
-        if anomaly == 0 or mask_path == '':
-            img_mask = Image.fromarray(np.zeros((img.size[1], img.size[0]), dtype=np.uint8), mode='L')
-        else:
-            mask_arr = np.array(self.loader_target(mask_path)) > 0
-            img_mask = Image.fromarray((mask_arr.astype(np.uint8) * 255), mode='L')
+        if self.is_train:
+            if np.random.rand() > 0.5:
+                img_w, img_h = img.size
+                freq = 2 ** np.random.randint(self.min_perlin_scale, self.perlin_scale)
+                
+                perlin_noise = self.simplex.rand_2d_octaves(
+                    shape=(img_h, img_w), octaves=6, persistence=0.5, frequency=freq
+                )
+                mask_noise = (perlin_noise > self.perlin_noise_threshold).astype(np.float32)
+                mask_noise_expanded = np.expand_dims(mask_noise, axis=2) 
+                
+                if np.sum(mask_noise) > 0:
+                    img_np = np.array(img).astype(np.float32)
+                    anomaly_source = (img_np * np.random.uniform(0.5, 1.5)).clip(0, 255)
+                    factor = np.random.uniform(0.2, 1.0) 
+                    blended = factor * (mask_noise_expanded * anomaly_source) + (1 - factor) * (mask_noise_expanded * img_np)
+                    img_np = ((1 - mask_noise_expanded) * img_np) + blended
+                    
+                    img = Image.fromarray(img_np.astype(np.uint8))
+                    img_mask = Image.fromarray((mask_noise * 255).astype(np.uint8), mode='L')
+                    anomaly = 1
+                else:
+                    img_mask = Image.fromarray(np.zeros((img.size[1], img.size[0]), dtype=np.uint8), mode='L')
+            else:
+                img_mask = Image.fromarray(np.zeros((img.size[1], img.size[0]), dtype=np.uint8), mode='L')
+
+        else: 
+            if anomaly == 0 or mask_path == '':
+                img_mask = Image.fromarray(np.zeros((img.size[1], img.size[0]), dtype=np.uint8), mode='L')
+            else:
+                mask_arr = np.array(self.loader_target(mask_path)) > 0
+                img_mask = Image.fromarray((mask_arr.astype(np.uint8) * 255), mode='L')
 
         img = self.transform(img) if self.transform is not None else img
         img_mask = self.target_transform(img_mask) if self.target_transform is not None and img_mask is not None else img_mask
