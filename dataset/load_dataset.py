@@ -6,10 +6,13 @@ from PIL import Image
 import torch
 from torch.utils.data import Dataset, DataLoader, ConcatDataset
 from torchvision import transforms
+import imgaug.augmenters as iaa
+
 import logging
 from dataset.noise import Simplex_CLASS
-
+import cv2
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 from conf.config import load_config
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -33,11 +36,11 @@ def get_mask_loader():
     return loader
 
 class ContinualAnomalyDataset(Dataset):
-    def __init__(self, root_dir, dataset_name, category, split_ratio=0.8, is_train=True, transform=None, target_transform=None):
-        self.root_dir = root_dir
-        self.dataset_name = dataset_name.lower()
+    def __init__(self, cfg, category, is_train=True, transform=None, target_transform=None):
+        self.root_dir = cfg['root_dir']
+        self.dataset_name = cfg['name'].lower()
         self.category = category
-        self.split_ratio = split_ratio
+        self.split_ratio = cfg.get('split_ratio', 0.8)
         self.is_train = is_train
         
         self.transform = transform
@@ -46,20 +49,48 @@ class ContinualAnomalyDataset(Dataset):
         self.loader = get_img_loader()
         self.loader_target = get_mask_loader()
         
+        if self.is_train:
+            self.simplex = Simplex_CLASS()
+            self.min_perlin_scale = 4
+            self.perlin_scale = 7
+            self.perlin_noise_threshold = 0.7
+            
+        self.use_dtd = cfg['use_dtd']
+        
+        if self.use_dtd:
+                self.dtd_dir = cfg['dtd_dir']
+                self.dtd_file_list = glob.glob(os.path.join(self.dtd_dir, '*/*.*'))
+                if len(self.dtd_file_list) == 0:
+                    logger.warning(f"Cannot found dtd images at: '{self.dtd_dir}'. Using random generate algorithm")
+                    self.use_dtd = False
+                else:
+                    self.augmenters = [
+                        iaa.GammaContrast((0.5, 2.0), per_channel=True),
+                        iaa.MultiplyAndAddToBrightness(mul=(0.8, 1.2), add=(-30, 30)),
+                        iaa.pillike.EnhanceSharpness(),
+                        iaa.AddToHueAndSaturation((-50, 50), per_channel=True),
+                        iaa.Solarize(0.5, threshold=(32, 128)),
+                        iaa.Posterize(),
+                        iaa.Invert(),
+                        iaa.pillike.Autocontrast(),
+                        iaa.pillike.Equalize(),
+                        iaa.Affine(rotate=(-45, 45))
+                    ]
+        
         self.data_all = []
         self._build_dataset_index()
 
     def _build_dataset_index(self):
         category_path = os.path.join(self.root_dir, self.category)
         if not os.path.exists(category_path):
-            raise FileNotFoundError(f"Không tìm thấy thư mục: {category_path}")
+            raise FileNotFoundError(f"Cannot found: {category_path}")
 
         if self.dataset_name == "mvtec":
             self._parse_mvtec(category_path)
         elif self.dataset_name == "visa":
             self._parse_visa(category_path)
         else:
-            raise ValueError(f"Dataset '{self.dataset_name}' chưa được hỗ trợ.")
+            raise ValueError(f"Dataset '{self.dataset_name}' is not supported.")
             
         logger.info(f"[{self.category.upper()}] Loaded {len(self.data_all)} samples (Train={self.is_train})")
 
@@ -115,7 +146,89 @@ class ContinualAnomalyDataset(Dataset):
 
     def __len__(self):
         return len(self.data_all)
+    
+    def _get_foreground_mask(self, img_np, category):
+        img_gray = cv2.cvtColor(img_np.astype(np.uint8), cv2.COLOR_RGB2GRAY)
+        
+        blur = cv2.GaussianBlur(img_gray, (5, 5), 0)
+        category = category.lower()
+        
+        textures = ['carpet', 'leather', 'tile', 'wood', 'cable', 'transistor', 'grid']
+        if category in textures or self.dataset_name != "mvtec":
+            return np.ones_like(img_gray, dtype=np.float32)
 
+        if category in ['pill', 'hazelnut', 'metal_nut', 'toothbrush']:
+            _, fg_mask = cv2.threshold(blur, 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
+        elif category in ['bottle', 'capsule', 'screw', 'zipper']:
+            _, bg_mask = cv2.threshold(blur, 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
+            fg_mask = cv2.bitwise_not(bg_mask)
+        else:
+            _, fg_mask = cv2.threshold(blur, 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
+
+        kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
+        fg_mask = cv2.morphologyEx(fg_mask, cv2.MORPH_OPEN, kernel)
+        fg_mask = cv2.morphologyEx(fg_mask, cv2.MORPH_CLOSE, kernel)
+        
+        return (fg_mask > 0).astype(np.float32)
+    
+    def _get_semantic_mask(self, img_np, fg_mask):
+        h, w = img_np.shape[:2]
+
+        reg_size = np.random.randint(15, 40)
+        slic = cv2.ximgproc.createSuperpixelSLIC(
+            img_np.astype(np.uint8),
+            algorithm=cv2.ximgproc.SLIC,
+            region_size=reg_size,
+            ruler=15.0
+        )
+        slic.iterate(10)
+
+        labels = slic.getLabels()
+        num_sp = slic.getNumberOfSuperpixels()
+
+        mask = np.zeros((h, w), dtype=np.float32)
+        if num_sp <= 1:
+            return mask
+
+        valid_sp = []
+        for sp_id in range(num_sp):
+            region = (labels == sp_id)
+            if np.mean(fg_mask[region]) > 0.7: 
+                valid_sp.append(sp_id)
+
+        if len(valid_sp) == 0:
+            return mask
+
+        max_sp = max(3, int(len(valid_sp) * 0.15))
+        num_select = np.random.randint(2, max_sp + 1)
+        selected = np.random.choice(valid_sp, num_select, replace=False)
+
+        for sp_id in selected:
+            mask[labels == sp_id] = 1.0
+            
+        k_size = np.random.choice([7, 11, 15])
+        kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (k_size, k_size))
+        
+        mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
+        mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
+        
+        mask = cv2.GaussianBlur(mask, (15, 15), 0)
+        mask = (mask > 0.4).astype(np.float32)
+
+        return mask
+    
+    def _get_dtd_source(self, target_h, target_w):
+        idx = np.random.choice(len(self.dtd_file_list))
+        dtd_img = cv2.imread(self.dtd_file_list[idx])
+        dtd_img = cv2.cvtColor(dtd_img, cv2.COLOR_BGR2RGB)
+        dtd_img = cv2.resize(dtd_img, (target_w, target_h))
+
+        aug_idx = np.random.choice(np.arange(len(self.augmenters)), 3, replace=False)
+        aug = iaa.Sequential([self.augmenters[i] for i in aug_idx])
+        dtd_img = aug(image=dtd_img)
+
+        return dtd_img.astype(np.float32)
+    
     def __getitem__(self, index):
         data = self.data_all[index]
         img_path, mask_path = data['img_path'], data['mask_path']
@@ -126,18 +239,37 @@ class ContinualAnomalyDataset(Dataset):
         if self.is_train:
             if np.random.rand() > 0.5:
                 img_w, img_h = img.size
-                freq = 2 ** np.random.randint(self.min_perlin_scale, self.perlin_scale)
+                img_np = np.array(img).astype(np.float32)
+                fg_mask = self._get_foreground_mask(img_np, self.category)
+            
+                mask_noise = None
+                valid_mask_found = False
+                img_area = img_w * img_h
                 
-                perlin_noise = self.simplex.rand_2d_octaves(
-                    shape=(img_h, img_w), octaves=6, persistence=0.5, frequency=freq
-                )
-                mask_noise = (perlin_noise > self.perlin_noise_threshold).astype(np.float32)
-                mask_noise_expanded = np.expand_dims(mask_noise, axis=2) 
+                for _ in range(3):
+                    temp_mask = self._get_semantic_mask(img_np, fg_mask)
+                    area = np.sum(temp_mask)
+                    if 0.005 * img_area <= area <= 0.15 * img_area:
+                        mask_noise = temp_mask
+                        valid_mask_found = True
+                        break
                 
-                if np.sum(mask_noise) > 0:
-                    img_np = np.array(img).astype(np.float32)
-                    anomaly_source = (img_np * np.random.uniform(0.5, 1.5)).clip(0, 255)
-                    factor = np.random.uniform(0.2, 1.0) 
+                if valid_mask_found:
+                    mask_noise_blurred = cv2.GaussianBlur(mask_noise, (7, 7), 0)
+                    mask_noise_expanded = np.expand_dims(mask_noise_blurred, axis=2)
+                    
+                    if self.use_dtd and np.random.rand() > 0.5:
+                        anomaly_source = self._get_dtd_source(img_h, img_w)
+                        factor = np.random.uniform(0.3, 0.7) 
+                    else:
+                        shift_x = np.random.randint(-img_w//15, img_w//15)
+                        shift_y = np.random.randint(-img_h//15, img_h//15)
+                        anomaly_source = np.roll(img_np, shift=(shift_y, shift_x), axis=(0, 1))
+                        
+                        luminance_jitter = np.random.normal(loc=0, scale=15, size=(img_h, img_w, 1))
+                        anomaly_source = np.clip(anomaly_source * np.random.uniform(0.85, 1.15) + luminance_jitter, 0, 255)
+                        factor = np.random.uniform(0.4, 0.8)
+                        
                     blended = factor * (mask_noise_expanded * anomaly_source) + (1 - factor) * (mask_noise_expanded * img_np)
                     img_np = ((1 - mask_noise_expanded) * img_np) + blended
                     
@@ -145,7 +277,8 @@ class ContinualAnomalyDataset(Dataset):
                     img_mask = Image.fromarray((mask_noise * 255).astype(np.uint8), mode='L')
                     anomaly = 1
                 else:
-                    img_mask = Image.fromarray(np.zeros((img.size[1], img.size[0]), dtype=np.uint8), mode='L')
+                    img_mask = Image.fromarray(np.zeros((img_h, img_w), dtype=np.uint8), mode='L')
+                    anomaly = 0
             else:
                 img_mask = Image.fromarray(np.zeros((img.size[1], img.size[0]), dtype=np.uint8), mode='L')
 
@@ -171,20 +304,20 @@ class ContinualAnomalyDataset(Dataset):
 class ContinualStreamingManager:
 
     def __init__(self, config):
-        dataset_cfg = config['dataset']
+        self.dataset_cfg = config['dataset']
         
-        self.dataset_name = dataset_cfg['name']
-        self.root_dir = dataset_cfg['root_dir']
-        self.batch_size = dataset_cfg['batch_size']
-        self.num_workers = dataset_cfg.get('num_workers', 4)
-        self.split_ratio = dataset_cfg.get('split_ratio', 0.8)
-        self.img_size = dataset_cfg['img_size']
+        self.dataset_name = self.dataset_cfg['name']
+        self.root_dir = self.dataset_cfg['root_dir']
+        self.batch_size = self.dataset_cfg['batch_size']
+        self.num_workers = self.dataset_cfg.get('num_workers', 4)
+        self.split_ratio = self.dataset_cfg.get('split_ratio', 0.8)
+        self.img_size = self.dataset_cfg['img_size']
         
         self.data_transforms = transforms.Compose([
             transforms.Resize((self.img_size, self.img_size)),
             transforms.ToTensor(),
-            transforms.Normalize(mean=dataset_cfg.get('mean', [0.485, 0.456, 0.406]), 
-                                 std=dataset_cfg.get('std', [0.229, 0.224, 0.225]))
+            transforms.Normalize(mean=self.dataset_cfg.get('mean', [0.485, 0.456, 0.406]), 
+                                 std=self.dataset_cfg.get('std', [0.229, 0.224, 0.225]))
         ])
         
         self.gt_transforms = transforms.Compose([
@@ -199,33 +332,41 @@ class ContinualStreamingManager:
     def _get_categories(self):
         if not os.path.exists(self.root_dir):
             raise FileNotFoundError(f"Root dir does not exist: {self.root_dir}")
-        categories = [d for d in os.listdir(self.root_dir) if os.path.isdir(os.path.join(self.root_dir, d))]
-        return sorted(categories)
+        
+        predefined_order = self.dataset_cfg.get('class_order', [])
+        if predefined_order:
+            categories = [c for c in predefined_order if os.path.isdir(os.path.join(self.root_dir, c))]
+        else:
+            categories = [d for d in os.listdir(self.root_dir) if os.path.isdir(os.path.join(self.root_dir, d))]
+        return categories
 
     def get_next_task(self):
         if self.current_task_idx >= len(self.categories):
-            logger.info("Data loading successfully")
+            logger.info("Data loading completed for all tasks.")
             return None, None, None
             
         current_category = self.categories[self.current_task_idx]
-        logger.info(f"==> Chuẩn bị Dataset cho Task {self.current_task_idx}: {current_category.upper()}")
+        logger.info(f"Dataset loading for: {self.current_task_idx}: {current_category.upper()}")
         
         train_dataset = ContinualAnomalyDataset(
-            root_dir=self.root_dir, dataset_name=self.dataset_name,
-            category=current_category, split_ratio=self.split_ratio,
-            is_train=True, transform=self.data_transforms, target_transform=self.gt_transforms
+            cfg=self.dataset_cfg, 
+            category=current_category, 
+            is_train=True, 
+            transform=self.data_transforms, 
+            target_transform=self.gt_transforms
         )
         
         current_test_dataset = ContinualAnomalyDataset(
-            root_dir=self.root_dir, dataset_name=self.dataset_name,
-            category=current_category, split_ratio=self.split_ratio,
-            is_train=False, transform=self.data_transforms, target_transform=self.gt_transforms
+            cfg=self.dataset_cfg, 
+            category=current_category, 
+            is_train=False, 
+            transform=self.data_transforms, 
+            target_transform=self.gt_transforms
         )
         
         self.test_datasets_history.append(current_test_dataset)
         concat_test_dataset = ConcatDataset(self.test_datasets_history)
         
-        # Tối ưu hóa DataLoader
         loader_kwargs = {
             'batch_size': self.batch_size,
             'num_workers': self.num_workers,

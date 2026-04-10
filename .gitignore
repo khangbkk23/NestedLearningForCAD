@@ -18,7 +18,6 @@ datasets/
 
 # Model checkpoints and results
 checkpoints/
-results/
 logs/
 *.pth
 *.pt
