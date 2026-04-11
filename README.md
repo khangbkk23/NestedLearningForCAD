@@ -12,9 +12,6 @@ venv\Scripts\activate  # Windows
 
 # Install dependencies
 pip install -r requirements.txt
-
-# Test setup
-python test_setup.py
 ```
 
 ## Models
@@ -25,64 +22,46 @@ python test_setup.py
 
 ## Experiment Setup
 
-**Dataset**: CIFAR-10 with task-as-class setup
-- Task 0: class 0 vs others (binary classification)
-- Task 1: class 1 vs others
-- ... up to Task 9
+**Dataset**: CIFAR-10 with pairwise binary task setup
+- Task 0: class 0 vs 1
+- Task 1: class 2 vs 3
+- Task 2: class 4 vs 5
+- Task 3: class 6 vs 7
+- Task 4: class 8 vs 9
 
 **Metrics**: Accuracy, F1, Forgetting (performance drop on previous tasks)
 
-## Running Experiments
+## Run Scripts
 
-### Quick Test
+### Validate CIFAR-10 task loader (pairwise tasks)
 ```bash
-python run_experiment.py --model vit_cms --num_tasks 2 --epochs 2
+python scripts/02_check_cifar_loader.py --download --max_tasks 5 --batch_size 16
 ```
 
-### ViT-CMS (with nested levels)
+Fast offline check (no dataset download):
 ```bash
-python run_experiment.py \
-    --model vit_cms \
-    --cms_levels 3 \
-    --k 2 \
-    --num_tasks 5 \
-    --epochs 10 \
-    --batch_size 32
+python scripts/02_check_cifar_loader.py --use_fake_data --max_tasks 5 --batch_size 16
 ```
 
-### ViT-Simple (baseline)
+This script confirms:
+- Task splits are `(0,1)`, `(2,3)`, `(4,5)`, `(6,7)`, `(8,9)`
+- Each task loader only yields labels from its assigned pair
+- `task_classes` is attached to each task dataset for trainer/evaluator masking
+
+### Legacy anomaly-data pipeline script
 ```bash
-python run_experiment.py \
-    --model vit_simple \
-    --num_tasks 5 \
-    --epochs 10
+python scripts/01_data_preparation.py
 ```
 
-### CNN with Replay
-```bash
-python run_experiment.py \
-    --model cnn_replay \
-    --buffer_size 1000 \
-    --num_tasks 5 \
-    --epochs 10
-```
+Note: smoke-test execution was removed from this pipeline entrypoint.
 
-### Compare All Models
-```bash
-python run_comparison.py
-```
+## Key Parameters (Loader Check)
 
-## Key Parameters
-
-- `--model`: vit_cms | vit_simple | cnn_replay
-- `--cms_levels`: Number of nested levels (default: 3)
-- `--k`: Speed multiplier, level i updates every k^i steps (default: 2)
-- `--num_tasks`: Number of tasks to train (default: 5, max: 10)
-- `--epochs`: Epochs per task (default: 10)
-- `--batch_size`: Batch size (default: 32)
-- `--learning_rate`: Learning rate (default: 1e-4)
-- `--freeze_backbone`: Freeze backbone weights
-- `--cpu`: Use CPU instead of GPU
+- `--data_root`: CIFAR-10 storage location (default: `./data`)
+- `--batch_size`: Batch size for validation pass (default: `16`)
+- `--num_workers`: DataLoader workers (default: `0`)
+- `--max_tasks`: Number of tasks to validate (default: `5`)
+- `--download`: Download CIFAR-10 if not available locally
 
 ## CMS Implementation
 
@@ -103,18 +82,19 @@ for i, level in enumerate(levels):
 
 This creates a hierarchy of processing speeds for continual learning.
 
-## Results
+## Papers
 
-Results are saved to `./results/<experiment_name>/`:
-- `results.json`: Complete metrics
-- `config.json`: Experiment configuration
+- `papers/ReplayCAD_Generative_Diffusion_Replay_for_Continual_Anomaly_Detection.pdf`
+- `papers/CADIC_Continual_Anomaly_Detection_Based_on_Incremental_Coreset.pdf`
+- `papers/Nested_Learning_The_Illusion_of_Deep_Learning_Architectures.pdf`
 
 ## Structure
 
 ```
-models/          # CMS, ViT-CMS, ViT-Simple, CNN-Replay
-datasets/        # Task-as-class CIFAR-10 loaders
-training/        # Trainer and Evaluator
-run_experiment.py    # Main experiment runner
-test_setup.py        # Component tests
+conf/                 # YAML and config loader
+dataset/              # MVTec pipeline + CIFAR task dataloader
+models/               # CMS, ViT/CNN model definitions
+scripts/              # Utility scripts (data prep, CIFAR loader check)
+training/             # Trainer and evaluator
+papers/               # Reference papers
 ```

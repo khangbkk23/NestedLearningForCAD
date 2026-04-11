@@ -92,5 +92,5 @@ def verify_data_pipeline():
     
     logger.info(f"Saved images at: {save_path}")
 
-if __name__ == "__main__":  
-    verify_data_pipeline()
+if __name__ == "__main__":
+    logger.info("Smoke-test entrypoint removed from this pipeline script.")
