@@ -2,7 +2,22 @@ from ctypes import c_int64
 from math import floor
 
 import numpy as np
-from numba import njit, prange
+import random
+
+try:
+    from numba import njit, prange
+except ImportError:
+    # Fallback keeps functionality when numba is not installed.
+    def njit(*args, **kwargs):
+        if args and callable(args[0]) and len(args) == 1 and not kwargs:
+            return args[0]
+
+        def decorator(func):
+            return func
+
+        return decorator
+
+    prange = range
 
 
 class Simplex_CLASS:
@@ -11,8 +26,10 @@ class Simplex_CLASS:
         self.newSeed()
 
     def newSeed(self, seed=None):
-        if not seed:
-            seed = np.random.randint(-10000000000, 10000000000)
+        # treat 0 as a valid seed; only generate when seed is None
+        if seed is None:
+            # use Python's random to avoid numpy int32 bounds issues
+            seed = random.randint(-(2**63), 2**63 - 1)
         self._perm, self._perm_grad_index3 = _init(seed)
 
 

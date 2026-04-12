@@ -6,12 +6,14 @@ from PIL import Image
 import torch
 from torch.utils.data import Dataset, DataLoader, ConcatDataset
 from torchvision import transforms
-import imgaug.augmenters as iaa
+
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+if PROJECT_ROOT not in sys.path:
+    sys.path.append(PROJECT_ROOT)
 
 import logging
 from dataset.noise import Simplex_CLASS
 import cv2
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from conf.config import load_config
 
@@ -21,19 +23,18 @@ logger = logging.getLogger(__name__)
 import warnings
 warnings.filterwarnings("ignore", "(Possibly )?corrupt EXIF data", UserWarning)
 
-def get_img_loader():
-    def loader(path):
-        with open(path, 'rb') as f:
-            img = Image.open(f)
-            return img.convert('RGB')
-    return loader
+def default_image_loader(path):
+    """Top-level image loader (picklable for multiprocessing)."""
+    with open(path, 'rb') as f:
+        img = Image.open(f)
+        return img.convert('RGB')
 
-def get_mask_loader():
-    def loader(path):
-        with open(path, 'rb') as f:
-            img = Image.open(f)
-            return img.convert('L')
-    return loader
+
+def default_mask_loader(path):
+    """Top-level mask loader (picklable for multiprocessing)."""
+    with open(path, 'rb') as f:
+        img = Image.open(f)
+        return img.convert('L')
 
 class ContinualAnomalyDataset(Dataset):
     def __init__(self, cfg, category, is_train=True, transform=None, target_transform=None):
@@ -46,8 +47,9 @@ class ContinualAnomalyDataset(Dataset):
         self.transform = transform
         self.target_transform = target_transform
         
-        self.loader = get_img_loader()
-        self.loader_target = get_mask_loader()
+        # use module-level loader functions so the dataset is picklable
+        self.loader = default_image_loader
+        self.loader_target = default_mask_loader
         
         if self.is_train:
             self.simplex = Simplex_CLASS()
@@ -65,16 +67,16 @@ class ContinualAnomalyDataset(Dataset):
                     self.use_dtd = False
                 else:
                     self.augmenters = [
-                        iaa.GammaContrast((0.5, 2.0), per_channel=True),
-                        iaa.MultiplyAndAddToBrightness(mul=(0.8, 1.2), add=(-30, 30)),
-                        iaa.pillike.EnhanceSharpness(),
-                        iaa.AddToHueAndSaturation((-50, 50), per_channel=True),
-                        iaa.Solarize(0.5, threshold=(32, 128)),
-                        iaa.Posterize(),
-                        iaa.Invert(),
-                        iaa.pillike.Autocontrast(),
-                        iaa.pillike.Equalize(),
-                        iaa.Affine(rotate=(-45, 45))
+                        'gamma_contrast',
+                        'brightness',
+                        'sharpness',
+                        'hue_saturation',
+                        'solarize',
+                        'posterize',
+                        'invert',
+                        'autocontrast',
+                        'equalize',
+                        'rotate'
                     ]
         
         self.data_all = []
@@ -216,6 +218,69 @@ class ContinualAnomalyDataset(Dataset):
         mask = (mask > 0.4).astype(np.float32)
 
         return mask
+
+    def _apply_dtd_augmentation(self, image, aug_name):
+        if aug_name == 'gamma_contrast':
+            gamma = np.random.uniform(0.5, 2.0)
+            adjusted = np.power(image.astype(np.float32) / 255.0, gamma) * 255.0
+            return np.clip(adjusted, 0, 255).astype(np.uint8)
+
+        if aug_name == 'brightness':
+            mul = np.random.uniform(0.8, 1.2)
+            add = np.random.uniform(-30, 30)
+            adjusted = image.astype(np.float32) * mul + add
+            return np.clip(adjusted, 0, 255).astype(np.uint8)
+
+        if aug_name == 'sharpness':
+            blurred = cv2.GaussianBlur(image, (0, 0), sigmaX=1.0)
+            return cv2.addWeighted(image, 1.5, blurred, -0.5, 0)
+
+        if aug_name == 'hue_saturation':
+            hsv = cv2.cvtColor(image, cv2.COLOR_RGB2HSV).astype(np.int16)
+            hsv[..., 0] = (hsv[..., 0] + np.random.randint(-50, 51)) % 180
+            hsv[..., 1] = np.clip(hsv[..., 1] + np.random.randint(-50, 51), 0, 255)
+            return cv2.cvtColor(hsv.astype(np.uint8), cv2.COLOR_HSV2RGB)
+
+        if aug_name == 'solarize':
+            threshold = np.random.randint(32, 129)
+            return np.where(image < threshold, image, 255 - image).astype(np.uint8)
+
+        if aug_name == 'posterize':
+            bits = np.random.randint(3, 7)
+            shift = 8 - bits
+            return ((image >> shift) << shift).astype(np.uint8)
+
+        if aug_name == 'invert':
+            return (255 - image).astype(np.uint8)
+
+        if aug_name == 'autocontrast':
+            out = image.astype(np.float32).copy()
+            for c in range(out.shape[2]):
+                channel = out[..., c]
+                lo = channel.min()
+                hi = channel.max()
+                if hi > lo:
+                    out[..., c] = (channel - lo) * (255.0 / (hi - lo))
+            return np.clip(out, 0, 255).astype(np.uint8)
+
+        if aug_name == 'equalize':
+            ycrcb = cv2.cvtColor(image, cv2.COLOR_RGB2YCrCb)
+            ycrcb[..., 0] = cv2.equalizeHist(ycrcb[..., 0])
+            return cv2.cvtColor(ycrcb, cv2.COLOR_YCrCb2RGB)
+
+        if aug_name == 'rotate':
+            h, w = image.shape[:2]
+            angle = float(np.random.uniform(-45, 45))
+            matrix = cv2.getRotationMatrix2D((w / 2.0, h / 2.0), angle, 1.0)
+            return cv2.warpAffine(
+                image,
+                matrix,
+                (w, h),
+                flags=cv2.INTER_LINEAR,
+                borderMode=cv2.BORDER_REFLECT_101,
+            )
+
+        return image
     
     def _get_dtd_source(self, target_h, target_w):
         idx = np.random.choice(len(self.dtd_file_list))
@@ -223,9 +288,10 @@ class ContinualAnomalyDataset(Dataset):
         dtd_img = cv2.cvtColor(dtd_img, cv2.COLOR_BGR2RGB)
         dtd_img = cv2.resize(dtd_img, (target_w, target_h))
 
-        aug_idx = np.random.choice(np.arange(len(self.augmenters)), 3, replace=False)
-        aug = iaa.Sequential([self.augmenters[i] for i in aug_idx])
-        dtd_img = aug(image=dtd_img)
+        num_aug = min(3, len(self.augmenters))
+        aug_idx = np.random.choice(np.arange(len(self.augmenters)), num_aug, replace=False)
+        for i in aug_idx:
+            dtd_img = self._apply_dtd_augmentation(dtd_img, self.augmenters[i])
 
         return dtd_img.astype(np.float32)
     
@@ -386,7 +452,8 @@ class ContinualStreamingManager:
         return train_loader, test_loader, task_info
 
 if __name__ == "__main__":
-    config = load_config()
+    default_config = os.path.join(PROJECT_ROOT, "conf", "config.yaml")
+    config = load_config(default_config)
     manager = ContinualStreamingManager(config)
     
     train_loader, test_loader, info = manager.get_next_task()
