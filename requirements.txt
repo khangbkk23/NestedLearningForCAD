@@ -11,5 +11,4 @@ seaborn>=0.12.0
 
 # Utilities
 Pillow>=9.5.0
-imgaug
-opencv_contrib_python
+opencv-contrib-python>=4.10.0
