@@ -158,7 +158,7 @@ class ViT_CMS(nn.Module):
     # Standard ViT-B/16 settings as defaults; override via config
     def __init__(
         self,
-        model_name: str = 'vit_base_patch16_256',
+        model_name: str = 'vit_base_patch16_224',
         pretrained: bool = True,
         cms_levels: int = 3,
         k: int = 2,
@@ -267,11 +267,20 @@ class ViT_CMS(nn.Module):
     def __del__(self):
         self.remove_hooks()
 
+    def set_titans_learning_mode(self, is_normal_image: bool):
+        """
+        Bật/Tắt khả năng tự học của lõi TITANS.
+        Chỉ cho phép học (True) khi batch data hiện tại là ảnh KHÔNG BỊ LỖI (Normal).
+        """
+        for name, module in self.named_modules():
+            if isinstance(module, CMS):
+                module.update_allowed = is_normal_image
+
 
 class ViT_Simple(nn.Module):
     def __init__(
         self,
-        model_name: str = 'vit_base_patch16_256',
+        model_name: str = 'vit_base_patch16_224',
         pretrained: bool = True,
         img_size: int = 256,
         extract_layers: List[int] = (3, 6, 9),
