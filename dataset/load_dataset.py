@@ -298,16 +298,21 @@ class ContinualAnomalyDataset(Dataset):
     def __getitem__(self, index):
         data = self.data_all[index]
         img_path, mask_path = data['img_path'], data['mask_path']
-        cls_name, anomaly = data['cls_name'], data['anomaly']
+        cls_name, specie_name, anomaly = data['cls_name'], data['specie_name'], data['anomaly']
         
         img = self.loader(img_path)
+        img_w, img_h = img.size
         
         if self.is_train:
-            if np.random.rand() > 0.5:
-                img_w, img_h = img.size
+            # Paper (CLAD): train set is normal-only.
+            # We extend with synthetic anomaly generation (50% chance) to enable
+            # supervised pixel-level training — stronger than pure reconstruction.
+            generate_anomaly = (np.random.rand() > 0.5)
+            
+            if generate_anomaly:
                 img_np = np.array(img).astype(np.float32)
                 fg_mask = self._get_foreground_mask(img_np, self.category)
-            
+                
                 mask_noise = None
                 valid_mask_found = False
                 img_area = img_w * img_h
@@ -326,16 +331,15 @@ class ContinualAnomalyDataset(Dataset):
                     
                     if self.use_dtd and np.random.rand() > 0.5:
                         anomaly_source = self._get_dtd_source(img_h, img_w)
-                        factor = np.random.uniform(0.3, 0.7) 
+                        factor = np.random.uniform(0.3, 0.7)
                     else:
                         shift_x = np.random.randint(-img_w//15, img_w//15)
                         shift_y = np.random.randint(-img_h//15, img_h//15)
                         anomaly_source = np.roll(img_np, shift=(shift_y, shift_x), axis=(0, 1))
-                        
                         luminance_jitter = np.random.normal(loc=0, scale=15, size=(img_h, img_w, 1))
                         anomaly_source = np.clip(anomaly_source * np.random.uniform(0.85, 1.15) + luminance_jitter, 0, 255)
                         factor = np.random.uniform(0.4, 0.8)
-                        
+                    
                     blended = factor * (mask_noise_expanded * anomaly_source) + (1 - factor) * (mask_noise_expanded * img_np)
                     img_np = ((1 - mask_noise_expanded) * img_np) + blended
                     
@@ -343,14 +347,18 @@ class ContinualAnomalyDataset(Dataset):
                     img_mask = Image.fromarray((mask_noise * 255).astype(np.uint8), mode='L')
                     anomaly = 1
                 else:
+                    # Could not find a valid mask region → keep as normal
                     img_mask = Image.fromarray(np.zeros((img_h, img_w), dtype=np.uint8), mode='L')
                     anomaly = 0
             else:
-                img_mask = Image.fromarray(np.zeros((img.size[1], img.size[0]), dtype=np.uint8), mode='L')
+                # Normal sample: no synthetic anomaly
+                img_mask = Image.fromarray(np.zeros((img_h, img_w), dtype=np.uint8), mode='L')
+                anomaly = 0
 
-        else: 
+        else:
+            # Test: load real ground-truth masks (from dataset)
             if anomaly == 0 or mask_path == '':
-                img_mask = Image.fromarray(np.zeros((img.size[1], img.size[0]), dtype=np.uint8), mode='L')
+                img_mask = Image.fromarray(np.zeros((img_h, img_w), dtype=np.uint8), mode='L')
             else:
                 mask_arr = np.array(self.loader_target(mask_path)) > 0
                 img_mask = Image.fromarray((mask_arr.astype(np.uint8) * 255), mode='L')
@@ -360,10 +368,11 @@ class ContinualAnomalyDataset(Dataset):
         img_mask = [] if img_mask is None else img_mask
 
         return {
-            'img': img, 
-            'img_mask': img_mask, 
-            'cls_name': cls_name, 
-            'anomaly': anomaly, 
+            'img': img,
+            'img_mask': img_mask,
+            'cls_name': cls_name,
+            'specie_name': specie_name,
+            'anomaly': anomaly,
             'img_path': img_path
         }
 
