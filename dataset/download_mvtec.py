@@ -15,7 +15,7 @@ def download_and_extract_mvtec(data_dir="data"):
     os.makedirs(extract_dir, exist_ok=True)
     
     with tarfile.open(tar_path, "r:xz") as tar:
-        tar.extractall(path=extract_dir)
+        tar.extractall(path=extract_dir)    
 
 if __name__ == "__main__":
     download_and_extract_mvtec()
