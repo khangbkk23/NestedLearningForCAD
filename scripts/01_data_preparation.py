@@ -5,6 +5,7 @@ import torch
 import matplotlib.pyplot as plt
 import logging
 import random
+import argparse
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
@@ -14,6 +15,22 @@ from dataset.load_dataset import ContinualStreamingManager
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
+
+def parse_args():
+    parser = argparse.ArgumentParser(description="Data pipeline verification for anomaly dataset setup")
+    parser.add_argument(
+        "--config",
+        type=str,
+        default="./conf/config.yaml",
+        help="Path to YAML config file",
+    )
+    parser.add_argument(
+        "--run_verify",
+        action="store_true",
+        help="Run pipeline verification instead of printing legacy smoke-test notice",
+    )
+    return parser.parse_args()
+
 def denormalize(tensor, mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]):
 
     tensor = tensor.clone().detach().cpu()
@@ -22,11 +39,11 @@ def denormalize(tensor, mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]):
     tensor = torch.clamp(tensor, 0, 1)
     return (tensor.permute(1, 2, 0).numpy() * 255).astype(np.uint8)
 
-def verify_data_pipeline():
+def verify_data_pipeline(config_path="./conf/config.yaml"):
     logger.info("Starting checking data pipeline")
 
     try:
-        config = load_config("./conf/config.yaml")
+        config = load_config(config_path)
     except Exception as e:
         logger.error(f"Loading config file is not successfully: {e}")
         return
@@ -92,5 +109,10 @@ def verify_data_pipeline():
     
     logger.info(f"Saved images at: {save_path}")
 
-if __name__ == "__main__":  
-    verify_data_pipeline()
+if __name__ == "__main__":
+    args = parse_args()
+    if args.run_verify:
+        verify_data_pipeline(config_path=args.config)
+    else:
+        logger.info("Smoke-test entrypoint removed from this pipeline script.")
+        logger.info("Run with --run_verify to execute the pipeline verification flow.")
