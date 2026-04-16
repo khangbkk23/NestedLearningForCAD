@@ -12,7 +12,6 @@ if PROJECT_ROOT not in sys.path:
     sys.path.append(PROJECT_ROOT)
 
 import logging
-import cv2
 
 from conf.config import load_config
 from dataset.anomaly_generators import build_anomaly_generator
