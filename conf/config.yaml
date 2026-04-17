@@ -17,10 +17,14 @@ dataset:
   ]
 
 model:
-  backbone: "vit_base_patch16_224" 
+  backbone: "vit_base_patch16_224"
+  pretrained: true
   embed_dim: 768
   depth: 12
   freeze_backbone: true
+  freeze_patch_embed: false
+  use_spatial_gate: true
+  reduced_dim: 128
 
   cms_levels: 3
   k: 2
@@ -37,6 +41,10 @@ training:
   learning_rate: 0.0001
   weight_decay: 0.00001
   epochs_per_task: 10
+  task_type: "anomaly"
+  pixel_loss_weight: 0.2
+  use_replay: false
+  replay_batch_size: 32
   
   kd_loss_weight: 1.0
   
@@ -48,3 +56,6 @@ logging:
   results_dir: "results/"
   save_models: true
   log_frequency: 10
+  use_wandb: false
+  wandb_project: "nested-learning-for-cad"
+  wandb_entity: null

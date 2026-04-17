@@ -1,7 +1,4 @@
-"""
-Simple CNN Baseline with Replay Buffer for Continual Learning
-FIXED: ReplayBuffer logic to avoid Tensor comparison error
-"""
+"""Simple CNN baseline with replay buffer utilities."""
 
 import torch
 import torch.nn as nn
