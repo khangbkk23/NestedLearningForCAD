@@ -4,6 +4,7 @@ torchvision>=0.15.0
 timm>=0.9.0
 numpy>=1.24.0
 tqdm>=4.65.0
+scikit-learn>=1.4.0
 
 # Visualization
 matplotlib>=3.7.0
@@ -12,3 +13,6 @@ seaborn>=0.12.0
 # Utilities
 Pillow>=9.5.0
 opencv-contrib-python>=4.10.0
+
+# Optional experiment tracking
+wandb>=0.17.0

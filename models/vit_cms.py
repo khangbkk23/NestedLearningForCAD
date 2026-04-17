@@ -4,6 +4,7 @@ import torch.nn.functional as F
 import timm
 from typing import List, Optional, Tuple, Dict
 from .cms import CMS
+from .cnn_baseline import ReplayBuffer
 
 def replace_mlp_with_cms(
     model: nn.Module,
@@ -239,25 +240,81 @@ class ViT_CMS(nn.Module):
         ]
 
         if scale_feats:
-            anomaly_map = self.decoder(scale_feats)          # (B, 1, H, W)
-            anomaly_map = torch.sigmoid(anomaly_map)
+            anomaly_logits = self.decoder(scale_feats)       # (B, 1, H, W)
+            anomaly_map = torch.sigmoid(anomaly_logits)
+            image_logit = anomaly_logits.mean(dim=(1, 2, 3))
         else:
-            score = cls_features.mean(dim=-1, keepdim=True)  # (B, 1)
-            anomaly_map = score[:, :, None, None].expand(
+            image_logit = cls_features.mean(dim=-1)          # (B,)
+            anomaly_map = torch.sigmoid(
+                image_logit[:, None, None, None].expand(
                 -1, 1, self.img_size, self.img_size
+                )
             )
 
-        image_score = anomaly_map.mean(dim=(1, 2, 3))        # (B,)
+        image_score = torch.sigmoid(image_logit)             # (B,)
 
         return {
             'anomaly_map':    anomaly_map,    # (B, 1, H, W) — for Pixel-AP
             'image_score':    image_score,    # (B,)          — for AUROC
+            'image_logit':    image_logit,    # (B,)          — for BCEWithLogits
             'features':       cls_features,   # (B, C)        — for KD loss
             'patch_features': scale_feats,    # list[(B,N,C)] — for memory bank
         }
 
     def get_features(self, x: torch.Tensor) -> torch.Tensor:
         return self.forward(x)['features']
+
+
+class ViT_Replay(nn.Module):
+    """
+    Replay-capable ViT wrapper for compatibility with classification pipelines.
+    Uses ViT_CMS feature extractor and a lightweight linear classifier head.
+    """
+
+    def __init__(
+        self,
+        num_classes: int = 10,
+        buffer_size: int = 1000,
+        sampling_strategy: str = 'balanced',
+        classifier_dropout: float = 0.0,
+        **vit_kwargs,
+    ):
+        super().__init__()
+        self.vit = ViT_CMS(**vit_kwargs)
+        self.replay_buffer = ReplayBuffer(
+            buffer_size=buffer_size,
+            sampling_strategy=sampling_strategy,
+        )
+        self.num_classes = num_classes
+
+        if classifier_dropout > 0:
+            self.classifier = nn.Sequential(
+                nn.Dropout(classifier_dropout),
+                nn.Linear(self.vit.embed_dim, num_classes),
+            )
+        else:
+            self.classifier = nn.Linear(self.vit.embed_dim, num_classes)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        features = self.vit.get_features(x)
+        return self.classifier(features)
+
+    def forward_with_outputs(self, x: torch.Tensor) -> Dict[str, torch.Tensor]:
+        outputs = self.vit(x)
+        outputs['logits'] = self.classifier(outputs['features'])
+        return outputs
+
+    def get_features(self, x: torch.Tensor) -> torch.Tensor:
+        return self.vit.get_features(x)
+
+    def add_to_buffer(self, images, labels, task_id):
+        self.replay_buffer.add_samples(images, labels, task_id)
+
+    def sample_from_buffer(self, batch_size):
+        return self.replay_buffer.sample(batch_size)
+
+    def get_buffer_size(self):
+        return len(self.replay_buffer)
 
     def remove_hooks(self):
         for h in self._hooks:

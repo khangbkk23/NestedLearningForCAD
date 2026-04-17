@@ -1,31 +1,36 @@
-# Virtual environment
+# Virtual environments
 venv/
 env/
 ENV/
+.venv/
 
-# Python cache
+# Python cache and build artifacts
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
-tempCodeRunnerFile.py
-*.pyc
-# Dataset dire\ctories
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Dataset archives and local data
 data/
 datasets/
 *.tar.gz
 *.zip
 
-# Model checkpoints and results
+# Generated experiment artifacts
 checkpoints/
 logs/
+results/vit_cms_hybrid_cad_*/
+results/sweeps/
 *.pth
 *.pt
 *.ckpt
 
-# Jupyter Notebook
+# Notebook checkpoints
 .ipynb_checkpoints/
-*.ipynb
 
 # IDE
 .vscode/
@@ -33,6 +38,7 @@ logs/
 *.swp
 *.swo
 *~
+tempCodeRunnerFile.py
 
 # OS
 .DS_Store
