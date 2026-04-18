@@ -4,6 +4,7 @@ import torch.nn.functional as F
 import timm
 from typing import List, Optional, Tuple, Dict
 from .cms import CMS
+from .cnn_baseline import ReplayBuffer
 
 def replace_mlp_with_cms(
     model: nn.Module,
@@ -248,16 +249,45 @@ class ViT_CMS(nn.Module):
             )
 
         image_score = anomaly_map.mean(dim=(1, 2, 3))        # (B,)
+        image_logit = torch.logit(image_score.clamp(1e-6, 1 - 1e-6))
 
         return {
             'anomaly_map':    anomaly_map,    # (B, 1, H, W) — for Pixel-AP
             'image_score':    image_score,    # (B,)          — for AUROC
+            'image_logit':    image_logit,    # (B,)          — for BCEWithLogits
             'features':       cls_features,   # (B, C)        — for KD loss
             'patch_features': scale_feats,    # list[(B,N,C)] — for memory bank
         }
 
     def get_features(self, x: torch.Tensor) -> torch.Tensor:
         return self.forward(x)['features']
+
+
+class ViT_Replay(ViT_CMS):
+    def __init__(
+        self,
+        model_name: str = 'vit_base_patch16_256',
+        pretrained: bool = True,
+        num_classes: int = 10,
+        buffer_size: int = 500,
+        **kwargs,
+    ):
+        super().__init__(
+            model_name=model_name,
+            pretrained=pretrained,
+            **kwargs,
+        )
+        self.num_classes = num_classes
+        self.replay_buffer = ReplayBuffer(buffer_size)
+
+    def add_to_buffer(self, x, y, task_id=None):
+        self.replay_buffer.add_data(x, y, task_id)
+
+    def sample_from_buffer(self, batch_size):
+        return self.replay_buffer.sample(batch_size)
+
+    def get_buffer_size(self):
+        return len(self.replay_buffer)
 
     def remove_hooks(self):
         for h in self._hooks:
