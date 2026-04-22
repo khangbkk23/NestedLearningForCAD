@@ -17,18 +17,17 @@ dataset:
   ]
 
 model:
-  backbone: "vit_base_patch16_224"
+  backbone: "vit_small_patch14_dinov2.lvd142m"
   pretrained: true
-  embed_dim: 768
-  depth: 12
   freeze_backbone: true
-  freeze_patch_embed: false
-  use_spatial_gate: true
-  reduced_dim: 128
-
-  cms_levels: 3
-  k: 2
-  extract_layers: [3, 6, 9]
+  prompt_length: 8
+  prompt_layers: 4
+  prompt_dropout: 0.05
+  gating_hidden_dim: 256
+  gating_dropout: 0.1
+  gating_threshold: 0.55
+  use_torchhub_fallback: true
+  torchhub_model: "dinov2_vits14"
 
 memory:
   coreset_sampling_ratio: 0.01
@@ -43,10 +42,23 @@ training:
   epochs_per_task: 10
   task_type: "anomaly"
   pixel_loss_weight: 0.2
+  acc_loss_weight: 0.5
+  proxy_loss_weight: 0.5
+  ln_loss_weight: 0.1
+  gradient_clip_norm: 1.0
+
+  titans_bank_size: 8192
+  titans_k_neighbors: 8
+  slow_memory_size: 2048
+
+  nsp2_svd_tol: 0.000001
+  nsp2_svd_rel_tol: 0.0001
+
+  cbp_patience: 50
+  cbp_activation_threshold: 0.00001
+
   use_replay: false
   replay_batch_size: 32
-  
-  kd_loss_weight: 1.0
   
   device: "cuda"
   seed: 42

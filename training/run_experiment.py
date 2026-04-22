@@ -16,7 +16,7 @@ if str(PROJECT_ROOT) not in sys.path:
 
 from conf.config import load_config
 from dataset.load_dataset import ContinualStreamingManager
-from models import ViT_CMS, ViT_Replay
+from models import DinoNSP2
 from training import Evaluator, Trainer
 from utils.global_seed import set_seed
 
@@ -56,32 +56,21 @@ def resolve_device(requested_device: str) -> str:
 
 def build_model(config: Dict[str, Any]) -> torch.nn.Module:
     model_cfg = config.get("model", {})
-    training_cfg = config.get("training", {})
 
-    use_replay = bool(training_cfg.get("use_replay", False))
-    model_cls = ViT_Replay if use_replay else ViT_CMS
-
-    common_kwargs = {
-        "model_name": model_cfg.get("backbone", "vit_base_patch16_224"),
-        "pretrained": bool(model_cfg.get("pretrained", True)),
-        "cms_levels": int(model_cfg.get("cms_levels", 3)),
-        "k": int(model_cfg.get("k", 2)),
-        "extract_layers": model_cfg.get("extract_layers", [3, 6, 9]),
-        "img_size": int(config.get("dataset", {}).get("img_size", 256)),
-        "use_spatial_gate": bool(model_cfg.get("use_spatial_gate", True)),
-        "freeze_backbone": bool(model_cfg.get("freeze_backbone", False)),
-        "freeze_patch_embed": bool(model_cfg.get("freeze_patch_embed", False)),
-        "reduced_dim": int(model_cfg.get("reduced_dim", 128)),
-    }
-
-    if use_replay:
-        return model_cls(
-            num_classes=int(model_cfg.get("num_classes", 2)),
-            buffer_size=int(training_cfg.get("replay_buffer_size", 500)),
-            **common_kwargs,
-        )
-
-    return model_cls(**common_kwargs)
+    return DinoNSP2(
+        model_name=str(model_cfg.get("backbone", "vit_small_patch14_dinov2.lvd142m")),
+        pretrained=bool(model_cfg.get("pretrained", True)),
+        img_size=int(config.get("dataset", {}).get("img_size", 256)),
+        prompt_length=int(model_cfg.get("prompt_length", max(2, int(model_cfg.get("k", 2)) * 4))),
+        prompt_layers=int(model_cfg.get("prompt_layers", model_cfg.get("cms_levels", 3))),
+        prompt_dropout=float(model_cfg.get("prompt_dropout", 0.0)),
+        freeze_backbone=bool(model_cfg.get("freeze_backbone", True)),
+        gating_hidden_dim=int(model_cfg.get("gating_hidden_dim", 256)),
+        gating_dropout=float(model_cfg.get("gating_dropout", 0.1)),
+        gating_threshold=float(model_cfg.get("gating_threshold", 0.55)),
+        use_torchhub_fallback=bool(model_cfg.get("use_torchhub_fallback", True)),
+        torchhub_model=str(model_cfg.get("torchhub_model", "dinov2_vits14")),
+    )
 
 
 def maybe_init_wandb(
@@ -185,8 +174,21 @@ def run_experiment(
         learning_rate=float(training_cfg.get("learning_rate", 1e-4)),
         use_replay=bool(training_cfg.get("use_replay", False)),
         replay_batch_size=int(training_cfg.get("replay_batch_size", 32)),
-        task_type=str(training_cfg.get("task_type", "auto")),
+        task_type=str(training_cfg.get("task_type", "anomaly")),
         pixel_loss_weight=float(training_cfg.get("pixel_loss_weight", 0.2)),
+        weight_decay=float(training_cfg.get("weight_decay", 1e-5)),
+        acc_loss_weight=float(training_cfg.get("acc_loss_weight", 0.5)),
+        proxy_loss_weight=float(training_cfg.get("proxy_loss_weight", 0.5)),
+        ln_loss_weight=float(training_cfg.get("ln_loss_weight", 0.1)),
+        gradient_clip_norm=float(training_cfg.get("gradient_clip_norm", 1.0)),
+        titans_bank_size=int(training_cfg.get("titans_bank_size", 8192)),
+        titans_k_neighbors=int(training_cfg.get("titans_k_neighbors", 8)),
+        slow_memory_size=int(training_cfg.get("slow_memory_size", 2048)),
+        nsp2_svd_tol=float(training_cfg.get("nsp2_svd_tol", 1e-6)),
+        nsp2_svd_rel_tol=float(training_cfg.get("nsp2_svd_rel_tol", 1e-4)),
+        cbp_patience=int(training_cfg.get("cbp_patience", 50)),
+        cbp_activation_threshold=float(training_cfg.get("cbp_activation_threshold", 1e-5)),
+        covariance_dir=(run_dir / "covariances").as_posix(),
     )
     evaluator = Evaluator(model=model, device=device)
 
