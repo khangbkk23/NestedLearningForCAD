@@ -26,7 +26,7 @@ def default_image_loader(path):
     """Top-level image loader (picklable for multiprocessing)."""
     with open(path, 'rb') as f:
         img = Image.open(f)
-        return img.convert('RGB')
+        return np.array(img.convert('RGB'))
 
 
 def default_mask_loader(path):
@@ -34,6 +34,12 @@ def default_mask_loader(path):
     with open(path, 'rb') as f:
         img = Image.open(f)
         return img.convert('L')
+
+
+def _ensure_uint8(img_np: np.ndarray) -> np.ndarray:
+    if img_np.dtype != np.uint8:
+        img_np = np.clip(img_np, 0, 255).astype(np.uint8)
+    return img_np
 
 class ContinualAnomalyDataset(Dataset):
     """
@@ -142,33 +148,36 @@ class ContinualAnomalyDataset(Dataset):
         img_path, mask_path = data['img_path'], data['mask_path']
         cls_name, specie_name, anomaly = data['cls_name'], data['specie_name'], data['anomaly']
 
-        img = self.loader(img_path)
-        img_w, img_h = img.size   # (width, height)
+        img_np = self.loader(img_path)
+        img_h, img_w = img_np.shape[:2]
+        mask_np = np.zeros((img_h, img_w), dtype=np.uint8)
 
         if self.is_train:
             if np.random.rand() > 0.5:
-                img_np = np.array(img).astype(np.float32)   # (H, W, 3)
                 result_np, mask_np, has_anomaly = self.anomaly_generator.generate(
-                    img_np, self.category
+                    img_np.astype(np.float32), self.category
                 )
                 if has_anomaly:
-                    img      = Image.fromarray(result_np.astype(np.uint8))
-                    img_mask = Image.fromarray((mask_np * 255).astype(np.uint8), mode='L')
+                    img_np = result_np
+                    mask_np = (np.clip(mask_np, 0, 1) * 255).astype(np.uint8)
                     anomaly  = 1
                 else:
-                    img_mask = Image.fromarray(np.zeros((img_h, img_w), dtype=np.uint8), mode='L')
-                    anomaly  = 0
+                    mask_np = np.zeros((img_h, img_w), dtype=np.uint8)
+                    anomaly = 0
             else:
                 # Normal sample
-                img_mask = Image.fromarray(np.zeros((img_h, img_w), dtype=np.uint8), mode='L')
-                anomaly  = 0
+                mask_np = np.zeros((img_h, img_w), dtype=np.uint8)
+                anomaly = 0
 
         else:
             if anomaly == 0 or mask_path == '':
-                img_mask = Image.fromarray(np.zeros((img_h, img_w), dtype=np.uint8), mode='L')
+                mask_np = np.zeros((img_h, img_w), dtype=np.uint8)
             else:
                 mask_arr = np.array(self.loader_target(mask_path)) > 0
-                img_mask = Image.fromarray((mask_arr.astype(np.uint8) * 255), mode='L')
+                mask_np = (mask_arr.astype(np.uint8) * 255)
+
+        img = Image.fromarray(_ensure_uint8(img_np), mode='RGB')
+        img_mask = Image.fromarray(mask_np, mode='L')
 
         img      = self.transform(img)             if self.transform        is not None else img
         img_mask = self.target_transform(img_mask) if self.target_transform is not None else img_mask

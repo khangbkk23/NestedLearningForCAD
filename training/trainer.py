@@ -12,6 +12,7 @@ from tqdm import tqdm
 
 from models.titans_memory import TITANSMemory
 from .memory_buffer import SlowMemory
+from .cms_optim import CMSOptimizerWrapper
 from .nsp2_optim import NSP2Optimizer
 
 
@@ -96,8 +97,13 @@ class Trainer:
                 weight_decay=float(weight_decay),
             )
 
-        self.optimizer = NSP2Optimizer(
+        cms_optimizer = CMSOptimizerWrapper(
             optimizer=base_optimizer,
+            model=self.model,
+        )
+
+        self.optimizer = NSP2Optimizer(
+            optimizer=cms_optimizer,
             model=self.model,
             prompt_param_names=("prompt_embeddings",),
             svd_tol=nsp2_svd_tol,
@@ -256,7 +262,8 @@ class Trainer:
                         target_masks = F.interpolate(
                             target_masks,
                             size=anomaly_map.shape[-2:],
-                            mode="nearest",
+                            mode="bilinear",
+                            align_corners=False,
                         )
 
                     pixel_loss_value = F.binary_cross_entropy(
@@ -332,5 +339,14 @@ class Trainer:
         }
 
     def set_learning_rate(self, lr: float) -> None:
-        for param_group in self.optimizer.optimizer.param_groups:
+        base_optimizer = self._resolve_base_optimizer()
+        for param_group in base_optimizer.param_groups:
             param_group["lr"] = float(lr)
+
+    def _resolve_base_optimizer(self) -> optim.Optimizer:
+        optimizer: object = self.optimizer
+        while hasattr(optimizer, "optimizer"):
+            optimizer = getattr(optimizer, "optimizer")
+        if not isinstance(optimizer, optim.Optimizer):
+            raise TypeError("Resolved optimizer is not a torch Optimizer.")
+        return optimizer

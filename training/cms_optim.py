@@ -36,10 +36,14 @@ class CMSOptimizerWrapper:
                 if self.global_step % update_freq != 0:
                     p.grad = None
 
-        self.optimizer.step()
+        return self.optimizer.step()
 
     def zero_grad(self, set_to_none: bool = False):
         self.optimizer.zero_grad(set_to_none=set_to_none)
+
+    @property
+    def param_groups(self):
+        return self.optimizer.param_groups
 
     def state_dict(self):
         return self.optimizer.state_dict()

@@ -6,6 +6,7 @@ from typing import List, Dict, Optional, Any, Tuple
 from tqdm import tqdm
 import numpy as np
 from sklearn.metrics import average_precision_score, roc_auc_score, precision_recall_fscore_support
+from torchmetrics.classification import AveragePrecision
 
 
 class Evaluator:
@@ -48,8 +49,8 @@ class Evaluator:
         all_predictions = []
         all_labels = []
         all_scores = []
-        all_pixel_preds = []
-        all_pixel_labels = []
+        pixel_ap_metric = AveragePrecision(task="binary", thresholds=256).to(self.device)
+        pixel_ap_updates = 0
         
         active_classes = getattr(test_loader.dataset, 'task_classes', None)
         
@@ -90,15 +91,21 @@ class Evaluator:
                     target_masks = masks.float().clamp(0, 1)
                     if target_masks.ndim == 3:
                         target_masks = target_masks[:, None, :, :]
-                    if target_masks.shape[-2:] != anomaly_map.shape[-2:]:
+                    anomaly_scores = anomaly_map.float()
+                    if anomaly_scores.ndim == 3:
+                        anomaly_scores = anomaly_scores[:, None, :, :]
+                    if target_masks.shape[-2:] != anomaly_scores.shape[-2:]:
                         target_masks = F.interpolate(
                             target_masks,
-                            size=anomaly_map.shape[-2:],
-                            mode='nearest',
+                            size=anomaly_scores.shape[-2:],
+                            mode='bilinear',
+                            align_corners=False,
                         )
 
-                    all_pixel_preds.extend(anomaly_map.detach().cpu().reshape(-1).numpy().tolist())
-                    all_pixel_labels.extend(target_masks.detach().cpu().reshape(-1).numpy().tolist())
+                    target_masks = (target_masks >= 0.5).to(torch.long)
+
+                    pixel_ap_metric.update(anomaly_scores.detach(), target_masks.detach())
+                    pixel_ap_updates += 1
             else:
                 logits = outputs['logits'] if isinstance(outputs, dict) and 'logits' in outputs else outputs
                 if active_classes is not None:
@@ -151,10 +158,8 @@ class Evaluator:
             metrics['image_auroc'] = 0.0
             metrics['image_ap'] = 0.0
 
-        if len(all_pixel_preds) > 1 and np.unique(np.array(all_pixel_labels)).size > 1:
-            metrics['pixel_ap'] = float(
-                average_precision_score(np.array(all_pixel_labels), np.array(all_pixel_preds))
-            ) * 100
+        if pixel_ap_updates > 0:
+            metrics['pixel_ap'] = float(pixel_ap_metric.compute().detach().cpu()) * 100
         else:
             metrics['pixel_ap'] = 0.0
 

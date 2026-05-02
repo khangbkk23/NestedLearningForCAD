@@ -51,7 +51,7 @@ class RealnetAnomalyGenerator(AnomalyGeneratorBase):
         self.min_perlin_scale = cfg.get("min_perlin_scale", 0)
         self.threshold        = cfg.get("perlin_threshold", 0.5)
 
-        self.dtd_weight  = cfg.get("realnet_dtd_weight", 0.5)
+        self.dtd_weight  = float(cfg.get("realnet_dtd_weight", 0.5))
         dtd_lo, dtd_hi   = cfg.get("realnet_dtd_factor_range", [0.2, 0.8])
         sd_lo,  sd_hi    = cfg.get("realnet_sdas_factor_range", [0.1, 0.6])
         self.dtd_lo, self.dtd_hi = dtd_lo, dtd_hi
@@ -60,7 +60,15 @@ class RealnetAnomalyGenerator(AnomalyGeneratorBase):
         # DTD source
         self.dtd_file_list = []
         dtd_dir = cfg.get("dtd_dir", "")
-        if dtd_dir:
+        if self.dtd_weight > 0:
+            if not dtd_dir:
+                raise FileNotFoundError("[Realnet] dtd_dir is required for DTD textures.")
+            self.dtd_file_list = glob.glob(os.path.join(dtd_dir, "*/*.*"))
+            if not self.dtd_file_list:
+                raise FileNotFoundError(
+                    f"[Realnet] No DTD images found under: {dtd_dir}"
+                )
+        elif dtd_dir:
             self.dtd_file_list = glob.glob(os.path.join(dtd_dir, "*/*.*"))
 
         # SDAS / replay-buffer source
@@ -76,9 +84,11 @@ class RealnetAnomalyGenerator(AnomalyGeneratorBase):
 
         import logging
         log = logging.getLogger(__name__)
-        if not self.dtd_file_list:
-            log.warning("[Realnet] No DTD images found.")
         if not self.sdas_file_list:
+            if self.dtd_weight <= 0:
+                raise FileNotFoundError(
+                    "[Realnet] No SDAS/replay images found and DTD is disabled."
+                )
             log.info("[Realnet] No SDAS/replay images found. Will use DTD only.")
             self.dtd_weight = 1.0   # force DTD
 
@@ -121,7 +131,7 @@ class RealnetAnomalyGenerator(AnomalyGeneratorBase):
 
     def _dtd_source(self, h: int, w: int) -> np.ndarray:
         if not self.dtd_file_list:
-            return np.random.randint(0, 256, (h, w, 3), dtype=np.uint8).astype(np.float32)
+            raise FileNotFoundError("[Realnet] DTD textures are missing.")
         tex = cv2.imread(np.random.choice(self.dtd_file_list))
         tex = cv2.cvtColor(tex, cv2.COLOR_BGR2RGB)
         tex = cv2.resize(tex, (w, h))

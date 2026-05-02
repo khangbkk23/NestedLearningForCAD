@@ -5,6 +5,7 @@ timm>=0.9.0
 numpy>=1.24.0
 tqdm>=4.65.0
 scikit-learn>=1.4.0
+torchmetrics>=1.2.0
 
 # Visualization
 matplotlib>=3.7.0

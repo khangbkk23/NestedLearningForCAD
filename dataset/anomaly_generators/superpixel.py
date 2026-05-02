@@ -94,14 +94,13 @@ class SuperpixelAnomalyGenerator(AnomalyGeneratorBase):
         self.dtd_file_list = []
         if self.use_dtd:
             dtd_dir = cfg.get("dtd_dir", "")
+            if not dtd_dir:
+                raise FileNotFoundError("[Superpixel] dtd_dir is required when use_dtd=True.")
             self.dtd_file_list = glob.glob(os.path.join(dtd_dir, "*/*.*"))
             if not self.dtd_file_list:
-                import logging
-                logging.getLogger(__name__).warning(
-                    f"[Superpixel] No DTD images at '{dtd_dir}'. "
-                    "Falling back to self-shift source."
+                raise FileNotFoundError(
+                    f"[Superpixel] No DTD images found under: {dtd_dir}"
                 )
-                self.use_dtd = False
 
         # SLIC
         self.min_fg_coverage = cfg.get("superpixel_min_fg_coverage", 0.7)

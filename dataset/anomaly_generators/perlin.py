@@ -133,15 +133,13 @@ class PerlinAnomalyGenerator(AnomalyGeneratorBase):
         self.beta_lo, self.beta_hi = beta_lo, beta_hi
 
         # DTD
-        self.dtd_file_list = []
         dtd_dir = cfg.get("dtd_dir", "")
-        if dtd_dir:
-            self.dtd_file_list = glob.glob(os.path.join(dtd_dir, "*/*.*"))
+        if not dtd_dir:
+            raise FileNotFoundError("[Perlin/DRAEM] dtd_dir is required for DTD textures.")
+        self.dtd_file_list = glob.glob(os.path.join(dtd_dir, "*/*.*"))
         if not self.dtd_file_list:
-            import logging
-            logging.getLogger(__name__).warning(
-                "[Perlin/DRAEM] No DTD images found. "
-                "Anomaly source will be a random colour patch."
+            raise FileNotFoundError(
+                f"[Perlin/DRAEM] No DTD images found under: {dtd_dir}"
             )
 
     def _perlin_mask(self, h: int, w: int) -> np.ndarray:
@@ -159,13 +157,11 @@ class PerlinAnomalyGenerator(AnomalyGeneratorBase):
         return (noise > self.threshold).astype(np.float32)
 
     def _dtd_source(self, h: int, w: int) -> np.ndarray:
-        if self.dtd_file_list:
-            path = np.random.choice(self.dtd_file_list)
-            tex = cv2.imread(path)
-            tex = cv2.cvtColor(tex, cv2.COLOR_BGR2RGB)
-        else:
-            # fallback: random colour noise
-            tex = np.random.randint(0, 256, (h, w, 3), dtype=np.uint8)
+        if not self.dtd_file_list:
+            raise FileNotFoundError("[Perlin/DRAEM] DTD textures are missing.")
+        path = np.random.choice(self.dtd_file_list)
+        tex = cv2.imread(path)
+        tex = cv2.cvtColor(tex, cv2.COLOR_BGR2RGB)
         tex = cv2.resize(tex, (w, h))
         tex = _rand_aug(tex)           # 3 colour augmentations
         return tex.astype(np.float32)
