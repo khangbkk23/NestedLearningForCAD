@@ -51,4 +51,6 @@ build/
 .eggs/
 
 # Secrets
-kaggle.json
+kaggle.json# pixi environments
+.pixi/*
+!.pixi/config.toml
