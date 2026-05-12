@@ -16,9 +16,8 @@ if PROJECT_ROOT not in sys.path:
 
 from conf.config import load_config
 from dataset.load_dataset import ContinualStreamingManager
-from models.vit_cms import ViT_CMS
-from training.trainer import Trainer
-from training.evaluator import Evaluator
+from models.meta_nath_core import MetaNATHCore
+from training.meta_nath_engine import MetaNATHEngine
 from utils.global_seed import set_seed
 
 
@@ -69,23 +68,16 @@ def apply_profile(config: Dict[str, Any], profile: str) -> Dict[str, Any]:
 
 def build_model(config: Dict[str, Any]) -> torch.nn.Module:
     model_cfg = config.get('model', {})
-    dataset_cfg = config.get('dataset', {})
+    training_cfg = config.get('training', {})
 
-    backbone = model_cfg.get('backbone', 'vit_base_patch16_224')
-    if 'vit' not in str(backbone).lower():
-        raise ValueError(f"Unsupported backbone '{backbone}'. Current runner supports ViT models only.")
-
-    return ViT_CMS(
-        model_name=backbone,
-        pretrained=bool(model_cfg.get('pretrained', True)),
-        cms_levels=int(model_cfg.get('cms_levels', 3)),
-        k=int(model_cfg.get('k', 2)),
-        extract_layers=list(model_cfg.get('extract_layers', [3, 6, 9])),
-        img_size=int(dataset_cfg.get('img_size', 256)),
-        use_spatial_gate=bool(model_cfg.get('use_spatial_gate', True)),
-        freeze_backbone=bool(model_cfg.get('freeze_backbone', False)),
-        freeze_patch_embed=bool(model_cfg.get('freeze_patch_embed', False)),
-        reduced_dim=int(model_cfg.get('reduced_dim', 128)),
+    return MetaNATHCore(
+        d=int(model_cfg.get('embed_dim', 768)),
+        tau_acc=float(model_cfg.get('tau_acc', 0.25)),
+        max_coreset_size=int(model_cfg.get('max_coreset_size', 1000)),
+        n_patch=int(model_cfg.get('n_patch', 256)),
+        store_images=bool(model_cfg.get('store_images', True)),
+        device=str(training_cfg.get('device', 'cuda')),
+        backbone_name=model_cfg.get('backbone', 'facebook/dinov3-vitb14-pretrain'),
     )
 
 
@@ -153,21 +145,7 @@ def run_experiment(config: Dict[str, Any], run_suffix: str = '', disable_wandb: 
     else:
         device = requested_device
     learning_rate = float(training_cfg.get('learning_rate', 1e-4))
-    use_replay = bool(training_cfg.get('use_replay', False))
-    replay_batch_size = int(training_cfg.get('replay_batch_size', 32))
-    task_type = training_cfg.get('task_type', 'anomaly')
-    pixel_loss_weight = float(training_cfg.get('pixel_loss_weight', 0.2))
-
-    trainer = Trainer(
-        model=model,
-        device=device,
-        learning_rate=learning_rate,
-        use_replay=use_replay,
-        replay_batch_size=replay_batch_size,
-        task_type=task_type,
-        pixel_loss_weight=pixel_loss_weight,
-    )
-    evaluator = Evaluator(model=model, device=device, task_type=task_type)
+    engine = MetaNATHEngine(model=model, device=device)
     stream_manager = ContinualStreamingManager(config)
 
     wandb_run = maybe_init_wandb(config, run_name=run_name, run_dir=run_dir, disable_wandb=disable_wandb)
@@ -188,13 +166,13 @@ def run_experiment(config: Dict[str, Any], run_suffix: str = '', disable_wandb: 
         if not quiet:
             print(f"\n===== Task {task_id}: {category} =====")
 
-        train_metrics = trainer.train_task(
+        train_metrics = engine.train_task(
             train_loader=train_loader,
             task_id=task_id,
             epochs=epochs_per_task,
             verbose=not quiet,
         )
-        eval_metrics = evaluator.evaluate_task(
+        eval_metrics = engine.evaluate_task(
             test_loader=test_loader,
             task_id=task_id,
             verbose=not quiet,
@@ -218,8 +196,7 @@ def run_experiment(config: Dict[str, Any], run_suffix: str = '', disable_wandb: 
                 {
                     'task_id': task_id,
                     'category': category,
-                    'model_state_dict': model.state_dict(),
-                    'optimizer_state_dict': trainer.optimizer.state_dict(),
+                    'model_state_dict': model.full_state_dict(),
                     'config': config,
                 },
                 ckpt_path,
@@ -235,12 +212,16 @@ def run_experiment(config: Dict[str, Any], run_suffix: str = '', disable_wandb: 
                     'train/accuracy': float(train_metrics.get('accuracy', 0.0)),
                     'train/image_loss': float(train_metrics.get('image_loss', 0.0)),
                     'train/pixel_loss': float(train_metrics.get('pixel_loss', 0.0)),
+                    'train/surprise_score': float(train_metrics.get('avg_surprise', 0.0)),
+                    'train/acc_gating': float(train_metrics.get('avg_acc', 0.0)),
+                    'train/coreset_size': float(train_metrics.get('coreset_size', 0.0)),
                     'eval/loss': float(eval_metrics.get('loss', 0.0)),
                     'eval/accuracy': float(eval_metrics.get('accuracy', 0.0)),
                     'eval/f1': float(eval_metrics.get('f1', 0.0)),
                     'eval/auroc': float(eval_metrics.get('auroc', 0.0)),
                     'eval/image_ap': float(eval_metrics.get('image_ap', 0.0)),
                     'eval/pixel_f1': float(eval_metrics.get('pixel_f1', 0.0)),
+                    'eval/pixel_aupr': float(eval_metrics.get('pixel_aupr', 0.0)),
                 },
                 step=task_id,
             )

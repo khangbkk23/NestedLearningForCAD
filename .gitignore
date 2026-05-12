@@ -23,8 +23,8 @@ datasets/
 # Generated experiment artifacts
 checkpoints/
 logs/
-results/vit_cms_hybrid_cad_*/
-results/sweeps/
+results/
+wandb/
 *.pth
 *.pt
 *.ckpt
@@ -50,7 +50,12 @@ build/
 *.egg-info/
 .eggs/
 
-# Secrets
-kaggle.json# pixi environments
+# Secrets and local configs
+kaggle.json
+.env
+.env.local
+*.log
+
+# pixi environments
 .pixi/*
 !.pixi/config.toml

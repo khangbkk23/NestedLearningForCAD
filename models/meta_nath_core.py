@@ -62,10 +62,10 @@ class MetaNATHCore(nn.Module):
         d: int = 768,
         tau_acc: float = 0.25,
         max_coreset_size: int = 1000,
-        n_patch: int = 196,
+        n_patch: int = 256,
         store_images: bool = True,
         device: str | None = None,
-        backbone_name: str = "facebook/dinov3-vitb16-pretrain-lvd1689m",
+        backbone_name: str = "facebook/dinov2-base",
     ):
         """
         Args:
@@ -97,6 +97,8 @@ class MetaNATHCore(nn.Module):
                 f"Reason: {exc}"
             )
             self.backbone = _FallbackBackbone(d=d)
+            
+        self.backbone = self.backbone.to(device)
         self.backbone.eval()
         # Đóng băng tuyệt đối — không bao giờ train backbone ở Phase 1-2
         for p in self.backbone.parameters():
