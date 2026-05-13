@@ -19,7 +19,7 @@ dataset:
 model:
   backbone: "facebook/dinov2-base"
   embed_dim: 768
-  tau_acc: 0.25
+  tau_acc: 0.6
   max_coreset_size: 1000
   n_patch: 256
   store_images: true
@@ -46,10 +46,10 @@ training:
   seed: 42
 
 logging:
-  experiment_name: "vit_cms_hybrid_cad"
+  experiment_name: "MetaNATH_Phase1_2"
   results_dir: "results/"
   save_models: true
   log_frequency: 10
-  use_wandb: false
-  wandb_project: "nested-learning-for-cad"
+  use_wandb: true
+  wandb_project: "MetaNATH-CAD"
   wandb_entity: null

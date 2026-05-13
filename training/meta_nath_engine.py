@@ -73,11 +73,9 @@ class MetaNATHEngine:
         
         with torch.no_grad():
             for batch in pbar:
-                images = batch['img'] if isinstance(batch, dict) else batch[0]
+                images = batch['img'].to(self.device) if isinstance(batch, dict) else batch[0].to(self.device)
                 labels = batch['anomaly'] if isinstance(batch, dict) else batch[1]
                 masks = batch.get('img_mask', None) if isinstance(batch, dict) else (batch[2] if len(batch)>2 else None)
-                
-                images = images.to(self.device)
                 
                 out = self.model.score_image(images)
                 results = out["batch"] if "batch" in out else [out]
@@ -87,25 +85,28 @@ class MetaNATHEngine:
                     all_image_labels.append(labels[i].item())
                     
                     if masks is not None:
-                        mask_flat = (masks[i].cpu().numpy() > 0).astype(int).flatten()
-                        map_flat = res['anomaly_map'].cpu().numpy().flatten()
-                        all_pixel_scores.extend(map_flat)
-                        all_pixel_labels.extend(mask_flat)
+                        # Lấy mask thực tế (0 hoặc 1)
+                        m = masks[i].cpu().numpy()
+                        mask_flat = (m > 0.5).astype(np.uint8).flatten()
+                        map_flat = res['anomaly_map'].numpy().flatten()
+                        
+                        # Sampling ngay tại đây để tránh list khổng lồ
+                        # Mỗi ảnh lấy max 10,000 pixel ngẫu nhiên
+                        if len(mask_flat) > 10000:
+                            indices = np.random.choice(len(mask_flat), 10000, replace=False)
+                            all_pixel_scores.extend(map_flat[indices])
+                            all_pixel_labels.extend(mask_flat[indices])
+                        else:
+                            all_pixel_scores.extend(map_flat)
+                            all_pixel_labels.extend(mask_flat)
 
         image_auroc = roc_auc_score(all_image_labels, all_image_scores) if len(np.unique(all_image_labels)) > 1 else 0.0
         
         pixel_auroc = 0.0
         pixel_aupr = 0.0
         if len(all_pixel_labels) > 0 and len(np.unique(all_pixel_labels)) > 1:
-            if len(all_pixel_labels) > 2000000:
-                idx = np.random.choice(len(all_pixel_labels), 2000000, replace=False)
-                sampled_labels = np.array(all_pixel_labels)[idx]
-                sampled_scores = np.array(all_pixel_scores)[idx]
-                pixel_auroc = roc_auc_score(sampled_labels, sampled_scores)
-                pixel_aupr = average_precision_score(sampled_labels, sampled_scores)
-            else:
-                pixel_auroc = roc_auc_score(all_pixel_labels, all_pixel_scores)
-                pixel_aupr = average_precision_score(all_pixel_labels, all_pixel_scores)
+            pixel_auroc = roc_auc_score(all_pixel_labels, all_pixel_scores)
+            pixel_aupr = average_precision_score(all_pixel_labels, all_pixel_scores)
 
         if verbose:
             print(f"Task {task_id} Eval: Image AUROC: {image_auroc:.4f} | Pixel AUPR: {pixel_aupr:.4f}")

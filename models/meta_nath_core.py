@@ -257,30 +257,38 @@ class MetaNATHCore(nn.Module):
 
         z_patches = hidden_states[:, -self.coreset.n_patch :, :]   # [B, N_patch, d]
 
+        # --- Batch Scoring (CADIC Eq. 8-9) ---
+        # Gọi hàm Batch Scoring mới đã tối ưu
+        s_img_batch, s_pix_batch = self.coreset.compute_anomaly_score(
+            patch_embs_batch=z_patches,
+            b=b,
+        )
+
+        # --- Batch Upsampling (Nội suy hàng loạt) ---
+        B = z_patches.shape[0]
+        H_patch = W_patch = int(self.coreset.n_patch ** 0.5)  # 16×16
+        
+        # [B, 1, 16, 16]
+        s_pix_reshaped = s_pix_batch.reshape(B, 1, H_patch, W_patch).to(self.device_str)
+        
+        # Nội suy cả batch cùng lúc trên GPU
+        anomaly_maps_batch = F.interpolate(
+            s_pix_reshaped,
+            size=(x.shape[-2], x.shape[-1]),
+            mode="bilinear",
+            align_corners=False,
+        ) # [B, 1, H, W]
+
+        # Đóng gói kết quả
         results = []
-        for i in range(z_patches.shape[0]):
-            s_img, s_pix = self.coreset.compute_anomaly_score(
-                patch_embs_test=z_patches[i],
-                b=b,
-            )
-
-            # Upsample patch scores → pixel map
-            H_patch = W_patch = int(s_pix.shape[0] ** 0.5)  # 16×16
-            anomaly_map = F.interpolate(
-                s_pix.reshape(1, 1, H_patch, W_patch).to(self.device_str),
-                size=(x.shape[-2], x.shape[-1]),
-                mode="bilinear",
-                align_corners=False,
-            ).squeeze()   # [H, W]
-
+        for i in range(B):
             results.append({
-                "s_img":       s_img,
-                "s_pix":       s_pix,
-                "anomaly_map": anomaly_map.cpu(),
+                "s_img":       s_img_batch[i].item(),
+                "s_pix":       s_pix_batch[i],
+                "anomaly_map": anomaly_maps_batch[i].squeeze().cpu(),
             })
 
-        # Nếu batch size = 1, trả về dict thẳng
-        if len(results) == 1:
+        if B == 1:
             return results[0]
         return {"batch": results}
 

@@ -199,64 +199,67 @@ class CADICCoreset:
     @torch.no_grad()
     def compute_anomaly_score(
         self,
-        patch_embs_test: torch.Tensor,
+        patch_embs_batch: torch.Tensor,
         b: int = 2,
-    ) -> Tuple[float, torch.Tensor]:
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
         """
-        Tính anomaly score cho một ảnh test.
-
-        Image-level score (Eq. 8-9):
-            s_img = (1 - exp(dist(x*, c*)) / Σ_{c ∈ Nb(c*)} exp(dist(x*, c))) × s*_pix
-        Pixel-level scores:
-            s_pix[i] = min_{c ∈ C} ||patch_i - c||_2
-
+        Tính anomaly score cho một BATCH ảnh test (Đã tối ưu Batch Processing).
+        
         Args:
-            patch_embs_test: [N_patch, d] — patch tokens của ảnh test
-            b:               số lân cận gần nhất cho Neighborhood Softmax (Eq. 9)
-                             Không dùng toàn bộ M, chỉ b lân cận gần nhất.
-
+            patch_embs_batch: [B, N_patch, d]
+            b:                số lân cận gần nhất cho Neighborhood Softmax
+            
         Returns:
-            s_img:   float         — image-level anomaly score
-            s_pix:   [N_patch]     — pixel-level anomaly scores (để upsample thành map)
-
-        Raises:
-            RuntimeError: nếu Coreset rỗng
+            s_img:   [B]            — image-level scores
+            s_pix:   [B, N_patch]   — pixel-level scores
         """
         if len(self) == 0:
-            raise RuntimeError(
-                "[CADIC] Coreset rỗng. Cần update ít nhất 1 entry trước khi score."
-            )
+            raise RuntimeError("[CADIC] Coreset rỗng.")
 
-        patch_embs_test = patch_embs_test.to(self.device)
+        B, N, D = patch_embs_batch.shape
+        patch_embs_batch = patch_embs_batch.to(self.device)
         C_patch = self.get_all_patch_embs()    # [M * N_patch, d]
 
-        # --- Pixel-level scores ---
-        # Để tránh OOM với 262MB tensor tạm, tính chunked nếu cần
-        dists   = torch.cdist(patch_embs_test, C_patch)   # [N_patch, M*N_patch]
-        s_pix   = dists.min(dim=1).values                  # [N_patch]
-        del dists   # Giải phóng VRAM ngay (instruction_CAD §3.4)
+        # --- 1. Pixel-level scores (Eq. 211) ---
+        # Tính khoảng cách cho toàn bộ batch: [B, N, M*N_patch]
+        # Để tiết kiệm VRAM trên RTX 3050 Ti, tính s_pix qua từng ảnh trong batch nhưng tối ưu K-NN
+        s_pix_list = []
+        for i in range(B):
+            # torch.cdist [N, M*N_patch]
+            dists_i = torch.cdist(patch_embs_batch[i], C_patch)
+            s_pix_i = dists_i.min(dim=1).values # [N]
+            s_pix_list.append(s_pix_i)
+        
+        s_pix = torch.stack(s_pix_list) # [B, N]
 
-        # --- Image-level score (Eq. 8-9) ---
-        # x* = patch có anomaly score cao nhất
-        s_star_idx = s_pix.argmax()
-        x_star     = patch_embs_test[s_star_idx].unsqueeze(0)   # [1, d]
+        # --- 2. Image-level score (Eq. 8-9) ---
+        # Tìm patch "tệ nhất" x* cho mỗi ảnh trong batch
+        s_star_vals, s_star_idxs = s_pix.max(dim=1) # [B], [B]
+        
+        # Lấy feature của x* : [B, d]
+        x_stars = patch_embs_batch[torch.arange(B), s_star_idxs] 
 
-        # Khoảng cách từ x* đến toàn bộ CLS embeddings trong Coreset
-        C_cls    = torch.stack(self.cls_embeddings)              # [M, d]
-        nb_dists = torch.cdist(x_star, C_cls).squeeze(0)        # [M]
+        # Khoảng cách từ x* đến CLS embeddings trong Coreset
+        C_cls = torch.stack(self.cls_embeddings) # [M, d]
+        # nb_dists: [B, M]
+        nb_dists = torch.cdist(x_stars, C_cls)
 
-        # Lấy b lân cận gần nhất (Eq. 9 — neighborhood softmax)
-        b_actual       = min(b, len(self))
-        top_k_dists, _ = torch.topk(nb_dists, k=b_actual, largest=False)
-        c_star_idx     = nb_dists.argmin()
+        # Lấy b lân cận gần nhất
+        b_actual = min(b, len(self))
+        top_k_dists, _ = torch.topk(nb_dists, k=b_actual, dim=1, largest=False)
+        c_star_dists = nb_dists.min(dim=1).values # [B]
 
-        weight = 1.0 - (
-            torch.exp(nb_dists[c_star_idx]) /
-            torch.exp(top_k_dists).sum()
-        ).item()
-        s_img = weight * s_pix[s_star_idx].item()
+        # Numerical Stability for Softmax (subtract min)
+        # weight = 1 - exp(d_min) / sum(exp(d_topk))
+        #        = 1 - 1 / sum(exp(d_topk - d_min))
+        diffs = top_k_dists - c_star_dists.unsqueeze(1)
+        exp_sum = torch.exp(-diffs).sum(dim=1) # Dùng -diffs vì d_topk >= d_min
+        
+        # Eq. 9: weight = 1 - 1 / Σ exp(d_min - d_i)
+        weight = 1.0 - (1.0 / exp_sum)
+        s_img = weight * s_star_vals
 
-        return s_img, s_pix.cpu()
+        return s_img.cpu(), s_pix.cpu()
 
     # ------------------------------------------------------------------
     # Utility Management (cho N2B-NC Phase 3)

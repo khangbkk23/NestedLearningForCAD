@@ -4,10 +4,11 @@ import shutil
 import tarfile
 import urllib.error
 import urllib.request
+from tqdm import tqdm
 
 
 MVTec_URLS = [
-    "https://www.mydrive.ch/shares/38536/3830184030e49fe74747669442f0f283/download/420938113-1629960298/mvtec_anomaly_detection.tar.xz",
+    "https://huggingface.co/datasets/micguida1/mvtech_anomaly_detection/resolve/main/mvtec_anomaly_detection.tar.xz",
     "https://www.mvtec.com/fileadmin/Redaktion/mvtec.com/company/research/datasets/mvtec_anomaly_detection.tar.xz",
 ]
 
@@ -55,8 +56,20 @@ def _download_with_fallbacks(urls, output_path):
         try:
             print(f"Attempt {idx}/{len(urls)}: downloading from {url}")
             request = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
-            with urllib.request.urlopen(request, timeout=60) as response, open(output_path, "wb") as target:
-                shutil.copyfileobj(response, target)
+            
+            with urllib.request.urlopen(request, timeout=60) as response:
+                total_size = int(response.info().get('Content-Length', 0))
+                block_size = 1024 * 8
+                
+                with tqdm(total=total_size, unit='iB', unit_scale=True, desc=os.path.basename(output_path)) as pbar:
+                    with open(output_path, "wb") as target:
+                        while True:
+                            buffer = response.read(block_size)
+                            if not buffer:
+                                break
+                            target.write(buffer)
+                            pbar.update(len(buffer))
+            
             print(f"Download completed: {output_path}")
             return
         except (urllib.error.HTTPError, urllib.error.URLError, TimeoutError, OSError) as exc:
@@ -88,7 +101,14 @@ def download_and_extract_mvtec(data_dir="data"):
         print(f"Using existing archive: {tar_path}")
 
     print("Extracting archive...")
-    _safe_extract_tar(tar_path, extract_dir)
+    try:
+        _safe_extract_tar(tar_path, extract_dir)
+    except (EOFError, tarfile.ReadError, lzma.LZMAError) as e:
+        print(f"Archive is corrupted: {e}")
+        print(f"Deleting corrupted file: {tar_path}")
+        os.remove(tar_path)
+        print("Please run the script again to restart the download.")
+        return
     _flatten_nested_root(extract_dir)
 
     if not _dataset_complete(extract_dir):
