@@ -1,27 +1,24 @@
 """
 cadic_coreset.py
 ----------------
-CADIC Incremental Coreset — Slow Memory (Tủ Hồ Sơ) của Meta-NATH CAD.
+CADIC Incremental Coreset — Slow Memory của Meta-NATH CAD.
 
-Là xương sống của toàn hệ thống:
-    - Unified Memory Bank duy nhất cho toàn bộ task (không phân mảnh)
+Backbone của toàn hệ thống:
+    - Unified Memory Bank duy nhất cho toàn bộ tasks (không phân mảnh)
     - Max ~1000 entries, bounded VRAM
     - Incremental update theo CADIC Eq. 1-6
     - Anomaly scoring (image-level + pixel-level) theo CADIC Eq. 8-9
     - Lưu patch_embeddings để AnomalyDecoder tính pixel-level map
 
-Tham chiếu:
-    CADIC (arXiv:2511.08634) — Gen Yang et al.
-    instruction_CAD.md §3.3, §2.1
-
 Ước tính VRAM:
     1000 entries × 256 patches × 768 dim × 4 bytes ≈ 786 MB
-    → An toàn trên RTX 3050 Ti (4GB) và Jetson Orin NX (8-16GB)
+    -> An toàn trên RTX 3050 Ti (4GB) và Jetson Orin NX (8-16GB)
 """
 
 from __future__ import annotations
 
 import logging
+import math
 from typing import List, Optional, Tuple
 
 import torch
@@ -32,30 +29,30 @@ logger = logging.getLogger(__name__)
 
 class CADICCoreset:
     """
-    Incremental Coreset theo triết lý CADIC.
+    Incremental Coreset theo CADIC.
 
-    Unified Memory Bank: một coreset duy nhất cho toàn bộ lịch sử task.
+    Unified Memory Bank: Một coreset duy nhất cho toàn bộ lịch sử task.
     Không phân mảnh theo task_id. Mỗi entry đại diện cho một vùng
-    feature space, được cập nhật khi có điểm mới "xa hơn".
+    feature space, được cập nhật khi có điểm mới xa hơn.
 
     Storage per entry:
-        cls_embedding:   [d]           →   3 KB
-        patch_embeddings: [N_patch, d] → 786 KB  (N_patch=256, d=768)
-        utility_score:   float         →   ~0 KB
-        image (optional): [C, H, W]   →  ~2.4 MB (chỉ dùng cho N2B-NC)
+        cls_embedding:   [d]           ->   3 KB
+        patch_embeddings: [N_patch, d] -> 786 KB  (N_patch=256, d=768)
+        utility_score:   float         ->   ~0 KB
+        image (optional): [C, H, W]    ->  ~2.4 MB (chỉ dùng cho N2B-NC)
     """
 
     def __init__(
         self,
         max_size: int = 1000,
         d: int = 768,
-        n_patch: int = 256,
-        store_images: bool = True,
+        n_patch: Optional[int] = None,
+        store_images: bool = False,
         device: str | None = None,
     ):
         """
         Args:
-            max_size:     Số entry tối đa (default 1000 theo instruction_CAD §5.13)
+            max_size:     Số entry tối đa (default 1000)
             d:            Chiều embedding (768 cho DINOv3-B/14, 1024 cho DINOv3-L/14)
             n_patch:      Số patch tokens per image (256 = 16×16 cho 224×224 input)
             store_images: Có lưu raw image tensor không (cần cho N2B-NC Phase 3)
@@ -67,6 +64,7 @@ class CADICCoreset:
         self.max_size     = max_size
         self.d            = d
         self.n_patch      = n_patch
+        self.patch_grid: Optional[Tuple[int, int]] = None
         self.store_images = store_images
         self.device       = device
 
@@ -78,6 +76,8 @@ class CADICCoreset:
         self.task_ids:         List[int]          = []   # task_id per entry (for logging)
 
         self._update_count = 0
+        self._closest_pair_cache: Optional[Tuple[float, int]] = None
+        self._patch_bank_cache: Optional[torch.Tensor] = None
 
     # ------------------------------------------------------------------
     # Properties
@@ -91,7 +91,7 @@ class CADICCoreset:
         return len(self) >= self.max_size
 
     # ------------------------------------------------------------------
-    # Core: Incremental Coreset Update (CADIC Eq. 1-6)
+    # Core: Incremental Coreset Update (CADIC)
     # ------------------------------------------------------------------
 
     def update(
@@ -104,22 +104,23 @@ class CADICCoreset:
         """
         Cập nhật Coreset với một embedding mới.
 
-        Nếu Coreset chưa đầy → add trực tiếp.
-        Nếu đầy → áp dụng CADIC Eq. 6:
-            Nếu d_max(x_new, C) > |C|_min → thay thế điểm gần nhất
+        Nếu Coreset chưa đầy -> add trực tiếp.
+        Nếu đầy -> áp dụng CADIC Eq. 6:
+            Nếu d_max(x_new, C) > |C|_min -> thay thế điểm gần nhất
             trong cặp gần nhất nhau bằng x_new.
 
         Args:
-            cls_emb:    [d]           — CLS embedding từ DINOv3
-            patch_embs: [N_patch, d]  — patch tokens từ DINOv3
-            image:      [C, H, W]     — raw image (optional, cho N2B-NC)
-            task_id:    int           — task hiện tại (chỉ để logging)
+            cls_emb:    [d]           - CLS embedding từ DINOv3
+            patch_embs: [N_patch, d]  - patch tokens từ DINOv3
+            image:      [C, H, W]     - raw image (optional, cho N2B-NC)
+            task_id:    int           - task hiện tại (chỉ để logging)
 
         Returns:
-            updated: bool — True nếu Coreset thực sự thay đổi
+            updated: bool - True nếu Coreset thực sự thay đổi
         """
         cls_emb    = cls_emb.detach().to(self.device)
         patch_embs = patch_embs.detach().to(self.device)
+        self._ensure_patch_geometry(patch_embs)
 
         # --- Chưa đầy: add trực tiếp ---
         if not self.is_full:
@@ -127,7 +128,7 @@ class CADICCoreset:
             logger.debug(f"[CADIC] Added entry. Size: {len(self)}/{self.max_size}")
             return True
 
-        # --- Đầy: CADIC Eq. 1-6 ---
+        # --- Đầy: CADIC ---
         C = torch.stack(self.cls_embeddings)   # [M, d]
         x = cls_emb.unsqueeze(0)               # [1, d]
 
@@ -136,12 +137,7 @@ class CADICCoreset:
         d_max      = dists_to_C.min().item()
 
         # Eq. 4-5: |C|_min = khoảng cách nhỏ nhất giữa 2 điểm trong C
-        C_dists = torch.cdist(C, C)            # [M, M]
-        C_dists.fill_diagonal_(float("inf"))
-        c_min_val = C_dists.min().item()
-        # Lấy index của điểm trong cặp gần nhất (sẽ bị thay thế)
-        flat_idx  = C_dists.argmin().item()
-        c_min_idx = flat_idx // C.shape[0]     # row index
+        c_min_val, c_min_idx = self._get_closest_pair()
 
         # Eq. 6: điều kiện thay thế
         if d_max > c_min_val:
@@ -193,7 +189,7 @@ class CADICCoreset:
         return n_updated
 
     # ------------------------------------------------------------------
-    # Anomaly Scoring (CADIC Eq. 8-9)
+    # Anomaly Scoring (CADIC)
     # ------------------------------------------------------------------
 
     @torch.no_grad()
@@ -210,54 +206,58 @@ class CADICCoreset:
             b:                số lân cận gần nhất cho Neighborhood Softmax
             
         Returns:
-            s_img:   [B]            — image-level scores
-            s_pix:   [B, N_patch]   — pixel-level scores
+            s_img:   [B]            - image-level scores
+            s_pix:   [B, N_patch]   - pixel-level scores
         """
         if len(self) == 0:
             raise RuntimeError("[CADIC] Coreset rỗng.")
 
+        if patch_embs_batch.ndim == 2:
+            patch_embs_batch = patch_embs_batch.unsqueeze(0)
+
         B, N, D = patch_embs_batch.shape
         patch_embs_batch = patch_embs_batch.to(self.device)
+        if D != self.d:
+            raise ValueError(f"[CADIC] Expected patch dim {self.d}, got {D}.")
+        if self.n_patch is not None and N != self.n_patch:
+            raise ValueError(f"[CADIC] Expected {self.n_patch} patches, got {N}.")
+
         C_patch = self.get_all_patch_embs()    # [M * N_patch, d]
 
-        # --- 1. Pixel-level scores (Eq. 211) ---
-        # Tính khoảng cách cho toàn bộ batch: [B, N, M*N_patch]
-        # Để tiết kiệm VRAM trên RTX 3050 Ti, tính s_pix qua từng ảnh trong batch nhưng tối ưu K-NN
+        # --- 1. Pixel-level scores ---
+        # Tính min distance theo chunk trên patch bank để tránh tensor [N, M*N_patch] quá lớn.
         s_pix_list = []
+        nearest_patch_idx_list = []
         for i in range(B):
-            # torch.cdist [N, M*N_patch]
-            dists_i = torch.cdist(patch_embs_batch[i], C_patch)
-            s_pix_i = dists_i.min(dim=1).values # [N]
+            s_pix_i, nearest_idx_i = self._min_patch_dists(
+                patch_embs_batch[i],
+                C_patch,
+            )
             s_pix_list.append(s_pix_i)
+            nearest_patch_idx_list.append(nearest_idx_i)
         
         s_pix = torch.stack(s_pix_list) # [B, N]
+        nearest_patch_idxs = torch.stack(nearest_patch_idx_list) # [B, N]
 
         # --- 2. Image-level score (Eq. 8-9) ---
         # Tìm patch "tệ nhất" x* cho mỗi ảnh trong batch
         s_star_vals, s_star_idxs = s_pix.max(dim=1) # [B], [B]
-        
-        # Lấy feature của x* : [B, d]
-        x_stars = patch_embs_batch[torch.arange(B), s_star_idxs] 
 
-        # Khoảng cách từ x* đến CLS embeddings trong Coreset
-        C_cls = torch.stack(self.cls_embeddings) # [M, d]
-        # nb_dists: [B, M]
-        nb_dists = torch.cdist(x_stars, C_cls)
+        s_img_list = []
+        b_actual = min(max(int(b), 1), C_patch.shape[0])
+        for i in range(B):
+            x_star = patch_embs_batch[i, s_star_idxs[i]]
+            d_min = s_star_vals[i]
+            top_k_dists = self._topk_patch_dists(x_star, C_patch, k=b_actual)
 
-        # Lấy b lân cận gần nhất
-        b_actual = min(b, len(self))
-        top_k_dists, _ = torch.topk(nb_dists, k=b_actual, dim=1, largest=False)
-        c_star_dists = nb_dists.min(dim=1).values # [B]
+            # Stable PatchCore/CADIC-style weighting in the same patch space:
+            # weight = 1 - exp(d_min) / sum(exp(top_k_dists))
+            #        = 1 - 1 / sum(exp(top_k_dists - d_min))
+            exp_sum = torch.exp(top_k_dists - d_min).sum().clamp_min(1e-12)
+            weight = 1.0 - (1.0 / exp_sum)
+            s_img_list.append(weight * d_min)
 
-        # Numerical Stability for Softmax (subtract min)
-        # weight = 1 - exp(d_min) / sum(exp(d_topk))
-        #        = 1 - 1 / sum(exp(d_topk - d_min))
-        diffs = top_k_dists - c_star_dists.unsqueeze(1)
-        exp_sum = torch.exp(-diffs).sum(dim=1) # Dùng -diffs vì d_topk >= d_min
-        
-        # Eq. 9: weight = 1 - 1 / Σ exp(d_min - d_i)
-        weight = 1.0 - (1.0 / exp_sum)
-        s_img = weight * s_star_vals
+        s_img = torch.stack(s_img_list)
 
         return s_img.cpu(), s_pix.cpu()
 
@@ -321,7 +321,9 @@ class CADICCoreset:
         """
         if not self.patch_embeddings:
             raise RuntimeError("[CADIC] Không có patch embeddings nào trong Coreset.")
-        return torch.cat(self.patch_embeddings, dim=0)   # [M * N_patch, d]
+        if self._patch_bank_cache is None:
+            self._patch_bank_cache = torch.cat(self.patch_embeddings, dim=0)   # [M * N_patch, d]
+        return self._patch_bank_cache
 
     # ------------------------------------------------------------------
     # Stats & Debug
@@ -337,7 +339,8 @@ class CADICCoreset:
             task_counts[tid] = task_counts.get(tid, 0) + 1
 
         avg_utility = sum(self.utilities) / len(self.utilities)
-        vram_mb     = len(self) * self.n_patch * self.d * 4 / (1024 ** 2)
+        n_patch = int(self.n_patch or 0)
+        vram_mb = len(self) * n_patch * self.d * 4 / (1024 ** 2)
 
         return {
             "size":          len(self),
@@ -347,6 +350,7 @@ class CADICCoreset:
             "avg_utility":   round(avg_utility, 4),
             "task_counts":   task_counts,
             "vram_patch_mb": round(vram_mb, 1),
+            "patch_grid":    self.patch_grid,
         }
 
     def log_stats(self) -> None:
@@ -363,32 +367,38 @@ class CADICCoreset:
     # Checkpoint
     # ------------------------------------------------------------------
 
-    def state_dict(self) -> dict:
+    def state_dict(self, include_images: bool = True) -> dict:
         return {
             "cls_embeddings":   [e.cpu() for e in self.cls_embeddings],
             "patch_embeddings": [e.cpu() for e in self.patch_embeddings],
-            "images":           [e.cpu() if e is not None else None for e in self.images],
+            "images":           [e.cpu() if e is not None else None for e in self.images] if include_images else [],
             "utilities":        list(self.utilities),
             "task_ids":         list(self.task_ids),
             "max_size":         self.max_size,
             "d":                self.d,
             "n_patch":          self.n_patch,
+            "patch_grid":       self.patch_grid,
             "_update_count":    self._update_count,
         }
 
     def load_state_dict(self, sd: dict) -> None:
         self.cls_embeddings   = [e.to(self.device) for e in sd["cls_embeddings"]]
         self.patch_embeddings = [e.to(self.device) for e in sd["patch_embeddings"]]
-        self.images           = [
+        self.images = [
             e.to(self.device) if e is not None else None
-            for e in sd["images"]
+            for e in sd.get("images", [])
         ]
+        if not self.images:
+            self.images = [None for _ in self.cls_embeddings]
         self.utilities     = list(sd["utilities"])
         self.task_ids      = list(sd["task_ids"])
         self.max_size      = sd["max_size"]
         self.d             = sd["d"]
-        self.n_patch       = sd["n_patch"]
+        self.n_patch       = sd.get("n_patch")
+        self.patch_grid    = tuple(sd["patch_grid"]) if sd.get("patch_grid") else None
         self._update_count = sd["_update_count"]
+        self._closest_pair_cache = None
+        self._patch_bank_cache = None
 
     # ------------------------------------------------------------------
     # Private helpers
@@ -406,6 +416,7 @@ class CADICCoreset:
         self.images.append(image.cpu() if image is not None else None)
         self.utilities.append(1.0)
         self.task_ids.append(task_id)
+        self._invalidate_caches()
 
     def _replace_entry(
         self,
@@ -420,3 +431,83 @@ class CADICCoreset:
         self.images[idx]           = image.cpu() if image is not None else None
         self.utilities[idx]        = 1.0
         self.task_ids[idx]         = task_id
+        self._invalidate_caches()
+
+    def _ensure_patch_geometry(self, patch_embs: torch.Tensor) -> None:
+        if patch_embs.ndim != 2:
+            raise ValueError(f"[CADIC] patch_embs must be [N_patch, d], got {tuple(patch_embs.shape)}.")
+        n_patch, d = patch_embs.shape
+        if d != self.d:
+            raise ValueError(f"[CADIC] Expected patch dim {self.d}, got {d}.")
+        grid = math.isqrt(n_patch)
+        if grid * grid != n_patch:
+            raise ValueError(f"[CADIC] Patch count must be square for anomaly maps, got {n_patch}.")
+        if self.n_patch is None:
+            self.n_patch = n_patch
+            self.patch_grid = (grid, grid)
+        elif self.n_patch != n_patch:
+            raise ValueError(f"[CADIC] Expected {self.n_patch} patches, got {n_patch}.")
+        elif self.patch_grid is None:
+            self.patch_grid = (grid, grid)
+
+    def _invalidate_caches(self) -> None:
+        self._closest_pair_cache = None
+        self._patch_bank_cache = None
+
+    def _get_closest_pair(self) -> Tuple[float, int]:
+        if self._closest_pair_cache is not None:
+            return self._closest_pair_cache
+
+        C = torch.stack(self.cls_embeddings)
+        C_dists = torch.cdist(C, C)
+        C_dists.fill_diagonal_(float("inf"))
+        c_min_val = C_dists.min().item()
+        flat_idx = C_dists.argmin().item()
+        c_min_idx = flat_idx // C.shape[0]
+        self._closest_pair_cache = (c_min_val, c_min_idx)
+        return self._closest_pair_cache
+
+    def _min_patch_dists(
+        self,
+        query_patches: torch.Tensor,
+        patch_bank: torch.Tensor,
+        chunk_size: int = 8192,
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
+        min_dists = torch.full(
+            (query_patches.shape[0],),
+            float("inf"),
+            device=query_patches.device,
+        )
+        nearest_idxs = torch.zeros(
+            query_patches.shape[0],
+            dtype=torch.long,
+            device=query_patches.device,
+        )
+
+        for start in range(0, patch_bank.shape[0], chunk_size):
+            chunk = patch_bank[start:start + chunk_size]
+            dists = torch.cdist(query_patches, chunk)
+            vals, idxs = dists.min(dim=1)
+            better = vals < min_dists
+            min_dists[better] = vals[better]
+            nearest_idxs[better] = start + idxs[better]
+
+        return min_dists, nearest_idxs
+
+    def _topk_patch_dists(
+        self,
+        query_patch: torch.Tensor,
+        patch_bank: torch.Tensor,
+        k: int,
+        chunk_size: int = 8192,
+    ) -> torch.Tensor:
+        best = torch.empty(0, device=query_patch.device)
+        query = query_patch.unsqueeze(0)
+
+        for start in range(0, patch_bank.shape[0], chunk_size):
+            chunk = patch_bank[start:start + chunk_size]
+            vals = torch.cdist(query, chunk).squeeze(0)
+            candidates = vals if best.numel() == 0 else torch.cat([best, vals], dim=0)
+            best = torch.topk(candidates, k=min(k, candidates.numel()), largest=False).values
+
+        return best

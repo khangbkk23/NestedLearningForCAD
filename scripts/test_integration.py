@@ -21,7 +21,7 @@ def test_phase_1_2_integration():
     
     # 2. Khởi tạo Lõi Hệ thống
     logging.info("Khởi tạo MetaNATHCore...")
-    model = MetaNATHCore(d=768, tau_acc=0.25, max_coreset_size=1000, n_patch=196)
+    model = MetaNATHCore(d=768, tau_acc=0.25, max_coreset_size=1000, n_patch=None)
     model.to(device)
     
     # 3. Tạo dữ liệu giả (Dummy Data) - Batch Size = 2

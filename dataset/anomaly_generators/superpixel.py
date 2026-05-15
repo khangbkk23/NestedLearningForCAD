@@ -147,15 +147,18 @@ class SuperpixelAnomalyGenerator(AnomalyGeneratorBase):
         if num_sp <= 1:
             return mask
 
-        valid_sp = [
-            sp for sp in range(num_sp)
-            if np.mean(fg_mask[labels == sp]) > self.min_fg_coverage
-        ]
+        valid_sp = []
+        for sp in range(num_sp):
+            sp_mask = labels == sp
+            if not np.any(sp_mask):
+                continue
+            if np.mean(fg_mask[sp_mask]) > self.min_fg_coverage:
+                valid_sp.append(sp)
         if not valid_sp:
             return mask
 
-        max_select = max(3, int(len(valid_sp) * self.max_sp_fraction))
-        num_select = np.random.randint(2, max_select + 1)
+        max_select = min(len(valid_sp), max(1, int(len(valid_sp) * self.max_sp_fraction)))
+        num_select = np.random.randint(1, max_select + 1)
         for sp in np.random.choice(valid_sp, num_select, replace=False):
             mask[labels == sp] = 1.0
 

@@ -16,6 +16,11 @@ import os
 import traceback
 import torch
 
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")
+if hasattr(sys.stderr, "reconfigure"):
+    sys.stderr.reconfigure(encoding="utf-8")
+
 # Thêm project root vào path — chỉnh lại nếu cấu trúc thư mục khác
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if PROJECT_ROOT not in sys.path:
@@ -85,6 +90,12 @@ try:
     check("meta_nath_core import", True)
 except Exception as e:
     check("meta_nath_core import", False, str(e)); sys.exit(1)
+
+try:
+    from training.meta_nath_engine import MetaNATHEngine
+    check("meta_nath_engine import", True)
+except Exception as e:
+    check("meta_nath_engine import", False, str(e)); sys.exit(1)
 
 try:
     from models.vit_cms import AnomalyDecoder, ViT_Simple
@@ -188,12 +199,13 @@ patch_batch = torch.randn(BATCH, N_PATCH, D, device=device)
 n_up = coreset.update_batch(cls_batch, patch_batch, task_id=1)
 check("update_batch() trả về int",  isinstance(n_up, int))
 
-# compute_anomaly_score
-patch_test = torch.randn(N_PATCH, D, device=device)
+# compute_anomaly_score — batch API
+patch_test = torch.randn(1, N_PATCH, D, device=device)
 s_img, s_pix = coreset.compute_anomaly_score(patch_test, b=2)
-check("s_img là float",             isinstance(s_img, float))
-check("s_pix shape [N_patch]",      tuple(s_pix.shape) == (N_PATCH,))
+check("s_img shape [B]",            tuple(s_img.shape) == (1,))
+check("s_pix shape [B,N_patch]",    tuple(s_pix.shape) == (1, N_PATCH))
 check("s_pix >= 0",                 s_pix.min().item() >= 0.0)
+check("s_img <= max s_pix",         s_img.max().item() <= s_pix.max().item() + 1e-6)
 
 # Đầy coreset → thay thế
 for i in range(20):
@@ -246,6 +258,7 @@ try:
     check("z_cls shape [B, d]",         tuple(out["z_cls"].shape) == (BATCH, D))
     check("z_updated shape [B, d]",     tuple(out["z_updated"].shape) == (BATCH, D))
     check("z_patches shape [B, N, d]",  tuple(out["z_patches"].shape) == (BATCH, N_PATCH, D))
+    check("patch_grid inferred 16×16",  out["patch_grid"] == (16, 16))
     check("surprise là float",          isinstance(out["surprise"], float))
     check("acc_score là float",         isinstance(out["acc_score"], float))
     check("approved là bool",           isinstance(out["approved"], bool))
@@ -262,6 +275,22 @@ except Exception as e:
 for i in range(5):
     model(torch.randn(BATCH, 3, IMG_H, IMG_W, device=device), task_id=i % 3)
 check("5 forward() liên tiếp không crash", True)
+
+# Normal-only coreset update through MetaNATHEngine
+try:
+    model.coreset = CADICCoreset(max_size=50, d=D, n_patch=N_PATCH, store_images=False, device=device)
+    engine_for_filter = MetaNATHEngine(model=model, device=device)
+    mixed_batch = {
+        "img": dummy_images.detach().cpu(),
+        "anomaly": torch.tensor([0, 1, 0, 1]),
+    }
+    filter_metrics = engine_for_filter.train_task([mixed_batch], task_id=99, epochs=1, verbose=False)
+    check("normal-only update count", filter_metrics["normal_update_samples"] == 2)
+    check("synthetic anomalies skipped", filter_metrics["skipped_anomaly_count"] == 2)
+    check("coreset không nhận quá normal samples", len(model.coreset) <= 2)
+except Exception as e:
+    check("normal-only coreset filter", False, str(e))
+    traceback.print_exc()
 
 # score_image() — chỉ chạy nếu coreset đã có entries
 if len(model.coreset) > 0:

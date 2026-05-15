@@ -1,7 +1,7 @@
 dataset:
   name: "mvtec"
   root_dir: "data/mvtec"
-  img_size: 256
+  img_size: 224
   batch_size: 32
   num_workers: 4
   split_ratio: 0.8
@@ -21,8 +21,8 @@ model:
   embed_dim: 768
   tau_acc: 0.6
   max_coreset_size: 1000
-  n_patch: 256
-  store_images: true
+  n_patch: null
+  store_images: false
 
 memory:
   coreset_sampling_ratio: 0.01
@@ -34,7 +34,8 @@ training:
   scheduler: "cosine" 
   learning_rate: 0.0001
   weight_decay: 0.00001
-  epochs_per_task: 10
+  epochs_per_task: 1
+  stream_repeats: 1
   task_type: "anomaly"
   pixel_loss_weight: 0.2
   use_replay: false
@@ -49,7 +50,14 @@ logging:
   experiment_name: "MetaNATH_Phase1_2"
   results_dir: "results/"
   save_models: true
+  checkpoint_mode: "phase12_light"  # "phase12_light" or "phase3_full"
   log_frequency: 10
   use_wandb: true
   wandb_project: "MetaNATH-CAD"
   wandb_entity: null
+
+evaluation:
+  mode: "current"                 # "current" or "cumulative"
+  cumulative_frequency: 5
+  final_cumulative: true
+  pixel_sample_limit: 10000

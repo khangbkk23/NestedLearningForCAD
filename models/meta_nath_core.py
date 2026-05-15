@@ -1,7 +1,7 @@
 """
 meta_nath_core.py
 -----------------
-MetaNATHCore — Lõi hệ thống Phase 1 + 2 của Meta-NATH CAD.
+MetaNATHCore - Lõi hệ thống Phase 1 + 2 của Meta-NATH CAD.
 
 Kết nối:
     Nhà Thông Thái  = Frozen DINOv3 (HuggingFace dinov3-vitb16)
@@ -12,7 +12,7 @@ Kết nối:
 Lưu ý thiết kế:
     - backbone LUÔN ở eval mode dù model.train() được gọi
     - TTTEngine / ACCGating / CADICCoreset không phải nn.Module
-      → state_dict() custom để checkpoint đầy đủ
+      -> state_dict() custom để checkpoint đầy đủ
     - forward() chỉ chạy Phase 1 (TTT) + Phase 2 (consolidation)
       Scoring riêng dùng score_image()
 """
@@ -20,8 +20,9 @@ Lưu ý thiết kế:
 from __future__ import annotations
 
 import logging
+import math
 from types import SimpleNamespace
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Tuple
 
 import torch
 import torch.nn as nn
@@ -62,8 +63,8 @@ class MetaNATHCore(nn.Module):
         d: int = 768,
         tau_acc: float = 0.25,
         max_coreset_size: int = 1000,
-        n_patch: int = 256,
-        store_images: bool = True,
+        n_patch: Optional[int] = None,
+        store_images: bool = False,
         device: str | None = None,
         backbone_name: str = "facebook/dinov2-base",
     ):
@@ -72,7 +73,7 @@ class MetaNATHCore(nn.Module):
             d:                Chiều embedding (768 = DINOv3-B/16, 1024 = DINOv3-L/16)
             tau_acc:          Ngưỡng ACC Gating (instruction_CAD §5.8, default 0.25)
             max_coreset_size: Số entry tối đa CADIC (default 1000)
-            n_patch:          Số patch tokens (196 = 14×14 với ViT-B/16, input 224×224)
+            n_patch:          Số patch tokens. None để infer từ backbone output.
             store_images:     Lưu raw image tensor cho N2B-NC Phase 3
             device:           'cuda' hoặc 'cpu' (auto-detect nếu None)
             backbone_name:    HuggingFace checkpoint của backbone chính
@@ -83,9 +84,11 @@ class MetaNATHCore(nn.Module):
             device = "cuda" if torch.cuda.is_available() else "cpu"
         self.device_str = device
         self.d = d
+        self.backbone_name = backbone_name
+        self.patch_grid: Optional[Tuple[int, int]] = None
 
         # ----------------------------------------------------------------
-        # 1. Đôi mắt — Frozen DINOv3 (HuggingFace)
+        # 1. Eyes - Frozen DINOv3 (HuggingFace)
         #    Dùng ViT-B/16 để tránh phụ thuộc gated weights qua torch.hub local.
         # ----------------------------------------------------------------
         logger.info(f"[MetaNATH] Loading backbone ({backbone_name})...")
@@ -105,17 +108,17 @@ class MetaNATHCore(nn.Module):
             p.requires_grad_(False)
 
         # ----------------------------------------------------------------
-        # 2. Sổ Nháp — TITANS Fast Memory
+        # 2. Sổ Nháp - TITANS Fast Memory
         # ----------------------------------------------------------------
         self.ttt_engine = TTTEngine(d=d, device=device)
 
         # ----------------------------------------------------------------
-        # 3. Cầu Chì — ACC Gating
+        # 3. Cầu Chì - ACC Gating
         # ----------------------------------------------------------------
         self.gating = ACCGating(tau=tau_acc)
 
         # ----------------------------------------------------------------
-        # 4. Tủ Hồ Sơ — CADIC Incremental Coreset
+        # 4. Tủ Hồ Sơ - CADIC Incremental Coreset
         # ----------------------------------------------------------------
         self.coreset = CADICCoreset(
             max_size=max_coreset_size,
@@ -141,7 +144,7 @@ class MetaNATHCore(nn.Module):
         return self
 
     # ------------------------------------------------------------------
-    # Forward — Phase 1 (TTT) + Phase 2 (Consolidation)
+    # Forward - Phase 1 (TTT) + Phase 2 (Consolidation)
     # ------------------------------------------------------------------
 
     def forward(
@@ -160,29 +163,16 @@ class MetaNATHCore(nn.Module):
 
         Returns:
             dict với keys:
-                z_cls:            [B, d]   — CLS token gốc từ DINOv3
-                z_updated:        [B, d]   — sau TTT adaptation
-                z_patches:        [B, N, d] — patch tokens (cho AnomalyDecoder)
+                z_cls:            [B, d]   - CLS token gốc từ DINOv3
+                z_updated:        [B, d]   - sau TTT adaptation
+                z_patches:        [B, N, d] - patch tokens (cho AnomalyDecoder)
                 surprise:         float
                 acc_score:        float
-                approved:         bool     — ACCGating có duyệt không
-                coreset_updated:  bool     — Coreset có thực sự thay đổi không
+                approved:         bool     - ACCGating có duyệt không
+                coreset_updated:  bool     - Coreset có thực sự thay đổi không
         """
         # --- Bước 1: Feature Extraction (Nhà Thông Thái) ---
-        with torch.no_grad():
-            out = self.backbone(x)
-            if hasattr(out, "last_hidden_state"):
-                hidden_states = out.last_hidden_state
-            elif isinstance(out, dict) and "last_hidden_state" in out:
-                hidden_states = out["last_hidden_state"]
-            else:
-                raise RuntimeError(
-                    "[MetaNATH] Unexpected backbone output format. "
-                    "Expected HuggingFace BaseModelOutput with `last_hidden_state`."
-                )
-
-            z_cls = hidden_states[:, 0, :]                     # [B, d]
-            z_patches = hidden_states[:, -self.coreset.n_patch :, :]   # [B, N_patch, d]
+        z_cls, z_patches, patch_grid = self.extract_features(x)
 
         # --- Bước 2: Test-Time Adaptation (Sổ Nháp) ---
         z_updated, surprise = self.ttt_engine.process(z_cls)
@@ -194,11 +184,12 @@ class MetaNATHCore(nn.Module):
         coreset_updated = False
         if update_coreset and approved:
             # Lưu z_updated (embedding đã thích nghi) vào Coreset,
-            # không phải z_cls gốc — vì z_updated là biểu diễn tốt hơn
+            # không phải z_cls gốc - vì z_updated là biểu diễn tốt hơn
             # sau khi Fast Memory đã "tiêu hóa" batch này.
             n_updated = self.coreset.update_batch(
                 cls_embs=z_updated.detach(),
                 patch_embs_batch=z_patches.detach(),
+                images=x.detach() if self.coreset.store_images else None,
                 task_id=task_id,
             )
             coreset_updated = n_updated > 0
@@ -211,7 +202,65 @@ class MetaNATHCore(nn.Module):
             "acc_score":       acc_score,
             "approved":        approved,
             "coreset_updated": coreset_updated,
+            "coreset_n_updated": n_updated if update_coreset and approved else 0,
+            "patch_grid":      patch_grid,
         }
+
+    @torch.no_grad()
+    def extract_features(self, x: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor, Tuple[int, int]]:
+        """
+        Backbone adapter trả về CLS token, patch tokens và patch grid thống nhất.
+
+        Hiện tại hỗ trợ HuggingFace DINOv2 (`last_hidden_state`) và format dict
+        của DINOv3 (`x_norm_clstoken`, `x_norm_patchtokens`) cho lần nâng cấp sau.
+        """
+        out = self.backbone(x)
+
+        if isinstance(out, dict) and "x_norm_clstoken" in out and "x_norm_patchtokens" in out:
+            z_cls = out["x_norm_clstoken"]
+            z_patches = out["x_norm_patchtokens"]
+        else:
+            if hasattr(out, "last_hidden_state"):
+                hidden_states = out.last_hidden_state
+            elif isinstance(out, dict) and "last_hidden_state" in out:
+                hidden_states = out["last_hidden_state"]
+            else:
+                raise RuntimeError(
+                    "[MetaNATH] Unexpected backbone output format. "
+                    "Expected `last_hidden_state` or DINO token dict."
+                )
+
+            z_cls = hidden_states[:, 0, :]
+            z_patches = hidden_states[:, 1:, :]
+
+        if z_cls.shape[-1] != self.d or z_patches.shape[-1] != self.d:
+            raise RuntimeError(
+                f"[MetaNATH] Backbone dim mismatch: expected d={self.d}, "
+                f"got cls={z_cls.shape[-1]}, patches={z_patches.shape[-1]}."
+            )
+
+        n_patch = z_patches.shape[1]
+        grid = math.isqrt(n_patch)
+        if grid * grid != n_patch:
+            raise RuntimeError(
+                f"[MetaNATH] Patch count must be square for anomaly maps, got {n_patch}."
+            )
+
+        if self.coreset.n_patch is None:
+            self.coreset.n_patch = n_patch
+            self.coreset.patch_grid = (grid, grid)
+        elif self.coreset.n_patch != n_patch:
+            raise RuntimeError(
+                f"[MetaNATH] Configured n_patch={self.coreset.n_patch}, "
+                f"but backbone produced {n_patch}. Set model.n_patch: null "
+                "or align dataset.img_size with the backbone patch size."
+            )
+
+        self.patch_grid = (grid, grid)
+        if self.coreset.patch_grid is None:
+            self.coreset.patch_grid = self.patch_grid
+
+        return z_cls, z_patches, self.patch_grid
 
     # ------------------------------------------------------------------
     # Inference — Anomaly Scoring (gọi riêng, không phải forward)
@@ -226,7 +275,7 @@ class MetaNATHCore(nn.Module):
         """
         Tính anomaly score cho ảnh test dùng CADIC Coreset.
 
-        KHÔNG cập nhật TTT hay Coreset — chỉ inference thuần túy.
+        KHÔNG cập nhật TTT hay Coreset —-chỉ inference thuần túy.
 
         Args:
             x: [1, 3, 224, 224] hoặc [B, 3, 224, 224]
@@ -234,9 +283,9 @@ class MetaNATHCore(nn.Module):
 
         Returns:
             dict với:
-                s_img:       float hoặc List[float]  — image-level score
-                s_pix:       [N_patch] tensor        — pixel-level scores
-                anomaly_map: [H, W] tensor           — upsample về input size
+                s_img:       float hoặc List[float]  - image-level score
+                s_pix:       [N_patch] tensor        - pixel-level scores
+                anomaly_map: [H, W] tensor           - upsample về input size
         """
         if len(self.coreset) == 0:
             raise RuntimeError(
@@ -244,18 +293,7 @@ class MetaNATHCore(nn.Module):
                 "với update_coreset=True trước khi gọi score_image()."
             )
 
-        out = self.backbone(x)
-        if hasattr(out, "last_hidden_state"):
-            hidden_states = out.last_hidden_state
-        elif isinstance(out, dict) and "last_hidden_state" in out:
-            hidden_states = out["last_hidden_state"]
-        else:
-            raise RuntimeError(
-                "[MetaNATH] Unexpected backbone output format. "
-                "Expected HuggingFace BaseModelOutput with `last_hidden_state`."
-            )
-
-        z_patches = hidden_states[:, -self.coreset.n_patch :, :]   # [B, N_patch, d]
+        _, z_patches, patch_grid = self.extract_features(x)
 
         # --- Batch Scoring (CADIC Eq. 8-9) ---
         # Gọi hàm Batch Scoring mới đã tối ưu
@@ -266,7 +304,7 @@ class MetaNATHCore(nn.Module):
 
         # --- Batch Upsampling (Nội suy hàng loạt) ---
         B = z_patches.shape[0]
-        H_patch = W_patch = int(self.coreset.n_patch ** 0.5)  # 16×16
+        H_patch, W_patch = patch_grid
         
         # [B, 1, 16, 16]
         s_pix_reshaped = s_pix_batch.reshape(B, 1, H_patch, W_patch).to(self.device_str)
@@ -296,29 +334,35 @@ class MetaNATHCore(nn.Module):
     # Checkpoint (custom vì TTTEngine/ACCGating/CADICCoreset không phải nn.Module)
     # ------------------------------------------------------------------
 
-    def full_state_dict(self) -> dict:
+    def full_state_dict(self, include_backbone: bool = True, include_images: bool = True) -> dict:
         """
         Lưu đầy đủ: backbone weights + TITANS memory + gating history + coreset.
 
         Dùng thay cho model.state_dict() khi checkpoint.
         """
         return {
-            "backbone":   self.backbone.state_dict(),
+            "backbone":   self.backbone.state_dict() if include_backbone else None,
+            "backbone_name": self.backbone_name,
             "ttt_engine": self.ttt_engine.state_dict(),
             "gating":     self.gating.state_dict(),
-            "coreset":    self.coreset.state_dict(),
+            "coreset":    self.coreset.state_dict(include_images=include_images),
             "config": {
                 "d":                self.d,
                 "device":           self.device_str,
+                "patch_grid":       self.patch_grid,
             },
         }
 
     def load_full_state_dict(self, sd: dict) -> None:
         """Load từ full_state_dict()."""
-        self.backbone.load_state_dict(sd["backbone"])
+        if sd.get("backbone") is not None:
+            self.backbone.load_state_dict(sd["backbone"])
+        self.backbone_name = sd.get("backbone_name", self.backbone_name)
         self.ttt_engine.load_state_dict(sd["ttt_engine"])
         self.gating.load_state_dict(sd["gating"])
         self.coreset.load_state_dict(sd["coreset"])
+        patch_grid = sd.get("config", {}).get("patch_grid")
+        self.patch_grid = tuple(patch_grid) if patch_grid else self.coreset.patch_grid
         # Đảm bảo backbone vẫn frozen sau khi load
         self.backbone.eval()
         for p in self.backbone.parameters():

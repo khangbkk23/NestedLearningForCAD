@@ -1,4 +1,7 @@
 import os
+os.environ.setdefault("NUMEXPR_MAX_THREADS", "1")
+os.environ.setdefault("OMP_NUM_THREADS", "1")
+os.environ.setdefault("MKL_NUM_THREADS", "1")
 import sys
 import glob
 import numpy as np
@@ -187,6 +190,7 @@ class ContinualStreamingManager:
 
     def __init__(self, config):
         self.dataset_cfg = config['dataset']
+        self.evaluation_cfg = config.get('evaluation', {})
         
         self.dataset_name = self.dataset_cfg['name']
         self.root_dir = self.dataset_cfg['root_dir']
@@ -222,6 +226,24 @@ class ContinualStreamingManager:
             categories = [d for d in os.listdir(self.root_dir) if os.path.isdir(os.path.join(self.root_dir, d))]
         return categories
 
+    def _loader_kwargs(self):
+        return {
+            'batch_size': self.batch_size,
+            'num_workers': self.num_workers,
+            'pin_memory': True if torch.cuda.is_available() else False,
+            'persistent_workers': True if self.num_workers > 0 else False
+        }
+
+    def get_cumulative_test_loader(self):
+        if not self.test_datasets_history:
+            return None
+        return DataLoader(
+            ConcatDataset(self.test_datasets_history),
+            shuffle=False,
+            drop_last=False,
+            **self._loader_kwargs(),
+        )
+
     def get_next_task(self):
         if self.current_task_idx >= len(self.categories):
             logger.info("Data loading completed for all tasks.")
@@ -247,17 +269,16 @@ class ContinualStreamingManager:
         )
         
         self.test_datasets_history.append(current_test_dataset)
-        concat_test_dataset = ConcatDataset(self.test_datasets_history)
-        
-        loader_kwargs = {
-            'batch_size': self.batch_size,
-            'num_workers': self.num_workers,
-            'pin_memory': True if torch.cuda.is_available() else False,
-            'persistent_workers': True if self.num_workers > 0 else False
-        }
+        eval_mode = str(self.evaluation_cfg.get('mode', 'current')).lower()
+        if eval_mode == 'cumulative':
+            eval_dataset = ConcatDataset(self.test_datasets_history)
+        else:
+            eval_dataset = current_test_dataset
+
+        loader_kwargs = self._loader_kwargs()
         
         train_loader = DataLoader(train_dataset, shuffle=True, drop_last=True, **loader_kwargs)
-        test_loader = DataLoader(concat_test_dataset, shuffle=False, drop_last=False, **loader_kwargs)
+        test_loader = DataLoader(eval_dataset, shuffle=False, drop_last=False, **loader_kwargs)
         
         task_info = {
             'task_id': self.current_task_idx,
