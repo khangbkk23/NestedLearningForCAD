@@ -13,6 +13,8 @@ The active pipeline is:
 See `docs/instruction_CAD.md` for the full research target. Phase 3 now has
 a smoke path for N2B-NC consolidation; NSP2 and CBP are present behind config
 flags and should be enabled only after the minimal consolidation path is stable.
+After a successful non-rollback consolidation, coreset embeddings are refreshed
+with the updated backbone before the Phase 3 checkpoint is saved.
 
 ## Setup
 

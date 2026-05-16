@@ -220,6 +220,12 @@ coreset2 = CADICCoreset(max_size=10, d=D, n_patch=N_PATCH, device=device)
 coreset2.load_state_dict(sd_c)
 check("state_dict round-trip size",  len(coreset2) == len(coreset))
 
+cls_repl = [torch.randn(D, device=device) for _ in range(len(coreset2))]
+patch_repl = [torch.randn(N_PATCH, D, device=device) for _ in range(len(coreset2))]
+coreset2.replace_all_embeddings(cls_repl, patch_repl)
+check("replace_all_embeddings giữ size", len(coreset2) == len(cls_repl))
+check("replace_all_embeddings refresh patch bank", tuple(coreset2.get_all_patch_embs().shape) == (len(cls_repl) * N_PATCH, D))
+
 # ─────────────────────────────────────────────────────────────────────────────
 # TEST 6 — MetaNATHCore (pipeline đầy đủ)
 # ─────────────────────────────────────────────────────────────────────────────
@@ -331,6 +337,16 @@ try:
           all(not p.requires_grad for p in model2.backbone.parameters()))
 except Exception as e:
     check("Checkpoint round-trip", False, str(e))
+    traceback.print_exc()
+
+try:
+    refresh_model = MetaNATHCore(d=D, n_patch=N_PATCH, store_images=True, device=device)
+    refresh_model(dummy_images, task_id=0, update_coreset=True)
+    refresh_stats = refresh_model.refresh_coreset_embeddings(batch_size=2)
+    check("refresh_coreset_embeddings chạy được", refresh_stats["refreshed"])
+    check("refresh giữ coreset size", refresh_stats["entries"] == len(refresh_model.coreset))
+except Exception as e:
+    check("refresh_coreset_embeddings", False, str(e))
     traceback.print_exc()
 
 # ─────────────────────────────────────────────────────────────────────────────

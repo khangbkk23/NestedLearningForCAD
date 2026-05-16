@@ -33,6 +33,8 @@ Goal: add cloud/offline consolidation without disturbing the Phase 1-2 baseline.
 3. **Drift rollback**
    - Roll back if drift is above `0.05`.
    - Keep the backbone frozen again after every consolidation attempt.
+   - If rollback is not triggered, refresh/re-index coreset embeddings with
+     the updated backbone before saving the Phase 3 checkpoint.
 
 4. **NSP2 projector**
    - Add `models/null_space_proj.py`.

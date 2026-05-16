@@ -304,6 +304,39 @@ class CADICCoreset:
         """
         self.utilities = [u * decay for u in self.utilities]
 
+    def replace_all_embeddings(
+        self,
+        cls_embeddings: List[torch.Tensor],
+        patch_embeddings: List[torch.Tensor],
+    ) -> None:
+        """
+        Re-index Coreset embeddings after backbone evolution.
+
+        Phase 3 may update the backbone. When that happens, stored patch/CLS
+        embeddings must be recomputed in the new feature space while keeping
+        images, utilities, and task ownership unchanged.
+        """
+        if len(cls_embeddings) != len(self) or len(patch_embeddings) != len(self):
+            raise ValueError(
+                "[CADIC] Replacement embeddings must match current coreset size: "
+                f"got cls={len(cls_embeddings)}, patch={len(patch_embeddings)}, size={len(self)}."
+            )
+
+        new_cls = []
+        new_patches = []
+        for cls_emb, patch_embs in zip(cls_embeddings, patch_embeddings):
+            cls_emb = cls_emb.detach().to(self.device)
+            patch_embs = patch_embs.detach().to(self.device)
+            if cls_emb.ndim != 1 or cls_emb.shape[0] != self.d:
+                raise ValueError(f"[CADIC] Expected cls embedding [{self.d}], got {tuple(cls_emb.shape)}.")
+            self._ensure_patch_geometry(patch_embs)
+            new_cls.append(cls_emb)
+            new_patches.append(patch_embs)
+
+        self.cls_embeddings = new_cls
+        self.patch_embeddings = new_patches
+        self._invalidate_caches()
+
     # ------------------------------------------------------------------
     # Patch Embeddings Access (cho AnomalyDecoder)
     # ------------------------------------------------------------------

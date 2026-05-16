@@ -34,6 +34,8 @@ class Phase3Config:
     lr: float = 1e-5
     weight_decay: float = 0.01
     steps: int = 1
+    refresh_coreset: bool = True
+    refresh_batch_size: int = 32
 
 
 class NestedBackboneConsolidator:
@@ -126,8 +128,13 @@ class NestedBackboneConsolidator:
             drift_value = float(drift.detach().cpu())
 
         rolled_back = drift_value > float(self.config.drift_threshold)
+        refresh_stats = {"refreshed": False, "reason": "rolled_back" if rolled_back else "disabled"}
         if rolled_back:
             self.core.backbone.load_state_dict(original_state)
+        elif self.config.refresh_coreset:
+            refresh_stats = self.core.refresh_coreset_embeddings(
+                batch_size=int(self.config.refresh_batch_size)
+            )
 
         self._freeze_backbone()
 
@@ -144,6 +151,7 @@ class NestedBackboneConsolidator:
             "lejepa_loss": lejepa_losses[-1] if lejepa_losses else None,
             "trainable_param_count": len(trainable_names),
             "trainable_param_names": trainable_names,
+            "coreset_refresh": refresh_stats,
             "nsp2": nsp2_stats,
             "cbp": cbp_stats,
         }

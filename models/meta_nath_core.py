@@ -368,6 +368,40 @@ class MetaNATHCore(nn.Module):
         for p in self.backbone.parameters():
             p.requires_grad_(False)
 
+    @torch.no_grad()
+    def refresh_coreset_embeddings(self, batch_size: int = 32) -> dict:
+        """
+        Recompute stored Coreset embeddings with the current backbone.
+
+        Phase 3 updates the backbone. Without this refresh, test embeddings are
+        produced by the updated backbone while the coreset still lives in the
+        old feature space.
+        """
+        if len(self.coreset) == 0:
+            return {"refreshed": False, "reason": "empty_coreset", "entries": 0}
+        if not self.coreset.images or any(img is None for img in self.coreset.images):
+            return {"refreshed": False, "reason": "missing_images", "entries": len(self.coreset)}
+
+        self.backbone.eval()
+        cls_embeddings = []
+        patch_embeddings = []
+        batch_size = max(1, int(batch_size))
+
+        for start in range(0, len(self.coreset.images), batch_size):
+            batch = torch.stack(self.coreset.images[start:start + batch_size]).to(self.device_str)
+            z_cls, z_patches, _ = self.extract_features(batch)
+            cls_embeddings.extend([z.detach() for z in z_cls])
+            patch_embeddings.extend([z.detach() for z in z_patches])
+
+        self.coreset.replace_all_embeddings(cls_embeddings, patch_embeddings)
+        return {
+            "refreshed": True,
+            "reason": "ok",
+            "entries": len(self.coreset),
+            "batch_size": batch_size,
+            "patch_grid": list(self.coreset.patch_grid) if self.coreset.patch_grid else None,
+        }
+
     # ------------------------------------------------------------------
     # Convenience methods
     # ------------------------------------------------------------------

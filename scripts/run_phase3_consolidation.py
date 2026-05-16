@@ -47,6 +47,8 @@ def _phase3_config(config: Dict[str, Any]) -> Phase3Config:
         lr=float(cfg.get("lr", 1e-5)),
         weight_decay=float(cfg.get("weight_decay", 0.01)),
         steps=int(cfg.get("steps", 1)),
+        refresh_coreset=bool(cfg.get("refresh_coreset", True)),
+        refresh_batch_size=int(cfg.get("refresh_batch_size", 32)),
     )
 
 
