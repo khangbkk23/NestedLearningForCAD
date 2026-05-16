@@ -49,6 +49,10 @@ Full Phase 1-2 baseline:
 
 Baseline runs are tracked in `docs/runs.md`.
 
+By default runs save `last_checkpoint.pt` only. Set
+`logging.checkpoint_policy: "all"` if you need per-task checkpoints, or
+`"best_and_last"` if you want best image/pixel checkpoints as well.
+
 ## Active Files
 
 - `models/meta_nath_core.py`: frozen backbone, TITANS, ACC, CADIC orchestration.

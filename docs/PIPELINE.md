@@ -42,7 +42,9 @@ Typical files:
 - `run_summary.json`
 - `task_records.json`
 - `task_XX_metrics.json`
-- `task_XX_checkpoint.pt`
+- `last_checkpoint.pt` by default
+- `task_XX_checkpoint.pt` only when `logging.checkpoint_policy: "all"`
+- `best_image_auroc.pt` / `best_pixel_aupr.pt` when `logging.checkpoint_policy: "best_and_last"`
 - `final_cumulative_metrics.json`
 - `forgetting_matrix.json` when `evaluation.forgetting_matrix: true`
 

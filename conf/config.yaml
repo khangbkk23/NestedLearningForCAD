@@ -64,6 +64,7 @@ logging:
   results_dir: "results/"
   save_models: true
   checkpoint_mode: "phase12_light" # "phase12_light" or "phase3_full"
+  checkpoint_policy: "last_only" # "all", "last_only", "best_and_last", or "none"
   log_frequency: 10
   use_wandb: true
   wandb_project: "MetaNATH-CAD"

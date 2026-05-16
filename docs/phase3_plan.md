@@ -22,31 +22,39 @@ Goal: add cloud/offline consolidation without disturbing the Phase 1-2 baseline.
    - Use `evaluation.forgetting_matrix: true` on a small run.
    - Compute FM with `scripts/compute_forgetting.py`.
 
-2. **NSP2 projector**
-   - Add `models/null_space_proj.py`.
-   - Fit SVD once per task/cycle.
-   - Cache projector and log `null_dim`.
-   - Use energy threshold `0.99`.
-
-3. **Minimal N2B-NC consolidator**
+2. **Minimal N2B-NC consolidator, without NSP2 first**
    - Add `training/consolidation_engine.py`.
    - Select top-k coreset anchors by utility.
    - Unfreeze only the final backbone blocks and norm.
    - Use distillation loss plus LEJEPA surrogate.
    - Clip gradients at `1.0`.
-   - Apply NSP2 to eligible gradients.
-   - Roll back if drift is above `0.05`.
+   - Do not apply NSP2 or CBP in the first smoke version.
 
-4. **CBP monitor**
+3. **Drift rollback**
+   - Roll back if drift is above `0.05`.
+   - Keep the backbone frozen again after every consolidation attempt.
+
+4. **NSP2 projector**
+   - Add `models/null_space_proj.py`.
+   - Fit SVD once per task/cycle.
+   - Cache projector and log `null_dim`.
+   - Use energy threshold `0.99`.
+   - Apply NSP2 to eligible gradients only after minimal N2B-NC works.
+
+5. **CBP monitor**
    - Add `models/cbp.py`.
    - Start with utility/dead-neuron logging only.
    - Enable reinit only after smoke tests pass.
 
-5. **Subspace Recycling**
+6. **CBP reset**
+   - Reset only neurons below the configured utility threshold.
+   - Project reset weights through NSP2 where shapes are eligible.
+
+7. **Subspace Recycling**
    - Add fallback thresholds `64 -> 32 -> 16`.
    - Skip the consolidation cycle if no safe null space remains.
 
-6. **Notebook orchestration**
+8. **Notebook orchestration**
    - Add `notebooks/phase3_n2bnc_kaggle.ipynb`.
    - Keep the notebook thin: setup, load data/config, run module functions, save artifacts.
 

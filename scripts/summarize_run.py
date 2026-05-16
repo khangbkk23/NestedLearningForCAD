@@ -116,6 +116,7 @@ def summarize_run(run_dir: Path) -> str:
         f"| tau_acc | {_config_value(resolved_config, 'model.tau_acc', '-')} |",
         f"| nearest_neighbors | {summary.get('nearest_neighbors', '-')} |",
         f"| max_coreset_size | {_config_value(resolved_config, 'model.max_coreset_size', '-')} |",
+        f"| checkpoint_policy | `{summary.get('checkpoint_policy', _config_value(resolved_config, 'logging.checkpoint_policy', '-'))}` |",
         f"| pixel_score_norm | `{summary.get('pixel_score_norm', '-')}` |",
         f"| gaussian_smoothing_sigma | {summary.get('gaussian_smoothing_sigma', '-')} |",
         f"| patch_grid / n_patch | {summary.get('patch_grid', '-')} / {summary.get('n_patch', '-')} |",

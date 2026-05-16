@@ -23,6 +23,7 @@ if PROJECT_ROOT not in sys.path:
 from conf.config import load_config
 from dataset.load_dataset import ContinualStreamingManager
 from models.meta_nath_core import MetaNATHCore
+from training.checkpointing import CheckpointManager, resolve_checkpoint_policy
 from training.meta_nath_engine import MetaNATHEngine
 from utils.global_seed import set_seed
 
@@ -126,7 +127,7 @@ def build_model(config: Dict[str, Any]) -> torch.nn.Module:
         tau_acc=float(model_cfg.get('tau_acc', 0.25)),
         max_coreset_size=int(model_cfg.get('max_coreset_size', 1000)),
         n_patch=n_patch,
-        store_images=bool(model_cfg.get('store_images', True)),
+        store_images=bool(model_cfg.get('store_images', False)),
         device=str(training_cfg.get('device', 'cuda')),
         backbone_name=model_cfg.get('backbone', 'facebook/dinov3-vitb14-pretrain'),
     )
@@ -220,6 +221,13 @@ def run_experiment(config: Dict[str, Any], run_suffix: str = '', disable_wandb: 
     forgetting_metric = str(evaluation_cfg.get('forgetting_metric', 'image_auroc'))
     save_models = bool(logging_cfg.get('save_models', True))
     checkpoint_mode = str(logging_cfg.get('checkpoint_mode', 'phase12_light')).lower()
+    checkpoint_policy = resolve_checkpoint_policy(logging_cfg.get('checkpoint_policy', 'last_only'))
+    checkpoint_manager = CheckpointManager(
+        run_dir=run_dir,
+        checkpoint_mode=checkpoint_mode,
+        checkpoint_policy=checkpoint_policy,
+        save_models=save_models,
+    )
 
     task_records = []
     forgetting_matrix: Dict[str, Dict[str, float]] = {}
@@ -302,22 +310,13 @@ def run_experiment(config: Dict[str, Any], run_suffix: str = '', disable_wandb: 
         with open(record_path, 'w', encoding='utf-8') as f:
             json.dump(record, f, indent=2)
 
-        if save_models:
-            ckpt_path = os.path.join(run_dir, f'task_{task_id:02d}_checkpoint.pt')
-            include_full_state = checkpoint_mode == 'phase3_full'
-            torch.save(
-                {
-                    'task_id': task_id,
-                    'category': category,
-                    'checkpoint_mode': checkpoint_mode,
-                    'model_state_dict': model.full_state_dict(
-                        include_backbone=include_full_state,
-                        include_images=include_full_state,
-                    ),
-                    'config': config,
-                },
-                ckpt_path,
-            )
+        checkpoint_manager.save_task(
+            model=model,
+            config=config,
+            task_id=task_id,
+            category=category,
+            eval_metrics=eval_metrics,
+        )
 
         if wandb_run is not None:
             import wandb  # type: ignore
@@ -380,6 +379,7 @@ def run_experiment(config: Dict[str, Any], run_suffix: str = '', disable_wandb: 
         'nearest_neighbors': nearest_neighbors,
         'pixel_score_norm': pixel_score_norm,
         'gaussian_smoothing_sigma': gaussian_smoothing_sigma,
+        'checkpoint_policy': checkpoint_policy,
         **_model_geometry(model),
         'avg_eval_image_auroc': avg_eval_image_auroc,
         'avg_eval_auroc': avg_eval_image_auroc,
