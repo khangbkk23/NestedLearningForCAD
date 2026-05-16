@@ -2,7 +2,7 @@
 test_integration.py
 -------------------
 Kiểm tra toàn bộ pipeline Meta-NATH từ đầu đến cuối.
-Chạy không cần GPU, không cần DINOv3 weights thật
+Chạy không cần GPU, không cần backbone weights thật
 (tự fallback về _FallbackBackbone nếu HF không có sẵn).
 
 Cách chạy:
@@ -96,12 +96,6 @@ try:
     check("meta_nath_engine import", True)
 except Exception as e:
     check("meta_nath_engine import", False, str(e)); sys.exit(1)
-
-try:
-    from models.vit_cms import AnomalyDecoder, ViT_Simple
-    check("vit_cms import", True)
-except Exception as e:
-    check("vit_cms import", False, str(e)); sys.exit(1)
 
 # ─────────────────────────────────────────────────────────────────────────────
 # TEST 2 — TITANSMemory
@@ -329,36 +323,6 @@ try:
           all(not p.requires_grad for p in model2.backbone.parameters()))
 except Exception as e:
     check("Checkpoint round-trip", False, str(e))
-    traceback.print_exc()
-
-# ─────────────────────────────────────────────────────────────────────────────
-# TEST 8 — ViT_Simple baseline (Ablation)
-# ─────────────────────────────────────────────────────────────────────────────
-section("TEST 8 · ViT_Simple Baseline")
-
-try:
-    baseline = ViT_Simple(
-        model_name="vit_base_patch16_224",
-        pretrained=False,          # False để không download weights
-        img_size=IMG_H,
-        extract_layers=[3, 6, 9],
-    )
-    baseline = baseline.to(device)
-    baseline.eval()
-
-    with torch.no_grad():
-        out_b = baseline(dummy_images)
-
-    check("ViT_Simple forward() không crash", True)
-    check("anomaly_map shape [B,1,H,W]",
-          out_b["anomaly_map"].shape == torch.Size([BATCH, 1, IMG_H, IMG_W]))
-    check("image_score shape [B]",
-          out_b["image_score"].shape == torch.Size([BATCH]))
-    check("image_score trong [0,1]",
-          out_b["image_score"].min() >= 0 and out_b["image_score"].max() <= 1)
-
-except Exception as e:
-    check("ViT_Simple forward() không crash", False, str(e))
     traceback.print_exc()
 
 # ─────────────────────────────────────────────────────────────────────────────

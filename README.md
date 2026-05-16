@@ -1,76 +1,64 @@
-# MVTec Anomaly Detection (Nested Learning / CMS)
+# Meta-NATH CAD
 
-## Purpose
+Phase 1-2 Light prototype for continual anomaly detection on MVTec AD.
 
-This repository trains and evaluates continual anomaly detection models on MVTec.
-It uses a ViT backbone with CMS layers and supports two execution modes:
+The active pipeline is:
 
-- Single run execution for one experiment setup.
-- Sweep execution for comparing multiple configurations.
+1. Frozen backbone feature extraction (`facebook/dinov2-base` for the current prototype).
+2. TITANS-style test-time memory update.
+3. ACC gating.
+4. CADIC unified coreset update with normal samples only.
+5. Patch nearest-neighbor image and pixel anomaly scoring.
+
+See `docs/instruction_CAD.md` for the full research target. This repo does not yet implement Phase 3 (`NSP2`, `CBP`, `Subspace Recycling`, `N2B-NC`).
 
 ## Setup
 
-```bash
-python -m venv .venv
-.venv\Scripts\activate
-pip install -r requirements.txt
+```powershell
+.\.pixi\envs\default\python.exe --version
 ```
 
-## Data Check
+or install from `requirements.txt` in a separate environment.
 
-```bash
-python dataset/download_mvtec.py
-python scripts/01_data_preparation.py --run_verify --config ./conf/config.yaml
+## Verify
+
+```powershell
+.\.pixi\envs\default\python.exe scripts\test_integration_2.py
+.\.pixi\envs\default\python.exe scripts\01_data_preparation.py --run_verify --config .\conf\config.yaml
 ```
 
-## Run One Experiment
+## Run
 
-Use `run_experiment.py` when you want one controlled run.
+Smoke:
 
-```bash
-python training/run_experiment.py --config ./conf/config.yaml
+```powershell
+.\.pixi\envs\default\python.exe training\run_experiment.py --max_tasks 4 --disable_wandb --quiet
 ```
 
-Fast profiles:
+Full Phase 1-2 baseline:
 
-```bash
-python training/run_experiment.py --config ./conf/config.yaml --profile tiny --max_tasks 2
-python training/run_experiment.py --config ./conf/config.yaml --profile small --max_tasks 4
+```powershell
+.\.pixi\envs\default\python.exe training\run_experiment.py --disable_wandb --quiet --run_suffix raw_baseline_full15
 ```
 
-## Run Multiple Experiments
+## Inspect Results
 
-Use `run_sweep.py` when you want to compare different configs automatically.
-
-```bash
-python training/run_sweep.py --config ./conf/config.yaml --profile tiny --max_tasks 2 --disable_wandb
+```powershell
+.\.pixi\envs\default\python.exe scripts\summarize_run.py results\<run_dir>
 ```
 
-## Inspect Checkpoints and Metrics
+Baseline runs are tracked in `docs/runs.md`.
 
-Use the notebook below to compare run summaries and task-level metrics, and optionally re-evaluate checkpoints:
+## Active Files
 
-- `notebooks/eval_checkpoint.ipynb`
+- `models/meta_nath_core.py`: frozen backbone, TITANS, ACC, CADIC orchestration.
+- `models/cadic_coreset.py`: unified memory bank and patch-NN scoring.
+- `training/meta_nath_engine.py`: normal-only streaming update and evaluation.
+- `training/run_experiment.py`: main experiment entrypoint.
+- `dataset/load_dataset.py`: MVTec/VisA continual task stream.
+- `scripts/summarize_run.py`: markdown run summaries.
+- `scripts/compute_forgetting.py`: forgetting metric from an evaluation matrix.
 
-Additional reference:
+## Legacy Code
 
-- `docs/PIPELINE.md`
-
-## Output Layout
-
-Each run writes to:
-
-- `results/<experiment_name>_<timestamp>[_suffix]/`
-
-Typical files per run:
-
-- `resolved_config.yaml`
-- `run_summary.json`
-- `task_XX_metrics.json`
-- `task_XX_checkpoint.pt`
-
-## Project Layout
-
-```
-conf/  dataset/  models/  scripts/  training/  notebooks/  results/
-```
+Older ViT-CMS/trainer/evaluator scripts live under `legacy/`. They are kept for reference only and should not be used for Meta-NATH Phase 1-2 or Phase 3 benchmarks.

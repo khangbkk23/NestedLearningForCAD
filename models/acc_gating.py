@@ -63,7 +63,7 @@ class ACCGating:
 
         Args:
             z_updated:  [batch, d] — sau TTT update
-            z_original: [batch, d] — trước TTT update (z_cls gốc từ DINOv3)
+            z_original: [batch, d] — trước TTT update (z_cls gốc từ backbone)
 
         Returns:
             acc_score: float

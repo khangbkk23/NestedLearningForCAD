@@ -9,12 +9,25 @@ dataset:
   std: [0.229, 0.224, 0.225]
   use_dtd: true
   dtd_dir: "data/dtd/images"
-  anomaly_generator: "superpixel"   # or "perlin", "destseg", "realnet", "mixed"
-  class_order: [
-    "bottle", "cable", "capsule", "carpet", "grid", 
-    "hazelnut", "leather", "metal_nut", "pill", "screw", 
-    "tile", "toothbrush", "transistor", "wood", "zipper"
-  ]
+  anomaly_generator: "superpixel" # or "perlin", "destseg", "realnet", "mixed"
+  class_order:
+    [
+      "bottle",
+      "cable",
+      "capsule",
+      "carpet",
+      "grid",
+      "hazelnut",
+      "leather",
+      "metal_nut",
+      "pill",
+      "screw",
+      "tile",
+      "toothbrush",
+      "transistor",
+      "wood",
+      "zipper",
+    ]
 
 model:
   backbone: "facebook/dinov2-base"
@@ -27,11 +40,11 @@ model:
 memory:
   coreset_sampling_ratio: 0.01
   nearest_neighbors: 9
-  distance_metric: "cosine" 
+  distance_metric: "cosine"
 
 training:
   optimizer: "adamw"
-  scheduler: "cosine" 
+  scheduler: "cosine"
   learning_rate: 0.0001
   weight_decay: 0.00001
   epochs_per_task: 1
@@ -40,9 +53,9 @@ training:
   pixel_loss_weight: 0.2
   use_replay: false
   replay_batch_size: 32
-  
+
   kd_loss_weight: 1.0
-  
+
   device: "cuda"
   seed: 42
 
@@ -50,14 +63,18 @@ logging:
   experiment_name: "MetaNATH_Phase1_2"
   results_dir: "results/"
   save_models: true
-  checkpoint_mode: "phase12_light"  # "phase12_light" or "phase3_full"
+  checkpoint_mode: "phase12_light" # "phase12_light" or "phase3_full"
   log_frequency: 10
   use_wandb: true
   wandb_project: "MetaNATH-CAD"
   wandb_entity: null
 
 evaluation:
-  mode: "current"                 # "current" or "cumulative"
+  mode: "current" # "current" or "cumulative"
   cumulative_frequency: 5
   final_cumulative: true
   pixel_sample_limit: 10000
+  pixel_score_norm: "none" # "none", "minmax", or "robust_z"
+  gaussian_smoothing_sigma: 0.0
+  forgetting_matrix: false
+  forgetting_metric: "image_auroc"

@@ -244,6 +244,16 @@ class ContinualStreamingManager:
             **self._loader_kwargs(),
         )
 
+    def get_test_loader_for_task(self, task_index: int):
+        if task_index < 0 or task_index >= len(self.test_datasets_history):
+            return None
+        return DataLoader(
+            self.test_datasets_history[task_index],
+            shuffle=False,
+            drop_last=False,
+            **self._loader_kwargs(),
+        )
+
     def get_next_task(self):
         if self.current_task_idx >= len(self.categories):
             logger.info("Data loading completed for all tasks.")

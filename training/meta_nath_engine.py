@@ -1,6 +1,7 @@
 import torch
 import numpy as np
 import time
+import torch.nn.functional as F
 from tqdm import tqdm
 from typing import Dict, Any
 from sklearn.metrics import roc_auc_score, average_precision_score
@@ -11,9 +12,23 @@ class MetaNATHEngine:
     Không dùng loss, không dùng optimizer truyền thống.
     Mọi cập nhật diễn ra thông qua Forward Pass (Phase 1 & 2).
     """
-    def __init__(self, model, device="cuda"):
+    def __init__(
+        self,
+        model,
+        device="cuda",
+        nearest_neighbors: int = 2,
+        pixel_score_norm: str = "none",
+        gaussian_smoothing_sigma: float = 0.0,
+    ):
         self.model = model
         self.device = device
+        self.nearest_neighbors = max(1, int(nearest_neighbors))
+        self.pixel_score_norm = str(pixel_score_norm or "none").lower()
+        self.gaussian_smoothing_sigma = max(0.0, float(gaussian_smoothing_sigma))
+        if self.pixel_score_norm not in {"none", "minmax", "robust_z"}:
+            raise ValueError(
+                "pixel_score_norm must be one of: none, minmax, robust_z"
+            )
         self.model.to(device)
         self.model.eval() # Luôn đóng băng Backbone ở Phase 1-2
 
@@ -89,14 +104,10 @@ class MetaNATHEngine:
             "avg_surprise": total_surprise / max(1, batch_steps),
             "avg_acc": total_acc / max(1, batch_steps),
             "acc_min": float(acc_array.min()) if acc_array.size else 0.0,
+            "acc_p10": float(np.percentile(acc_array, 10)) if acc_array.size else 0.0,
             "acc_p50": float(np.percentile(acc_array, 50)) if acc_array.size else 0.0,
             "acc_p90": float(np.percentile(acc_array, 90)) if acc_array.size else 0.0,
             "acc_max": float(acc_array.max()) if acc_array.size else 0.0,
-            # Dummy fields to keep run_experiment.py happy
-            "loss": 0.0,
-            "accuracy": 0.0,
-            "image_loss": 0.0,
-            "pixel_loss": 0.0,
         }
 
     def evaluate_task(
@@ -125,7 +136,7 @@ class MetaNATHEngine:
                 labels = batch['anomaly'] if isinstance(batch, dict) else batch[1]
                 masks = batch.get('img_mask', None) if isinstance(batch, dict) else (batch[2] if len(batch)>2 else None)
                 
-                out = self.model.score_image(images)
+                out = self.model.score_image(images, b=self.nearest_neighbors)
                 results = out["batch"] if "batch" in out else [out]
                 
                 for i, res in enumerate(results):
@@ -137,7 +148,8 @@ class MetaNATHEngine:
                         # Lấy mask thực tế (0 hoặc 1)
                         m = masks[i].cpu().numpy()
                         mask_flat = (m > 0.5).astype(np.uint8).flatten()
-                        map_flat = res['anomaly_map'].numpy().flatten()
+                        anomaly_map = self._postprocess_anomaly_map(res['anomaly_map'])
+                        map_flat = anomaly_map.numpy().flatten()
                         
                         # Sampling ngay tại đây để tránh list khổng lồ
                         # Mỗi ảnh lấy max 10,000 pixel ngẫu nhiên
@@ -167,12 +179,41 @@ class MetaNATHEngine:
             "image_auroc": image_auroc,
             "pixel_auroc": pixel_auroc,
             "pixel_aupr": pixel_aupr,
-            "loss": 0.0,
-            "accuracy": 0.0,
-            "f1": 0.0,
             "image_ap": image_ap,
-            "pixel_f1": 0.0,
             "auroc": image_auroc,
             "eval_num_images": eval_num_images,
             "eval_seconds": eval_seconds,
         }
+
+    def _postprocess_anomaly_map(self, anomaly_map: torch.Tensor) -> torch.Tensor:
+        """Optional pixel-score calibration for pixel AUROC/AUPR experiments."""
+        out = anomaly_map.detach().float().cpu()
+
+        sigma = self.gaussian_smoothing_sigma
+        if sigma > 0:
+            out = self._gaussian_smooth(out, sigma=sigma)
+
+        if self.pixel_score_norm == "minmax":
+            min_val = out.min()
+            max_val = out.max()
+            out = (out - min_val) / (max_val - min_val).clamp_min(1e-6)
+        elif self.pixel_score_norm == "robust_z":
+            median = out.median()
+            mad = (out - median).abs().median().clamp_min(1e-6)
+            out = (out - median) / (1.4826 * mad)
+
+        return out
+
+    @staticmethod
+    def _gaussian_smooth(anomaly_map: torch.Tensor, sigma: float) -> torch.Tensor:
+        radius = max(1, int(round(3 * sigma)))
+        coords = torch.arange(-radius, radius + 1, dtype=anomaly_map.dtype)
+        kernel_1d = torch.exp(-(coords ** 2) / (2 * sigma ** 2))
+        kernel_1d = kernel_1d / kernel_1d.sum().clamp_min(1e-12)
+        kernel_2d = torch.outer(kernel_1d, kernel_1d)
+        kernel_2d = kernel_2d.view(1, 1, *kernel_2d.shape)
+
+        x = anomaly_map.view(1, 1, *anomaly_map.shape)
+        x = F.pad(x, (radius, radius, radius, radius), mode="reflect")
+        smoothed = F.conv2d(x, kernel_2d)
+        return smoothed.squeeze(0).squeeze(0)

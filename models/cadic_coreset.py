@@ -53,7 +53,7 @@ class CADICCoreset:
         """
         Args:
             max_size:     Số entry tối đa (default 1000)
-            d:            Chiều embedding (768 cho DINOv3-B/14, 1024 cho DINOv3-L/14)
+            d:            Chiều embedding backbone (768 cho DINOv2-base prototype)
             n_patch:      Số patch tokens per image (256 = 16×16 cho 224×224 input)
             store_images: Có lưu raw image tensor không (cần cho N2B-NC Phase 3)
             device:       'cuda' hoặc 'cpu'
@@ -110,8 +110,8 @@ class CADICCoreset:
             trong cặp gần nhất nhau bằng x_new.
 
         Args:
-            cls_emb:    [d]           - CLS embedding từ DINOv3
-            patch_embs: [N_patch, d]  - patch tokens từ DINOv3
+            cls_emb:    [d]           - CLS embedding từ backbone
+            patch_embs: [N_patch, d]  - patch tokens từ backbone
             image:      [C, H, W]     - raw image (optional, cho N2B-NC)
             task_id:    int           - task hiện tại (chỉ để logging)
 

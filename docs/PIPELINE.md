@@ -1,42 +1,71 @@
 # Pipeline Reference
 
-## End-to-end flow
+This document describes the active Meta-NATH CAD Phase 1-2 Light pipeline.
+The full target architecture is specified in `docs/instruction_CAD.md`.
 
-1. Load config from `conf/config.yaml`.
-2. Build MVTec task stream with `dataset/load_dataset.py`.
-3. Build model from config (`ViT_CMS` by default).
-4. Train per task with `training/trainer.py`.
-5. Evaluate per task with `training/evaluator.py`.
-6. Save artifacts to `results/<run_name>/`.
+## Active Flow
 
-## Script roles
+1. Load `conf/config.yaml`.
+2. Build a continual task stream with `dataset/load_dataset.py`.
+3. Build `MetaNATHCore` from `models/meta_nath_core.py`.
+4. Stream each task through `MetaNATHEngine.train_task()`.
+5. Update CADIC only with normal samples (`anomaly == 0`).
+6. Evaluate image and pixel anomaly scores with patch nearest-neighbor matching.
+7. Write per-task metrics, run summary, cumulative metrics, and checkpoints.
+
+## Main Entrypoints
 
 - `training/run_experiment.py`
-  - Runs one experiment end-to-end.
-  - Supports `default`, `tiny`, and `small` profiles.
-  - Saves checkpoints and metrics per task.
+  - Main experiment runner.
+  - Supports `--profile tiny|small|default`, `--max_tasks`, `--run_suffix`, `--disable_wandb`, and `--quiet`.
 
-- `training/run_sweep.py`
-  - Runs multiple experiments by varying selected config fields.
-  - Calls `run_experiment` for each combination.
-  - Writes sweep summary to `results/sweeps/`.
+- `scripts/test_integration_2.py`
+  - Fast integration check for TITANS, ACC, CADIC, MetaNATHCore, checkpointing, and normal-only update.
 
-## Artifact layout per run
+- `scripts/summarize_run.py`
+  - Converts a run directory into a readable markdown summary.
+
+- `scripts/compute_forgetting.py`
+  - Computes standard forgetting from `forgetting_matrix.json` or `task_records.json` with `forgetting_eval`.
+
+## Output Layout
+
+Each run writes to:
+
+```text
+results/<experiment_name>_<timestamp>[_suffix]/
+```
+
+Typical files:
 
 - `resolved_config.yaml`
 - `run_summary.json`
+- `task_records.json`
 - `task_XX_metrics.json`
 - `task_XX_checkpoint.pt`
+- `final_cumulative_metrics.json`
+- `forgetting_matrix.json` when `evaluation.forgetting_matrix: true`
 
-## Notebook usage
+## Current Scope
 
-Notebook: `notebooks/eval_checkpoint.ipynb`
+Implemented:
 
-Customize in Cell 3:
-- `RUN_DIR_PATTERNS` to select result folders.
-- `CHECKPOINTS_TO_REEVALUATE` to evaluate checkpoints again.
-- `METRICS_TO_PLOT` and `TASK_METRIC_TO_PLOT` to control charts.
+- Frozen backbone adapter for HuggingFace DINOv2 and future DINOv3 dict outputs.
+- TITANS-style fast memory.
+- ACC gating.
+- CADIC unified coreset.
+- Patch nearest-neighbor image/pixel scoring.
+- Current and cumulative evaluation.
+- Optional forgetting matrix infrastructure.
 
-Visual outputs:
-- Run-level bar comparison.
-- Task-level heatmap comparison.
+Not implemented yet:
+
+- NSP2.
+- CBP.
+- Subspace Recycling.
+- N2B-NC backbone evolution.
+- Phase 3 cloud consolidation notebook.
+
+## Legacy
+
+Old ViT-CMS/trainer/evaluator code has been moved to `legacy/`. It is retained for reference but is not part of the active benchmark path.

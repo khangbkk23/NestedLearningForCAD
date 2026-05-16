@@ -27,8 +27,49 @@ from training.meta_nath_engine import MetaNATHEngine
 from utils.global_seed import set_seed
 
 
+def _model_geometry(model: MetaNATHCore) -> Dict[str, Any]:
+    patch_grid = model.patch_grid or model.coreset.patch_grid
+    return {
+        'patch_grid': list(patch_grid) if patch_grid is not None else None,
+        'n_patch': int(model.coreset.n_patch) if model.coreset.n_patch is not None else None,
+    }
+
+
+def _compute_forgetting_metrics(
+    forgetting_matrix: Dict[str, Dict[str, float]],
+    final_task_id: int,
+) -> Dict[str, Any]:
+    if not forgetting_matrix:
+        return {'forgetting_measure': 0.0, 'per_task_forgetting': {}}
+
+    final_key = str(final_task_id)
+    if final_key not in forgetting_matrix:
+        return {'forgetting_measure': 0.0, 'per_task_forgetting': {}}
+
+    per_task = {}
+    for task_j in range(final_task_id):
+        eval_key = str(task_j)
+        history_scores = []
+        for task_i in range(task_j, final_task_id + 1):
+            score = forgetting_matrix.get(str(task_i), {}).get(eval_key)
+            if score is not None:
+                history_scores.append(float(score))
+
+        final_score = forgetting_matrix[final_key].get(eval_key)
+        if not history_scores or final_score is None:
+            continue
+
+        per_task[eval_key] = max(0.0, max(history_scores) - float(final_score))
+
+    fm = float(np.mean(list(per_task.values()))) if per_task else 0.0
+    return {
+        'forgetting_measure': fm,
+        'per_task_forgetting': per_task,
+    }
+
+
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description='Run continual anomaly experiment with ViT-CMS backbone')
+    parser = argparse.ArgumentParser(description='Run Meta-NATH CAD Phase 1-2 experiments')
     parser.add_argument('--config', type=str, default='./conf/config.yaml', help='Path to YAML config')
     parser.add_argument(
         '--profile',
@@ -130,6 +171,7 @@ def run_experiment(config: Dict[str, Any], run_suffix: str = '', disable_wandb: 
     training_cfg = config.get('training', {})
     logging_cfg = config.get('logging', {})
     evaluation_cfg = config.get('evaluation', {})
+    memory_cfg = config.get('memory', {})
 
     seed = int(training_cfg.get('seed', 42))
     set_seed(seed)
@@ -155,7 +197,16 @@ def run_experiment(config: Dict[str, Any], run_suffix: str = '', disable_wandb: 
         device = 'cpu'
     else:
         device = requested_device
-    engine = MetaNATHEngine(model=model, device=device)
+    nearest_neighbors = int(memory_cfg.get('nearest_neighbors', 2))
+    pixel_score_norm = str(evaluation_cfg.get('pixel_score_norm', 'none')).lower()
+    gaussian_smoothing_sigma = float(evaluation_cfg.get('gaussian_smoothing_sigma', 0.0))
+    engine = MetaNATHEngine(
+        model=model,
+        device=device,
+        nearest_neighbors=nearest_neighbors,
+        pixel_score_norm=pixel_score_norm,
+        gaussian_smoothing_sigma=gaussian_smoothing_sigma,
+    )
     stream_manager = ContinualStreamingManager(config)
 
     wandb_run = maybe_init_wandb(config, run_name=run_name, run_dir=run_dir, disable_wandb=disable_wandb)
@@ -165,10 +216,13 @@ def run_experiment(config: Dict[str, Any], run_suffix: str = '', disable_wandb: 
     eval_mode = str(evaluation_cfg.get('mode', 'current')).lower()
     cumulative_frequency = int(evaluation_cfg.get('cumulative_frequency', 5))
     final_cumulative = bool(evaluation_cfg.get('final_cumulative', True))
+    forgetting_matrix_enabled = bool(evaluation_cfg.get('forgetting_matrix', False))
+    forgetting_metric = str(evaluation_cfg.get('forgetting_metric', 'image_auroc'))
     save_models = bool(logging_cfg.get('save_models', True))
     checkpoint_mode = str(logging_cfg.get('checkpoint_mode', 'phase12_light')).lower()
 
     task_records = []
+    forgetting_matrix: Dict[str, Dict[str, float]] = {}
 
     while True:
         train_loader, test_loader, task_info = stream_manager.get_next_task()
@@ -213,11 +267,35 @@ def run_experiment(config: Dict[str, Any], run_suffix: str = '', disable_wandb: 
         record = {
             'task_id': task_id,
             'category': category,
+            'model': _model_geometry(model),
             'train': train_metrics,
             'eval': eval_metrics,
         }
         if cumulative_eval_metrics is not None:
             record['cumulative_eval'] = cumulative_eval_metrics
+
+        if forgetting_matrix_enabled:
+            row_metrics: Dict[str, Dict[str, Any]] = {}
+            row_scores: Dict[str, float] = {}
+            for prev_task_id in range(len(stream_manager.test_datasets_history)):
+                if prev_task_id == task_id and eval_mode != 'cumulative':
+                    prev_metrics = eval_metrics
+                else:
+                    prev_loader = stream_manager.get_test_loader_for_task(prev_task_id)
+                    if prev_loader is None:
+                        continue
+                    prev_metrics = engine.evaluate_task(
+                        test_loader=prev_loader,
+                        task_id=prev_task_id,
+                        verbose=False,
+                        pixel_sample_limit=pixel_sample_limit,
+                    )
+
+                row_metrics[str(prev_task_id)] = prev_metrics
+                row_scores[str(prev_task_id)] = float(prev_metrics.get(forgetting_metric, 0.0))
+
+            record['forgetting_eval'] = row_metrics
+            forgetting_matrix[str(task_id)] = row_scores
         task_records.append(record)
 
         record_path = os.path.join(run_dir, f'task_{task_id:02d}_metrics.json')
@@ -247,22 +325,21 @@ def run_experiment(config: Dict[str, Any], run_suffix: str = '', disable_wandb: 
             wandb.log(
                 {
                     'task_id': task_id,
-                    'train/loss': float(train_metrics.get('loss', 0.0)),
-                    'train/accuracy': float(train_metrics.get('accuracy', 0.0)),
-                    'train/image_loss': float(train_metrics.get('image_loss', 0.0)),
-                    'train/pixel_loss': float(train_metrics.get('pixel_loss', 0.0)),
                     'train/surprise_score': float(train_metrics.get('avg_surprise', 0.0)),
                     'train/acc_gating': float(train_metrics.get('avg_acc', 0.0)),
+                    'train/acc_min': float(train_metrics.get('acc_min', 0.0)),
+                    'train/acc_p10': float(train_metrics.get('acc_p10', 0.0)),
+                    'train/acc_p50': float(train_metrics.get('acc_p50', 0.0)),
+                    'train/acc_p90': float(train_metrics.get('acc_p90', 0.0)),
+                    'train/acc_max': float(train_metrics.get('acc_max', 0.0)),
                     'train/acc_approval_rate': float(train_metrics.get('acc_approval_rate', 0.0)),
                     'train/coreset_size': float(train_metrics.get('coreset_size', 0.0)),
+                    'train/coreset_update_count': float(train_metrics.get('coreset_update_count', 0.0)),
                     'train/normal_update_samples': float(train_metrics.get('normal_update_samples', 0.0)),
                     'train/skipped_anomaly_count': float(train_metrics.get('skipped_anomaly_count', 0.0)),
-                    'eval/loss': float(eval_metrics.get('loss', 0.0)),
-                    'eval/accuracy': float(eval_metrics.get('accuracy', 0.0)),
-                    'eval/f1': float(eval_metrics.get('f1', 0.0)),
-                    'eval/auroc': float(eval_metrics.get('auroc', 0.0)),
+                    'eval/image_auroc': float(eval_metrics.get('image_auroc', 0.0)),
                     'eval/image_ap': float(eval_metrics.get('image_ap', 0.0)),
-                    'eval/pixel_f1': float(eval_metrics.get('pixel_f1', 0.0)),
+                    'eval/pixel_auroc': float(eval_metrics.get('pixel_auroc', 0.0)),
                     'eval/pixel_aupr': float(eval_metrics.get('pixel_aupr', 0.0)),
                     'eval/eval_num_images': float(eval_metrics.get('eval_num_images', 0.0)),
                     'eval/eval_seconds': float(eval_metrics.get('eval_seconds', 0.0)),
@@ -290,21 +367,45 @@ def run_experiment(config: Dict[str, Any], run_suffix: str = '', disable_wandb: 
             with open(os.path.join(run_dir, 'final_cumulative_metrics.json'), 'w', encoding='utf-8') as f:
                 json.dump(final_cumulative_metrics, f, indent=2)
 
-    eval_acc = [float(rec['eval'].get('accuracy', 0.0)) for rec in task_records]
-    eval_f1 = [float(rec['eval'].get('f1', 0.0)) for rec in task_records]
-    eval_auroc = [float(rec['eval'].get('auroc', 0.0)) for rec in task_records]
+    eval_image_aurocs = [float(rec['eval'].get('image_auroc', 0.0)) for rec in task_records]
+    eval_pixel_aurocs = [float(rec['eval'].get('pixel_auroc', 0.0)) for rec in task_records]
+    eval_pixel_auprs = [float(rec['eval'].get('pixel_aupr', 0.0)) for rec in task_records]
+    eval_image_aps = [float(rec['eval'].get('image_ap', 0.0)) for rec in task_records]
 
+    avg_eval_image_auroc = float(np.mean(eval_image_aurocs)) if eval_image_aurocs else 0.0
     summary = {
         'run_name': run_name,
         'run_dir': run_dir,
         'tasks_completed': len(task_records),
-        'avg_eval_accuracy': float(np.mean(eval_acc)) if eval_acc else 0.0,
-        'avg_eval_f1': float(np.mean(eval_f1)) if eval_f1 else 0.0,
-        'avg_eval_auroc': float(np.mean(eval_auroc)) if eval_auroc else 0.0,
+        'nearest_neighbors': nearest_neighbors,
+        'pixel_score_norm': pixel_score_norm,
+        'gaussian_smoothing_sigma': gaussian_smoothing_sigma,
+        **_model_geometry(model),
+        'avg_eval_image_auroc': avg_eval_image_auroc,
+        'avg_eval_auroc': avg_eval_image_auroc,
+        'avg_eval_pixel_auroc': float(np.mean(eval_pixel_aurocs)) if eval_pixel_aurocs else 0.0,
+        'avg_eval_pixel_aupr': float(np.mean(eval_pixel_auprs)) if eval_pixel_auprs else 0.0,
+        'avg_eval_image_ap': float(np.mean(eval_image_aps)) if eval_image_aps else 0.0,
     }
     if final_cumulative_metrics is not None:
         summary['final_cumulative_image_auroc'] = float(final_cumulative_metrics.get('image_auroc', 0.0))
         summary['final_cumulative_pixel_aupr'] = float(final_cumulative_metrics.get('pixel_aupr', 0.0))
+
+    if forgetting_matrix_enabled:
+        final_task_id = int(task_records[-1]['task_id']) if task_records else 0
+        forgetting_metrics = _compute_forgetting_metrics(forgetting_matrix, final_task_id)
+        summary['forgetting_metric'] = forgetting_metric
+        summary['forgetting_measure'] = float(forgetting_metrics['forgetting_measure'])
+        with open(os.path.join(run_dir, 'forgetting_matrix.json'), 'w', encoding='utf-8') as f:
+            json.dump(
+                {
+                    'metric': forgetting_metric,
+                    'matrix': forgetting_matrix,
+                    **forgetting_metrics,
+                },
+                f,
+                indent=2,
+            )
 
     with open(os.path.join(run_dir, 'run_summary.json'), 'w', encoding='utf-8') as f:
         json.dump(summary, f, indent=2)

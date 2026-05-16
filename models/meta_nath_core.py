@@ -4,7 +4,7 @@ meta_nath_core.py
 MetaNATHCore - Lõi hệ thống Phase 1 + 2 của Meta-NATH CAD.
 
 Kết nối:
-    Nhà Thông Thái  = Frozen DINOv3 (HuggingFace dinov3-vitb16)
+    Nhà Thông Thái  = Frozen vision backbone (DINOv2 now, DINOv3-ready adapter)
     Sổ Nháp         = TTTEngine (TITANS Delta Rule)
     Cầu Chì         = ACCGating (Social Welfare)
     Tủ Hồ Sơ        = CADICCoreset (Unified Memory Bank)
@@ -70,7 +70,7 @@ class MetaNATHCore(nn.Module):
     ):
         """
         Args:
-            d:                Chiều embedding (768 = DINOv3-B/16, 1024 = DINOv3-L/16)
+            d:                Chiều embedding (768 for DINOv2-base/current prototype)
             tau_acc:          Ngưỡng ACC Gating (instruction_CAD §5.8, default 0.25)
             max_coreset_size: Số entry tối đa CADIC (default 1000)
             n_patch:          Số patch tokens. None để infer từ backbone output.
@@ -88,8 +88,8 @@ class MetaNATHCore(nn.Module):
         self.patch_grid: Optional[Tuple[int, int]] = None
 
         # ----------------------------------------------------------------
-        # 1. Eyes - Frozen DINOv3 (HuggingFace)
-        #    Dùng ViT-B/16 để tránh phụ thuộc gated weights qua torch.hub local.
+        # 1. Eyes - frozen vision backbone.
+        #    Current prototype uses HuggingFace DINOv2; adapter also supports DINOv3 dict outputs.
         # ----------------------------------------------------------------
         logger.info(f"[MetaNATH] Loading backbone ({backbone_name})...")
         try:
@@ -134,7 +134,7 @@ class MetaNATHCore(nn.Module):
 
     def train(self, mode: bool = True) -> "MetaNATHCore":
         """
-        Override bắt buộc: backbone DINOv3 phải luôn ở eval mode
+        Override bắt buộc: backbone phải luôn ở eval mode
         dù Trainer gọi model.train() bất cứ lúc nào.
         """
         super().train(mode)
@@ -163,7 +163,7 @@ class MetaNATHCore(nn.Module):
 
         Returns:
             dict với keys:
-                z_cls:            [B, d]   - CLS token gốc từ DINOv3
+                z_cls:            [B, d]   - CLS token gốc từ backbone
                 z_updated:        [B, d]   - sau TTT adaptation
                 z_patches:        [B, N, d] - patch tokens (cho AnomalyDecoder)
                 surprise:         float

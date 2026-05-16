@@ -50,7 +50,7 @@ class TITANSMemory:
         Truy xuất bộ nhớ: z = M @ k^T => shape [batch, d].
 
         Args:
-            k: [batch, d] — key vector (thường là z_cls từ DINOv3)
+            k: [batch, d] — key vector (thường là z_cls từ backbone)
 
         Returns:
             pred: [batch, d]
@@ -125,7 +125,7 @@ class TTTEngine:
     """
     Test-Time Training Engine (Phase 1 — Nhịp Phản xạ).
 
-    Nhận z_cls từ DINOv3, cập nhật TITANSMemory, trả về z_updated
+    Nhận z_cls từ backbone, cập nhật TITANSMemory, trả về z_updated
     và flag `approved` cho Phase 2 (ACCGating quyết định).
 
     Không kế thừa nn.Module — toàn bộ tính toán nằm trong no_grad.
@@ -158,7 +158,7 @@ class TTTEngine:
             4. Produce z_updated = M_updated @ z_cls^T
 
         Args:
-            z_cls: [batch, d] — CLS token từ DINOv3 (đã detach)
+            z_cls: [batch, d] — CLS token từ backbone (đã detach)
 
         Returns:
             z_updated:       [batch, d]
