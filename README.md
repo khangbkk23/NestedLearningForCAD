@@ -10,7 +10,9 @@ The active pipeline is:
 4. CADIC unified coreset update with normal samples only.
 5. Patch nearest-neighbor image and pixel anomaly scoring.
 
-See `docs/instruction_CAD.md` for the full research target. This repo does not yet implement Phase 3 (`NSP2`, `CBP`, `Subspace Recycling`, `N2B-NC`).
+See `docs/instruction_CAD.md` for the full research target. Phase 3 now has
+a smoke path for N2B-NC consolidation; NSP2 and CBP are present behind config
+flags and should be enabled only after the minimal consolidation path is stable.
 
 ## Setup
 
@@ -41,6 +43,14 @@ Full Phase 1-2 baseline:
 .\.pixi\envs\default\python.exe training\run_experiment.py --disable_wandb --quiet --run_suffix raw_baseline_full15
 ```
 
+Phase 3 anchor warmup and consolidation smoke:
+
+```powershell
+.\.pixi\envs\default\python.exe training\run_experiment.py --config .\conf\config_phase3.yaml --max_tasks 4 --disable_wandb --quiet --run_suffix phase3_anchor_warmup_4task
+.\.pixi\envs\default\python.exe scripts\run_phase3_consolidation.py --config .\conf\config_phase3.yaml --checkpoint results\<warmup_run>\last_checkpoint.pt --run_suffix phase3_smoke
+.\.pixi\envs\default\python.exe scripts\evaluate_checkpoint.py --config .\conf\config_phase3.yaml --checkpoint results\<phase3_run>\last_checkpoint.pt --max_tasks 4 --quiet --run_suffix phase3_after_eval_4task
+```
+
 ## Inspect Results
 
 ```powershell
@@ -59,7 +69,10 @@ By default runs save `last_checkpoint.pt` only. Set
 - `models/cadic_coreset.py`: unified memory bank and patch-NN scoring.
 - `training/meta_nath_engine.py`: normal-only streaming update and evaluation.
 - `training/run_experiment.py`: main experiment entrypoint.
+- `training/consolidation_engine.py`: Phase 3 N2B-NC consolidation.
 - `dataset/load_dataset.py`: MVTec/VisA continual task stream.
+- `scripts/run_phase3_consolidation.py`: Phase 3 CLI entrypoint.
+- `scripts/evaluate_checkpoint.py`: evaluates a saved checkpoint without retraining.
 - `scripts/summarize_run.py`: markdown run summaries.
 - `scripts/compute_forgetting.py`: forgetting metric from an evaluation matrix.
 

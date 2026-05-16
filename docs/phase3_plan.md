@@ -65,3 +65,32 @@ Goal: add cloud/offline consolidation without disturbing the Phase 1-2 baseline.
 - `phase3_summary.json`
 - `consolidation_log.json`
 - final light/full checkpoint, depending on the run mode
+
+## Active Phase 3 Files
+
+- `conf/config_phase3.yaml`: separate Phase 3 config; baseline config stays untouched.
+- `training/consolidation_engine.py`: N2B-NC consolidation and drift rollback.
+- `models/null_space_proj.py`: NSP2 projector, disabled by default for the first smoke.
+- `models/cbp.py`: CBP monitor/reset helper, monitor-only by default.
+- `scripts/run_phase3_consolidation.py`: CLI entrypoint for local/Kaggle execution.
+- `notebooks/phase3_n2bnc_kaggle.ipynb`: thin Kaggle orchestration.
+
+## First Smoke Commands
+
+Create an anchor checkpoint with raw images:
+
+```powershell
+.\.pixi\envs\default\python.exe training\run_experiment.py --config conf\config_phase3.yaml --max_tasks 4 --disable_wandb --quiet --run_suffix phase3_anchor_warmup_4task
+```
+
+Run one consolidation cycle:
+
+```powershell
+.\.pixi\envs\default\python.exe scripts\run_phase3_consolidation.py --config conf\config_phase3.yaml --checkpoint results\<warmup_run>\last_checkpoint.pt --run_suffix phase3_smoke
+```
+
+Evaluate the consolidated checkpoint:
+
+```powershell
+.\.pixi\envs\default\python.exe scripts\evaluate_checkpoint.py --config conf\config_phase3.yaml --checkpoint results\<phase3_run>\last_checkpoint.pt --max_tasks 4 --quiet --run_suffix phase3_after_eval_4task
+```

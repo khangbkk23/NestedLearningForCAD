@@ -97,6 +97,14 @@ try:
 except Exception as e:
     check("meta_nath_engine import", False, str(e)); sys.exit(1)
 
+try:
+    from models.null_space_proj import NSP2Config, NullSpaceProjector
+    from models.cbp import CBPConfig, CBPMonitor
+    from training.consolidation_engine import Phase3Config, NestedBackboneConsolidator
+    check("phase3 modules import", True)
+except Exception as e:
+    check("phase3 modules import", False, str(e)); sys.exit(1)
+
 # ─────────────────────────────────────────────────────────────────────────────
 # TEST 2 — TITANSMemory
 # ─────────────────────────────────────────────────────────────────────────────
@@ -323,6 +331,31 @@ try:
           all(not p.requires_grad for p in model2.backbone.parameters()))
 except Exception as e:
     check("Checkpoint round-trip", False, str(e))
+    traceback.print_exc()
+
+# ─────────────────────────────────────────────────────────────────────────────
+# TEST 8 — Phase 3 utilities
+# ─────────────────────────────────────────────────────────────────────────────
+section("TEST 8 · Phase 3 Utilities")
+
+try:
+    projector = NullSpaceProjector(d=D, config=NSP2Config(enabled=True, min_null_dim=64), device=device)
+    nsp_stats = projector.fit(torch.randn(8, D, device=device))
+    grad_vec = torch.randn(D, device=device)
+    grad_mat = torch.randn(4, D, device=device)
+    check("NSP2 fit trả stats", "null_dim" in nsp_stats)
+    check("NSP2 project vector shape", tuple(projector.project(grad_vec).shape) == (D,))
+    check("NSP2 project matrix shape", tuple(projector.project(grad_mat).shape) == (4, D))
+
+    lin = torch.nn.Linear(D, 4).to(device)
+    out = lin(torch.randn(2, D, device=device)).sum()
+    out.backward()
+    cbp_stats = CBPMonitor(CBPConfig(enabled=False)).scan_and_maybe_reset(lin, projector=projector)
+    check("CBP monitor trả stats", "dead_neuron_ratio" in cbp_stats)
+    check("Phase3Config khởi tạo", isinstance(Phase3Config(), Phase3Config))
+    check("NestedBackboneConsolidator class callable", callable(NestedBackboneConsolidator))
+except Exception as e:
+    check("Phase 3 utilities", False, str(e))
     traceback.print_exc()
 
 # ─────────────────────────────────────────────────────────────────────────────

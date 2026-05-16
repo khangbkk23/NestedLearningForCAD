@@ -62,11 +62,11 @@ Implemented:
 
 Not implemented yet:
 
-- NSP2.
-- CBP.
+- NSP2 is present but disabled by default until N2B-NC smoke is stable.
+- CBP monitor/reset helper is present; reset remains disabled by default.
 - Subspace Recycling.
-- N2B-NC backbone evolution.
-- Phase 3 cloud consolidation notebook.
+- N2B-NC backbone evolution has a Phase 3 CLI smoke path.
+- Phase 3 cloud notebook is a thin orchestration notebook.
 
 ## Legacy
 
