@@ -30,10 +30,12 @@ class Phase3Config:
     drift_threshold: float = 0.05
     grad_clip: float = 1.0
     distill_weight: float = 1.0
+    patch_distill_weight: float = 1.0
     lejepa_weight: float = 0.1
     lr: float = 1e-5
     weight_decay: float = 0.01
     steps: int = 1
+    balanced_anchors: bool = True
     refresh_coreset: bool = True
     refresh_batch_size: int = 32
 
@@ -59,7 +61,11 @@ class NestedBackboneConsolidator:
         self.predictor = nn.Linear(self.core.d, self.core.d, bias=False).to(self.device)
 
     def execute_global_consolidation(self) -> Dict[str, Any]:
-        images, targets = self.core.coreset.get_top_k_by_utility(self.config.top_k_anchors)
+        images, targets, anchor_stats = self.core.coreset.get_top_k_by_utility(
+            self.config.top_k_anchors,
+            balanced_by_task=bool(self.config.balanced_anchors),
+            return_metadata=True,
+        )
         if images is None:
             raise RuntimeError(
                 "Phase 3 needs coreset anchor images. Run a warmup with "
@@ -76,7 +82,9 @@ class NestedBackboneConsolidator:
         }
 
         with torch.no_grad():
-            z_before = self._extract_cls_with_grad(images).detach()
+            z_before, patch_targets = self._extract_tokens_with_grad(images)
+            z_before = z_before.detach()
+            patch_targets = patch_targets.detach()
 
         trainable_names = self._unfreeze_last_blocks()
         if not trainable_names:
@@ -92,17 +100,20 @@ class NestedBackboneConsolidator:
 
         losses: List[float] = []
         distill_losses: List[float] = []
+        patch_distill_losses: List[float] = []
         lejepa_losses: List[float] = []
         cbp_stats: Dict[str, Any] = {}
 
         self.core.backbone.train()
         for _ in range(max(int(self.config.steps), 1)):
             optimizer.zero_grad(set_to_none=True)
-            z_backbone = self._extract_cls_with_grad(images)
+            z_backbone, patch_backbone = self._extract_tokens_with_grad(images)
             distill_loss = F.mse_loss(z_backbone, targets)
+            patch_distill_loss = F.mse_loss(patch_backbone, patch_targets)
             lejepa_loss = self._lejepa_surrogate(z_backbone, targets)
             loss = (
                 float(self.config.distill_weight) * distill_loss
+                + float(self.config.patch_distill_weight) * patch_distill_loss
                 + float(self.config.lejepa_weight) * lejepa_loss
             )
             loss.backward()
@@ -119,13 +130,17 @@ class NestedBackboneConsolidator:
 
             losses.append(float(loss.detach().cpu()))
             distill_losses.append(float(distill_loss.detach().cpu()))
+            patch_distill_losses.append(float(patch_distill_loss.detach().cpu()))
             lejepa_losses.append(float(lejepa_loss.detach().cpu()))
 
         self.core.backbone.eval()
         with torch.no_grad():
-            z_after = self._extract_cls_with_grad(images).detach()
+            z_after, patches_after = self._extract_tokens_with_grad(images)
+            z_after = z_after.detach()
+            patches_after = patches_after.detach()
             drift = 1.0 - F.cosine_similarity(z_before, z_after, dim=-1).mean()
             drift_value = float(drift.detach().cpu())
+            patch_drift_value = float(F.mse_loss(patches_after, patch_targets).detach().cpu())
 
         rolled_back = drift_value > float(self.config.drift_threshold)
         refresh_stats = {"refreshed": False, "reason": "rolled_back" if rolled_back else "disabled"}
@@ -142,13 +157,22 @@ class NestedBackboneConsolidator:
             "success": not rolled_back,
             "rolled_back": rolled_back,
             "drift": drift_value,
+            "patch_drift_mse": patch_drift_value,
             "drift_threshold": float(self.config.drift_threshold),
             "top_k_anchors": int(images.shape[0]),
+            "anchor_selection": anchor_stats,
             "steps": max(int(self.config.steps), 1),
             "loss": losses[-1] if losses else None,
             "loss_history": losses,
             "distill_loss": distill_losses[-1] if distill_losses else None,
+            "patch_distill_loss": patch_distill_losses[-1] if patch_distill_losses else None,
+            "patch_distill_loss_history": patch_distill_losses,
             "lejepa_loss": lejepa_losses[-1] if lejepa_losses else None,
+            "loss_weights": {
+                "distill": float(self.config.distill_weight),
+                "patch_distill": float(self.config.patch_distill_weight),
+                "lejepa": float(self.config.lejepa_weight),
+            },
             "trainable_param_count": len(trainable_names),
             "trainable_param_names": trainable_names,
             "coreset_refresh": refresh_stats,
@@ -156,14 +180,16 @@ class NestedBackboneConsolidator:
             "cbp": cbp_stats,
         }
 
-    def _extract_cls_with_grad(self, images: torch.Tensor) -> torch.Tensor:
+    def _extract_tokens_with_grad(self, images: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
         out = self.core.backbone(images)
-        if isinstance(out, dict) and "x_norm_clstoken" in out:
-            return out["x_norm_clstoken"]
+        if isinstance(out, dict) and "x_norm_clstoken" in out and "x_norm_patchtokens" in out:
+            return out["x_norm_clstoken"], out["x_norm_patchtokens"]
         if hasattr(out, "last_hidden_state"):
-            return out.last_hidden_state[:, 0, :]
+            hidden_states = out.last_hidden_state
+            return hidden_states[:, 0, :], hidden_states[:, 1:, :]
         if isinstance(out, dict) and "last_hidden_state" in out:
-            return out["last_hidden_state"][:, 0, :]
+            hidden_states = out["last_hidden_state"]
+            return hidden_states[:, 0, :], hidden_states[:, 1:, :]
         raise RuntimeError("Unexpected backbone output format during Phase 3 consolidation.")
 
     def _lejepa_surrogate(self, z_backbone: torch.Tensor, targets: torch.Tensor) -> torch.Tensor:

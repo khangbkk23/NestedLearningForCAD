@@ -81,15 +81,15 @@ evaluation:
 phase3:
   enabled: true
   top_k_anchors: 64
-  unfreeze_last_blocks: 2
+  unfreeze_last_blocks: 1
   drift_threshold: 0.05
   grad_clip: 1.0
-  distill_weight: 1.0
-  patch_distill_weight: 1.0
-  lejepa_weight: 0.1
-  lr: 0.00001
+  distill_weight: 0.5
+  patch_distill_weight: 5.0
+  lejepa_weight: 0.0
+  lr: 0.000003
   weight_decay: 0.01
-  steps: 3
+  steps: 1
   balanced_anchors: true
   refresh_coreset: true
   refresh_batch_size: 32
@@ -101,14 +101,14 @@ phase3:
     min_image_delta: -0.002
 
 nsp2:
-  enabled: false
+  enabled: true
   energy_threshold: 0.99
   min_null_dim: 64
   recycling_enabled: true
   fallback_null_dims: [64, 32, 16]
 
 cbp:
-  enabled: false
-  monitor_only: true
+  enabled: true
+  monitor_only: false
   threshold: 0.01
   reinit_std: 0.02

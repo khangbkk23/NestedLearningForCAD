@@ -43,10 +43,12 @@ def _phase3_config(config: Dict[str, Any]) -> Phase3Config:
         drift_threshold=float(cfg.get("drift_threshold", 0.05)),
         grad_clip=float(cfg.get("grad_clip", 1.0)),
         distill_weight=float(cfg.get("distill_weight", 1.0)),
+        patch_distill_weight=float(cfg.get("patch_distill_weight", 1.0)),
         lejepa_weight=float(cfg.get("lejepa_weight", 0.1)),
         lr=float(cfg.get("lr", 1e-5)),
         weight_decay=float(cfg.get("weight_decay", 0.01)),
         steps=int(cfg.get("steps", 1)),
+        balanced_anchors=bool(cfg.get("balanced_anchors", True)),
         refresh_coreset=bool(cfg.get("refresh_coreset", True)),
         refresh_batch_size=int(cfg.get("refresh_batch_size", 32)),
     )
@@ -54,10 +56,13 @@ def _phase3_config(config: Dict[str, Any]) -> Phase3Config:
 
 def _nsp2_config(config: Dict[str, Any]) -> NSP2Config:
     cfg = config.get("nsp2", {})
+    fallback_dims = cfg.get("fallback_null_dims", [64, 32, 16])
     return NSP2Config(
         enabled=bool(cfg.get("enabled", False)),
         energy_threshold=float(cfg.get("energy_threshold", 0.99)),
         min_null_dim=int(cfg.get("min_null_dim", 64)),
+        recycling_enabled=bool(cfg.get("recycling_enabled", True)),
+        fallback_null_dims=tuple(int(dim) for dim in fallback_dims),
     )
 
 

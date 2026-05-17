@@ -368,6 +368,29 @@ try:
     out.backward()
     cbp_stats = CBPMonitor(CBPConfig(enabled=False)).scan_and_maybe_reset(lin, projector=projector)
     check("CBP monitor trả stats", "dead_neuron_ratio" in cbp_stats)
+
+    small_projector = NullSpaceProjector(
+        d=16,
+        config=NSP2Config(enabled=True, min_null_dim=8, recycling_enabled=True, fallback_null_dims=(8, 4, 2)),
+        device=device,
+    )
+    recycling_stats = small_projector.fit(torch.randn(32, 16, device=device))
+    check("Subspace Recycling log có recycled", "recycled" in recycling_stats)
+    check("Subspace Recycling giữ null_dim tối thiểu", recycling_stats["null_dim"] >= 8)
+
+    reset_lin = torch.nn.Linear(4, 4).to(device)
+    reset_out = reset_lin(torch.randn(2, 4, device=device)).sum()
+    reset_out.backward()
+    reset_projector = NullSpaceProjector(
+        d=4,
+        config=NSP2Config(enabled=True, min_null_dim=2),
+        device=device,
+    )
+    reset_projector.fit(torch.randn(8, 4, device=device))
+    reset_stats = CBPMonitor(
+        CBPConfig(enabled=True, monitor_only=False, threshold=2.0)
+    ).scan_and_maybe_reset(reset_lin, projector=reset_projector)
+    check("CBP reset path chạy thật", reset_stats["reset_units"] > 0)
     check("Phase3Config khởi tạo", isinstance(Phase3Config(), Phase3Config))
     check("NestedBackboneConsolidator class callable", callable(NestedBackboneConsolidator))
 except Exception as e:

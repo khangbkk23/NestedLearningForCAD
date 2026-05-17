@@ -19,7 +19,7 @@ from __future__ import annotations
 
 import logging
 import math
-from typing import List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import torch
 import torch.nn.functional as F
@@ -265,7 +265,12 @@ class CADICCoreset:
     # Utility Management (cho N2B-NC Phase 3)
     # ------------------------------------------------------------------
 
-    def get_top_k_by_utility(self, k: int) -> Tuple[Optional[torch.Tensor], torch.Tensor]:
+    def get_top_k_by_utility(
+        self,
+        k: int,
+        balanced_by_task: bool = False,
+        return_metadata: bool = False,
+    ) -> Tuple[Optional[torch.Tensor], torch.Tensor] | Tuple[Optional[torch.Tensor], torch.Tensor, Dict[str, Any]]:
         """
         Trả về top-k entries có utility cao nhất.
 
@@ -276,12 +281,8 @@ class CADICCoreset:
         if len(self) == 0:
             raise RuntimeError("[CADIC] Coreset rỗng.")
 
-        k       = min(k, len(self))
-        indices = sorted(
-            range(len(self.utilities)),
-            key=lambda i: self.utilities[i],
-            reverse=True,
-        )[:k]
+        k = min(k, len(self))
+        indices = self._select_anchor_indices(k, balanced_by_task=balanced_by_task)
 
         embs = torch.stack([self.cls_embeddings[i] for i in indices])   # [k, d]
 
@@ -290,7 +291,47 @@ class CADICCoreset:
         else:
             imgs = None
 
+        if return_metadata:
+            task_counts: Dict[int, int] = {}
+            for i in indices:
+                task_id = int(self.task_ids[i])
+                task_counts[task_id] = task_counts.get(task_id, 0) + 1
+            return imgs, embs, {
+                "balanced_by_task": bool(balanced_by_task),
+                "indices": indices,
+                "task_counts": task_counts,
+            }
+
         return imgs, embs
+
+    def _select_anchor_indices(self, k: int, balanced_by_task: bool = False) -> List[int]:
+        if not balanced_by_task:
+            return sorted(
+                range(len(self.utilities)),
+                key=lambda i: self.utilities[i],
+                reverse=True,
+            )[:k]
+
+        by_task: Dict[int, List[int]] = {}
+        for idx, task_id in enumerate(self.task_ids):
+            by_task.setdefault(int(task_id), []).append(idx)
+        for indices in by_task.values():
+            indices.sort(key=lambda i: self.utilities[i], reverse=True)
+
+        selected: List[int] = []
+        task_order = sorted(by_task)
+        while len(selected) < k:
+            added = False
+            for task_id in task_order:
+                candidates = by_task[task_id]
+                if candidates:
+                    selected.append(candidates.pop(0))
+                    added = True
+                    if len(selected) >= k:
+                        break
+            if not added:
+                break
+        return selected
 
     def update_utility(self, idx: int, new_score: float) -> None:
         """Cập nhật utility score của entry tại index idx."""

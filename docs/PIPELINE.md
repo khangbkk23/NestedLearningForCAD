@@ -3,6 +3,10 @@
 This document describes the active Meta-NATH CAD Phase 1-2 Light pipeline.
 The full target architecture is specified in `docs/instruction_CAD.md`.
 
+DINOv2 is the intentional stable backbone for the current implementation and
+reporting path. DINOv3 remains a planned migration after the DINOv2 path is
+locked and reproducible.
+
 ## Active Flow
 
 1. Load `conf/config.yaml`.
@@ -27,6 +31,13 @@ The full target architecture is specified in `docs/instruction_CAD.md`.
 
 - `scripts/compute_forgetting.py`
   - Computes standard forgetting from `forgetting_matrix.json` or `task_records.json` with `forgetting_eval`.
+
+- `scripts/run_server_phase3.sh`
+  - Linux server workflow for the verified Phase 3.0 path: anchor warmup,
+    before eval, conservative consolidation, after eval, and acceptance report.
+
+- `scripts/run_server_visa.sh`
+  - Linux server workflow for VisA Phase 1-2 once the dataset is available.
 
 ## Output Layout
 
@@ -59,14 +70,27 @@ Implemented:
 - Patch nearest-neighbor image/pixel scoring.
 - Current and cumulative evaluation.
 - Optional forgetting matrix infrastructure.
+- Phase 3.0 minimal N2B-NC consolidation with balanced anchors, drift rollback,
+  coreset refresh, patch-token preservation logging, and metric-gated acceptance.
+- Accepted conservative 8-task Phase 3.0 configuration in
+  `conf/config_phase3_conservative.yaml`.
+- NSP2 projection implementation with Subspace Recycling fallback logging.
+- CBP reset helper with unit/integration coverage; benchmark reset remains off
+  unless an experimental config is explicitly selected.
+- VisA config and server entrypoint are prepared.
 
 Not implemented yet:
 
-- NSP2 is present but disabled by default until N2B-NC smoke is stable.
-- CBP monitor/reset helper is present; reset remains disabled by default.
-- Subspace Recycling.
-- N2B-NC backbone evolution has a Phase 3 CLI smoke path.
+- DINOv3 production migration.
+- VisA benchmark result, because local `data/visa` is not present.
+- Accepted benchmark with NSP2 enabled.
+- Accepted benchmark with CBP reset enabled.
+- Advanced Subspace Recycling policy beyond the current fallback projection.
 - Phase 3 cloud notebook is a thin orchestration notebook.
+
+Verified results are tracked in `docs/runs.md`. Do not claim NSP2, CBP reset,
+Subspace Recycling, DINOv3, or VisA results until their corresponding runs are
+added there.
 
 ## Legacy
 

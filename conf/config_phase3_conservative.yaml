@@ -81,15 +81,15 @@ evaluation:
 phase3:
   enabled: true
   top_k_anchors: 64
-  unfreeze_last_blocks: 2
+  unfreeze_last_blocks: 1
   drift_threshold: 0.05
   grad_clip: 1.0
-  distill_weight: 1.0
-  patch_distill_weight: 1.0
-  lejepa_weight: 0.1
-  lr: 0.00001
+  distill_weight: 0.5
+  patch_distill_weight: 5.0
+  lejepa_weight: 0.0
+  lr: 0.000003
   weight_decay: 0.01
-  steps: 3
+  steps: 1
   balanced_anchors: true
   refresh_coreset: true
   refresh_batch_size: 32
