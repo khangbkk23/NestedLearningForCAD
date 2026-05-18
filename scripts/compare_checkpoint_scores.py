@@ -12,6 +12,7 @@ from typing import Any, Dict, Iterable, List
 import numpy as np
 import torch
 from sklearn.metrics import average_precision_score, roc_auc_score
+from tqdm import tqdm
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
@@ -174,18 +175,26 @@ def _collect_selected_tasks(
     engine = _load_engine(config, checkpoint_path, device)
     stream_manager = ContinualStreamingManager(config)
     task_stats: Dict[int, Dict[str, Any]] = {}
+    ckpt_label = Path(checkpoint_path).parent.name
 
+    total_tasks = len(stream_manager.categories)
+    pbar = tqdm(total=total_tasks, desc=f"Scoring ({ckpt_label})", unit="task")
     while True:
         _, test_loader, task_info = stream_manager.get_next_task()
         if test_loader is None:
             break
         task_id = int(task_info["task_id"])
+        category = str(task_info["category"])
+        pbar.set_description(f"Scoring {task_id}: {category}")
         if task_filter is not None and task_id not in task_filter:
+            pbar.update(1)
             continue
         stats = _collect_task_stats(engine, test_loader, task_id, pixel_sample_limit)
-        stats["category"] = str(task_info["category"])
+        stats["category"] = category
         task_stats[task_id] = stats
+        pbar.update(1)
 
+    pbar.close()
     del engine
     if torch.cuda.is_available():
         torch.cuda.empty_cache()
