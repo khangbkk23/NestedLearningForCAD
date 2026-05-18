@@ -39,6 +39,10 @@ locked and reproducible.
 - `scripts/run_server_visa.sh`
   - Linux server workflow for VisA Phase 1-2 once the dataset is available.
 
+- `notebooks/kaggle_full_phase3_workflow.ipynb`
+  - Kaggle orchestration notebook for branch `taitrn`.
+  - Uses `conf/config_phase3_kaggle_gpu.yaml` by default.
+
 ## Output Layout
 
 Each run writes to:
@@ -74,6 +78,8 @@ Implemented:
   coreset refresh, patch-token preservation logging, and metric-gated acceptance.
 - Accepted conservative 8-task Phase 3.0 configuration in
   `conf/config_phase3_conservative.yaml`.
+- Kaggle GPU-optimized conservative configuration in
+  `conf/config_phase3_kaggle_gpu.yaml`.
 - NSP2 projection implementation with Subspace Recycling fallback logging.
 - CBP reset helper with unit/integration coverage; benchmark reset remains off
   unless an experimental config is explicitly selected.

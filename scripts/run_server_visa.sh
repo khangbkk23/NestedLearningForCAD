@@ -19,6 +19,7 @@ fi
 CONFIG="${CONFIG:-conf/config_visa.yaml}"
 MAX_TASKS="${MAX_TASKS:-}"
 RUN_SUFFIX="${RUN_SUFFIX:-visa_phase12}"
+PROGRESS="${PROGRESS:-1}"
 
 if [[ ! -d "data/visa" ]]; then
   echo "VisA dataset not found at data/visa." >&2
@@ -26,12 +27,16 @@ if [[ ! -d "data/visa" ]]; then
   exit 2
 fi
 
-cmd=("$PYTHON_BIN" "training/run_experiment.py" "--config" "$CONFIG" "--disable_wandb" "--quiet" "--run_suffix" "$RUN_SUFFIX")
+cmd=("$PYTHON_BIN" "training/run_experiment.py" "--config" "$CONFIG" "--disable_wandb" "--run_suffix" "$RUN_SUFFIX")
+if [[ "$PROGRESS" != "1" ]]; then
+  cmd+=("--quiet")
+fi
 if [[ -n "$MAX_TASKS" ]]; then
   cmd+=("--max_tasks" "$MAX_TASKS")
 fi
 
 echo "==> Running VisA Phase 1-2"
+echo "progress=$PROGRESS"
 printf ' %q' "${cmd[@]}"
 echo
 "${cmd[@]}"

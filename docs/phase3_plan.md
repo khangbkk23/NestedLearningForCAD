@@ -67,8 +67,8 @@ Goal: add cloud/offline consolidation without disturbing the Phase 1-2 baseline.
    - Skip the consolidation cycle if no safe null space remains.
 
 9. **Notebook orchestration**
-   - Add `notebooks/phase3_n2bnc_kaggle.ipynb`.
-   - Keep the notebook thin: setup, load data/config, run module functions, save artifacts.
+   - Use `notebooks/kaggle_full_phase3_workflow.ipynb`.
+   - Keep the notebook thin: setup, load data/config, call server scripts, save artifacts.
 
 ## Artifacts
 
@@ -82,6 +82,8 @@ Goal: add cloud/offline consolidation without disturbing the Phase 1-2 baseline.
 
 - `conf/config_phase3.yaml`: separate Phase 3 config; baseline config stays untouched.
 - `conf/config_phase3_conservative.yaml`: accepted 8-task conservative candidate for metric-gated Phase 3.0.
+- `conf/config_phase3_kaggle_gpu.yaml`: Kaggle/server variant of the conservative
+  config with larger batches, more workers, and prefetching.
 - `conf/config_phase3_experimental_nsp2_cbp.yaml`: explicit experimental config for NSP2/CBP reset smoke only.
 - `conf/config_visa.yaml`: VisA Phase 1-2 config; requires `data/visa`.
 - `training/consolidation_engine.py`: N2B-NC consolidation and drift rollback.
@@ -94,7 +96,6 @@ Goal: add cloud/offline consolidation without disturbing the Phase 1-2 baseline.
 - `scripts/run_server_phase3.sh`: reproducible Linux server workflow for anchor
   warmup, conservative Phase 3.0, evaluation, and acceptance.
 - `scripts/run_server_visa.sh`: VisA Phase 1-2 server entrypoint.
-- `notebooks/phase3_n2bnc_kaggle.ipynb`: minimal thin Kaggle orchestration.
 - `notebooks/kaggle_full_phase3_workflow.ipynb`: full Kaggle orchestration
   notebook for branch `taitrn`, MVTec Phase 3.0, optional 15-task, optional VisA.
 

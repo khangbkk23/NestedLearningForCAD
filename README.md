@@ -13,10 +13,11 @@ The active pipeline is:
 5. Patch nearest-neighbor image and pixel anomaly scoring.
 
 See `docs/instruction_CAD.md` for the full research target. Phase 3 now has
-a smoke path for N2B-NC consolidation; NSP2 and CBP are present behind config
-flags and should be enabled only after the minimal consolidation path is stable.
-After a successful non-rollback consolidation, coreset embeddings are refreshed
-with the updated backbone before the Phase 3 checkpoint is saved.
+an accepted conservative 8-task N2B-NC consolidation path; NSP2 and CBP are
+present behind config flags and remain experimental until accepted benchmark
+runs are added to `docs/runs.md`. After a successful non-rollback
+consolidation, coreset embeddings are refreshed with the updated backbone before
+the Phase 3 checkpoint is saved.
 
 ## Setup
 
@@ -79,6 +80,16 @@ MAX_TASKS=8 RUN_TESTS=1 RUN_SCORE_COMPARE=1 bash scripts/run_server_phase3.sh
 RUN_PHASE12_FULL=1 bash scripts/run_server_phase3.sh
 PYTHON_BIN=/path/to/python bash scripts/run_server_phase3.sh
 ```
+
+Kaggle workflow:
+
+```text
+notebooks/kaggle_full_phase3_workflow.ipynb
+```
+
+The notebook uses `conf/config_phase3_kaggle_gpu.yaml` by default to increase
+batch size, workers, and prefetching on Kaggle GPUs. See `conf/README.md` for
+the role of each config file.
 
 VisA server workflow, after mounting/copying VisA to `data/visa`:
 

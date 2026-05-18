@@ -23,6 +23,12 @@ MAX_TASKS="${MAX_TASKS:-8}"
 RUN_TESTS="${RUN_TESTS:-1}"
 RUN_PHASE12_FULL="${RUN_PHASE12_FULL:-0}"
 RUN_SCORE_COMPARE="${RUN_SCORE_COMPARE:-0}"
+PROGRESS="${PROGRESS:-1}"
+
+QUIET_ARGS=()
+if [[ "$PROGRESS" != "1" ]]; then
+  QUIET_ARGS=(--quiet)
+fi
 
 STAMP="$(date +%Y%m%d_%H%M%S)"
 LOG_DIR="${LOG_DIR:-logs/server_phase3_${STAMP}}"
@@ -42,16 +48,29 @@ latest_dir() {
 run_logged() {
   local name="$1"
   shift
+  local start_ts end_ts duration status
+  start_ts="$(date +%s)"
   echo
   echo "==> $name"
+  echo "    start: $(date '+%Y-%m-%d %H:%M:%S')"
   echo "    $*" | tee "$LOG_DIR/${name}.cmd.txt"
+  set +e
   "$@" 2>&1 | tee "$LOG_DIR/${name}.log"
+  status=${PIPESTATUS[0]}
+  set -e
+  end_ts="$(date +%s)"
+  duration=$((end_ts - start_ts))
+  echo "    end: $(date '+%Y-%m-%d %H:%M:%S') (${duration}s)" | tee -a "$LOG_DIR/${name}.log"
+  return "$status"
 }
 
 echo "Meta-NATH server Phase 3.0 workflow"
 echo "root=$ROOT_DIR"
 echo "python=$PYTHON_BIN"
 echo "max_tasks=$MAX_TASKS"
+echo "phase3_config=$PHASE3_CONFIG"
+echo "conservative_config=$CONSERVATIVE_CONFIG"
+echo "progress=$PROGRESS"
 echo "logs=$LOG_DIR"
 
 run_logged py_compile "$PYTHON_BIN" -m py_compile \
@@ -71,7 +90,7 @@ if [[ "$RUN_PHASE12_FULL" == "1" ]]; then
   run_logged phase12_full "$PYTHON_BIN" training/run_experiment.py \
     --config "$BASELINE_CONFIG" \
     --disable_wandb \
-    --quiet \
+    "${QUIET_ARGS[@]}" \
     --run_suffix "server_phase12_full15_${STAMP}"
 fi
 
@@ -84,7 +103,7 @@ run_logged anchor_warmup "$PYTHON_BIN" training/run_experiment.py \
   --config "$PHASE3_CONFIG" \
   --max_tasks "$MAX_TASKS" \
   --disable_wandb \
-  --quiet \
+  "${QUIET_ARGS[@]}" \
   --run_suffix "$ANCHOR_SUFFIX"
 
 WARMUP_DIR="$(latest_dir "results/MetaNATH_Phase3_*_${ANCHOR_SUFFIX}")"
@@ -94,7 +113,7 @@ run_logged before_eval "$PYTHON_BIN" scripts/evaluate_checkpoint.py \
   --config "$CONSERVATIVE_CONFIG" \
   --checkpoint "$WARMUP_CKPT" \
   --max_tasks "$MAX_TASKS" \
-  --quiet \
+  "${QUIET_ARGS[@]}" \
   --run_suffix "$BEFORE_SUFFIX"
 
 BEFORE_DIR="$(latest_dir "results/MetaNATH_Eval_*_${BEFORE_SUFFIX}")"
@@ -111,7 +130,7 @@ run_logged after_eval "$PYTHON_BIN" scripts/evaluate_checkpoint.py \
   --config "$CONSERVATIVE_CONFIG" \
   --checkpoint "$PHASE3_CKPT" \
   --max_tasks "$MAX_TASKS" \
-  --quiet \
+  "${QUIET_ARGS[@]}" \
   --run_suffix "$AFTER_SUFFIX"
 
 AFTER_DIR="$(latest_dir "results/MetaNATH_Eval_*_${AFTER_SUFFIX}")"

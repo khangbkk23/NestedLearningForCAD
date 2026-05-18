@@ -12,36 +12,19 @@ setuptools = "<82"
 python = "3.14.*"
 numpy = "*"
 scikit-learn = "*"
-pandas = "*"
 matplotlib = "*"
-seaborn = "*"
-jupyter = "*"
-xgboost = "*"
-lightgbm = "*"
-catboost = "*"
-ipykernel = "*"
-shap = "*"
-nbconvert = "*"
-optuna = ">=4.8.0,<5"
-pandera = ">=0.30.1,<0.31"
-joblib = ">=1.5.3,<2"
-kagglehub = ">=1.0.0,<2"
-fairlearn = ">=0.12.0,<0.13"
-pytables = ">=3.11.1,<4"
+pyyaml = ">=6.0"
 tqdm = ">=4.65.0"
 pillow = ">=9.5.0"
 opencv = ">=4.10.0"
 
-# Khai báo CUDA 12.6 của PyTorch
+# Initialize CUDA 12.6 for PyTorch
 [pypi-options]
 extra-index-urls = ["https://download.pytorch.org/whl/cu126"]
-index-strategy = "unsafe-best-match"   # Rất quan trọng để uv ưu tiên index CUDA
+index-strategy = "unsafe-best-match"   # uv prioritizes the CUDA index
 
 [pypi-dependencies]
 torch = "*"
 torchvision = "*"                 
-torchaudio = "*"
-pytorch-tabnet = "*"
-timm = ">=0.9.0"
 transformers = ">=4.46.0"
 wandb = ">=0.17.0"

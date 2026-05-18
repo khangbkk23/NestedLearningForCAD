@@ -196,6 +196,7 @@ class ContinualStreamingManager:
         self.root_dir = self.dataset_cfg['root_dir']
         self.batch_size = self.dataset_cfg['batch_size']
         self.num_workers = self.dataset_cfg.get('num_workers', 4)
+        self.drop_last_train = bool(self.dataset_cfg.get('drop_last_train', True))
         self.split_ratio = self.dataset_cfg.get('split_ratio', 0.8)
         self.img_size = self.dataset_cfg['img_size']
         
@@ -227,12 +228,15 @@ class ContinualStreamingManager:
         return categories
 
     def _loader_kwargs(self):
-        return {
+        loader_kwargs = {
             'batch_size': self.batch_size,
             'num_workers': self.num_workers,
-            'pin_memory': True if torch.cuda.is_available() else False,
-            'persistent_workers': True if self.num_workers > 0 else False
+            'pin_memory': bool(self.dataset_cfg.get('pin_memory', torch.cuda.is_available())),
         }
+        if self.num_workers > 0:
+            loader_kwargs['persistent_workers'] = bool(self.dataset_cfg.get('persistent_workers', True))
+            loader_kwargs['prefetch_factor'] = int(self.dataset_cfg.get('prefetch_factor', 2))
+        return loader_kwargs
 
     def get_cumulative_test_loader(self):
         if not self.test_datasets_history:
@@ -287,7 +291,7 @@ class ContinualStreamingManager:
 
         loader_kwargs = self._loader_kwargs()
         
-        train_loader = DataLoader(train_dataset, shuffle=True, drop_last=True, **loader_kwargs)
+        train_loader = DataLoader(train_dataset, shuffle=True, drop_last=self.drop_last_train, **loader_kwargs)
         test_loader = DataLoader(eval_dataset, shuffle=False, drop_last=False, **loader_kwargs)
         
         task_info = {
