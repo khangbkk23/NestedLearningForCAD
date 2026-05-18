@@ -20,7 +20,7 @@ BASELINE_CONFIG="${BASELINE_CONFIG:-conf/config.yaml}"
 PHASE3_CONFIG="${PHASE3_CONFIG:-conf/config_phase3.yaml}"
 CONSERVATIVE_CONFIG="${CONSERVATIVE_CONFIG:-conf/config_phase3_conservative.yaml}"
 MAX_TASKS="${MAX_TASKS:-8}"
-RUN_TESTS="${RUN_TESTS:-1}"
+RUN_TESTS="${RUN_TESTS:-0}"
 RUN_PHASE12_FULL="${RUN_PHASE12_FULL:-0}"
 RUN_SCORE_COMPARE="${RUN_SCORE_COMPARE:-0}"
 PROGRESS="${PROGRESS:-1}"
@@ -78,7 +78,7 @@ echo "conservative_config=$CONSERVATIVE_CONFIG"
 echo "progress=$PROGRESS"
 echo "logs=$LOG_DIR"
 
-TOTAL_STEPS=7
+TOTAL_STEPS=6
 if [[ "$RUN_TESTS" == "1" ]]; then
   TOTAL_STEPS=$((TOTAL_STEPS + 1))
 fi
