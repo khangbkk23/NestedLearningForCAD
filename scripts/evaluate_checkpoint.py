@@ -13,6 +13,7 @@ from typing import Any, Dict, Optional
 import numpy as np
 import torch
 import yaml
+from tqdm import tqdm
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
@@ -125,6 +126,8 @@ def main() -> None:
     records = []
     forgetting_matrix: Dict[str, Dict[str, float]] = {}
 
+    total_tasks = len(stream_manager.categories)
+    task_pbar = tqdm(total=total_tasks, desc="Eval tasks", unit="task", disable=args.quiet)
     while True:
         _, test_loader, task_info = stream_manager.get_next_task()
         if test_loader is None:
@@ -132,6 +135,7 @@ def main() -> None:
 
         task_id = int(task_info["task_id"])
         category = str(task_info["category"])
+        task_pbar.set_description(f"Eval {task_id}: {category}")
         eval_metrics = engine.evaluate_task(
             test_loader=test_loader,
             task_id=task_id,
@@ -148,7 +152,15 @@ def main() -> None:
         if forgetting_matrix_enabled:
             row_scores: Dict[str, float] = {}
             row_metrics: Dict[str, Dict[str, Any]] = {}
-            for prev_task_id in range(len(stream_manager.test_datasets_history)):
+            n_prev = len(stream_manager.test_datasets_history)
+            fm_pbar = tqdm(
+                range(n_prev),
+                desc=f"  Forgetting eval (task {task_id})",
+                unit="eval",
+                leave=False,
+                disable=args.quiet,
+            )
+            for prev_task_id in fm_pbar:
                 prev_loader = stream_manager.get_test_loader_for_task(prev_task_id)
                 if prev_loader is None:
                     continue
@@ -164,9 +176,14 @@ def main() -> None:
             forgetting_matrix[str(task_id)] = row_scores
 
         records.append(record)
+        task_pbar.update(1)
+
+    task_pbar.close()
 
     final_cumulative_metrics = None
     if records:
+        if not args.quiet:
+            print("\n===== Final Cumulative Evaluation =====")
         cumulative_loader = stream_manager.get_cumulative_test_loader()
         if cumulative_loader is not None:
             final_cumulative_metrics = engine.evaluate_task(

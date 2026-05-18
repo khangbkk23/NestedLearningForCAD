@@ -13,6 +13,7 @@ from typing import Dict, Any, Optional
 import numpy as np
 import torch
 import yaml
+from tqdm import tqdm
 
 torch.set_num_threads(int(os.environ.get("OMP_NUM_THREADS", "1")))
 
@@ -232,6 +233,8 @@ def run_experiment(config: Dict[str, Any], run_suffix: str = '', disable_wandb: 
     task_records = []
     forgetting_matrix: Dict[str, Dict[str, float]] = {}
 
+    total_tasks = len(stream_manager.categories)
+    task_pbar = tqdm(total=total_tasks, desc="Tasks", unit="task", disable=quiet)
     while True:
         train_loader, test_loader, task_info = stream_manager.get_next_task()
         if train_loader is None:
@@ -240,6 +243,7 @@ def run_experiment(config: Dict[str, Any], run_suffix: str = '', disable_wandb: 
         task_id = int(task_info['task_id'])
         category = str(task_info['category'])
 
+        task_pbar.set_description(f"Task {task_id}: {category}")
         if not quiet:
             print(f"\n===== Task {task_id}: {category} =====")
 
@@ -285,7 +289,15 @@ def run_experiment(config: Dict[str, Any], run_suffix: str = '', disable_wandb: 
         if forgetting_matrix_enabled:
             row_metrics: Dict[str, Dict[str, Any]] = {}
             row_scores: Dict[str, float] = {}
-            for prev_task_id in range(len(stream_manager.test_datasets_history)):
+            n_prev = len(stream_manager.test_datasets_history)
+            fm_pbar = tqdm(
+                range(n_prev),
+                desc=f"  Forgetting matrix (task {task_id})",
+                unit="eval",
+                leave=False,
+                disable=quiet,
+            )
+            for prev_task_id in fm_pbar:
                 if prev_task_id == task_id and eval_mode != 'cumulative':
                     prev_metrics = eval_metrics
                 else:
@@ -305,6 +317,7 @@ def run_experiment(config: Dict[str, Any], run_suffix: str = '', disable_wandb: 
             record['forgetting_eval'] = row_metrics
             forgetting_matrix[str(task_id)] = row_scores
         task_records.append(record)
+        task_pbar.update(1)
 
         record_path = os.path.join(run_dir, f'task_{task_id:02d}_metrics.json')
         with open(record_path, 'w', encoding='utf-8') as f:
@@ -346,6 +359,8 @@ def run_experiment(config: Dict[str, Any], run_suffix: str = '', disable_wandb: 
                 step=task_id,
             )
 
+    task_pbar.close()
+
     final_cumulative_metrics = None
     if task_records and final_cumulative and eval_mode != 'cumulative':
         if len(task_records) == 1:
@@ -353,6 +368,8 @@ def run_experiment(config: Dict[str, Any], run_suffix: str = '', disable_wandb: 
         elif 'cumulative_eval' in task_records[-1]:
             final_cumulative_metrics = task_records[-1]['cumulative_eval']
         else:
+            if not quiet:
+                print("\n===== Final Cumulative Evaluation =====")
             cumulative_loader = stream_manager.get_cumulative_test_loader()
             if cumulative_loader is not None:
                 final_cumulative_metrics = engine.evaluate_task(
