@@ -70,7 +70,7 @@ def evaluate_acceptance(
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Apply Phase 3 metric-gated acceptance.")
-    parser.add_argument("--config", type=Path, default=Path("conf/config_phase3.yaml"))
+    parser.add_argument("--config", type=Path, default=Path("conf/full_demo.yaml"))
     parser.add_argument("--before", type=Path, required=True, help="Before checkpoint_eval_summary.json")
     parser.add_argument("--after", type=Path, required=True, help="After checkpoint_eval_summary.json")
     parser.add_argument("--output", type=Path, default=None)

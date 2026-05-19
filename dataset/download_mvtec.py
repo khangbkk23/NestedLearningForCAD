@@ -1,4 +1,5 @@
 import argparse
+import lzma
 import os
 import shutil
 import tarfile

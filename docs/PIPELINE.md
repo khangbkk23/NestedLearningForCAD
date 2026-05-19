@@ -9,7 +9,7 @@ locked and reproducible.
 
 ## Active Flow
 
-1. Load `conf/config.yaml`.
+1. Load `conf/reference/phase1_baseline.yaml`.
 2. Build a continual task stream with `dataset/load_dataset.py`.
 3. Build `MetaNATHCore` from `models/meta_nath_core.py`.
 4. Stream each task through `MetaNATHEngine.train_task()`.
@@ -23,13 +23,13 @@ locked and reproducible.
   - Main experiment runner.
   - Supports `--profile tiny|small|default`, `--max_tasks`, `--run_suffix`, `--disable_wandb`, and `--quiet`.
 
-- `scripts/test_integration_2.py`
+- `scripts/diagnostics/mechanism_smoke.py`
   - Fast integration check for TITANS, ACC, CADIC, MetaNATHCore, checkpointing, and normal-only update.
 
-- `scripts/summarize_run.py`
+- `scripts/diagnostics/summarize_run.py`
   - Converts a run directory into a readable markdown summary.
 
-- `scripts/compute_forgetting.py`
+- `scripts/diagnostics/compute_forgetting.py`
   - Computes standard forgetting from `forgetting_matrix.json` or `task_records.json` with `forgetting_eval`.
 
 - `scripts/run_server_phase3.sh`
@@ -45,7 +45,7 @@ locked and reproducible.
 
 - `notebooks/kaggle_full_phase3_workflow.ipynb`
   - Kaggle orchestration notebook for branch `taitrn`.
-  - Uses `conf/config_phase3_kaggle_gpu.yaml` by default.
+  - Uses `conf/full_demo.yaml` by default.
 
 ## Output Layout
 
@@ -81,9 +81,9 @@ Implemented:
 - Phase 3.0 minimal N2B-NC consolidation with balanced anchors, drift rollback,
   coreset refresh, patch-token preservation logging, and metric-gated acceptance.
 - Accepted conservative 8-task Phase 3.0 configuration in
-  `conf/config_phase3_conservative.yaml`.
+  `conf/reference/phase3_conservative_local.yaml`.
 - Kaggle GPU-optimized conservative configuration in
-  `conf/config_phase3_kaggle_gpu.yaml`.
+  `conf/full_demo.yaml`.
 - Full 3-tier demo orchestration in `scripts/run_full_demo.sh` and
   `notebooks/kaggle_full_phase3_workflow.ipynb`.
 - NSP2 projection implementation with Subspace Recycling fallback logging.

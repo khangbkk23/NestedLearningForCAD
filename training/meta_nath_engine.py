@@ -8,9 +8,9 @@ from sklearn.metrics import roc_auc_score, average_precision_score
 
 class MetaNATHEngine:
     """
-    Engine chuyên biệt dành cho MetaNATHCore.
-    Không dùng loss, không dùng optimizer truyền thống.
-    Mọi cập nhật diễn ra thông qua Forward Pass (Phase 1 & 2).
+    Engine specialized for MetaNATHCore.
+    Phase 1-2 does not use a supervised loss or a conventional optimizer.
+    All streaming updates happen inside the forward pass.
     """
     def __init__(
         self,
@@ -30,7 +30,7 @@ class MetaNATHEngine:
                 "pixel_score_norm must be one of: none, minmax, robust_z"
             )
         self.model.to(device)
-        self.model.eval() # Luôn đóng băng Backbone ở Phase 1-2
+        self.model.eval()  # Keep the backbone frozen in Phase 1-2.
 
     def train_task(self, train_loader, task_id: int, epochs: int = 1, verbose: bool = True) -> Dict[str, Any]:
         """
@@ -145,14 +145,13 @@ class MetaNATHEngine:
                     eval_num_images += 1
                     
                     if masks is not None:
-                        # Lấy mask thực tế (0 hoặc 1)
+                        # Ground-truth binary mask.
                         m = masks[i].cpu().numpy()
                         mask_flat = (m > 0.5).astype(np.uint8).flatten()
                         anomaly_map = self._postprocess_anomaly_map(res['anomaly_map'])
                         map_flat = anomaly_map.numpy().flatten()
                         
-                        # Sampling ngay tại đây để tránh list khổng lồ
-                        # Mỗi ảnh lấy max 10,000 pixel ngẫu nhiên
+                        # Sample per image to avoid building very large pixel lists.
                         if len(mask_flat) > pixel_sample_limit:
                             indices = np.random.choice(len(mask_flat), pixel_sample_limit, replace=False)
                             all_pixel_scores.extend(map_flat[indices])

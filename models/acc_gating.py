@@ -1,15 +1,15 @@
 """
 acc_gating.py
 -------------
-ACC Gating — bộ lọc Game Theory quyết định có nên
-consolidate (đưa vào Slow Memory / Coreset) hay không.
+ACC Gating decides whether a Test-Time Training update is safe enough
+to consolidate into Slow Memory / Coreset.
 
-Toán học (instruction_CAD.md §2):
+Math (instruction_CAD.md):
     ACC = cos_sim(z_updated, z_original) - H_term
     H_term = ||z_updated - z_original|| / d
-    Approve nếu ACC > τ  (default τ = 0.25)
+    Approve if ACC > tau (default tau = 0.25)
 
-Nền tảng lý thuyết:
+Theory references:
     - "Social Welfare Optimization..." (2512.07453v2)
     - "Agent Behavior in Continual Learning" (2512.07462v2)
 """
@@ -29,27 +29,27 @@ class ACCGating:
     """
     Autonomous Consolidation Controller.
 
-    Quyết định xem một bước TTT có tạo ra embedding đủ
-    ổn định để đưa vào Slow Memory (CADIC Coreset) hay không.
+    Decides whether a TTT step produced embeddings that are stable enough
+    to enter Slow Memory (CADIC Coreset).
 
-    Nếu z_updated quá khác z_original → memory vừa học điều gì
-    "lạ" (có thể là noise/anomaly) → KHÔNG consolidate.
+    If z_updated drifts too far from z_original, the memory likely learned
+    noise or anomaly evidence, so the update is not consolidated.
 
-    Không kế thừa nn.Module vì không có learnable parameters.
+    This class is not an nn.Module because it has no learnable parameters.
     """
 
     def __init__(self, tau: float = 0.25):
         """
         Args:
-            tau: ngưỡng ACC (instruction_CAD §5, constraint 8).
-                 Giá trị mặc định = 0.25.
-                 Tăng τ → chọn lọc hơn (ít update Coreset hơn).
-                 Giảm τ → dễ approve hơn (update Coreset thường xuyên hơn).
+            tau: ACC threshold (instruction_CAD, constraint 8).
+                 Default is 0.25.
+                 Higher tau is more selective and updates the Coreset less often.
+                 Lower tau approves more updates.
         """
         if not 0.0 < tau < 1.0:
-            raise ValueError(f"tau phải trong khoảng (0, 1), nhận được {tau}")
+            raise ValueError(f"tau must be in the open interval (0, 1); got {tau}")
         self.tau = tau
-        self._history: list[float] = []   # log ACC scores để debug
+        self._history: list[float] = []   # Recent ACC scores for debugging.
 
     # ------------------------------------------------------------------
     @torch.no_grad()
@@ -59,19 +59,19 @@ class ACCGating:
         z_original: torch.Tensor,
     ) -> float:
         """
-        Tính ACC score.
+        Compute the ACC score.
 
         Args:
-            z_updated:  [batch, d] — sau TTT update
-            z_original: [batch, d] — trước TTT update (z_cls gốc từ backbone)
+            z_updated:  [batch, d] after TTT update
+            z_original: [batch, d] before TTT update
 
         Returns:
             acc_score: float
         """
-        # Cosine similarity trung bình trên batch
+        # Mean cosine similarity across the batch.
         cos_sim = F.cosine_similarity(z_updated, z_original, dim=-1).mean()
 
-        # H_term: đo mức độ "drift" bình thường hoá theo chiều d
+        # H_term measures dimension-normalized embedding drift.
         h_term = (z_updated - z_original).norm(dim=-1).mean() / z_updated.shape[-1]
 
         acc = (cos_sim - h_term).item()
@@ -85,15 +85,15 @@ class ACCGating:
         z_original: torch.Tensor,
     ) -> Tuple[bool, float]:
         """
-        Quyết định chính: có approve cho Slow Memory không?
+        Decide whether to approve this batch for Slow Memory.
 
         Args:
             z_updated:  [batch, d]
             z_original: [batch, d]
 
         Returns:
-            approved:  bool — True nếu ACC > τ
-            acc_score: float — giá trị ACC để logging
+            approved:  bool, True when ACC > tau
+            acc_score: float for logging
         """
         acc = self.compute_acc(z_updated, z_original)
         self._history.append(acc)
@@ -101,8 +101,8 @@ class ACCGating:
         approved = acc > self.tau
 
         logger.debug(
-            f"[ACCGating] ACC={acc:.4f} τ={self.tau} "
-            f"→ {'APPROVED ✓' if approved else 'REJECTED ✗'}"
+            f"[ACCGating] ACC={acc:.4f} tau={self.tau} "
+            f"{'APPROVED' if approved else 'REJECTED'}"
         )
 
         return approved, acc
@@ -110,8 +110,9 @@ class ACCGating:
     # ------------------------------------------------------------------
     def running_avg_acc(self, window: int = 50) -> float:
         """
-        ACC trung bình trên window bước gần nhất.
-        Dùng để monitor xem model đang ổn định hay drift.
+        Average ACC over the most recent window.
+
+        Useful for monitoring whether the model is stable or drifting.
         """
         if not self._history:
             return 0.0
@@ -119,11 +120,11 @@ class ACCGating:
         return sum(recent) / len(recent)
 
     def approval_rate(self, window: int = 100) -> float:
-        """Tỉ lệ approved trong window bước gần nhất (0.0 → 1.0)."""
+        """Approval ratio over the most recent window (0.0 to 1.0)."""
         if not self._history:
             return 0.0
         recent = self._history[-window:]
-        # Chỉ đếm những lần approved
+        # Count only scores that would pass the current threshold.
         approved_count = sum(1 for acc in recent if acc > self.tau)
         return approved_count / len(recent)
 

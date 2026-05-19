@@ -13,7 +13,14 @@ from typing import Any, Dict
 import torch
 import yaml
 
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
+def _find_project_root() -> Path:
+    for parent in Path(__file__).resolve().parents:
+        if (parent / "conf").is_dir() and (parent / "training").is_dir():
+            return parent
+    raise RuntimeError("Could not locate project root from script path.")
+
+
+PROJECT_ROOT = _find_project_root()
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
@@ -28,7 +35,7 @@ from utils.global_seed import set_seed
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Run Phase 3 N2B-NC consolidation")
-    parser.add_argument("--config", type=str, default="conf/config_phase3.yaml")
+    parser.add_argument("--config", type=str, default="conf/full_demo.yaml")
     parser.add_argument("--checkpoint", type=str, required=True)
     parser.add_argument("--output_dir", type=str, default=None)
     parser.add_argument("--run_suffix", type=str, default="phase3")

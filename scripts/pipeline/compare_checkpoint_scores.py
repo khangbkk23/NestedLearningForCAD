@@ -14,7 +14,14 @@ import torch
 from sklearn.metrics import average_precision_score, roc_auc_score
 from tqdm import tqdm
 
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
+def _find_project_root() -> Path:
+    for parent in Path(__file__).resolve().parents:
+        if (parent / "conf").is_dir() and (parent / "training").is_dir():
+            return parent
+    raise RuntimeError("Could not locate project root from script path.")
+
+
+PROJECT_ROOT = _find_project_root()
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
@@ -29,7 +36,7 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Compare image/pixel score distributions between two checkpoints."
     )
-    parser.add_argument("--config", type=str, default="conf/config_phase3.yaml")
+    parser.add_argument("--config", type=str, default="conf/full_demo.yaml")
     parser.add_argument("--before", type=str, required=True)
     parser.add_argument("--after", type=str, required=True)
     parser.add_argument("--max_tasks", type=int, default=None)

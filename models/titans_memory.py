@@ -1,16 +1,16 @@
 """
 titans_memory.py
 ----------------
-TITANS Fast Memory — Phase 1 của Meta-NATH CAD.
+TITANS Fast Memory for Phase 1 of Meta-NATH CAD.
 
-Triết lý: Không phải MLP, không phải neural net.
-TITANS ở đây chỉ là một ma trận M [d×d] được cập nhật theo
-Delta Rule hoàn toàn trong torch.no_grad().
+Design note: this is not an MLP or a trainable neural network.
+The TITANS memory is a single matrix M [d x d] updated by the
+Delta Rule entirely under torch.no_grad().
 
-Toán học (instruction_CAD.md §2):
-    M_t = (1 - α) * M_{t-1} + η_t * (v_t - M_{t-1} k_t) k_t^T
-    η_t = η₀ / (1 + surprise_t)
-    clamp M ∈ [-5.0, 5.0]
+Math (instruction_CAD.md section 2):
+    M_t = (1 - alpha) * M_{t-1} + eta_t * (v_t - M_{t-1} k_t) k_t^T
+    eta_t = eta0 / (1 + surprise_t)
+    clamp M to [-5.0, 5.0]
 """
 
 from __future__ import annotations
@@ -25,15 +25,15 @@ logger = logging.getLogger(__name__)
 
 
 # ---------------------------------------------------------------------------
-# 1. TITANSMemory — chỉ lưu ma trận M
+# 1. TITANSMemory - stores only the memory matrix M.
 # ---------------------------------------------------------------------------
 
 class TITANSMemory:
     """
-    Associative memory là một ma trận M duy nhất kích thước [d, d].
+    Associative memory represented by a single [d, d] matrix.
 
-    Không kế thừa nn.Module vì M được cập nhật thủ công (no autograd).
-    Nếu cần save/load checkpoint, dùng state_dict() / load_state_dict().
+    This class is not an nn.Module because M is updated manually without
+    autograd. Use state_dict() / load_state_dict() for checkpoints.
     """
 
     def __init__(self, d: int = 768, device: str | None = None):
@@ -41,16 +41,16 @@ class TITANSMemory:
             device = "cuda" if torch.cuda.is_available() else "cpu"
         self.d = d
         self.device = device
-        # Buffer chính — không tham gia autograd
+        # Main buffer; never participates in autograd.
         self.M: torch.Tensor = torch.zeros(d, d, device=device)
 
     # ------------------------------------------------------------------
     def retrieve(self, k: torch.Tensor) -> torch.Tensor:
         """
-        Truy xuất bộ nhớ: z = M @ k^T => shape [batch, d].
+        Retrieve memory: z = M @ k^T, returned as [batch, d].
 
         Args:
-            k: [batch, d] — key vector (thường là z_cls từ backbone)
+            k: [batch, d] key vector, usually z_cls from the backbone
 
         Returns:
             pred: [batch, d]
@@ -60,10 +60,10 @@ class TITANSMemory:
     # ------------------------------------------------------------------
     def surprise(self, v: torch.Tensor, pred: torch.Tensor) -> torch.Tensor:
         """
-        Tính surprise scalar: norm của residual trung bình trên batch.
+        Compute the surprise scalar as the mean residual norm over the batch.
 
         Returns:
-            scalar tensor (không gradient)
+            Scalar tensor without gradients.
         """
         residual = v - pred                          # [batch, d]
         return residual.norm(dim=-1).mean()          # scalar
@@ -79,24 +79,24 @@ class TITANSMemory:
         clamp: float = 5.0,
     ) -> float:
         """
-        Cập nhật M theo Delta Rule (bắt buộc gọi trong no_grad context).
+        Update M with the Delta Rule.
 
         Args:
-            k:     [batch, d] — key
-            v:     [batch, d] — value (thường = k.detach() vì self-supervised)
+            k:     [batch, d] key
+            v:     [batch, d] value, usually k.detach() for self-supervision
             alpha: decay rate (default 0.9)
             eta0:  base learning rate (default 0.01)
-            clamp: giá trị clamp tuyệt đối cho M (default 5.0)
+            clamp: absolute clamp value for M (default 5.0)
 
         Returns:
-            surprise_scalar (float) — để TTTEngine log và điều chỉnh η
+            surprise_scalar (float), used by TTTEngine for logging and eta scaling.
         """
         pred            = self.retrieve(k)                      # [batch, d]
         surprise_scalar = self.surprise(v, pred).item()
 
         eta_t  = eta0 / (1.0 + surprise_scalar)
         delta  = v - pred                                        # [batch, d]
-        # Outer product trung bình trên batch: [d, d]
+        # Mean outer product over the batch: [d, d].
         update = torch.einsum("bi,bj->ij", delta, k) / k.shape[0]
 
         self.M.data = (1.0 - alpha) * self.M.data + eta_t * update
@@ -113,22 +113,22 @@ class TITANSMemory:
         self.d = sd["d"]
 
     def reset(self) -> None:
-        """Reset M về zero (dùng khi bắt đầu task mới nếu muốn)."""
+        """Reset M to zero, useful before a fresh experiment."""
         self.M.zero_()
 
 
 # ---------------------------------------------------------------------------
-# 2. TTTEngine — Phase 1 orchestrator
+# 2. TTTEngine - Phase 1 orchestrator.
 # ---------------------------------------------------------------------------
 
 class TTTEngine:
     """
-    Test-Time Training Engine (Phase 1 — Nhịp Phản xạ).
+    Test-Time Training Engine for Phase 1.
 
-    Nhận z_cls từ backbone, cập nhật TITANSMemory, trả về z_updated
-    và flag `approved` cho Phase 2 (ACCGating quyết định).
+    Receives z_cls from the backbone, updates TITANSMemory, and returns
+    z_updated. Phase 2 approval is handled by ACCGating.
 
-    Không kế thừa nn.Module — toàn bộ tính toán nằm trong no_grad.
+    This class is not an nn.Module; all updates run under no_grad.
     """
 
     def __init__(
@@ -149,7 +149,7 @@ class TTTEngine:
     @torch.no_grad()
     def process(self, z_cls: torch.Tensor) -> Tuple[torch.Tensor, float]:
         """
-        Chạy một bước TTT trên batch z_cls.
+        Run one TTT step for a z_cls batch.
 
         Pipeline:
             1. Retrieve:  pred = M @ z_cls^T
@@ -158,7 +158,7 @@ class TTTEngine:
             4. Produce z_updated = M_updated @ z_cls^T
 
         Args:
-            z_cls: [batch, d] — CLS token từ backbone (đã detach)
+            z_cls: [batch, d] detached CLS token from the backbone
 
         Returns:
             z_updated:       [batch, d]
@@ -166,7 +166,7 @@ class TTTEngine:
         """
         self._step += 1
 
-        # k = v = z_cls (self-supervised: memory nhớ chính nó)
+        # k = v = z_cls for self-supervised associative memory.
         k = z_cls
         v = z_cls
 
@@ -177,7 +177,7 @@ class TTTEngine:
             clamp=self.clamp,
         )
 
-        # Retrieve sau khi update để lấy z_updated
+        # Retrieve after the update to produce z_updated.
         z_updated = self.memory.retrieve(z_cls)    # [batch, d]
 
         if self._step % 100 == 0:
@@ -205,6 +205,6 @@ class TTTEngine:
         self._step  = sd["step"]
 
     def reset_memory(self) -> None:
-        """Xóa Fast Memory (dùng khi muốn reset giữa các experiment)."""
+        """Clear Fast Memory before a fresh experiment."""
         self.memory.reset()
         self._step = 0

@@ -1,20 +1,20 @@
 """
 meta_nath_core.py
 -----------------
-MetaNATHCore - Lõi hệ thống Phase 1 + 2 của Meta-NATH CAD.
+MetaNATHCore - Phase 1 + 2 system core for Meta-NATH CAD.
 
-Kết nối:
-    Nhà Thông Thái  = Frozen vision backbone (DINOv2 now, DINOv3-ready adapter)
-    Sổ Nháp         = TTTEngine (TITANS Delta Rule)
-    Cầu Chì         = ACCGating (Social Welfare)
-    Tủ Hồ Sơ        = CADICCoreset (Unified Memory Bank)
+Components:
+    Eyes       = Frozen vision backbone (DINOv2 now, DINOv3-ready adapter)
+    Fast Memory = TTTEngine (TITANS Delta Rule)
+    Gate       = ACCGating (Social Welfare)
+    Slow Memory = CADICCoreset (Unified Memory Bank)
 
-Lưu ý thiết kế:
-    - backbone LUÔN ở eval mode dù model.train() được gọi
-    - TTTEngine / ACCGating / CADICCoreset không phải nn.Module
-      -> state_dict() custom để checkpoint đầy đủ
-    - forward() chỉ chạy Phase 1 (TTT) + Phase 2 (consolidation)
-      Scoring riêng dùng score_image()
+Design notes:
+    - the backbone always stays in eval mode, even when model.train() is called
+    - TTTEngine / ACCGating / CADICCoreset are not nn.Module instances
+      and require a custom full_state_dict() for complete checkpoints
+    - forward() runs Phase 1 (TTT) + Phase 2 (consolidation)
+      while scoring is handled separately by score_image()
 """
 
 from __future__ import annotations
@@ -70,13 +70,13 @@ class MetaNATHCore(nn.Module):
     ):
         """
         Args:
-            d:                Chiều embedding (768 for DINOv2-base/current prototype)
-            tau_acc:          Ngưỡng ACC Gating (instruction_CAD §5.8, default 0.25)
-            max_coreset_size: Số entry tối đa CADIC (default 1000)
-            n_patch:          Số patch tokens. None để infer từ backbone output.
-            store_images:     Lưu raw image tensor cho N2B-NC Phase 3
-            device:           'cuda' hoặc 'cpu' (auto-detect nếu None)
-            backbone_name:    HuggingFace checkpoint của backbone chính
+            d:                Embedding dimension (768 for DINOv2-base/current prototype).
+            tau_acc:          ACC Gating threshold (instruction_CAD section 5.8, default 0.25).
+            max_coreset_size: Maximum number of CADIC entries.
+            n_patch:          Number of patch tokens. None infers from backbone output.
+            store_images:     Store raw image tensors for N2B-NC Phase 3.
+            device:           'cuda' or 'cpu'; auto-detected when None.
+            backbone_name:    HuggingFace checkpoint for the main backbone.
         """
         super().__init__()
 
@@ -103,22 +103,22 @@ class MetaNATHCore(nn.Module):
             
         self.backbone = self.backbone.to(device)
         self.backbone.eval()
-        # Đóng băng tuyệt đối — không bao giờ train backbone ở Phase 1-2
+        # Keep the backbone fully frozen in Phase 1-2.
         for p in self.backbone.parameters():
             p.requires_grad_(False)
 
         # ----------------------------------------------------------------
-        # 2. Sổ Nháp - TITANS Fast Memory
+        # 2. Fast Memory - TITANS Delta Rule.
         # ----------------------------------------------------------------
         self.ttt_engine = TTTEngine(d=d, device=device)
 
         # ----------------------------------------------------------------
-        # 3. Cầu Chì - ACC Gating
+        # 3. Gate - ACC Gating.
         # ----------------------------------------------------------------
         self.gating = ACCGating(tau=tau_acc)
 
         # ----------------------------------------------------------------
-        # 4. Tủ Hồ Sơ - CADIC Incremental Coreset
+        # 4. Slow Memory - CADIC Incremental Coreset.
         # ----------------------------------------------------------------
         self.coreset = CADICCoreset(
             max_size=max_coreset_size,
@@ -129,18 +129,17 @@ class MetaNATHCore(nn.Module):
         )
 
     # ------------------------------------------------------------------
-    # Override train() để backbone LUÔN ở eval mode
+    # Override train() so the backbone always stays in eval mode.
     # ------------------------------------------------------------------
 
     def train(self, mode: bool = True) -> "MetaNATHCore":
         """
-        Override bắt buộc: backbone phải luôn ở eval mode
-        dù Trainer gọi model.train() bất cứ lúc nào.
+        Force the backbone to remain in eval mode, even if a Trainer calls train().
         """
         super().train(mode)
-        self.backbone.eval()          # Force backbone về eval
+        self.backbone.eval()
         for p in self.backbone.parameters():
-            p.requires_grad_(False)   # Double-check không có gradient nào lọt qua
+            p.requires_grad_(False)
         return self
 
     # ------------------------------------------------------------------
@@ -154,38 +153,37 @@ class MetaNATHCore(nn.Module):
         update_coreset: bool = True,
     ) -> Dict[str, Any]:
         """
-        Pipeline Phase 1 + 2 cho một batch ảnh.
+        Run the Phase 1 + 2 pipeline for an image batch.
 
         Args:
             x:              [B, 3, 224, 224]
-            task_id:        task hiện tại (cho logging CADIC)
-            update_coreset: False khi inference thuần túy (không cập nhật Slow Memory)
+            task_id:        Current task id for CADIC logging.
+            update_coreset: False for pure inference without Slow Memory updates.
 
         Returns:
-            dict với keys:
-                z_cls:            [B, d]   - CLS token gốc từ backbone
-                z_updated:        [B, d]   - sau TTT adaptation
-                z_patches:        [B, N, d] - patch tokens (cho AnomalyDecoder)
+            dict with keys:
+                z_cls:            [B, d]    - original CLS token from the backbone
+                z_updated:        [B, d]    - CLS token after TTT adaptation
+                z_patches:        [B, N, d] - patch tokens for anomaly scoring
                 surprise:         float
                 acc_score:        float
-                approved:         bool     - ACCGating có duyệt không
-                coreset_updated:  bool     - Coreset có thực sự thay đổi không
+                approved:         bool      - ACCGating approval flag
+                coreset_updated:  bool      - whether Coreset changed
         """
-        # --- Bước 1: Feature Extraction (Nhà Thông Thái) ---
+        # --- Step 1: feature extraction with the frozen backbone. ---
         z_cls, z_patches, patch_grid = self.extract_features(x)
 
-        # --- Bước 2: Test-Time Adaptation (Sổ Nháp) ---
+        # --- Step 2: Test-Time Adaptation with TITANS Fast Memory. ---
         z_updated, surprise = self.ttt_engine.process(z_cls)
 
-        # --- Bước 3: Kiểm duyệt (Cầu Chì) ---
+        # --- Step 3: gate the adapted representation. ---
         approved, acc_score = self.gating.should_consolidate(z_updated, z_cls)
 
-        # --- Bước 4: Consolidation vào Slow Memory ---
+        # --- Step 4: consolidate approved samples into Slow Memory. ---
         coreset_updated = False
         if update_coreset and approved:
-            # Lưu z_updated (embedding đã thích nghi) vào Coreset,
-            # không phải z_cls gốc - vì z_updated là biểu diễn tốt hơn
-            # sau khi Fast Memory đã "tiêu hóa" batch này.
+            # Store adapted embeddings, because z_updated reflects the batch
+            # after Fast Memory has absorbed it.
             n_updated = self.coreset.update_batch(
                 cls_embs=z_updated.detach(),
                 patch_embs_batch=z_patches.detach(),
@@ -209,10 +207,10 @@ class MetaNATHCore(nn.Module):
     @torch.no_grad()
     def extract_features(self, x: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor, Tuple[int, int]]:
         """
-        Backbone adapter trả về CLS token, patch tokens và patch grid thống nhất.
+        Return normalized CLS token, patch tokens, and patch grid from the backbone.
 
-        Hiện tại hỗ trợ HuggingFace DINOv2 (`last_hidden_state`) và format dict
-        của DINOv3 (`x_norm_clstoken`, `x_norm_patchtokens`) cho lần nâng cấp sau.
+        Supports HuggingFace DINOv2 (`last_hidden_state`) and the DINOv3-style
+        dict format (`x_norm_clstoken`, `x_norm_patchtokens`) for later upgrade.
         """
         out = self.backbone(x)
 
@@ -263,7 +261,7 @@ class MetaNATHCore(nn.Module):
         return z_cls, z_patches, self.patch_grid
 
     # ------------------------------------------------------------------
-    # Inference — Anomaly Scoring (gọi riêng, không phải forward)
+    # Inference - Anomaly scoring, called separately from forward().
     # ------------------------------------------------------------------
 
     @torch.no_grad()
@@ -273,43 +271,43 @@ class MetaNATHCore(nn.Module):
         b: int = 2,
     ) -> Dict[str, Any]:
         """
-        Tính anomaly score cho ảnh test dùng CADIC Coreset.
+        Compute anomaly scores for test images with CADIC Coreset.
 
-        KHÔNG cập nhật TTT hay Coreset —-chỉ inference thuần túy.
+        Does not update TTT or Coreset; this is pure inference.
 
         Args:
-            x: [1, 3, 224, 224] hoặc [B, 3, 224, 224]
-            b: neighborhood size cho Eq. 9 (default 2)
+            x: [1, 3, 224, 224] or [B, 3, 224, 224]
+            b: neighborhood size for Eq. 9 (default 2)
 
         Returns:
-            dict với:
-                s_img:       float hoặc List[float]  - image-level score
+            dict with:
+                s_img:       float or List[float]    - image-level score
                 s_pix:       [N_patch] tensor        - pixel-level scores
-                anomaly_map: [H, W] tensor           - upsample về input size
+                anomaly_map: [H, W] tensor           - upsampled to input size
         """
         if len(self.coreset) == 0:
             raise RuntimeError(
-                "[MetaNATH] Coreset rỗng. Cần chạy ít nhất 1 forward() "
-                "với update_coreset=True trước khi gọi score_image()."
+                "[MetaNATH] Coreset is empty. Run at least one forward() "
+                "with update_coreset=True before calling score_image()."
             )
 
         _, z_patches, patch_grid = self.extract_features(x)
 
         # --- Batch Scoring (CADIC Eq. 8-9) ---
-        # Gọi hàm Batch Scoring mới đã tối ưu
+        # Use optimized batch scoring.
         s_img_batch, s_pix_batch = self.coreset.compute_anomaly_score(
             patch_embs_batch=z_patches,
             b=b,
         )
 
-        # --- Batch Upsampling (Nội suy hàng loạt) ---
+        # --- Batch upsampling. ---
         B = z_patches.shape[0]
         H_patch, W_patch = patch_grid
         
         # [B, 1, 16, 16]
         s_pix_reshaped = s_pix_batch.reshape(B, 1, H_patch, W_patch).to(self.device_str)
         
-        # Nội suy cả batch cùng lúc trên GPU
+        # Interpolate the full batch in one GPU operation.
         anomaly_maps_batch = F.interpolate(
             s_pix_reshaped,
             size=(x.shape[-2], x.shape[-1]),
@@ -317,7 +315,7 @@ class MetaNATHCore(nn.Module):
             align_corners=False,
         ) # [B, 1, H, W]
 
-        # Đóng gói kết quả
+        # Package results.
         results = []
         for i in range(B):
             results.append({
@@ -331,14 +329,14 @@ class MetaNATHCore(nn.Module):
         return {"batch": results}
 
     # ------------------------------------------------------------------
-    # Checkpoint (custom vì TTTEngine/ACCGating/CADICCoreset không phải nn.Module)
+    # Checkpointing, custom because TTTEngine/ACCGating/CADICCoreset are not nn.Module.
     # ------------------------------------------------------------------
 
     def full_state_dict(self, include_backbone: bool = True, include_images: bool = True) -> dict:
         """
-        Lưu đầy đủ: backbone weights + TITANS memory + gating history + coreset.
+        Save backbone weights, TITANS memory, gating history, and Coreset.
 
-        Dùng thay cho model.state_dict() khi checkpoint.
+        Use this instead of model.state_dict() for complete checkpoints.
         """
         return {
             "backbone":   self.backbone.state_dict() if include_backbone else None,
@@ -354,7 +352,7 @@ class MetaNATHCore(nn.Module):
         }
 
     def load_full_state_dict(self, sd: dict) -> None:
-        """Load từ full_state_dict()."""
+        """Load a checkpoint produced by full_state_dict()."""
         if sd.get("backbone") is not None:
             self.backbone.load_state_dict(sd["backbone"])
         self.backbone_name = sd.get("backbone_name", self.backbone_name)
@@ -363,7 +361,7 @@ class MetaNATHCore(nn.Module):
         self.coreset.load_state_dict(sd["coreset"])
         patch_grid = sd.get("config", {}).get("patch_grid")
         self.patch_grid = tuple(patch_grid) if patch_grid else self.coreset.patch_grid
-        # Đảm bảo backbone vẫn frozen sau khi load
+        # Keep the backbone frozen after loading.
         self.backbone.eval()
         for p in self.backbone.parameters():
             p.requires_grad_(False)
@@ -407,7 +405,7 @@ class MetaNATHCore(nn.Module):
     # ------------------------------------------------------------------
 
     def log_status(self) -> None:
-        """In tóm tắt trạng thái hệ thống."""
+        """Log a compact system status summary."""
         logger.info(
             f"[MetaNATH] "
             f"coreset={len(self.coreset)}/{self.coreset.max_size} | "

@@ -72,7 +72,7 @@ def _compute_forgetting_metrics(
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description='Run Meta-NATH CAD Phase 1-2 experiments')
-    parser.add_argument('--config', type=str, default='./conf/config.yaml', help='Path to YAML config')
+    parser.add_argument('--config', type=str, default='./conf/reference/phase1_baseline.yaml', help='Path to YAML config')
     parser.add_argument(
         '--profile',
         type=str,
@@ -130,7 +130,7 @@ def build_model(config: Dict[str, Any]) -> torch.nn.Module:
         n_patch=n_patch,
         store_images=bool(model_cfg.get('store_images', False)),
         device=str(training_cfg.get('device', 'cuda')),
-        backbone_name=model_cfg.get('backbone', 'facebook/dinov3-vitb14-pretrain'),
+        backbone_name=model_cfg.get('backbone', 'facebook/dinov2-base'),
     )
 
 
@@ -179,7 +179,7 @@ def run_experiment(config: Dict[str, Any], run_suffix: str = '', disable_wandb: 
     set_seed(seed)
 
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-    exp_name = logging_cfg.get('experiment_name', 'vit_cms_hybrid_cad')
+    exp_name = logging_cfg.get('experiment_name', 'MetaNATH_Phase1_2')
     run_name = f"{exp_name}_{timestamp}"
     if run_suffix:
         run_name = f"{run_name}_{run_suffix}"

@@ -140,7 +140,7 @@ Accepted conservative Phase 3.0 8-task candidate.
 
 | Field | Value |
 | --- | --- |
-| Config | `conf/config_phase3_conservative.yaml` |
+| Config | `conf/reference/phase3_conservative_local.yaml` |
 | Source checkpoint | `results/MetaNATH_Phase3_20260516_222751_phase3_anchor_warmup_8task/last_checkpoint.pt` |
 | Candidate checkpoint | `results/MetaNATH_Phase3_20260517_121318_phase3_conservative_8task/last_checkpoint.pt` |
 | Eval dir | `results/MetaNATH_Eval_20260517_121406_after_phase3_conservative_8task` |
@@ -199,7 +199,7 @@ run for this experimental config.
 
 | Field | Value |
 | --- | --- |
-| Config | `conf/config_phase3_experimental_nsp2_cbp.yaml` |
+| Config | `conf/experimental_nsp2_cbp.yaml` |
 | Source checkpoint | `results/MetaNATH_Phase3_20260516_222751_phase3_anchor_warmup_8task/last_checkpoint.pt` |
 | Candidate checkpoint | `results/MetaNATH_Phase3_20260517_131327_phase3_experimental_nsp2_cbp_smoke/last_checkpoint.pt` |
 | Tasks in source checkpoint | 8 |
@@ -215,7 +215,7 @@ run for this experimental config.
 ### Notes
 
 - NSP2 projection, Subspace Recycling stats, and CBP reset code paths are covered
-  by `scripts/test_integration_2.py`.
+  by `scripts/diagnostics/mechanism_smoke.py`.
 - In this real checkpoint smoke, Subspace Recycling was not needed because the
   fitted task subspace left a large null space (`null_dim=761`).
 - CBP reset did not fire on the real backbone because no units were below the

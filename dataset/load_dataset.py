@@ -45,7 +45,8 @@ class ContinualAnomalyDataset(Dataset):
     Loads only *normal* images (per CLAD framework).
     With 50 % probability, applies synthetic anomaly generation via the
     configured generator (superpixel | perlin | destseg | realnet | mixed).
-    Switch the generator in config.yaml:  dataset.anomaly_generator: "perlin"
+    Switch the generator in the active YAML config:
+    dataset.anomaly_generator: "perlin"
 
     Test mode
     ---------
@@ -303,7 +304,7 @@ class ContinualStreamingManager:
         return train_loader, test_loader, task_info
 
 if __name__ == "__main__":
-    default_config = os.path.join(PROJECT_ROOT, "conf", "config.yaml")
+    default_config = os.path.join(PROJECT_ROOT, "conf", "reference", "phase1_baseline.yaml")
     config = load_config(default_config)
     manager = ContinualStreamingManager(config)
     

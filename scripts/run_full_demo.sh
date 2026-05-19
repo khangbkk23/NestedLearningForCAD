@@ -13,6 +13,9 @@ set -Eeuo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
 
+PIPELINE_DIR="scripts/pipeline"
+DIAGNOSTICS_DIR="scripts/diagnostics"
+
 if [[ -z "${PYTHON_BIN:-}" ]]; then
   if [[ -x ".pixi/envs/default/bin/python" ]]; then
     PYTHON_BIN=".pixi/envs/default/bin/python"
@@ -30,9 +33,9 @@ RUN_EXPERIMENTAL="${RUN_EXPERIMENTAL:-1}"
 MAIN_MAX_TASKS="${MAIN_MAX_TASKS:-${MAX_TASKS:-8}}"
 EXPERIMENTAL_MAX_TASKS="${EXPERIMENTAL_MAX_TASKS:-$MAIN_MAX_TASKS}"
 
-MAIN_CONFIG="${MAIN_CONFIG:-conf/config_phase3_kaggle_gpu.yaml}"
+MAIN_CONFIG="${MAIN_CONFIG:-conf/full_demo.yaml}"
 CONSERVATIVE_CONFIG="${CONSERVATIVE_CONFIG:-$MAIN_CONFIG}"
-EXPERIMENTAL_CONFIG="${EXPERIMENTAL_CONFIG:-conf/config_phase3_experimental_nsp2_cbp.yaml}"
+EXPERIMENTAL_CONFIG="${EXPERIMENTAL_CONFIG:-conf/experimental_nsp2_cbp.yaml}"
 
 REUSE_MAIN_ANCHOR_FOR_EXPERIMENTAL="${REUSE_MAIN_ANCHOR_FOR_EXPERIMENTAL:-1}"
 REQUIRE_MAIN_ACCEPTED="${REQUIRE_MAIN_ACCEPTED:-1}"
@@ -204,7 +207,7 @@ manifest = {
         },
         "mechanism_smoke": {
             "enabled": env("RUN_MECHANISM") == "1",
-            "script": "scripts/test_integration_2.py",
+            "script": "scripts/diagnostics/mechanism_smoke.py",
         },
         "experimental_nsp2_cbp": {
             "enabled": env("RUN_EXPERIMENTAL") == "1",
@@ -254,10 +257,11 @@ run_logged py_compile "$PYTHON_BIN" -u -m py_compile \
   training/run_experiment.py \
   training/consolidation_engine.py \
   training/meta_nath_engine.py \
-  scripts/run_phase3_consolidation.py \
-  scripts/evaluate_checkpoint.py \
-  scripts/phase3_acceptance.py \
-  scripts/compare_checkpoint_scores.py
+  "$PIPELINE_DIR/run_phase3_consolidation.py" \
+  "$PIPELINE_DIR/evaluate_checkpoint.py" \
+  "$PIPELINE_DIR/phase3_acceptance.py" \
+  "$PIPELINE_DIR/compare_checkpoint_scores.py" \
+  "$DIAGNOSTICS_DIR/mechanism_smoke.py"
 
 run_logged bash_syntax bash -n scripts/run_full_demo.sh
 
@@ -278,7 +282,7 @@ if [[ "$RUN_MAIN" == "1" ]]; then
   MAIN_WARMUP_CKPT="$MAIN_WARMUP_DIR/last_checkpoint.pt"
   require_file "$MAIN_WARMUP_CKPT"
 
-  run_logged main_before_eval "$PYTHON_BIN" -u scripts/evaluate_checkpoint.py \
+  run_logged main_before_eval "$PYTHON_BIN" -u "$PIPELINE_DIR/evaluate_checkpoint.py" \
     --config "$CONSERVATIVE_CONFIG" \
     --checkpoint "$MAIN_WARMUP_CKPT" \
     --max_tasks "$MAIN_MAX_TASKS" \
@@ -288,7 +292,7 @@ if [[ "$RUN_MAIN" == "1" ]]; then
   MAIN_BEFORE_DIR="$(latest_dir "results/MetaNATH_Eval_*_${MAIN_BEFORE_SUFFIX}")"
   require_file "$MAIN_BEFORE_DIR/checkpoint_eval_summary.json"
 
-  run_logged main_phase3_conservative "$PYTHON_BIN" -u scripts/run_phase3_consolidation.py \
+  run_logged main_phase3_conservative "$PYTHON_BIN" -u "$PIPELINE_DIR/run_phase3_consolidation.py" \
     --config "$CONSERVATIVE_CONFIG" \
     --checkpoint "$MAIN_WARMUP_CKPT" \
     --run_suffix "$MAIN_CANDIDATE_SUFFIX"
@@ -297,7 +301,7 @@ if [[ "$RUN_MAIN" == "1" ]]; then
   MAIN_PHASE3_CKPT="$MAIN_PHASE3_DIR/last_checkpoint.pt"
   require_file "$MAIN_PHASE3_CKPT"
 
-  run_logged main_after_eval "$PYTHON_BIN" -u scripts/evaluate_checkpoint.py \
+  run_logged main_after_eval "$PYTHON_BIN" -u "$PIPELINE_DIR/evaluate_checkpoint.py" \
     --config "$CONSERVATIVE_CONFIG" \
     --checkpoint "$MAIN_PHASE3_CKPT" \
     --max_tasks "$MAIN_MAX_TASKS" \
@@ -308,7 +312,7 @@ if [[ "$RUN_MAIN" == "1" ]]; then
   require_file "$MAIN_AFTER_DIR/checkpoint_eval_summary.json"
 
   MAIN_ACCEPTANCE_REPORT="$MAIN_PHASE3_DIR/acceptance_report.json"
-  run_logged main_acceptance "$PYTHON_BIN" -u scripts/phase3_acceptance.py \
+  run_logged main_acceptance "$PYTHON_BIN" -u "$PIPELINE_DIR/phase3_acceptance.py" \
     --config "$CONSERVATIVE_CONFIG" \
     --before "$MAIN_BEFORE_DIR/checkpoint_eval_summary.json" \
     --after "$MAIN_AFTER_DIR/checkpoint_eval_summary.json" \
@@ -318,7 +322,7 @@ if [[ "$RUN_MAIN" == "1" ]]; then
 fi
 
 if [[ "$RUN_MECHANISM" == "1" ]]; then
-  run_logged mechanism_smoke "$PYTHON_BIN" -u scripts/test_integration_2.py
+  run_logged mechanism_smoke "$PYTHON_BIN" -u "$DIAGNOSTICS_DIR/mechanism_smoke.py"
 fi
 
 if [[ "$RUN_EXPERIMENTAL" == "1" ]]; then
@@ -345,7 +349,7 @@ if [[ "$RUN_EXPERIMENTAL" == "1" ]]; then
   fi
   require_file "$EXP_SOURCE_CKPT"
 
-  run_logged exp_before_eval "$PYTHON_BIN" -u scripts/evaluate_checkpoint.py \
+  run_logged exp_before_eval "$PYTHON_BIN" -u "$PIPELINE_DIR/evaluate_checkpoint.py" \
     --config "$EXPERIMENTAL_CONFIG" \
     --checkpoint "$EXP_SOURCE_CKPT" \
     --max_tasks "$EXPERIMENTAL_MAX_TASKS" \
@@ -355,7 +359,7 @@ if [[ "$RUN_EXPERIMENTAL" == "1" ]]; then
   EXP_BEFORE_DIR="$(latest_dir "results/MetaNATH_Eval_*_${EXP_BEFORE_SUFFIX}")"
   require_file "$EXP_BEFORE_DIR/checkpoint_eval_summary.json"
 
-  run_logged exp_phase3_nsp2_cbp "$PYTHON_BIN" -u scripts/run_phase3_consolidation.py \
+  run_logged exp_phase3_nsp2_cbp "$PYTHON_BIN" -u "$PIPELINE_DIR/run_phase3_consolidation.py" \
     --config "$EXPERIMENTAL_CONFIG" \
     --checkpoint "$EXP_SOURCE_CKPT" \
     --run_suffix "$EXP_CANDIDATE_SUFFIX"
@@ -364,7 +368,7 @@ if [[ "$RUN_EXPERIMENTAL" == "1" ]]; then
   EXP_PHASE3_CKPT="$EXP_PHASE3_DIR/last_checkpoint.pt"
   require_file "$EXP_PHASE3_CKPT"
 
-  run_logged exp_after_eval "$PYTHON_BIN" -u scripts/evaluate_checkpoint.py \
+  run_logged exp_after_eval "$PYTHON_BIN" -u "$PIPELINE_DIR/evaluate_checkpoint.py" \
     --config "$EXPERIMENTAL_CONFIG" \
     --checkpoint "$EXP_PHASE3_CKPT" \
     --max_tasks "$EXPERIMENTAL_MAX_TASKS" \
@@ -375,7 +379,7 @@ if [[ "$RUN_EXPERIMENTAL" == "1" ]]; then
   require_file "$EXP_AFTER_DIR/checkpoint_eval_summary.json"
 
   EXP_ACCEPTANCE_REPORT="$EXP_PHASE3_DIR/acceptance_report.json"
-  run_logged exp_acceptance "$PYTHON_BIN" -u scripts/phase3_acceptance.py \
+  run_logged exp_acceptance "$PYTHON_BIN" -u "$PIPELINE_DIR/phase3_acceptance.py" \
     --config "$EXPERIMENTAL_CONFIG" \
     --before "$EXP_BEFORE_DIR/checkpoint_eval_summary.json" \
     --after "$EXP_AFTER_DIR/checkpoint_eval_summary.json" \

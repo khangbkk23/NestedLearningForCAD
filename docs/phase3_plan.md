@@ -20,7 +20,7 @@ Goal: add cloud/offline consolidation without disturbing the Phase 1-2 baseline.
 
 1. **Forgetting matrix**
    - Use `evaluation.forgetting_matrix: true` on a small run.
-   - Compute FM with `scripts/compute_forgetting.py`.
+   - Compute FM with `scripts/diagnostics/compute_forgetting.py`.
 
 2. **Minimal N2B-NC consolidator, without NSP2 first**
    - Add `training/consolidation_engine.py`.
@@ -80,47 +80,47 @@ Goal: add cloud/offline consolidation without disturbing the Phase 1-2 baseline.
 
 ## Active Phase 3 Files
 
-- `conf/config_phase3.yaml`: separate Phase 3 config; baseline config stays untouched.
-- `conf/config_phase3_conservative.yaml`: accepted 8-task conservative candidate for metric-gated Phase 3.0.
-- `conf/config_phase3_kaggle_gpu.yaml`: Kaggle/server variant of the conservative
+- `conf/reference/phase3_smoke.yaml`: separate Phase 3 config; baseline config stays untouched.
+- `conf/reference/phase3_conservative_local.yaml`: accepted 8-task conservative candidate for metric-gated Phase 3.0.
+- `conf/full_demo.yaml`: Kaggle/server variant of the conservative
   config with larger batches, more workers, and prefetching.
-- `conf/config_phase3_experimental_nsp2_cbp.yaml`: explicit experimental config for NSP2/CBP reset smoke only.
-- `conf/config_visa.yaml`: VisA Phase 1-2 config; requires `data/visa`.
+- `conf/experimental_nsp2_cbp.yaml`: explicit experimental config for NSP2/CBP benchmark runs.
+- `conf/visa.yaml`: VisA Phase 1-2 config; requires `data/visa`.
 - `training/consolidation_engine.py`: N2B-NC consolidation and drift rollback.
 - `models/null_space_proj.py`: NSP2 projector, disabled by default for the first smoke.
 - `models/cbp.py`: CBP monitor/reset helper, monitor-only by default.
-- `scripts/run_phase3_consolidation.py`: CLI entrypoint for local/Kaggle execution.
-- `scripts/evaluate_checkpoint.py`: source/candidate checkpoint evaluation.
-- `scripts/phase3_acceptance.py`: metric-gated source-vs-candidate acceptance report.
-- `scripts/compare_checkpoint_scores.py`: targeted score distribution diagnostics.
+- `scripts/pipeline/run_phase3_consolidation.py`: CLI entrypoint for local/Kaggle execution.
+- `scripts/pipeline/evaluate_checkpoint.py`: source/candidate checkpoint evaluation.
+- `scripts/pipeline/phase3_acceptance.py`: metric-gated source-vs-candidate acceptance report.
+- `scripts/pipeline/compare_checkpoint_scores.py`: targeted score distribution diagnostics.
 - `scripts/run_server_phase3.sh`: reproducible Linux server workflow for anchor
   warmup, conservative Phase 3.0, evaluation, and acceptance.
 - `scripts/run_server_visa.sh`: VisA Phase 1-2 server entrypoint.
 - `notebooks/kaggle_full_phase3_workflow.ipynb`: full Kaggle orchestration
-  notebook for branch `taitrn`, MVTec Phase 3.0, optional 15-task, optional VisA.
+  notebook for branch `taitrn` and the MVTec full-demo workflow.
 
 ## First Smoke Commands
 
 Create an anchor checkpoint with raw images:
 
 ```powershell
-.\.pixi\envs\default\python.exe training\run_experiment.py --config conf\config_phase3.yaml --max_tasks 4 --disable_wandb --quiet --run_suffix phase3_anchor_warmup_4task
+.\.pixi\envs\default\python.exe training\run_experiment.py --config conf\reference\phase3_smoke.yaml --max_tasks 4 --disable_wandb --quiet --run_suffix phase3_anchor_warmup_4task
 ```
 
 Run one consolidation cycle:
 
 ```powershell
-.\.pixi\envs\default\python.exe scripts\run_phase3_consolidation.py --config conf\config_phase3.yaml --checkpoint results\<warmup_run>\last_checkpoint.pt --run_suffix phase3_smoke
+.\.pixi\envs\default\python.exe scripts\pipeline\run_phase3_consolidation.py --config conf\reference\phase3_smoke.yaml --checkpoint results\<warmup_run>\last_checkpoint.pt --run_suffix phase3_smoke
 ```
 
 Evaluate the consolidated checkpoint:
 
 ```powershell
-.\.pixi\envs\default\python.exe scripts\evaluate_checkpoint.py --config conf\config_phase3.yaml --checkpoint results\<phase3_run>\last_checkpoint.pt --max_tasks 4 --quiet --run_suffix phase3_after_eval_4task
+.\.pixi\envs\default\python.exe scripts\pipeline\evaluate_checkpoint.py --config conf\reference\phase3_smoke.yaml --checkpoint results\<phase3_run>\last_checkpoint.pt --max_tasks 4 --quiet --run_suffix phase3_after_eval_4task
 ```
 
 Apply metric-gated acceptance:
 
 ```powershell
-.\.pixi\envs\default\python.exe scripts\phase3_acceptance.py --config conf\config_phase3.yaml --before results\<before_eval_run>\checkpoint_eval_summary.json --after results\<after_eval_run>\checkpoint_eval_summary.json --output results\<phase3_run>\acceptance_report.json
+.\.pixi\envs\default\python.exe scripts\pipeline\phase3_acceptance.py --config conf\reference\phase3_smoke.yaml --before results\<before_eval_run>\checkpoint_eval_summary.json --after results\<after_eval_run>\checkpoint_eval_summary.json --output results\<phase3_run>\acceptance_report.json
 ```

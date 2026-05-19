@@ -30,8 +30,8 @@ or install from `requirements.txt` in a separate environment.
 ## Verify
 
 ```powershell
-.\.pixi\envs\default\python.exe scripts\test_integration_2.py
-.\.pixi\envs\default\python.exe scripts\01_data_preparation.py --run_verify --config .\conf\config.yaml
+.\.pixi\envs\default\python.exe scripts\diagnostics\mechanism_smoke.py
+.\.pixi\envs\default\python.exe scripts\data\prepare_data.py --run_verify --config .\conf\reference\phase1_baseline.yaml
 ```
 
 ## Run
@@ -66,7 +66,7 @@ notebooks/kaggle_full_phase3_workflow.ipynb
 ```
 
 The notebook calls the same full-demo script, adds visible progress to artifact
-inspection/packaging cells, and uses `conf/config_phase3_kaggle_gpu.yaml` by
+inspection/packaging cells, and uses `conf/full_demo.yaml` by
 default for larger Kaggle batches/workers.
 
 Conservative-only and VisA server workflows are kept as optional utilities:
@@ -83,7 +83,7 @@ demos.
 ## Inspect Results
 
 ```powershell
-.\.pixi\envs\default\python.exe scripts\summarize_run.py results\<run_dir>
+.\.pixi\envs\default\python.exe scripts\diagnostics\summarize_run.py results\<run_dir>
 ```
 
 Baseline runs are tracked in `docs/runs.md`.
@@ -96,9 +96,21 @@ By default runs save `last_checkpoint.pt` only. Set
 
 - `scripts/run_full_demo.sh`: full 3-tier v1 closure workflow.
 - `notebooks/kaggle_full_phase3_workflow.ipynb`: one-notebook Kaggle workflow.
-- `conf/config_phase3_kaggle_gpu.yaml`: default reportable server/Kaggle config.
-- `conf/config_phase3_experimental_nsp2_cbp.yaml`: experimental NSP2/CBP benchmark config.
+- `conf/full_demo.yaml`: default reportable server/Kaggle config.
+- `conf/experimental_nsp2_cbp.yaml`: experimental NSP2/CBP benchmark config.
 - `docs/runs.md`: verified run log.
+
+## Project Layout
+
+- `conf/`: run profiles; choose one YAML per run.
+- `dataset/`: MVTec/VisA loading and synthetic anomaly generation.
+- `models/`: Meta-NATH core modules and mechanisms.
+- `training/`: importable training/evaluation/consolidation engines.
+- `scripts/`: command-line entrypoints and diagnostics.
+- `notebooks/`: Kaggle orchestration only; logic stays in scripts/modules.
+- `utils/`: small shared runtime helpers.
+- `docs/`: scope, pipeline notes, and verified run records.
+- `legacy/`: old prototypes kept for reference only.
 
 ## Core Files
 
@@ -108,14 +120,15 @@ By default runs save `last_checkpoint.pt` only. Set
 - `training/run_experiment.py`: main experiment entrypoint.
 - `training/consolidation_engine.py`: Phase 3 N2B-NC consolidation.
 - `dataset/load_dataset.py`: MVTec/VisA continual task stream.
-- `scripts/run_phase3_consolidation.py`: Phase 3 CLI entrypoint.
-- `scripts/evaluate_checkpoint.py`: evaluates a saved checkpoint without retraining.
-- `scripts/phase3_acceptance.py`: compares before/after checkpoint metrics and accepts or rejects a Phase 3 candidate.
-- `scripts/compare_checkpoint_scores.py`: optional score distribution diagnostics.
+- `scripts/pipeline/run_phase3_consolidation.py`: Phase 3 CLI entrypoint.
+- `scripts/pipeline/evaluate_checkpoint.py`: evaluates a saved checkpoint without retraining.
+- `scripts/pipeline/phase3_acceptance.py`: compares before/after checkpoint metrics and accepts or rejects a Phase 3 candidate.
+- `scripts/pipeline/compare_checkpoint_scores.py`: optional score distribution diagnostics.
 - `scripts/run_server_phase3.sh`: conservative-only Linux utility workflow.
 - `scripts/run_server_visa.sh`: optional VisA Phase 1-2 utility workflow.
-- `scripts/summarize_run.py`: markdown run summaries.
-- `scripts/compute_forgetting.py`: forgetting metric from an evaluation matrix.
+- `scripts/diagnostics/summarize_run.py`: markdown run summaries.
+- `scripts/diagnostics/compute_forgetting.py`: forgetting metric from an evaluation matrix.
+- `utils/global_seed.py`: shared reproducibility helper.
 
 ## Legacy Code
 

@@ -15,7 +15,14 @@ import torch
 import yaml
 from tqdm import tqdm
 
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
+def _find_project_root() -> Path:
+    for parent in Path(__file__).resolve().parents:
+        if (parent / "conf").is_dir() and (parent / "training").is_dir():
+            return parent
+    raise RuntimeError("Could not locate project root from script path.")
+
+
+PROJECT_ROOT = _find_project_root()
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
@@ -28,7 +35,7 @@ from utils.global_seed import set_seed
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Evaluate a saved Meta-NATH checkpoint.")
-    parser.add_argument("--config", type=str, default="conf/config.yaml")
+    parser.add_argument("--config", type=str, default="conf/reference/phase1_baseline.yaml")
     parser.add_argument("--checkpoint", type=str, required=True)
     parser.add_argument("--output_dir", type=str, default=None)
     parser.add_argument("--max_tasks", type=int, default=None)

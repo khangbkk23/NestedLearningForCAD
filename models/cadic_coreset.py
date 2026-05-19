@@ -1,18 +1,18 @@
 """
 cadic_coreset.py
 ----------------
-CADIC Incremental Coreset — Slow Memory của Meta-NATH CAD.
+CADIC Incremental Coreset - Slow Memory for Meta-NATH CAD.
 
-Backbone của toàn hệ thống:
-    - Unified Memory Bank duy nhất cho toàn bộ tasks (không phân mảnh)
+System role:
+    - single Unified Memory Bank across all tasks, without per-task fragmentation
     - Max ~1000 entries, bounded VRAM
-    - Incremental update theo CADIC Eq. 1-6
-    - Anomaly scoring (image-level + pixel-level) theo CADIC Eq. 8-9
-    - Lưu patch_embeddings để AnomalyDecoder tính pixel-level map
+    - incremental update via CADIC Eq. 1-6
+    - image-level and pixel-level anomaly scoring via CADIC Eq. 8-9
+    - stores patch_embeddings for pixel-level anomaly maps
 
-Ước tính VRAM:
-    1000 entries × 256 patches × 768 dim × 4 bytes ≈ 786 MB
-    -> An toàn trên RTX 3050 Ti (4GB) và Jetson Orin NX (8-16GB)
+VRAM estimate:
+    1000 entries x 256 patches x 768 dim x 4 bytes ~= 786 MB
+    -> safe for RTX 3050 Ti (4GB) and Jetson Orin NX (8-16GB)
 """
 
 from __future__ import annotations
@@ -29,17 +29,17 @@ logger = logging.getLogger(__name__)
 
 class CADICCoreset:
     """
-    Incremental Coreset theo CADIC.
+    CADIC incremental Coreset.
 
-    Unified Memory Bank: Một coreset duy nhất cho toàn bộ lịch sử task.
-    Không phân mảnh theo task_id. Mỗi entry đại diện cho một vùng
-    feature space, được cập nhật khi có điểm mới xa hơn.
+    Unified Memory Bank: one Coreset over the full task history, without
+    fragmentation by task_id. Each entry represents a feature-space region
+    and can be replaced by a farther incoming point.
 
     Storage per entry:
         cls_embedding:   [d]           ->   3 KB
         patch_embeddings: [N_patch, d] -> 786 KB  (N_patch=256, d=768)
         utility_score:   float         ->   ~0 KB
-        image (optional): [C, H, W]    ->  ~2.4 MB (chỉ dùng cho N2B-NC)
+        image (optional): [C, H, W]    ->  ~2.4 MB (only for N2B-NC)
     """
 
     def __init__(
@@ -52,11 +52,11 @@ class CADICCoreset:
     ):
         """
         Args:
-            max_size:     Số entry tối đa (default 1000)
-            d:            Chiều embedding backbone (768 cho DINOv2-base prototype)
-            n_patch:      Số patch tokens per image (256 = 16×16 cho 224×224 input)
-            store_images: Có lưu raw image tensor không (cần cho N2B-NC Phase 3)
-            device:       'cuda' hoặc 'cpu'
+            max_size:     Maximum number of entries (default 1000).
+            d:            Backbone embedding dimension (768 for DINOv2-base prototype).
+            n_patch:      Patch tokens per image (256 = 16x16 for 224x224 input).
+            store_images: Whether to store raw image tensors for N2B-NC Phase 3.
+            device:       'cuda' or 'cpu'.
         """
         if device is None:
             device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -102,44 +102,44 @@ class CADICCoreset:
         task_id: int = 0,
     ) -> bool:
         """
-        Cập nhật Coreset với một embedding mới.
+        Update the Coreset with one new embedding.
 
-        Nếu Coreset chưa đầy -> add trực tiếp.
-        Nếu đầy -> áp dụng CADIC Eq. 6:
-            Nếu d_max(x_new, C) > |C|_min -> thay thế điểm gần nhất
-            trong cặp gần nhất nhau bằng x_new.
+        If the Coreset is not full, append directly.
+        If it is full, apply CADIC Eq. 6:
+            if d_max(x_new, C) > |C|_min, replace one point from the
+            closest existing pair with x_new.
 
         Args:
-            cls_emb:    [d]           - CLS embedding từ backbone
-            patch_embs: [N_patch, d]  - patch tokens từ backbone
-            image:      [C, H, W]     - raw image (optional, cho N2B-NC)
-            task_id:    int           - task hiện tại (chỉ để logging)
+            cls_emb:    [d]           - CLS embedding from backbone
+            patch_embs: [N_patch, d]  - patch tokens from backbone
+            image:      [C, H, W]     - optional raw image for N2B-NC
+            task_id:    int           - current task id, used only for logging
 
         Returns:
-            updated: bool - True nếu Coreset thực sự thay đổi
+            updated: bool - True if the Coreset changed
         """
         cls_emb    = cls_emb.detach().to(self.device)
         patch_embs = patch_embs.detach().to(self.device)
         self._ensure_patch_geometry(patch_embs)
 
-        # --- Chưa đầy: add trực tiếp ---
+        # --- Not full: append directly. ---
         if not self.is_full:
             self._add_entry(cls_emb, patch_embs, image, task_id)
             logger.debug(f"[CADIC] Added entry. Size: {len(self)}/{self.max_size}")
             return True
 
-        # --- Đầy: CADIC ---
+        # --- Full: apply CADIC replacement. ---
         C = torch.stack(self.cls_embeddings)   # [M, d]
         x = cls_emb.unsqueeze(0)               # [1, d]
 
-        # Eq. 1-2: d_max = khoảng cách từ x mới đến điểm gần nhất trong C
+        # Eq. 1-2: d_max is the distance from x_new to its nearest Coreset entry.
         dists_to_C = torch.cdist(x, C)         # [1, M]
         d_max      = dists_to_C.min().item()
 
-        # Eq. 4-5: |C|_min = khoảng cách nhỏ nhất giữa 2 điểm trong C
+        # Eq. 4-5: |C|_min is the nearest-neighbor distance inside the Coreset.
         c_min_val, c_min_idx = self._get_closest_pair()
 
-        # Eq. 6: điều kiện thay thế
+        # Eq. 6: replacement condition.
         if d_max > c_min_val:
             self._replace_entry(c_min_idx, cls_emb, patch_embs, image, task_id)
             self._update_count += 1
@@ -151,7 +151,7 @@ class CADICCoreset:
             return True
 
         logger.debug(
-            f"[CADIC] No update. d_max={d_max:.4f} ≤ c_min={c_min_val:.4f}"
+            f"[CADIC] No update. d_max={d_max:.4f} <= c_min={c_min_val:.4f}"
         )
         return False
 
@@ -163,7 +163,7 @@ class CADICCoreset:
         task_id: int = 0,
     ) -> int:
         """
-        Cập nhật Coreset với một batch embeddings.
+        Update the Coreset with a batch of embeddings.
 
         Args:
             cls_embs:         [B, d]
@@ -172,7 +172,7 @@ class CADICCoreset:
             task_id:          int
 
         Returns:
-            n_updated: số lần Coreset thực sự thay đổi
+            n_updated: number of actual Coreset changes
         """
         B = cls_embs.shape[0]
         n_updated = 0
@@ -199,18 +199,18 @@ class CADICCoreset:
         b: int = 2,
     ) -> Tuple[torch.Tensor, torch.Tensor]:
         """
-        Tính anomaly score cho một BATCH ảnh test (Đã tối ưu Batch Processing).
+        Compute anomaly scores for a batch of test images.
         
         Args:
             patch_embs_batch: [B, N_patch, d]
-            b:                số lân cận gần nhất cho Neighborhood Softmax
+            b:                nearest-neighbor count for Neighborhood Softmax
             
         Returns:
             s_img:   [B]            - image-level scores
             s_pix:   [B, N_patch]   - pixel-level scores
         """
         if len(self) == 0:
-            raise RuntimeError("[CADIC] Coreset rỗng.")
+            raise RuntimeError("[CADIC] Coreset is empty.")
 
         if patch_embs_batch.ndim == 2:
             patch_embs_batch = patch_embs_batch.unsqueeze(0)
@@ -225,7 +225,7 @@ class CADICCoreset:
         C_patch = self.get_all_patch_embs()    # [M * N_patch, d]
 
         # --- 1. Pixel-level scores ---
-        # Tính min distance theo chunk trên patch bank để tránh tensor [N, M*N_patch] quá lớn.
+        # Chunk over the patch bank to avoid materializing a huge [N, M*N_patch] tensor.
         s_pix_list = []
         nearest_patch_idx_list = []
         for i in range(B):
@@ -240,7 +240,7 @@ class CADICCoreset:
         nearest_patch_idxs = torch.stack(nearest_patch_idx_list) # [B, N]
 
         # --- 2. Image-level score (Eq. 8-9) ---
-        # Tìm patch "tệ nhất" x* cho mỗi ảnh trong batch
+        # Find the worst patch x* for each image in the batch.
         s_star_vals, s_star_idxs = s_pix.max(dim=1) # [B], [B]
 
         s_img_list = []
@@ -262,7 +262,7 @@ class CADICCoreset:
         return s_img.cpu(), s_pix.cpu()
 
     # ------------------------------------------------------------------
-    # Utility Management (cho N2B-NC Phase 3)
+    # Utility management for N2B-NC Phase 3.
     # ------------------------------------------------------------------
 
     def get_top_k_by_utility(
@@ -272,14 +272,14 @@ class CADICCoreset:
         return_metadata: bool = False,
     ) -> Tuple[Optional[torch.Tensor], torch.Tensor] | Tuple[Optional[torch.Tensor], torch.Tensor, Dict[str, Any]]:
         """
-        Trả về top-k entries có utility cao nhất.
+        Return the top-k entries by utility.
 
         Returns:
-            images: [k, C, H, W] nếu store_images=True, else None
+            images: [k, C, H, W] if store_images=True, otherwise None
             embs:   [k, d]
         """
         if len(self) == 0:
-            raise RuntimeError("[CADIC] Coreset rỗng.")
+            raise RuntimeError("[CADIC] Coreset is empty.")
 
         k = min(k, len(self))
         indices = self._select_anchor_indices(k, balanced_by_task=balanced_by_task)
@@ -334,14 +334,15 @@ class CADICCoreset:
         return selected
 
     def update_utility(self, idx: int, new_score: float) -> None:
-        """Cập nhật utility score của entry tại index idx."""
+        """Update the utility score for the entry at index idx."""
         if 0 <= idx < len(self.utilities):
             self.utilities[idx] = float(new_score)
 
     def decay_all_utilities(self, decay: float = 0.99) -> None:
         """
-        Giảm nhẹ utility của toàn bộ entries theo thời gian.
-        Entries cũ sẽ dần có utility thấp hơn, dễ bị thay thế hơn.
+        Decay all utility scores over time.
+
+        Older entries gradually become easier to replace.
         """
         self.utilities = [u * decay for u in self.utilities]
 
@@ -379,22 +380,22 @@ class CADICCoreset:
         self._invalidate_caches()
 
     # ------------------------------------------------------------------
-    # Patch Embeddings Access (cho AnomalyDecoder)
+    # Patch embedding access for anomaly scoring.
     # ------------------------------------------------------------------
 
     def get_all_patch_embs(self) -> torch.Tensor:
         """
-        Trả về toàn bộ patch embeddings dưới dạng tensor 2D.
+        Return all patch embeddings as one 2D tensor.
 
         Returns:
-            [M * N_patch, d] — flatten tất cả patches của tất cả entries.
-            BẮT BUỘC dùng hàm này thay vì truy cập self.patch_embeddings trực tiếp.
+            [M * N_patch, d], flattening all patches from all entries.
+            Use this method instead of accessing self.patch_embeddings directly.
 
         Raises:
-            RuntimeError: nếu Coreset rỗng
+            RuntimeError: if the Coreset is empty.
         """
         if not self.patch_embeddings:
-            raise RuntimeError("[CADIC] Không có patch embeddings nào trong Coreset.")
+            raise RuntimeError("[CADIC] Coreset has no patch embeddings.")
         if self._patch_bank_cache is None:
             self._patch_bank_cache = torch.cat(self.patch_embeddings, dim=0)   # [M * N_patch, d]
         return self._patch_bank_cache
@@ -404,7 +405,7 @@ class CADICCoreset:
     # ------------------------------------------------------------------
 
     def stats(self) -> dict:
-        """Trả về dict thống kê để logging/monitoring."""
+        """Return statistics for logging and monitoring."""
         if len(self) == 0:
             return {"size": 0, "is_full": False}
 
@@ -433,7 +434,7 @@ class CADICCoreset:
             f"[CADIC] size={s['size']}/{s['max_size']} | "
             f"updates={s['update_count']} | "
             f"avg_utility={s['avg_utility']} | "
-            f"VRAM(patch)≈{s['vram_patch_mb']}MB | "
+            f"VRAM(patch)~={s['vram_patch_mb']}MB | "
             f"tasks={s['task_counts']}"
         )
 

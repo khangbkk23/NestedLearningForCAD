@@ -1,39 +1,39 @@
-# Configuration Map
+# Config Guide
 
-For submission, the full demo uses only the reportable server config plus the
-explicit experimental config. The other files are kept because they support
-manual reproduction, smoke runs, or optional datasets.
+Use one config per run. Do not merge these into one YAML; separate files make
+Kaggle/server commands reproducible and keep each benchmark profile explicit.
 
-## Submission Configs
+## Main Choices
 
-| File | Purpose | Status |
+| Config | Use when | Notes |
 | --- | --- | --- |
-| `config_phase3_kaggle_gpu.yaml` | Default full-demo conservative Phase 3 config for Kaggle/server runs | Reportable if acceptance passes |
-| `config_phase3_experimental_nsp2_cbp.yaml` | NSP2/CBP benchmark path used by the experimental tier | Experimental unless acceptance passes |
+| `full_demo.yaml` | Default MVTec submission run | Conservative Phase 3, larger Kaggle/server batches, reportable if accepted |
+| `experimental_nsp2_cbp.yaml` | Full-tech experimental run | Enables NSP2 + CBP reset; report as experimental unless acceptance passes |
+| `visa.yaml` | Optional VisA validation | Phase 1-2 VisA path, requires `data/visa` |
 
-## Reference Configs
+## Reference Choices
 
-| File | Purpose | Status |
+| Config | Use when | Notes |
 | --- | --- | --- |
-| `config.yaml` | DINOv2 Phase 1-2 MVTec baseline | Reportable baseline |
-| `config_phase3.yaml` | Phase 3 anchor warmup and smoke settings with stored images | Utility config |
-| `config_phase3_conservative.yaml` | Accepted conservative Phase 3.0 MVTec 8-task candidate | Reportable Phase 3.0 config |
-| `config_visa.yaml` | VisA Phase 1-2 run once `data/visa` is mounted | Prepared, not yet benchmarked |
+| `reference/phase1_baseline.yaml` | Local Phase 1-2 baseline or data verification | Small/default MVTec baseline |
+| `reference/phase3_smoke.yaml` | Quick Phase 3 smoke/debug | Utility profile, not the submission benchmark |
+| `reference/phase3_conservative_local.yaml` | Reproduce the earlier conservative local profile | Same conservative idea, smaller local batches than `full_demo.yaml` |
 
-Kaggle entrypoint:
+## Recommended Commands
+
+```bash
+# Submission / Kaggle
+bash scripts/run_full_demo.sh
+
+# Stronger MVTec pass
+MAIN_MAX_TASKS=15 EXPERIMENTAL_MAX_TASKS=15 bash scripts/run_full_demo.sh
+
+# Optional VisA
+bash scripts/run_server_visa.sh
+```
+
+Default demo path:
 
 ```text
-notebooks/kaggle_full_phase3_workflow.ipynb
-```
-
-Server entrypoint:
-
-```bash
-bash scripts/run_full_demo.sh
-```
-
-Conservative-only server entrypoint:
-
-```bash
-bash scripts/run_server_phase3.sh
+full_demo.yaml -> mechanism smoke -> experimental_nsp2_cbp.yaml
 ```
