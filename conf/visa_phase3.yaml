@@ -1,10 +1,10 @@
 dataset:
-  name: "mvtec"
-  root_dir: "data/mvtec"
+  name: "visa"
+  root_dir: "data/visa"
   img_size: 224
-  batch_size: 96
+  batch_size: 32
   num_workers: 4
-  prefetch_factor: 4
+  prefetch_factor: 2
   pin_memory: true
   persistent_workers: true
   drop_last_train: false
@@ -16,21 +16,18 @@ dataset:
   anomaly_generator: "superpixel"
   class_order:
     [
-      "bottle",
-      "cable",
-      "capsule",
-      "carpet",
-      "grid",
-      "hazelnut",
-      "leather",
-      "metal_nut",
-      "pill",
-      "screw",
-      "tile",
-      "toothbrush",
-      "transistor",
-      "wood",
-      "zipper",
+      "candle",
+      "capsules",
+      "cashew",
+      "chewinggum",
+      "fryum",
+      "macaroni1",
+      "macaroni2",
+      "pcb1",
+      "pcb2",
+      "pcb3",
+      "pcb4",
+      "pipe_fryum",
     ]
 
 model:
@@ -62,7 +59,7 @@ training:
   seed: 42
 
 logging:
-  experiment_name: "MetaNATH_Phase3"
+  experiment_name: "MetaNATH_ViSA_Phase3"
   results_dir: "results/"
   save_models: true
   checkpoint_mode: "phase3_full"
@@ -96,7 +93,7 @@ phase3:
   steps: 1
   balanced_anchors: true
   refresh_coreset: true
-  refresh_batch_size: 96
+  refresh_batch_size: 32
   acceptance:
     enabled: true
     primary_metric: "final_cumulative_pixel_aupr"

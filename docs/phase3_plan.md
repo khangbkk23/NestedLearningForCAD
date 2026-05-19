@@ -85,7 +85,7 @@ Goal: add cloud/offline consolidation without disturbing the Phase 1-2 baseline.
 - `conf/full_demo.yaml`: Kaggle/server variant of the conservative
   config with larger batches, more workers, and prefetching.
 - `conf/experimental_nsp2_cbp.yaml`: explicit experimental config for NSP2/CBP benchmark runs.
-- `conf/visa.yaml`: VisA Phase 1-2 config; requires `data/visa`.
+- `conf/visa_phase3.yaml`: VisA conservative Phase 3 config; requires `data/visa`.
 - `training/consolidation_engine.py`: N2B-NC consolidation and drift rollback.
 - `models/null_space_proj.py`: NSP2 projector, disabled by default for the first smoke.
 - `models/cbp.py`: CBP monitor/reset helper, monitor-only by default.
@@ -95,7 +95,7 @@ Goal: add cloud/offline consolidation without disturbing the Phase 1-2 baseline.
 - `scripts/pipeline/compare_checkpoint_scores.py`: targeted score distribution diagnostics.
 - `scripts/run_server_phase3.sh`: reproducible Linux server workflow for anchor
   warmup, conservative Phase 3.0, evaluation, and acceptance.
-- `scripts/run_server_visa.sh`: VisA Phase 1-2 server entrypoint.
+- `scripts/run_server_visa.sh`: VisA conservative Phase 3 server entrypoint.
 - `notebooks/kaggle_full_phase3_workflow.ipynb`: full Kaggle orchestration
   notebook for branch `taitrn` and the MVTec full-demo workflow.
 

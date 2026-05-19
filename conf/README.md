@@ -9,7 +9,8 @@ Kaggle/server commands reproducible and keep each benchmark profile explicit.
 | --- | --- | --- |
 | `full_demo.yaml` | Default MVTec submission run | Conservative Phase 3, larger Kaggle/server batches, reportable if accepted |
 | `experimental_nsp2_cbp.yaml` | Full-tech experimental run | Enables NSP2 + CBP reset; report as experimental unless acceptance passes |
-| `visa.yaml` | Optional VisA validation | Phase 1-2 VisA path, requires `data/visa` |
+| `visa_phase3.yaml` | Optional VisA Phase 3 validation | Conservative Phase 3 path, requires `data/visa` |
+| `visa.yaml` | Legacy VisA smoke | Phase 1-2-only path, use only with `RUN_PHASE3=0` |
 
 ## Reference Choices
 
@@ -28,7 +29,7 @@ bash scripts/run_full_demo.sh
 # Stronger MVTec pass
 MAIN_MAX_TASKS=15 EXPERIMENTAL_MAX_TASKS=15 bash scripts/run_full_demo.sh
 
-# Optional VisA
+# Optional VisA Phase 3
 bash scripts/run_server_visa.sh
 ```
 

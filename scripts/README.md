@@ -9,9 +9,10 @@ bash scripts/run_full_demo.sh
 ## Layout
 
 - `run_full_demo.sh`: primary 3-tier MVTec demo workflow.
+- `run_server_phase3.sh`: conservative-only MVTec Phase 3 workflow wrapper.
+- `run_server_visa.sh`: VisA conservative Phase 3 workflow wrapper.
 - `pipeline/`: reproducible CLIs used by the full demo.
 - `diagnostics/`: smoke tests, summaries, GPU checks, and metric helpers.
-- `data/`: dataset verification utilities.
 - `workflows/`: optional server workflows. Root-level `run_server_*.sh` files are thin compatibility wrappers.
 
 ## Pipeline CLIs
@@ -28,8 +29,7 @@ bash scripts/run_full_demo.sh
 - `diagnostics/compute_forgetting.py`: forgetting metric from an evaluation matrix.
 - `diagnostics/check_gpu.py`: environment/GPU check.
 
-## Data And Workflows
+## Workflows
 
-- `data/prepare_data.py`: dataset pipeline verification helper.
-- `workflows/run_server_phase3.sh`: conservative-only Phase 3 server workflow.
-- `workflows/run_server_visa.sh`: optional VisA Phase 1-2 workflow once `data/visa` is mounted.
+- `workflows/run_server_phase3.sh`: conservative-only MVTec Phase 3 workflow.
+- `workflows/run_server_visa.sh`: optional VisA Phase 3 workflow once `data/visa` is mounted.

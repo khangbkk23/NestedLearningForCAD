@@ -25,6 +25,17 @@ if [[ -z "${PYTHON_BIN:-}" ]]; then
 fi
 
 export PYTHONUNBUFFERED="${PYTHONUNBUFFERED:-1}"
+export HF_HUB_DISABLE_TELEMETRY="${HF_HUB_DISABLE_TELEMETRY:-1}"
+export HF_HUB_DISABLE_XET="${HF_HUB_DISABLE_XET:-1}"
+export TOKENIZERS_PARALLELISM="${TOKENIZERS_PARALLELISM:-false}"
+export NUMEXPR_MAX_THREADS="${NUMEXPR_MAX_THREADS:-1}"
+export OMP_NUM_THREADS="${OMP_NUM_THREADS:-1}"
+export MKL_NUM_THREADS="${MKL_NUM_THREADS:-1}"
+export METANATH_REQUIRE_HF_BACKBONE="${METANATH_REQUIRE_HF_BACKBONE:-1}"
+export METANATH_LOCAL_FILES_ONLY="${METANATH_LOCAL_FILES_ONLY:-0}"
+
+STEP_TIMEOUT_SECONDS="${STEP_TIMEOUT_SECONDS:-7200}"
+LOCAL_FILES_ONLY_AFTER_WARMUP="${LOCAL_FILES_ONLY_AFTER_WARMUP:-1}"
 
 RUN_MAIN="${RUN_MAIN:-1}"
 RUN_MECHANISM="${RUN_MECHANISM:-1}"
@@ -46,6 +57,14 @@ QUIET_ARGS=()
 if [[ "$PROGRESS" != "1" ]]; then
   QUIET_ARGS=(--quiet)
 fi
+
+for required_config in "$MAIN_CONFIG" "$CONSERVATIVE_CONFIG" "$EXPERIMENTAL_CONFIG"; do
+  if [[ ! -f "$required_config" ]]; then
+    echo "Required config not found: $required_config" >&2
+    echo "This checkout expects the cleaned config names: conf/full_demo.yaml and conf/experimental_nsp2_cbp.yaml." >&2
+    exit 2
+  fi
+done
 
 STAMP="$(date +%Y%m%d_%H%M%S)"
 LOG_DIR="${LOG_DIR:-logs/full_demo_${STAMP}}"
@@ -123,7 +142,11 @@ run_logged() {
   echo "    start: $(date '+%Y-%m-%d %H:%M:%S')"
   echo "    $*" | tee "$LOG_DIR/${CURRENT_STEP}_${name}.cmd.txt"
   set +e
-  "$@" 2>&1 | tee "$LOG_DIR/${CURRENT_STEP}_${name}.log"
+  if [[ "$STEP_TIMEOUT_SECONDS" != "0" ]] && command -v timeout >/dev/null 2>&1; then
+    timeout --preserve-status "$STEP_TIMEOUT_SECONDS" "$@" 2>&1 | tee "$LOG_DIR/${CURRENT_STEP}_${name}.log"
+  else
+    "$@" 2>&1 | tee "$LOG_DIR/${CURRENT_STEP}_${name}.log"
+  fi
   status=${PIPESTATUS[0]}
   set -e
   end_ts="$(date +%s)"
@@ -250,6 +273,10 @@ echo "experimental_config=$EXPERIMENTAL_CONFIG"
 echo "reuse_experimental_anchor=$REUSE_EXPERIMENTAL_ANCHOR"
 echo "require_main_accepted=$REQUIRE_MAIN_ACCEPTED"
 echo "require_experimental_accepted=$REQUIRE_EXPERIMENTAL_ACCEPTED"
+echo "step_timeout_seconds=$STEP_TIMEOUT_SECONDS"
+echo "hf_hub_disable_xet=$HF_HUB_DISABLE_XET"
+echo "metanath_require_hf_backbone=$METANATH_REQUIRE_HF_BACKBONE"
+echo "metanath_local_files_only=$METANATH_LOCAL_FILES_ONLY"
 echo "logs=$LOG_DIR"
 echo "full_demo_dir=$FULL_DEMO_DIR"
 
@@ -263,7 +290,12 @@ run_logged py_compile "$PYTHON_BIN" -u -m py_compile \
   "$PIPELINE_DIR/compare_checkpoint_scores.py" \
   "$DIAGNOSTICS_DIR/mechanism_smoke.py"
 
-run_logged bash_syntax bash -n scripts/run_full_demo.sh
+run_logged bash_syntax bash -n \
+  scripts/run_full_demo.sh \
+  scripts/run_server_phase3.sh \
+  scripts/workflows/run_server_phase3.sh \
+  scripts/run_server_visa.sh \
+  scripts/workflows/run_server_visa.sh
 
 if [[ "$RUN_MAIN" == "1" ]]; then
   MAIN_ANCHOR_SUFFIX="full_main_anchor_${MAIN_MAX_TASKS}task_${STAMP}"
@@ -281,6 +313,8 @@ if [[ "$RUN_MAIN" == "1" ]]; then
   MAIN_WARMUP_DIR="$(latest_dir "results/MetaNATH_Phase3_*_${MAIN_ANCHOR_SUFFIX}")"
   MAIN_WARMUP_CKPT="$MAIN_WARMUP_DIR/last_checkpoint.pt"
   require_file "$MAIN_WARMUP_CKPT"
+  export METANATH_LOCAL_FILES_ONLY="$LOCAL_FILES_ONLY_AFTER_WARMUP"
+  echo "Using local HuggingFace cache after main warmup: METANATH_LOCAL_FILES_ONLY=$METANATH_LOCAL_FILES_ONLY"
 
   run_logged main_before_eval "$PYTHON_BIN" -u "$PIPELINE_DIR/evaluate_checkpoint.py" \
     --config "$CONSERVATIVE_CONFIG" \
@@ -338,6 +372,7 @@ if [[ "$RUN_EXPERIMENTAL" == "1" ]]; then
     echo "  $EXP_SOURCE_CKPT"
   else
     EXP_ANCHOR_SUFFIX="full_exp_anchor_${EXPERIMENTAL_MAX_TASKS}task_${STAMP}"
+    export METANATH_LOCAL_FILES_ONLY="${METANATH_LOCAL_FILES_ONLY_BEFORE_EXP_ANCHOR:-0}"
     run_logged exp_anchor_warmup "$PYTHON_BIN" -u training/run_experiment.py \
       --config "$EXPERIMENTAL_CONFIG" \
       --max_tasks "$EXPERIMENTAL_MAX_TASKS" \
@@ -346,6 +381,8 @@ if [[ "$RUN_EXPERIMENTAL" == "1" ]]; then
       --run_suffix "$EXP_ANCHOR_SUFFIX"
     EXP_SOURCE_DIR="$(latest_dir "results/MetaNATH_Phase3_*_${EXP_ANCHOR_SUFFIX}")"
     EXP_SOURCE_CKPT="$EXP_SOURCE_DIR/last_checkpoint.pt"
+    export METANATH_LOCAL_FILES_ONLY="$LOCAL_FILES_ONLY_AFTER_WARMUP"
+    echo "Using local HuggingFace cache after experimental warmup: METANATH_LOCAL_FILES_ONLY=$METANATH_LOCAL_FILES_ONLY"
   fi
   require_file "$EXP_SOURCE_CKPT"
 

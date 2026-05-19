@@ -28,6 +28,24 @@ RUN_PHASE12_FULL="${RUN_PHASE12_FULL:-0}"
 RUN_SCORE_COMPARE="${RUN_SCORE_COMPARE:-0}"
 PROGRESS="${PROGRESS:-1}"
 export PYTHONUNBUFFERED="${PYTHONUNBUFFERED:-1}"
+export HF_HUB_DISABLE_TELEMETRY="${HF_HUB_DISABLE_TELEMETRY:-1}"
+export HF_HUB_DISABLE_XET="${HF_HUB_DISABLE_XET:-1}"
+export TOKENIZERS_PARALLELISM="${TOKENIZERS_PARALLELISM:-false}"
+export NUMEXPR_MAX_THREADS="${NUMEXPR_MAX_THREADS:-1}"
+export OMP_NUM_THREADS="${OMP_NUM_THREADS:-1}"
+export MKL_NUM_THREADS="${MKL_NUM_THREADS:-1}"
+export METANATH_REQUIRE_HF_BACKBONE="${METANATH_REQUIRE_HF_BACKBONE:-1}"
+export METANATH_LOCAL_FILES_ONLY="${METANATH_LOCAL_FILES_ONLY:-0}"
+
+STEP_TIMEOUT_SECONDS="${STEP_TIMEOUT_SECONDS:-7200}"
+LOCAL_FILES_ONLY_AFTER_WARMUP="${LOCAL_FILES_ONLY_AFTER_WARMUP:-1}"
+
+for required_config in "$BASELINE_CONFIG" "$PHASE3_CONFIG" "$CONSERVATIVE_CONFIG"; do
+  if [[ ! -f "$required_config" ]]; then
+    echo "Required config not found: $required_config" >&2
+    exit 2
+  fi
+done
 
 QUIET_ARGS=()
 if [[ "$PROGRESS" != "1" ]]; then
@@ -59,7 +77,11 @@ run_logged() {
   echo "    start: $(date '+%Y-%m-%d %H:%M:%S')"
   echo "    $*" | tee "$LOG_DIR/${name}.cmd.txt"
   set +e
-  "$@" 2>&1 | tee "$LOG_DIR/${name}.log"
+  if [[ "$STEP_TIMEOUT_SECONDS" != "0" ]] && command -v timeout >/dev/null 2>&1; then
+    timeout --preserve-status "$STEP_TIMEOUT_SECONDS" "$@" 2>&1 | tee "$LOG_DIR/${name}.log"
+  else
+    "$@" 2>&1 | tee "$LOG_DIR/${name}.log"
+  fi
   status=${PIPESTATUS[0]}
   set -e
   end_ts="$(date +%s)"
@@ -79,9 +101,13 @@ echo "max_tasks=$MAX_TASKS"
 echo "phase3_config=$PHASE3_CONFIG"
 echo "conservative_config=$CONSERVATIVE_CONFIG"
 echo "progress=$PROGRESS"
+echo "step_timeout_seconds=$STEP_TIMEOUT_SECONDS"
+echo "hf_hub_disable_xet=$HF_HUB_DISABLE_XET"
+echo "metanath_require_hf_backbone=$METANATH_REQUIRE_HF_BACKBONE"
+echo "metanath_local_files_only=$METANATH_LOCAL_FILES_ONLY"
 echo "logs=$LOG_DIR"
 
-TOTAL_STEPS=6
+TOTAL_STEPS=7
 if [[ "$RUN_TESTS" == "1" ]]; then
   TOTAL_STEPS=$((TOTAL_STEPS + 1))
 fi
@@ -101,6 +127,9 @@ run_logged py_compile "$PYTHON_BIN" -u -m py_compile \
   "$PIPELINE_DIR/evaluate_checkpoint.py" \
   "$PIPELINE_DIR/phase3_acceptance.py" \
   "$PIPELINE_DIR/compare_checkpoint_scores.py"
+CURRENT_STEP=$((CURRENT_STEP + 1))
+
+run_logged bash_syntax bash -n scripts/run_server_phase3.sh scripts/workflows/run_server_phase3.sh
 CURRENT_STEP=$((CURRENT_STEP + 1))
 
 if [[ "$RUN_TESTS" == "1" ]]; then
@@ -132,6 +161,8 @@ CURRENT_STEP=$((CURRENT_STEP + 1))
 
 WARMUP_DIR="$(latest_dir "results/MetaNATH_Phase3_*_${ANCHOR_SUFFIX}")"
 WARMUP_CKPT="$WARMUP_DIR/last_checkpoint.pt"
+export METANATH_LOCAL_FILES_ONLY="$LOCAL_FILES_ONLY_AFTER_WARMUP"
+echo "Using local HuggingFace cache after anchor warmup: METANATH_LOCAL_FILES_ONLY=$METANATH_LOCAL_FILES_ONLY"
 
 run_logged before_eval "$PYTHON_BIN" -u "$PIPELINE_DIR/evaluate_checkpoint.py" \
   --config "$CONSERVATIVE_CONFIG" \

@@ -41,7 +41,7 @@ locked and reproducible.
     smoke, and experimental NSP2/CBP before/after acceptance benchmark.
 
 - `scripts/run_server_visa.sh`
-  - Linux server workflow for VisA Phase 1-2 once the dataset is available.
+  - Linux server workflow for VisA conservative Phase 3 once the dataset is available.
 
 - `notebooks/kaggle_full_phase3_workflow.ipynb`
   - Kaggle orchestration notebook for branch `taitrn`.
@@ -89,7 +89,7 @@ Implemented:
 - NSP2 projection implementation with Subspace Recycling fallback logging.
 - CBP reset helper with unit/integration coverage; benchmark reset remains off
   unless an experimental config is explicitly selected.
-- VisA config and server entrypoint are prepared.
+- VisA Phase 3 config and server entrypoint are prepared.
 
 Not implemented yet:
 

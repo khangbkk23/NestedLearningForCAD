@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import logging
 import math
+import os
 from types import SimpleNamespace
 from typing import Any, Dict, Optional, Tuple
 
@@ -91,10 +92,21 @@ class MetaNATHCore(nn.Module):
         # 1. Eyes - frozen vision backbone.
         #    Current prototype uses HuggingFace DINOv2; adapter also supports DINOv3 dict outputs.
         # ----------------------------------------------------------------
+        local_files_only = os.environ.get("METANATH_LOCAL_FILES_ONLY", "0").lower() in {"1", "true", "yes"}
+        require_hf_backbone = os.environ.get("METANATH_REQUIRE_HF_BACKBONE", "0").lower() in {"1", "true", "yes"}
+
         logger.info(f"[MetaNATH] Loading backbone ({backbone_name})...")
         try:
-            self.backbone = AutoModel.from_pretrained(backbone_name)
+            self.backbone = AutoModel.from_pretrained(
+                backbone_name,
+                local_files_only=local_files_only,
+            )
         except Exception as exc:
+            if require_hf_backbone:
+                raise RuntimeError(
+                    "[MetaNATH] Could not load the required HuggingFace backbone. "
+                    "For offline runs, cache the model once first or unset METANATH_LOCAL_FILES_ONLY."
+                ) from exc
             logger.warning(
                 "[MetaNATH] Could not load gated HF backbone; using local fallback backbone instead. "
                 f"Reason: {exc}"

@@ -125,7 +125,7 @@ By default runs save `last_checkpoint.pt` only. Set
 - `scripts/pipeline/phase3_acceptance.py`: compares before/after checkpoint metrics and accepts or rejects a Phase 3 candidate.
 - `scripts/pipeline/compare_checkpoint_scores.py`: optional score distribution diagnostics.
 - `scripts/run_server_phase3.sh`: conservative-only Linux utility workflow.
-- `scripts/run_server_visa.sh`: optional VisA Phase 1-2 utility workflow.
+- `scripts/run_server_visa.sh`: optional VisA conservative Phase 3 utility workflow.
 - `scripts/diagnostics/summarize_run.py`: markdown run summaries.
 - `scripts/diagnostics/compute_forgetting.py`: forgetting metric from an evaluation matrix.
 - `utils/global_seed.py`: shared reproducibility helper.
