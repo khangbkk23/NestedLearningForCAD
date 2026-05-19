@@ -36,6 +36,10 @@ locked and reproducible.
   - Linux server workflow for the verified Phase 3.0 path: anchor warmup,
     before eval, conservative consolidation, after eval, and acceptance report.
 
+- `scripts/run_full_demo.sh`
+  - Full v1 closure workflow: reportable conservative benchmark, mechanism
+    smoke, and experimental NSP2/CBP before/after acceptance benchmark.
+
 - `scripts/run_server_visa.sh`
   - Linux server workflow for VisA Phase 1-2 once the dataset is available.
 
@@ -80,6 +84,8 @@ Implemented:
   `conf/config_phase3_conservative.yaml`.
 - Kaggle GPU-optimized conservative configuration in
   `conf/config_phase3_kaggle_gpu.yaml`.
+- Full 3-tier demo orchestration in `scripts/run_full_demo.sh` and
+  `notebooks/kaggle_full_phase3_workflow.ipynb`.
 - NSP2 projection implementation with Subspace Recycling fallback logging.
 - CBP reset helper with unit/integration coverage; benchmark reset remains off
   unless an experimental config is explicitly selected.
@@ -92,7 +98,8 @@ Not implemented yet:
 - Accepted benchmark with NSP2 enabled.
 - Accepted benchmark with CBP reset enabled.
 - Advanced Subspace Recycling policy beyond the current fallback projection.
-- Phase 3 cloud notebook is a thin orchestration notebook.
+- Accepted full-demo result for experimental NSP2/CBP, if the experimental
+  acceptance gate rejects the candidate.
 
 Verified results are tracked in `docs/runs.md`. Do not claim NSP2, CBP reset,
 Subspace Recycling, DINOv3, or VisA results until their corresponding runs are

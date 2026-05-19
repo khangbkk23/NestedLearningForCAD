@@ -36,49 +36,27 @@ or install from `requirements.txt` in a separate environment.
 
 ## Run
 
-Smoke:
-
-```powershell
-.\.pixi\envs\default\python.exe training\run_experiment.py --max_tasks 4 --disable_wandb --quiet
-```
-
-Full Phase 1-2 baseline:
-
-```powershell
-.\.pixi\envs\default\python.exe training\run_experiment.py --disable_wandb --quiet --run_suffix raw_baseline_full15
-```
-
-Phase 3 anchor warmup and consolidation smoke:
-
-```powershell
-.\.pixi\envs\default\python.exe training\run_experiment.py --config .\conf\config_phase3.yaml --max_tasks 4 --disable_wandb --quiet --run_suffix phase3_anchor_warmup_4task
-.\.pixi\envs\default\python.exe scripts\run_phase3_consolidation.py --config .\conf\config_phase3.yaml --checkpoint results\<warmup_run>\last_checkpoint.pt --run_suffix phase3_smoke
-.\.pixi\envs\default\python.exe scripts\evaluate_checkpoint.py --config .\conf\config_phase3.yaml --checkpoint results\<phase3_run>\last_checkpoint.pt --max_tasks 4 --quiet --run_suffix phase3_after_eval_4task
-.\.pixi\envs\default\python.exe scripts\phase3_acceptance.py --config .\conf\config_phase3.yaml --before results\<before_eval_run>\checkpoint_eval_summary.json --after results\<after_eval_run>\checkpoint_eval_summary.json --output results\<phase3_run>\acceptance_report.json
-```
-
-Verified conservative Phase 3.0 8-task candidate:
-
-```powershell
-.\.pixi\envs\default\python.exe training\run_experiment.py --config .\conf\config_phase3.yaml --max_tasks 8 --disable_wandb --quiet --run_suffix phase3_anchor_warmup_8task
-.\.pixi\envs\default\python.exe scripts\evaluate_checkpoint.py --config .\conf\config_phase3_conservative.yaml --checkpoint results\<warmup_run>\last_checkpoint.pt --max_tasks 8 --quiet --run_suffix before_phase3_8task
-.\.pixi\envs\default\python.exe scripts\run_phase3_consolidation.py --config .\conf\config_phase3_conservative.yaml --checkpoint results\<warmup_run>\last_checkpoint.pt --run_suffix phase3_conservative_8task
-.\.pixi\envs\default\python.exe scripts\evaluate_checkpoint.py --config .\conf\config_phase3_conservative.yaml --checkpoint results\<phase3_run>\last_checkpoint.pt --max_tasks 8 --quiet --run_suffix after_phase3_conservative_8task
-.\.pixi\envs\default\python.exe scripts\phase3_acceptance.py --config .\conf\config_phase3_conservative.yaml --before results\<before_eval_run>\checkpoint_eval_summary.json --after results\<after_eval_run>\checkpoint_eval_summary.json --output results\<phase3_run>\acceptance_report.json
-```
-
-Linux server workflow:
+For submission, use the full v1 closure workflow. It is the single public
+entrypoint for the current MVTec demo:
 
 ```bash
-bash scripts/run_server_phase3.sh
+bash scripts/run_full_demo.sh
 ```
 
-Useful server environment knobs:
+It runs three tiers:
+
+- Main reportable demo: conservative Phase 3 before/after/acceptance.
+- Mechanism demo: integration smoke for TITANS, CADIC, NSP2, CBP reset, and
+  Subspace Recycling code paths.
+- Experimental benchmark: NSP2/CBP config with the same before/after acceptance
+  gate.
+
+Useful submission knobs:
 
 ```bash
-MAX_TASKS=8 RUN_TESTS=1 RUN_SCORE_COMPARE=1 bash scripts/run_server_phase3.sh
-RUN_PHASE12_FULL=1 bash scripts/run_server_phase3.sh
-PYTHON_BIN=/path/to/python bash scripts/run_server_phase3.sh
+MAIN_MAX_TASKS=15 EXPERIMENTAL_MAX_TASKS=15 bash scripts/run_full_demo.sh
+REQUIRE_EXPERIMENTAL_ACCEPTED=1 bash scripts/run_full_demo.sh
+PYTHON_BIN=/path/to/python bash scripts/run_full_demo.sh
 ```
 
 Kaggle workflow:
@@ -87,15 +65,20 @@ Kaggle workflow:
 notebooks/kaggle_full_phase3_workflow.ipynb
 ```
 
-The notebook uses `conf/config_phase3_kaggle_gpu.yaml` by default to increase
-batch size, workers, and prefetching on Kaggle GPUs. See `conf/README.md` for
-the role of each config file.
+The notebook calls the same full-demo script, adds visible progress to artifact
+inspection/packaging cells, and uses `conf/config_phase3_kaggle_gpu.yaml` by
+default for larger Kaggle batches/workers.
 
-VisA server workflow, after mounting/copying VisA to `data/visa`:
+Conservative-only and VisA server workflows are kept as optional utilities:
 
 ```bash
+MAX_TASKS=8 RUN_TESTS=1 RUN_SCORE_COMPARE=0 bash scripts/run_server_phase3.sh
 bash scripts/run_server_visa.sh
 ```
+
+`RUN_SCORE_COMPARE=1` is an optional diagnostic pass and can take a long time
+after acceptance has already passed; keep it off for normal Kaggle/server
+demos.
 
 ## Inspect Results
 
@@ -109,7 +92,15 @@ By default runs save `last_checkpoint.pt` only. Set
 `logging.checkpoint_policy: "all"` if you need per-task checkpoints, or
 `"best_and_last"` if you want best image/pixel checkpoints as well.
 
-## Active Files
+## Submission Surface
+
+- `scripts/run_full_demo.sh`: full 3-tier v1 closure workflow.
+- `notebooks/kaggle_full_phase3_workflow.ipynb`: one-notebook Kaggle workflow.
+- `conf/config_phase3_kaggle_gpu.yaml`: default reportable server/Kaggle config.
+- `conf/config_phase3_experimental_nsp2_cbp.yaml`: experimental NSP2/CBP benchmark config.
+- `docs/runs.md`: verified run log.
+
+## Core Files
 
 - `models/meta_nath_core.py`: frozen backbone, TITANS, ACC, CADIC orchestration.
 - `models/cadic_coreset.py`: unified memory bank and patch-NN scoring.
@@ -120,10 +111,9 @@ By default runs save `last_checkpoint.pt` only. Set
 - `scripts/run_phase3_consolidation.py`: Phase 3 CLI entrypoint.
 - `scripts/evaluate_checkpoint.py`: evaluates a saved checkpoint without retraining.
 - `scripts/phase3_acceptance.py`: compares before/after checkpoint metrics and accepts or rejects a Phase 3 candidate.
-- `scripts/compare_checkpoint_scores.py`: targeted score distribution diagnostics.
-- `scripts/run_server_phase3.sh`: reproducible Linux server workflow for Phase 3.0.
-- `scripts/run_server_visa.sh`: Linux server workflow for VisA Phase 1-2 once the dataset is present.
-- `notebooks/kaggle_full_phase3_workflow.ipynb`: one-notebook Kaggle orchestration for branch `taitrn`.
+- `scripts/compare_checkpoint_scores.py`: optional score distribution diagnostics.
+- `scripts/run_server_phase3.sh`: conservative-only Linux utility workflow.
+- `scripts/run_server_visa.sh`: optional VisA Phase 1-2 utility workflow.
 - `scripts/summarize_run.py`: markdown run summaries.
 - `scripts/compute_forgetting.py`: forgetting metric from an evaluation matrix.
 
