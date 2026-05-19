@@ -55,6 +55,7 @@ Useful submission knobs:
 
 ```bash
 MAIN_MAX_TASKS=15 EXPERIMENTAL_MAX_TASKS=15 bash scripts/run_full_demo.sh
+MAIN_MAX_TASKS=15 EXPERIMENTAL_MAX_TASKS=15 EXPERIMENTAL_CONFIG=conf/mvtec_max_power.yaml bash scripts/run_full_demo.sh
 REQUIRE_EXPERIMENTAL_ACCEPTED=1 bash scripts/run_full_demo.sh
 PYTHON_BIN=/path/to/python bash scripts/run_full_demo.sh
 ```
@@ -69,7 +70,7 @@ The notebook calls the same full-demo script, adds visible progress to artifact
 inspection/packaging cells, and uses `conf/full_demo.yaml` by
 default for larger Kaggle batches/workers.
 
-Conservative-only and VisA server workflows are kept as optional utilities:
+Additional server workflows are kept as optional utilities:
 
 ```bash
 MAX_TASKS=8 RUN_TESTS=1 RUN_SCORE_COMPARE=0 bash scripts/run_server_phase3.sh
@@ -98,6 +99,10 @@ By default runs save `last_checkpoint.pt` only. Set
 - `notebooks/kaggle_full_phase3_workflow.ipynb`: one-notebook Kaggle workflow.
 - `conf/full_demo.yaml`: default reportable server/Kaggle config.
 - `conf/experimental_nsp2_cbp.yaml`: experimental NSP2/CBP benchmark config.
+- `conf/mvtec_max_power.yaml`: exploratory MVTec stress-test config with NSP2,
+  Subspace Recycling, CBP reset, LEJEPA, and stronger Phase 3 consolidation.
+- `conf/visa_experimental_nsp2_cbp.yaml`: VisA experimental NSP2/CBP config.
+- `conf/visa_max_power.yaml`: VisA max-power stress-test config.
 - `docs/runs.md`: verified run log.
 
 ## Project Layout
@@ -125,7 +130,8 @@ By default runs save `last_checkpoint.pt` only. Set
 - `scripts/pipeline/phase3_acceptance.py`: compares before/after checkpoint metrics and accepts or rejects a Phase 3 candidate.
 - `scripts/pipeline/compare_checkpoint_scores.py`: optional score distribution diagnostics.
 - `scripts/run_server_phase3.sh`: conservative-only Linux utility workflow.
-- `scripts/run_server_visa.sh`: optional VisA conservative Phase 3 utility workflow.
+- `scripts/run_server_visa.sh`: optional VisA conservative + mechanism +
+  experimental/max-power Phase 3 utility workflow.
 - `scripts/diagnostics/summarize_run.py`: markdown run summaries.
 - `scripts/diagnostics/compute_forgetting.py`: forgetting metric from an evaluation matrix.
 - `utils/global_seed.py`: shared reproducibility helper.

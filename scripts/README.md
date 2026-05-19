@@ -10,7 +10,7 @@ bash scripts/run_full_demo.sh
 
 - `run_full_demo.sh`: primary 3-tier MVTec demo workflow.
 - `run_server_phase3.sh`: conservative-only MVTec Phase 3 workflow wrapper.
-- `run_server_visa.sh`: VisA conservative Phase 3 workflow wrapper.
+- `run_server_visa.sh`: VisA conservative + mechanism + experimental/max-power Phase 3 workflow wrapper.
 - `pipeline/`: reproducible CLIs used by the full demo.
 - `diagnostics/`: smoke tests, summaries, GPU checks, and metric helpers.
 - `workflows/`: optional server workflows. Root-level `run_server_*.sh` files are thin compatibility wrappers.
@@ -32,4 +32,16 @@ bash scripts/run_full_demo.sh
 ## Workflows
 
 - `workflows/run_server_phase3.sh`: conservative-only MVTec Phase 3 workflow.
-- `workflows/run_server_visa.sh`: optional VisA Phase 3 workflow once `data/visa` is mounted.
+- `workflows/run_server_visa.sh`: optional VisA full Phase 3 workflow once `data/visa` is mounted.
+
+For a 15-task max-power MVTec stress test:
+
+```bash
+MAIN_MAX_TASKS=15 EXPERIMENTAL_MAX_TASKS=15 EXPERIMENTAL_CONFIG=conf/mvtec_max_power.yaml bash scripts/run_full_demo.sh
+```
+
+For a VisA max-power stress test:
+
+```bash
+EXPERIMENTAL_CONFIG=conf/visa_max_power.yaml bash scripts/run_server_visa.sh
+```

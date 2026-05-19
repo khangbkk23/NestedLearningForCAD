@@ -4,6 +4,10 @@ dataset:
   img_size: 224
   batch_size: 32
   num_workers: 4
+  prefetch_factor: 2
+  pin_memory: true
+  persistent_workers: true
+  drop_last_train: false
   split_ratio: 0.8
   mean: [0.485, 0.456, 0.406]
   std: [0.229, 0.224, 0.225]
@@ -32,7 +36,7 @@ model:
   tau_acc: 0.6
   max_coreset_size: 1000
   n_patch: null
-  store_images: false
+  store_images: true
 
 memory:
   coreset_sampling_ratio: 0.01
@@ -55,10 +59,10 @@ training:
   seed: 42
 
 logging:
-  experiment_name: "MetaNATH_ViSA_Phase1_2"
+  experiment_name: "MetaNATH_ViSA_MaxPower"
   results_dir: "results/"
   save_models: true
-  checkpoint_mode: "phase12_light"
+  checkpoint_mode: "phase3_full"
   checkpoint_policy: "last_only"
   log_frequency: 10
   use_wandb: false
@@ -72,5 +76,40 @@ evaluation:
   pixel_sample_limit: 10000
   pixel_score_norm: "none"
   gaussian_smoothing_sigma: 0.0
-  forgetting_matrix: false
+  forgetting_matrix: true
   forgetting_metric: "image_auroc"
+
+phase3:
+  enabled: true
+  top_k_anchors: 128
+  unfreeze_last_blocks: 2
+  drift_threshold: 0.05
+  grad_clip: 0.75
+  distill_weight: 0.5
+  patch_distill_weight: 5.0
+  lejepa_weight: 0.1
+  lr: 0.000002
+  weight_decay: 0.01
+  steps: 2
+  balanced_anchors: true
+  refresh_coreset: true
+  refresh_batch_size: 32
+  acceptance:
+    enabled: true
+    primary_metric: "final_cumulative_pixel_aupr"
+    min_primary_delta: -0.005
+    image_metric: "final_cumulative_image_auroc"
+    min_image_delta: -0.002
+
+nsp2:
+  enabled: true
+  energy_threshold: 0.99
+  min_null_dim: 64
+  recycling_enabled: true
+  fallback_null_dims: [64, 32, 16]
+
+cbp:
+  enabled: true
+  monitor_only: false
+  threshold: 0.01
+  reinit_std: 0.02

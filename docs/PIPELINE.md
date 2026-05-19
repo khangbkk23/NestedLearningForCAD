@@ -39,13 +39,18 @@ locked and reproducible.
 - `scripts/run_full_demo.sh`
   - Full v1 closure workflow: reportable conservative benchmark, mechanism
     smoke, and experimental NSP2/CBP before/after acceptance benchmark.
+  - Set `EXPERIMENTAL_CONFIG=conf/mvtec_max_power.yaml` for an exploratory
+    max-power Phase 3 stress test.
 
 - `scripts/run_server_visa.sh`
-  - Linux server workflow for VisA conservative Phase 3 once the dataset is available.
+  - Linux server workflow for VisA conservative Phase 3, mechanism smoke, and
+    experimental/max-power Phase 3 once the dataset is available.
 
 - `notebooks/kaggle_full_phase3_workflow.ipynb`
   - Kaggle orchestration notebook for branch `taitrn`.
   - Uses `conf/full_demo.yaml` by default.
+  - Set `MAX_POWER=1` or `EXPERIMENTAL_CONFIG=conf/mvtec_max_power.yaml` for
+    the max-power experimental profile.
 
 ## Output Layout
 
@@ -89,21 +94,22 @@ Implemented:
 - NSP2 projection implementation with Subspace Recycling fallback logging.
 - CBP reset helper with unit/integration coverage; benchmark reset remains off
   unless an experimental config is explicitly selected.
-- VisA Phase 3 config and server entrypoint are prepared.
+- Max-power MVTec profile in `conf/mvtec_max_power.yaml` for NSP2, Subspace
+  Recycling, CBP reset, LEJEPA, and 2-step N2B-NC stress testing.
+- VisA conservative, experimental NSP2/CBP, and max-power configs plus server
+  entrypoint are prepared.
 
 Not implemented yet:
 
 - DINOv3 production migration.
 - VisA benchmark result, because local `data/visa` is not present.
-- Accepted benchmark with NSP2 enabled.
-- Accepted benchmark with CBP reset enabled.
 - Advanced Subspace Recycling policy beyond the current fallback projection.
-- Accepted full-demo result for experimental NSP2/CBP, if the experimental
-  acceptance gate rejects the candidate.
+- Accepted VisA experimental/max-power result, because the VisA benchmark has
+  not been run in this checkout.
 
 Verified results are tracked in `docs/runs.md`. Do not claim NSP2, CBP reset,
-Subspace Recycling, DINOv3, or VisA results until their corresponding runs are
-added there.
+Subspace Recycling, DINOv3, or VisA results beyond the corresponding accepted
+runs recorded there.
 
 ## Legacy
 

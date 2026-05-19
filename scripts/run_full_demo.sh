@@ -47,6 +47,10 @@ EXPERIMENTAL_MAX_TASKS="${EXPERIMENTAL_MAX_TASKS:-$MAIN_MAX_TASKS}"
 MAIN_CONFIG="${MAIN_CONFIG:-conf/full_demo.yaml}"
 CONSERVATIVE_CONFIG="${CONSERVATIVE_CONFIG:-$MAIN_CONFIG}"
 EXPERIMENTAL_CONFIG="${EXPERIMENTAL_CONFIG:-conf/experimental_nsp2_cbp.yaml}"
+EXPERIMENTAL_PROFILE="${EXPERIMENTAL_PROFILE:-nsp2_cbp}"
+if [[ "$EXPERIMENTAL_CONFIG" == *"mvtec_max_power"* && "${EXPERIMENTAL_PROFILE:-}" == "nsp2_cbp" ]]; then
+  EXPERIMENTAL_PROFILE="max_power"
+fi
 
 REUSE_MAIN_ANCHOR_FOR_EXPERIMENTAL="${REUSE_MAIN_ANCHOR_FOR_EXPERIMENTAL:-1}"
 REQUIRE_MAIN_ACCEPTED="${REQUIRE_MAIN_ACCEPTED:-1}"
@@ -195,7 +199,7 @@ write_manifest() {
   export FULL_DEMO_MANIFEST STAMP LOG_DIR FULL_DEMO_DIR
   export RUN_MAIN RUN_MECHANISM RUN_EXPERIMENTAL
   export MAIN_MAX_TASKS EXPERIMENTAL_MAX_TASKS
-  export MAIN_CONFIG CONSERVATIVE_CONFIG EXPERIMENTAL_CONFIG
+  export MAIN_CONFIG CONSERVATIVE_CONFIG EXPERIMENTAL_CONFIG EXPERIMENTAL_PROFILE
   export REQUIRE_MAIN_ACCEPTED REQUIRE_EXPERIMENTAL_ACCEPTED
   export MAIN_WARMUP_DIR MAIN_WARMUP_CKPT MAIN_BEFORE_DIR MAIN_PHASE3_DIR MAIN_PHASE3_CKPT MAIN_AFTER_DIR MAIN_ACCEPTANCE_REPORT
   export EXP_SOURCE_DIR EXP_SOURCE_CKPT EXP_BEFORE_DIR EXP_PHASE3_DIR EXP_PHASE3_CKPT EXP_AFTER_DIR EXP_ACCEPTANCE_REPORT
@@ -235,6 +239,7 @@ manifest = {
         "experimental_nsp2_cbp": {
             "enabled": env("RUN_EXPERIMENTAL") == "1",
             "max_tasks": int(env("EXPERIMENTAL_MAX_TASKS") or 0),
+            "profile": env("EXPERIMENTAL_PROFILE"),
             "experimental_config": env("EXPERIMENTAL_CONFIG"),
             "source_dir": env("EXP_SOURCE_DIR"),
             "source_checkpoint": env("EXP_SOURCE_CKPT"),
@@ -270,6 +275,7 @@ echo "experimental_max_tasks=$EXPERIMENTAL_MAX_TASKS"
 echo "main_config=$MAIN_CONFIG"
 echo "conservative_config=$CONSERVATIVE_CONFIG"
 echo "experimental_config=$EXPERIMENTAL_CONFIG"
+echo "experimental_profile=$EXPERIMENTAL_PROFILE"
 echo "reuse_experimental_anchor=$REUSE_EXPERIMENTAL_ANCHOR"
 echo "require_main_accepted=$REQUIRE_MAIN_ACCEPTED"
 echo "require_experimental_accepted=$REQUIRE_EXPERIMENTAL_ACCEPTED"
@@ -360,9 +366,9 @@ if [[ "$RUN_MECHANISM" == "1" ]]; then
 fi
 
 if [[ "$RUN_EXPERIMENTAL" == "1" ]]; then
-  EXP_BEFORE_SUFFIX="full_exp_before_nsp2_cbp_${EXPERIMENTAL_MAX_TASKS}task_${STAMP}"
-  EXP_CANDIDATE_SUFFIX="full_exp_phase3_nsp2_cbp_${EXPERIMENTAL_MAX_TASKS}task_${STAMP}"
-  EXP_AFTER_SUFFIX="full_exp_after_nsp2_cbp_${EXPERIMENTAL_MAX_TASKS}task_${STAMP}"
+  EXP_BEFORE_SUFFIX="full_exp_before_${EXPERIMENTAL_PROFILE}_${EXPERIMENTAL_MAX_TASKS}task_${STAMP}"
+  EXP_CANDIDATE_SUFFIX="full_exp_phase3_${EXPERIMENTAL_PROFILE}_${EXPERIMENTAL_MAX_TASKS}task_${STAMP}"
+  EXP_AFTER_SUFFIX="full_exp_after_${EXPERIMENTAL_PROFILE}_${EXPERIMENTAL_MAX_TASKS}task_${STAMP}"
 
   if [[ "$REUSE_EXPERIMENTAL_ANCHOR" == "1" ]]; then
     EXP_SOURCE_DIR="$MAIN_WARMUP_DIR"
@@ -396,7 +402,7 @@ if [[ "$RUN_EXPERIMENTAL" == "1" ]]; then
   EXP_BEFORE_DIR="$(latest_dir "results/MetaNATH_Eval_*_${EXP_BEFORE_SUFFIX}")"
   require_file "$EXP_BEFORE_DIR/checkpoint_eval_summary.json"
 
-  run_logged exp_phase3_nsp2_cbp "$PYTHON_BIN" -u "$PIPELINE_DIR/run_phase3_consolidation.py" \
+  run_logged "exp_phase3_${EXPERIMENTAL_PROFILE}" "$PYTHON_BIN" -u "$PIPELINE_DIR/run_phase3_consolidation.py" \
     --config "$EXPERIMENTAL_CONFIG" \
     --checkpoint "$EXP_SOURCE_CKPT" \
     --run_suffix "$EXP_CANDIDATE_SUFFIX"
