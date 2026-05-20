@@ -316,7 +316,7 @@ if [[ "$RUN_MAIN" == "1" ]]; then
     "${QUIET_ARGS[@]}" \
     --run_suffix "$MAIN_ANCHOR_SUFFIX"
 
-  MAIN_WARMUP_DIR="$(latest_dir "results/MetaNATH_Phase3_*_${MAIN_ANCHOR_SUFFIX}")"
+  MAIN_WARMUP_DIR="$(latest_dir "results/*_${MAIN_ANCHOR_SUFFIX}")"
   MAIN_WARMUP_CKPT="$MAIN_WARMUP_DIR/last_checkpoint.pt"
   require_file "$MAIN_WARMUP_CKPT"
   export METANATH_LOCAL_FILES_ONLY="$LOCAL_FILES_ONLY_AFTER_WARMUP"
@@ -337,7 +337,7 @@ if [[ "$RUN_MAIN" == "1" ]]; then
     --checkpoint "$MAIN_WARMUP_CKPT" \
     --run_suffix "$MAIN_CANDIDATE_SUFFIX"
 
-  MAIN_PHASE3_DIR="$(latest_dir "results/MetaNATH_Phase3_*_${MAIN_CANDIDATE_SUFFIX}")"
+  MAIN_PHASE3_DIR="$(latest_dir "results/*_${MAIN_CANDIDATE_SUFFIX}")"
   MAIN_PHASE3_CKPT="$MAIN_PHASE3_DIR/last_checkpoint.pt"
   require_file "$MAIN_PHASE3_CKPT"
 
@@ -385,7 +385,7 @@ if [[ "$RUN_EXPERIMENTAL" == "1" ]]; then
       --disable_wandb \
       "${QUIET_ARGS[@]}" \
       --run_suffix "$EXP_ANCHOR_SUFFIX"
-    EXP_SOURCE_DIR="$(latest_dir "results/MetaNATH_Phase3_*_${EXP_ANCHOR_SUFFIX}")"
+    EXP_SOURCE_DIR="$(latest_dir "results/*_${EXP_ANCHOR_SUFFIX}")"
     EXP_SOURCE_CKPT="$EXP_SOURCE_DIR/last_checkpoint.pt"
     export METANATH_LOCAL_FILES_ONLY="$LOCAL_FILES_ONLY_AFTER_WARMUP"
     echo "Using local HuggingFace cache after experimental warmup: METANATH_LOCAL_FILES_ONLY=$METANATH_LOCAL_FILES_ONLY"
@@ -407,7 +407,7 @@ if [[ "$RUN_EXPERIMENTAL" == "1" ]]; then
     --checkpoint "$EXP_SOURCE_CKPT" \
     --run_suffix "$EXP_CANDIDATE_SUFFIX"
 
-  EXP_PHASE3_DIR="$(latest_dir "results/MetaNATH_Phase3_*_${EXP_CANDIDATE_SUFFIX}")"
+  EXP_PHASE3_DIR="$(latest_dir "results/*_${EXP_CANDIDATE_SUFFIX}")"
   EXP_PHASE3_CKPT="$EXP_PHASE3_DIR/last_checkpoint.pt"
   require_file "$EXP_PHASE3_CKPT"
 
