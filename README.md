@@ -4,11 +4,12 @@
 
 **A continual industrial anomaly detection pipeline built around frozen DINOv2 features, TITANS-style fast memory, ACC gating, CADIC coreset memory, and metric-gated Phase 3 consolidation.**
 
-[![Python 3.14](https://img.shields.io/badge/python-3.14-blue.svg)](https://www.python.org/downloads/)
+[![Pixi Python 3.14](https://img.shields.io/badge/Pixi%20Python-3.14-blue.svg)](https://www.python.org/downloads/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-CUDA%2012.6-ee4c2c.svg?logo=pytorch&logoColor=white)](https://pytorch.org/)
 [![Hugging Face](https://img.shields.io/badge/Backbone-facebook%2Fdinov2--base-yellow.svg)](https://huggingface.co/facebook/dinov2-base)
 [![Pixi](https://img.shields.io/badge/Environment-Pixi-purple.svg)](https://pixi.sh/)
-[![Dataset](https://img.shields.io/badge/Dataset-MVTec%20AD%20%2B%20VisA-green.svg)](https://www.mvtec.com/company/research/datasets/mvtec-ad)
+[![Verified](https://img.shields.io/badge/Verified-MVTec%20AD-green.svg)](https://www.mvtec.com/company/research/datasets/mvtec-ad)
+[![Prepared](https://img.shields.io/badge/Prepared-VisA-lightgrey.svg)](./conf/README.md)
 
 [Overview](#-overview) . [Architecture](#-architecture) . [Results](#-verified-results) . [Installation](#-installation) . [Quick Start](#-quick-start) . [Project Structure](#-project-structure)
 
@@ -18,7 +19,7 @@
 
 ## 📖 Overview
 
-**Meta-NATH CAD** is a research-oriented implementation of **Continual Anomaly Detection (CAD)** for industrial visual inspection. The project studies how an anomaly detector can process a sequence of object categories as continual tasks while preserving previous knowledge without generative replay.
+**Meta-NATH CAD** is a research-oriented implementation of **Continual Anomaly Detection (CAD)** for industrial visual inspection. The project studies how an anomaly detector can process a sequence of object categories as continual tasks while preserving previous knowledge without diffusion-based generative replay, using bounded coreset memory and utility-guided anchor replay for Phase 3 consolidation.
 
 The active reportable path uses:
 
@@ -30,6 +31,8 @@ The active reportable path uses:
 - **Phase 3 N2B-NC consolidation** with rollback and before/after acceptance gates.
 
 > DINOv2 is the intentional stable backbone for the current code path. DINOv3 remains a future migration target and should not be reported as the current verified backbone.
+
+This repository does not claim ReplayCAD-level generative replay or SOTA pixel segmentation. The verified contribution is a lightweight continual anomaly detection pipeline with bounded coreset memory, utility-guided anchor replay, and metric-gated offline/cloud consolidation.
 
 ---
 
@@ -71,7 +74,7 @@ VisA is prepared as an optional validation path. Do not claim accepted VisA benc
 This project aims to:
 
 1. Build a reproducible **continual anomaly detection** pipeline for industrial images.
-2. Avoid generative replay by using a bounded **normal-only coreset memory**.
+2. Avoid diffusion-based generative replay in the active path by using bounded **normal-only coreset memory** and utility-guided anchor replay during Phase 3 consolidation.
 3. Support image-level detection and pixel-level localization from patch features.
 4. Add a controlled Phase 3 consolidation stage that updates only a small part of the backbone.
 5. Use metric-gated acceptance to prevent image-level gains from silently damaging pixel-level localization.
@@ -122,6 +125,8 @@ Frozen DINOv2 backbone
 
 ### Phase 3 Modes
 
+**N2B-NC** denotes the offline/cloud-side nested consolidation stage: selected high-utility anchors are replayed, backbone updates are constrained by drift checks, coreset embeddings are refreshed, and the resulting checkpoint is accepted only if before/after cumulative metrics pass the gate.
+
 | Mode | Config | Status | Notes |
 | :--- | :--- | :--- | :--- |
 | Conservative reportable | `conf/full_demo.yaml` | Accepted on full MVTec 15-task run | `LEJEPA = 0`, high patch distillation weight, one final block |
@@ -148,6 +153,8 @@ The latest verified run was executed on Kaggle with the full 15 MVTec AD tasks.
 | Patch grid | `16 x 16` |
 | Nearest neighbors | `9` |
 | Mechanism smoke | `72 / 72` tests passed |
+
+These results should be interpreted as a verified lightweight continual anomaly detection pipeline, not as a SOTA pixel-segmentation claim against generative replay methods such as ReplayCAD.
 
 ### Main Reportable Phase 3
 
@@ -272,6 +279,8 @@ pip install -r requirements.txt
 
 For Kaggle, the notebook uses the system Python and installs only what is missing when `INSTALL_DEPS=True`.
 
+The Pixi environment pins Python 3.14. Kaggle workflows use Kaggle's system Python and install only missing dependencies.
+
 ---
 
 ## 🎯 Quick Start
@@ -302,9 +311,9 @@ Optional data/config verification:
 .\.pixi\envs\default\python.exe scripts\data\prepare_data.py --run_verify --config .\conf\reference\phase1_baseline.yaml
 ```
 
-### 2. Run the Full MVTec Demo
+### 2. Run the MVTec Demo
 
-Default full demo:
+Default 8-task demo using the script defaults:
 
 ```bash
 bash scripts/run_full_demo.sh
