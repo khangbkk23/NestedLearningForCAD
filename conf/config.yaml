@@ -4,10 +4,11 @@ dataset:
   img_size: 256
   batch_size: 32
   num_workers: 4
+  safe_num_workers: true
   split_ratio: 0.8
   mean: [0.485, 0.456, 0.406]
   std: [0.229, 0.224, 0.225]
-  use_dtd: false
+  use_dtd: true
   dtd_dir: "data/dtd/images"
   anomaly_generator: "superpixel"   # or "perlin", "destseg", "realnet", "mixed"
   class_order: [

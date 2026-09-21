@@ -105,6 +105,12 @@ def _to_builtin(obj: Any) -> Any:
         return [_to_builtin(v) for v in obj]
     if isinstance(obj, tuple):
         return [_to_builtin(v) for v in obj]
+    if torch.is_tensor(obj):
+        if obj.ndim == 0:
+            return obj.item()
+        return obj.detach().cpu().tolist()
+    if isinstance(obj, np.ndarray):
+        return obj.tolist()
     if isinstance(obj, (np.generic,)):
         return obj.item()
     return obj

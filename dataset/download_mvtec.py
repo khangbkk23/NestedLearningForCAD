@@ -5,6 +5,8 @@ import tarfile
 import urllib.error
 import urllib.request
 
+from dataset.download_dtd import download_and_extract_dtd
+
 
 MVTec_URLS = [
     "https://www.mydrive.ch/shares/38536/3830184030e49fe74747669442f0f283/download/420938113-1629960298/mvtec_anomaly_detection.tar.xz",
@@ -104,9 +106,12 @@ def download_and_extract_mvtec(data_dir="data"):
 def parse_args():
     parser = argparse.ArgumentParser(description="Download and extract MVTec AD dataset")
     parser.add_argument("--data_dir", type=str, default="data", help="Root data directory")
+    parser.add_argument("--with_dtd", action="store_true", help="Also download DTD textures")
     return parser.parse_args()
 
 
 if __name__ == "__main__":
     args = parse_args()
     download_and_extract_mvtec(args.data_dir)
+    if args.with_dtd:
+        download_and_extract_dtd(args.data_dir)

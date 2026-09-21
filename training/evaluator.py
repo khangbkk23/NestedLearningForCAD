@@ -5,8 +5,7 @@ from torch.utils.data import DataLoader
 from typing import List, Dict, Optional, Any, Tuple
 from tqdm import tqdm
 import numpy as np
-from sklearn.metrics import average_precision_score, roc_auc_score, precision_recall_fscore_support
-from torchmetrics.classification import AveragePrecision
+from torchmetrics.classification import AveragePrecision, AUROC, Precision, Recall, F1Score
 
 
 class Evaluator:
@@ -136,12 +135,51 @@ class Evaluator:
         all_predictions = np.array(all_predictions)
         all_labels = np.array(all_labels)
 
-        precision_scores, recall_scores, f1_scores, _ = precision_recall_fscore_support(
-            all_labels,
-            all_predictions,
-            average='binary' if np.unique(all_labels).size <= 2 else 'macro',
-            zero_division=0,
-        )
+        if all_labels.size == 0:
+            metrics = {
+                'loss': avg_loss,
+                'accuracy': accuracy,
+                'precision': 0.0,
+                'recall': 0.0,
+                'f1': 0.0,
+                'image_auroc': 0.0,
+                'image_ap': 0.0,
+                'pixel_ap': 0.0,
+            }
+            return metrics
+
+        labels_tensor = torch.from_numpy(all_labels).long()
+        preds_tensor = torch.from_numpy(all_predictions).long()
+        unique_labels = np.unique(all_labels)
+
+        if unique_labels.size <= 2:
+            precision_metric = Precision(task="binary", threshold=0.5, zero_division=0)
+            recall_metric = Recall(task="binary", threshold=0.5, zero_division=0)
+            f1_metric = F1Score(task="binary", threshold=0.5, zero_division=0)
+        else:
+            num_classes = int(all_labels.max()) + 1
+            precision_metric = Precision(
+                task="multiclass",
+                num_classes=num_classes,
+                average="macro",
+                zero_division=0,
+            )
+            recall_metric = Recall(
+                task="multiclass",
+                num_classes=num_classes,
+                average="macro",
+                zero_division=0,
+            )
+            f1_metric = F1Score(
+                task="multiclass",
+                num_classes=num_classes,
+                average="macro",
+                zero_division=0,
+            )
+
+        precision_scores = precision_metric(preds_tensor, labels_tensor)
+        recall_scores = recall_metric(preds_tensor, labels_tensor)
+        f1_scores = f1_metric(preds_tensor, labels_tensor)
 
         metrics = {
             'loss': avg_loss,
@@ -152,8 +190,11 @@ class Evaluator:
         }
 
         if len(all_scores) > 1 and np.unique(all_labels).size > 1:
-            metrics['image_auroc'] = float(roc_auc_score(all_labels, np.array(all_scores))) * 100
-            metrics['image_ap'] = float(average_precision_score(all_labels, np.array(all_scores))) * 100
+            scores_tensor = torch.tensor(all_scores, dtype=torch.float32)
+            image_auroc_metric = AUROC(task="binary")
+            image_ap_metric = AveragePrecision(task="binary")
+            metrics['image_auroc'] = float(image_auroc_metric(scores_tensor, labels_tensor)) * 100
+            metrics['image_ap'] = float(image_ap_metric(scores_tensor, labels_tensor)) * 100
         else:
             metrics['image_auroc'] = 0.0
             metrics['image_ap'] = 0.0

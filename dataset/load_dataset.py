@@ -200,7 +200,14 @@ class ContinualStreamingManager:
         self.dataset_name = self.dataset_cfg['name']
         self.root_dir = self.dataset_cfg['root_dir']
         self.batch_size = self.dataset_cfg['batch_size']
-        self.num_workers = self.dataset_cfg.get('num_workers', 4)
+        self.num_workers = int(self.dataset_cfg.get('num_workers', 4))
+        self.safe_num_workers = bool(self.dataset_cfg.get('safe_num_workers', True))
+        if os.name == 'nt' and self.safe_num_workers and self.num_workers > 0:
+            logger.warning(
+                "Windows multiprocessing with OpenCV can exhaust the paging file. "
+                "Forcing num_workers=0. Set dataset.safe_num_workers=false to override."
+            )
+            self.num_workers = 0
         self.split_ratio = self.dataset_cfg.get('split_ratio', 0.8)
         self.img_size = self.dataset_cfg['img_size']
         

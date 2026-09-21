@@ -23,6 +23,12 @@ Optional one-time data download:
 python dataset/download_mvtec.py
 ```
 
+Optional DTD texture download (required when `use_dtd: true`):
+
+```bash
+python dataset/download_dtd.py
+```
+
 Quick dataset verification:
 
 ```bash
