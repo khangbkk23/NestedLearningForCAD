@@ -27,4 +27,5 @@ index-strategy = "unsafe-best-match"   # uv prioritizes the CUDA index
 torch = "*"
 torchvision = "*"                 
 transformers = ">=4.46.0"
+timm = ">=1.0.0"
 wandb = ">=0.17.0"

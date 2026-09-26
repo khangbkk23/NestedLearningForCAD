@@ -1,0 +1,76 @@
+# Reproduction track: CADIC-compatible frozen feature extraction and patch bank.
+dataset:
+  name: mvtec
+  root_dir: data/mvtec
+  img_size: 224
+  interpolation: bicubic
+  batch_size: 8
+  num_workers: 4
+  prefetch_factor: 2
+  pin_memory: true
+  persistent_workers: true
+  drop_last_train: false
+  split_ratio: 0.8
+  mean: [0.5, 0.5, 0.5]
+  std: [0.5, 0.5, 0.5]
+  synthetic_anomaly_probability: 0.0
+  strict_class_order: true
+  class_order: [bottle, cable, capsule, carpet, grid, hazelnut, leather, metal_nut, pill, screw, tile, toothbrush, transistor, wood, zipper]
+
+model:
+  backbone_provider: timm
+  backbone: "hf-hub:timm/vit_base_patch8_224.augreg_in21k"
+  backbone_pretrained: true
+  allow_backbone_fallback: false
+  feature_layer: 9
+  feature_apply_final_norm: false
+  embed_dim: 768
+  n_patch: 784
+  coreset_mode: patch_vectors
+  max_coreset_size: 10000
+  store_images: false
+  use_titans: false
+  use_acc: false
+
+memory:
+  nearest_neighbors: 2
+  distance_metric: euclidean
+  distance_chunk_size: 512
+
+training:
+  epochs_per_task: 1
+  stream_repeats: 1
+  device: cuda
+  seed: 42
+
+logging:
+  experiment_name: CADIC_Phase2_ViTB8
+  results_dir: results/
+  save_models: true
+  checkpoint_mode: phase12_light
+  checkpoint_policy: all
+  use_wandb: false
+
+evaluation:
+  mode: current
+  cumulative_frequency: 0
+  final_cumulative: false
+  pixel_sample_limit: null
+  pixel_score_norm: none
+  gaussian_smoothing_sigma: 0.0
+  forgetting_matrix: true
+  forgetting_metric: image_auroc
+
+profiling:
+  enabled: true
+
+phase3:
+  enabled: false
+  drift_threshold: 0.05
+  acceptance:
+    enabled: false
+
+nsp2:
+  enabled: false
+cbp:
+  enabled: false
