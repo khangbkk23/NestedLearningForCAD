@@ -169,13 +169,12 @@ class CADICPatchCoresetV1:
             star_score = pixel[star_row]
             c_star_index = int(indices[star_row].item())
             c_star = self.features[c_star_index]
-            c_dist, _ = self._nearest(c_star.unsqueeze(0), self.features)
             # `_nearest` returns only the minimum. Obtain the support indices
             # with a direct chunked distance pass to c*.
             support_indices = self._topk_indices(c_star, k)
             support = self.features[support_indices]
             support_dist = torch.linalg.vector_norm(support - image[star_row], dim=1)
-            weight = 1.0 - torch.exp(star_score) / torch.exp(support_dist).sum().clamp_min(1e-12)
+            weight = 1.0 - torch.exp(star_score - torch.logsumexp(support_dist, dim=0))
             all_pixel.append(pixel)
             all_indices.append(indices)
             all_image.append(weight * star_score)
@@ -190,7 +189,7 @@ class CADICPatchCoresetV1:
         return {
             "schema": self.schema,
             "config": self.config.__dict__.copy(),
-            "features": self.features.detach().cpu(),
+            "features": self.features.detach().cpu().clone(),
             "seen_features": self.seen_features,
             "accepted_features": self.accepted_features,
             "replaced_features": self.replaced_features,
@@ -204,7 +203,7 @@ class CADICPatchCoresetV1:
         saved = CADICPatchCoresetConfig(**state["config"])
         if saved != self.config:
             raise ValueError(f"coreset config mismatch: saved={saved}, current={self.config}")
-        features = state["features"].to(self.device, dtype=torch.float32)
+        features = state["features"].to(self.device, dtype=torch.float32).clone()
         if features.ndim != 2 or features.shape[1] != self.config.dim or features.shape[0] > self.config.budget:
             raise ValueError("invalid saved feature tensor")
         self.features = features
@@ -249,17 +248,22 @@ class CADICPatchCoresetV1:
             return torch.tensor(float("inf"), device=self.device), 0
         best_value = torch.tensor(float("inf"), device=self.device)
         best_row = 0
-        chunk = max(1, int(self.config.chunk_size))
-        for start in range(0, self.count, chunk):
-            rows = self.features[start:start + chunk]
-            distances = torch.cdist(rows, self.features, p=2)
-            for local in range(rows.shape[0]):
-                global_row = start + local
-                distances[local, global_row] = float("inf")
-            value, flat = torch.min(distances.reshape(-1), dim=0)
-            if bool(value < best_value):
-                best_value = value
-                best_row = start + int(flat.item() % self.count)
+        chunk = max(1, min(int(self.config.chunk_size), 512))
+        # Tile both axes: the closest-pair temporary is at most chunk² rather
+        # than a full M×M matrix at the 10k patch budget.
+        for row_start in range(0, self.count, chunk):
+            rows = self.features[row_start:row_start + chunk]
+            for col_start in range(0, self.count, chunk):
+                cols = self.features[col_start:col_start + chunk]
+                distances = torch.cdist(rows, cols, p=2)
+                for local in range(rows.shape[0]):
+                    col = row_start + local - col_start
+                    if 0 <= col < cols.shape[0]:
+                        distances[local, col] = float("inf")
+                value, flat = torch.min(distances.reshape(-1), dim=0)
+                if bool(value < best_value):
+                    best_value = value
+                    best_row = row_start + int(flat.item() // cols.shape[0])
         return best_value, best_row
 
     @torch.no_grad()
@@ -273,4 +277,5 @@ class CADICPatchCoresetV1:
             indices.append(torch.arange(start, start + part.shape[0], device=self.device))
         distances = torch.cat(values)
         all_indices = torch.cat(indices)
-        return all_indices[torch.topk(distances, k=k, largest=False).indices]
+        order = sorted(range(self.count), key=lambda i: (float(distances[i].item()), i))[:k]
+        return all_indices[torch.tensor(order, dtype=torch.long, device=self.device)]

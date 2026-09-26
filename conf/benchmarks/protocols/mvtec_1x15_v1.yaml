@@ -1,0 +1,11 @@
+id: mvtec_1x15_v1
+version: 1
+dataset:
+  name: MVTec AD
+  root: ${MVTEC_ROOT}
+task_order: [bottle, cable, capsule, carpet, grid, hazelnut, leather, metal_nut, pill, screw, tile, toothbrush, transistor, wood, zipper]
+training: {normal_only: true, dev_mode: disabled, drop_last: false}
+evaluation: {final_per_task: true, primary: [i_auroc, p_aupr], aggregation: macro_tasks, pixels: all, pooled: secondary_only}
+forgetting: {enabled: true, formula: mean_prior_max_minus_final}
+leakage: {official_test_feedback: forbidden, test_checkpoint_selection: forbidden, test_early_stopping: forbidden, test_parameter_tuning: forbidden}
+smoke: {reportable: false}

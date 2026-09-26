@@ -1,8 +1,8 @@
+# dataset/anomaly_generators/destseg.py
 """
 DeSTSegAnomalyGenerator
 
-Reference: DeSTSeg — Segmentation-Based Deep Anomaly Detection with Self-Supervised
-           Training (Zhang et al., CVPR 2023)
+Reference: DeSTSeg — Segmentation-Based Deep Anomaly Detection with Self-Supervised Training (Zhang et al., CVPR 2023)
 
 Pipeline
 --------

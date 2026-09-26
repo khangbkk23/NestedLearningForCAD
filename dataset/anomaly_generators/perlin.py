@@ -1,6 +1,6 @@
+# dataset/anomaly_generators/perlin.py
 """
-Reference: DRAEM — Discriminatively trained Reconstruction Embedding for
-           Surface Anomaly Detection (Zavrtanik et al., ICCV 2021)
+Reference: DRAEM — Discriminatively trained Reconstruction Embedding for Surface Anomaly Detection (Zavrtanik et al., ICCV 2021)
 
 Pipeline
 --------

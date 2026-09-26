@@ -1,0 +1,10 @@
+id: cadic_compatible_v1
+version: 1
+adapter: cadic
+exact_parity_claim: false
+extractor: {model_name: vit_base_patch8_224, public_compatibility_choice: timm/vit_base_patch8_224.augreg_in21k, pretraining: ImageNet-21k, checkpoint_path: "", checkpoint_identity: "", layer_number: 9, layer_indexing: one_based, block_index: 8, feature_dim: 768, feature_normalization: none}
+preprocessing: {image_size: 224, resize: direct_square_bilinear_pil, mean: [0.485, 0.456, 0.406], std: [0.229, 0.224, 0.225]}
+memory: {budget: 2500, allowed_budgets: [2500, 5000, 10000], distance: euclidean, dtype: float32, chunk_size: 256}
+scoring: {image_neighbors_b: 9, image_score: "1-exp(s_star)/sum_exp(support_distances_around_c_star)"}
+runtime: {batch_size: 8, dtype: float32}
+unresolved_assumptions: [checkpoint_identity, author_preprocessing, author_feature_normalization, numeric_b, batch_initialization, evaluation_source]

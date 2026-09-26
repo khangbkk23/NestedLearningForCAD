@@ -1,17 +1,9 @@
-"""Deterministic development manifests derived only from MVTec train/good.
-
-The manifest is intentionally independent from the official test set.  It is
-for configuration diagnostics only; the CADIC exact stream must exclude every
-DEV path from its coreset and memory updates.
-"""
-
-from __future__ import annotations
-
+# dataset/cadic_dev_split_v1.py 
 import hashlib
 import json
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Tuple
-
+import subprocess
 
 def _digest(paths: Iterable[str]) -> str:
     h = hashlib.sha256()
@@ -19,7 +11,6 @@ def _digest(paths: Iterable[str]) -> str:
         h.update(path.encode("utf-8"))
         h.update(b"\n")
     return h.hexdigest()
-
 
 def build_train_good_manifest(
     root_dir: str | Path,
@@ -35,25 +26,28 @@ def build_train_good_manifest(
     """
     if not 0.0 < float(dev_fraction) < 1.0:
         raise ValueError("dev_fraction must be in (0, 1)")
+    categories = [str(category) for category in categories]
     root = Path(root_dir)
     task_records: List[Dict[str, Any]] = []
     all_dev: List[str] = []
     all_train: List[str] = []
+    digest_rows: List[str] = []
     for category in categories:
-        files = sorted((root / str(category) / "train" / "good").glob("*.png"))
+        files = sorted((root / category / "train" / "good").glob("*.png"), key=lambda p: p.name)
         if not files:
             raise FileNotFoundError(f"No train/good PNG files for {category}")
         ranked = sorted(
             files,
             key=lambda p: hashlib.sha256(
-                f"{seed}:{category}:{p.as_posix()}".encode("utf-8")
+                f"{seed}:{category}:{p.relative_to(root).as_posix()}".encode("utf-8")
             ).hexdigest(),
         )
-        n_dev = max(1, int(round(len(files) * float(dev_fraction))))
+        n_dev = min(len(files) - 1, max(1, int(round(len(files) * float(dev_fraction)))))
         dev = [p.as_posix() for p in ranked[:n_dev]]
         train = [p.as_posix() for p in files if p.as_posix() not in set(dev)]
         all_dev.extend(dev)
         all_train.extend(train)
+        digest_rows.extend(f"{category}:{p.relative_to(root).as_posix()}" for p in files)
         task_records.append({
             "category": str(category),
             "disk_count": len(files),
@@ -62,15 +56,21 @@ def build_train_good_manifest(
             "dev": dev,
             "train": train,
         })
+    try:
+        commit = subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip()
+    except Exception:
+        commit = "unavailable"
     return {
         "schema": "cadic_dev_manifest_v1",
         "root_dir": str(root),
         "seed": int(seed),
+        "selection_rule": "sha256(seed:category:relative_path), category-local sorted paths, rounded fraction, retain train",
+        "git_commit": commit,
         "dev_fraction": float(dev_fraction),
         "tasks": task_records,
         "dev_count": len(all_dev),
         "train_count": len(all_train),
-        "manifest_sha256": _digest(all_dev + all_train),
+        "manifest_sha256": _digest(digest_rows),
     }
 
 

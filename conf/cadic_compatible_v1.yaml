@@ -1,10 +1,17 @@
-# CADIC-compatible foundation protocol.
+# DEPRECATED COMBINED WIP CONFIG.
+# The generic harness uses conf/benchmarks/protocols/* plus
+# conf/benchmarks/methods/cadic_compatible_v1.yaml. This file is retained as a
+# historical compatibility reference and is not a benchmark entry point.
+deprecated: true
+canonical_harness_config:
+  protocol: conf/benchmarks/protocols/mvtec_1x15_v1.yaml
+  method: conf/benchmarks/methods/cadic_compatible_v1.yaml
 # The checkpoint identity and several preprocessing details are unresolved in
 # the paper; the runner fails loudly until they are explicitly supplied.
 protocol:
   name: "cadic_compatible_v1"
   source_pdf_sha256: "fce2e29ab8bc41f2ec97293f6922521982d7fc493028d2052996f2fd77f92116"
-  exact_claim_allowed: false
+  exact_parity_claim: false
   unresolved:
     - "ViT-B/8 checkpoint file identity"
     - "layer 9 zero-based/one-based implementation convention"

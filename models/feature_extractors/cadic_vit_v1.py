@@ -1,3 +1,4 @@
+# models/feature_extractors/cadic_vit_v1.py
 """Strict feature-extractor adapter for the CADIC protocol foundation.
 
 This adapter intentionally has no fallback backbone.  The CADIC paper names a
