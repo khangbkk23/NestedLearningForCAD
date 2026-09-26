@@ -4,7 +4,7 @@ Anomaly Generator Registry
 Each generator implements the interface: AnomalyGeneratorBase
     .generate(img_np, category) -> (result_img_np, mask_np, has_anomaly: bool)
 
-Usage in config.yaml:
+Usage in the active YAML config:
     dataset:
       anomaly_generator: "superpixel"   # or "perlin", "destseg", "realnet", "mixed"
 """

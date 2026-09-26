@@ -1,0 +1,30 @@
+[workspace]
+channels = ["conda-forge"]
+name = "NestedLearningForCAD"
+platforms = ["win-64", "linux-64"]
+version = "0.1.0"
+
+[tasks]
+
+[dependencies]
+nomkl = "*"
+setuptools = "<82"
+python = "3.14.*"
+numpy = "*"
+scikit-learn = "*"
+matplotlib = "*"
+pyyaml = ">=6.0"
+tqdm = ">=4.65.0"
+pillow = ">=9.5.0"
+opencv = ">=4.10.0"
+
+# Initialize CUDA 12.6 for PyTorch
+[pypi-options]
+extra-index-urls = ["https://download.pytorch.org/whl/cu126"]
+index-strategy = "unsafe-best-match"   # uv prioritizes the CUDA index
+
+[pypi-dependencies]
+torch = "*"
+torchvision = "*"                 
+transformers = ">=4.46.0"
+wandb = ">=0.17.0"
