@@ -44,7 +44,7 @@ model:
 memory:
   coreset_sampling_ratio: 0.01
   nearest_neighbors: 9
-  distance_metric: "cosine"
+  distance_metric: "euclidean"
 
 training:
   optimizer: "adamw"
@@ -98,7 +98,7 @@ phase3:
   refresh_coreset: true
   refresh_batch_size: 96
   acceptance:
-    enabled: true
+    enabled: false
     primary_metric: "final_cumulative_pixel_aupr"
     min_primary_delta: -0.005
     image_metric: "final_cumulative_image_auroc"

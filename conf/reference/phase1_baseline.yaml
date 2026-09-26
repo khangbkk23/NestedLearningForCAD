@@ -40,7 +40,7 @@ model:
 memory:
   coreset_sampling_ratio: 0.01
   nearest_neighbors: 9
-  distance_metric: "cosine"
+  distance_metric: "euclidean"
 
 training:
   optimizer: "adamw"

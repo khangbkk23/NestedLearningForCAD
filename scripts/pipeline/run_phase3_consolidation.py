@@ -99,6 +99,8 @@ def _make_output_dir(config: Dict[str, Any], output_dir: str | None, suffix: str
 def main() -> None:
     args = parse_args()
     config = load_config(args.config)
+    if not bool(config.get("phase3", {}).get("enabled", True)):
+        raise RuntimeError("Phase 3 is disabled in this configuration.")
     set_seed(int(config.get("training", {}).get("seed", 42)))
 
     output_dir = _make_output_dir(config, args.output_dir, args.run_suffix)

@@ -194,7 +194,7 @@ import sys
 
 with open(sys.argv[1], "r", encoding="utf-8") as f:
     report = json.load(f)
-print("accepted" if report.get("accepted") else "rejected")
+print(report.get("decision", "accepted" if report.get("accepted") else "rejected"))
 PY
 )"
   echo "$label decision=$decision report=$report"
