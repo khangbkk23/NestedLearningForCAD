@@ -3,16 +3,10 @@ cadic_coreset.py
 ----------------
 CADIC Incremental Coreset - Slow Memory for Meta-NATH CAD.
 
-System role:
-    - single Unified Memory Bank across all tasks, without per-task fragmentation
-    - Max ~1000 entries, bounded VRAM
-    - incremental update via CADIC Eq. 1-6
-    - image-level and pixel-level anomaly scoring via CADIC Eq. 8-9
-    - stores patch_embeddings for pixel-level anomaly maps
-
-VRAM estimate:
-    1000 entries x 256 patches x 768 dim x 4 bytes ~= 786 MB
-    -> safe for RTX 3050 Ti (4GB) and Jetson Orin NX (8-16GB)
+This module retains the Phase 1 image-entry memory format for compatibility.
+Its capacity counts image entries and its update rule uses CLS features. The
+CADIC reproduction track uses PatchVectorCADICCoreset, whose capacity counts
+individual patch feature vectors.
 """
 
 from __future__ import annotations
@@ -22,7 +16,8 @@ import math
 from typing import Any, Dict, List, Optional, Tuple
 
 import torch
-import torch.nn.functional as F
+
+from .distance import pairwise_distance, validate_distance_metric
 
 logger = logging.getLogger(__name__)
 
@@ -31,9 +26,8 @@ class CADICCoreset:
     """
     CADIC incremental Coreset.
 
-    Unified Memory Bank: one Coreset over the full task history, without
-    fragmentation by task_id. Each entry represents a feature-space region
-    and can be replaced by a farther incoming point.
+    Legacy image-entry memory: one entry stores a CLS vector and every patch
+    vector from that image. Capacity therefore counts images, not CADIC vectors.
 
     Storage per entry:
         cls_embedding:   [d]           ->   3 KB
@@ -49,6 +43,7 @@ class CADICCoreset:
         n_patch: Optional[int] = None,
         store_images: bool = False,
         device: str | None = None,
+        distance_metric: str = "euclidean",
     ):
         """
         Args:
@@ -67,6 +62,7 @@ class CADICCoreset:
         self.patch_grid: Optional[Tuple[int, int]] = None
         self.store_images = store_images
         self.device       = device
+        self.distance_metric = validate_distance_metric(distance_metric)
 
         # --- Storage ---
         self.cls_embeddings:   List[torch.Tensor] = []   # List of [d]
@@ -133,7 +129,7 @@ class CADICCoreset:
         x = cls_emb.unsqueeze(0)               # [1, d]
 
         # Eq. 1-2: d_max is the distance from x_new to its nearest Coreset entry.
-        dists_to_C = torch.cdist(x, C)         # [1, M]
+        dists_to_C = pairwise_distance(x, C, self.distance_metric)  # [1, M]
         d_max      = dists_to_C.min().item()
 
         # Eq. 4-5: |C|_min is the nearest-neighbor distance inside the Coreset.
@@ -246,15 +242,28 @@ class CADICCoreset:
         s_img_list = []
         b_actual = min(max(int(b), 1), C_patch.shape[0])
         for i in range(B):
-            x_star = patch_embs_batch[i, s_star_idxs[i]]
+            worst_patch_idx = s_star_idxs[i]
+            x_star = patch_embs_batch[i, worst_patch_idx]
             d_min = s_star_vals[i]
-            top_k_dists = self._topk_patch_dists(x_star, C_patch, k=b_actual)
-
-            # Stable PatchCore/CADIC-style weighting in the same patch space:
-            # weight = 1 - exp(d_min) / sum(exp(top_k_dists))
-            #        = 1 - 1 / sum(exp(top_k_dists - d_min))
-            exp_sum = torch.exp(top_k_dists - d_min).sum().clamp_min(1e-12)
-            weight = 1.0 - (1.0 / exp_sum)
+            if getattr(self, "mode", "image_entries") == "patch_vectors":
+                nearest_memory_idx = int(nearest_patch_idxs[i, worst_patch_idx].item())
+                neighborhood_indices = self._nearest_memory_neighbors(
+                    C_patch, nearest_memory_idx, b=b_actual
+                )
+                neighborhood = C_patch[neighborhood_indices]
+                neighbor_distances = pairwise_distance(
+                    x_star.unsqueeze(0), neighborhood, self.distance_metric
+                ).squeeze(0)
+                # Stable implementation of the CADIC neighborhood weighting.
+                log_ratio = d_min - torch.logsumexp(neighbor_distances, dim=0)
+                weight = 1.0 - torch.exp(log_ratio).clamp(max=1.0)
+            else:
+                # Preserve Phase 1 image-entry checkpoint semantics. The
+                # patch-vector reproduction path uses the neighborhood from
+                # Eq. 9 above.
+                top_k_dists = self._topk_patch_dists(x_star, C_patch, k=b_actual)
+                exp_sum = torch.exp(top_k_dists - d_min).sum().clamp_min(1e-12)
+                weight = 1.0 - (1.0 / exp_sum)
             s_img_list.append(weight * d_min)
 
         s_img = torch.stack(s_img_list)
@@ -420,6 +429,7 @@ class CADICCoreset:
         return {
             "size":          len(self),
             "max_size":      self.max_size,
+            "capacity_unit": "image_entries",
             "is_full":       self.is_full,
             "update_count":  self._update_count,
             "avg_utility":   round(avg_utility, 4),
@@ -434,7 +444,7 @@ class CADICCoreset:
             f"[CADIC] size={s['size']}/{s['max_size']} | "
             f"updates={s['update_count']} | "
             f"avg_utility={s['avg_utility']} | "
-            f"VRAM(patch)~={s['vram_patch_mb']}MB | "
+            f"patch_bank~={s['vram_patch_mb']}MiB | "
             f"tasks={s['task_counts']}"
         )
 
@@ -444,6 +454,7 @@ class CADICCoreset:
 
     def state_dict(self, include_images: bool = True) -> dict:
         return {
+            "mode":              "image_entries",
             "cls_embeddings":   [e.cpu() for e in self.cls_embeddings],
             "patch_embeddings": [e.cpu() for e in self.patch_embeddings],
             "images":           [e.cpu() if e is not None else None for e in self.images] if include_images else [],
@@ -452,11 +463,14 @@ class CADICCoreset:
             "max_size":         self.max_size,
             "d":                self.d,
             "n_patch":          self.n_patch,
+            "distance_metric":  self.distance_metric,
             "patch_grid":       self.patch_grid,
             "_update_count":    self._update_count,
         }
 
     def load_state_dict(self, sd: dict) -> None:
+        if sd.get("mode", "image_entries") != "image_entries":
+            raise ValueError("Checkpoint coreset mode is not compatible with the image-entry coreset.")
         self.cls_embeddings   = [e.to(self.device) for e in sd["cls_embeddings"]]
         self.patch_embeddings = [e.to(self.device) for e in sd["patch_embeddings"]]
         self.images = [
@@ -470,6 +484,7 @@ class CADICCoreset:
         self.max_size      = sd["max_size"]
         self.d             = sd["d"]
         self.n_patch       = sd.get("n_patch")
+        self.distance_metric = validate_distance_metric(sd.get("distance_metric", self.distance_metric))
         self.patch_grid    = tuple(sd["patch_grid"]) if sd.get("patch_grid") else None
         self._update_count = sd["_update_count"]
         self._closest_pair_cache = None
@@ -534,7 +549,7 @@ class CADICCoreset:
             return self._closest_pair_cache
 
         C = torch.stack(self.cls_embeddings)
-        C_dists = torch.cdist(C, C)
+        C_dists = pairwise_distance(C, C, self.distance_metric)
         C_dists.fill_diagonal_(float("inf"))
         c_min_val = C_dists.min().item()
         flat_idx = C_dists.argmin().item()
@@ -561,7 +576,7 @@ class CADICCoreset:
 
         for start in range(0, patch_bank.shape[0], chunk_size):
             chunk = patch_bank[start:start + chunk_size]
-            dists = torch.cdist(query_patches, chunk)
+            dists = pairwise_distance(query_patches, chunk, self.distance_metric)
             vals, idxs = dists.min(dim=1)
             better = vals < min_dists
             min_dists[better] = vals[better]
@@ -581,8 +596,34 @@ class CADICCoreset:
 
         for start in range(0, patch_bank.shape[0], chunk_size):
             chunk = patch_bank[start:start + chunk_size]
-            vals = torch.cdist(query, chunk).squeeze(0)
+            vals = pairwise_distance(query, chunk, self.distance_metric).squeeze(0)
             candidates = vals if best.numel() == 0 else torch.cat([best, vals], dim=0)
             best = torch.topk(candidates, k=min(k, candidates.numel()), largest=False).values
 
         return best
+
+    def _nearest_memory_neighbors(
+        self,
+        patch_bank: torch.Tensor,
+        nearest_index: int,
+        b: int,
+        chunk_size: int = 8192,
+    ) -> torch.Tensor:
+        """Return c* and its b-1 nearest distinct memory vectors, in bank space."""
+        if b <= 1:
+            return torch.tensor([nearest_index], device=patch_bank.device, dtype=torch.long)
+        anchor = patch_bank[nearest_index:nearest_index + 1]
+        best_distances = torch.empty(0, device=patch_bank.device)
+        best_indices = torch.empty(0, device=patch_bank.device, dtype=torch.long)
+        for start in range(0, patch_bank.shape[0], chunk_size):
+            chunk = patch_bank[start:start + chunk_size]
+            distances = pairwise_distance(anchor, chunk, self.distance_metric).squeeze(0)
+            indices = torch.arange(start, start + chunk.shape[0], device=patch_bank.device)
+            candidates_d = torch.cat((best_distances, distances))
+            candidates_i = torch.cat((best_indices, indices))
+            keep = min(b, candidates_d.numel())
+            best_distances, positions = torch.topk(candidates_d, k=keep, largest=False)
+            best_indices = candidates_i[positions]
+        if not bool((best_indices == nearest_index).any()):
+            best_indices[-1] = nearest_index
+        return best_indices

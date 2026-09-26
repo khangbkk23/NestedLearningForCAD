@@ -4,16 +4,16 @@ meta_nath_core.py
 MetaNATHCore - Phase 1 + 2 system core for Meta-NATH CAD.
 
 Components:
-    Eyes       = Frozen vision backbone (DINOv2 now, DINOv3-ready adapter)
+    Eyes       = Frozen vision backbone (Hugging Face or timm ViT adapter)
     Fast Memory = TTTEngine (TITANS Delta Rule)
     Gate       = ACCGating (Social Welfare)
-    Slow Memory = CADICCoreset (Unified Memory Bank)
+    Slow Memory = image-entry or patch-vector CADIC coreset
 
 Design notes:
     - the backbone always stays in eval mode, even when model.train() is called
     - TTTEngine / ACCGating / CADICCoreset are not nn.Module instances
       and require a custom full_state_dict() for complete checkpoints
-    - forward() runs Phase 1 (TTT) + Phase 2 (consolidation)
+    - forward() runs the enabled Phase 1 (TTT) + Phase 2 (consolidation)
       while scoring is handled separately by score_image()
 """
 
@@ -33,6 +33,9 @@ from transformers import AutoModel
 from .titans_memory import TTTEngine
 from .acc_gating import ACCGating
 from .cadic_coreset import CADICCoreset
+from .patch_vector_coreset import PatchVectorCADICCoreset
+from .timm_vit_feature_extractor import TimmViTFeatureExtractor
+from utils.runtime_profiler import RuntimeProfiler
 
 logger = logging.getLogger(__name__)
 
@@ -68,16 +71,27 @@ class MetaNATHCore(nn.Module):
         store_images: bool = False,
         device: str | None = None,
         backbone_name: str = "facebook/dinov2-base",
+        backbone_provider: str = "transformers",
+        backbone_pretrained: bool = True,
+        allow_backbone_fallback: bool = False,
+        feature_layer: int = 9,
+        feature_apply_final_norm: bool = False,
+        coreset_mode: str = "image_entries",
+        distance_metric: str = "euclidean",
+        distance_chunk_size: int = 512,
+        use_titans: bool = True,
+        use_acc: bool = True,
+        profiling_enabled: bool = False,
     ):
         """
         Args:
-            d:                Embedding dimension (768 for DINOv2-base/current prototype).
+            d:                Embedding dimension produced by the selected backbone.
             tau_acc:          ACC Gating threshold (instruction_CAD section 5.8, default 0.25).
-            max_coreset_size: Maximum number of CADIC entries.
+            max_coreset_size: Capacity in image entries or patch vectors, per coreset_mode.
             n_patch:          Number of patch tokens. None infers from backbone output.
             store_images:     Store raw image tensors for N2B-NC Phase 3.
             device:           'cuda' or 'cpu'; auto-detected when None.
-            backbone_name:    HuggingFace checkpoint for the main backbone.
+            backbone_name:    Model identifier for the configured backbone provider.
         """
         super().__init__()
 
@@ -86,31 +100,50 @@ class MetaNATHCore(nn.Module):
         self.device_str = device
         self.d = d
         self.backbone_name = backbone_name
+        self.backbone_provider = str(backbone_provider).lower()
+        self.backbone_pretrained = bool(backbone_pretrained)
+        self.feature_layer = int(feature_layer)
+        self.feature_apply_final_norm = bool(feature_apply_final_norm)
+        self.use_titans = bool(use_titans)
+        self.use_acc = bool(use_acc)
+        self.profiler = RuntimeProfiler(enabled=profiling_enabled, device=device)
         self.patch_grid: Optional[Tuple[int, int]] = None
 
         # ----------------------------------------------------------------
         # 1. Eyes - frozen vision backbone.
-        #    Current prototype uses HuggingFace DINOv2; adapter also supports DINOv3 dict outputs.
+        #    Benchmarks fail closed if the configured pretrained model is unavailable.
         # ----------------------------------------------------------------
         local_files_only = os.environ.get("METANATH_LOCAL_FILES_ONLY", "0").lower() in {"1", "true", "yes"}
         require_hf_backbone = os.environ.get("METANATH_REQUIRE_HF_BACKBONE", "0").lower() in {"1", "true", "yes"}
 
-        logger.info(f"[MetaNATH] Loading backbone ({backbone_name})...")
+        logger.info(f"[MetaNATH] Loading {self.backbone_provider} backbone ({backbone_name})...")
         try:
-            self.backbone = AutoModel.from_pretrained(
-                backbone_name,
-                local_files_only=local_files_only,
-            )
+            if self.backbone_provider == "timm":
+                self.backbone = TimmViTFeatureExtractor(
+                    backbone_name,
+                    feature_layer=self.feature_layer,
+                    apply_final_norm=self.feature_apply_final_norm,
+                    pretrained=self.backbone_pretrained,
+                )
+            elif self.backbone_provider == "transformers":
+                self.backbone = AutoModel.from_pretrained(
+                    backbone_name,
+                    local_files_only=local_files_only,
+                )
+            else:
+                raise ValueError(
+                    f"Unsupported model.backbone_provider={self.backbone_provider!r}; "
+                    "expected 'transformers' or 'timm'."
+                )
         except Exception as exc:
-            if require_hf_backbone:
+            allow_fallback = bool(allow_backbone_fallback) and not require_hf_backbone
+            if not allow_fallback:
                 raise RuntimeError(
-                    "[MetaNATH] Could not load the required HuggingFace backbone. "
-                    "For offline runs, cache the model once first or unset METANATH_LOCAL_FILES_ONLY."
+                    f"[MetaNATH] Could not load required backbone {backbone_name!r} "
+                    f"with provider {self.backbone_provider!r}. Benchmarks fail closed; "
+                    "set model.allow_backbone_fallback=true only for explicit local debugging."
                 ) from exc
-            logger.warning(
-                "[MetaNATH] Could not load gated HF backbone; using local fallback backbone instead. "
-                f"Reason: {exc}"
-            )
+            logger.warning("[MetaNATH] Explicit fallback backbone enabled: %s", exc)
             self.backbone = _FallbackBackbone(d=d)
             
         self.backbone = self.backbone.to(device)
@@ -132,13 +165,31 @@ class MetaNATHCore(nn.Module):
         # ----------------------------------------------------------------
         # 4. Slow Memory - CADIC Incremental Coreset.
         # ----------------------------------------------------------------
-        self.coreset = CADICCoreset(
-            max_size=max_coreset_size,
-            d=d,
-            n_patch=n_patch,
-            store_images=store_images,
-            device=device,
-        )
+        coreset_mode = str(coreset_mode).lower()
+        if coreset_mode == "image_entries":
+            self.coreset = CADICCoreset(
+                max_size=max_coreset_size,
+                d=d,
+                n_patch=n_patch,
+                store_images=store_images,
+                device=device,
+                distance_metric=distance_metric,
+            )
+        elif coreset_mode == "patch_vectors":
+            self.coreset = PatchVectorCADICCoreset(
+                max_size=max_coreset_size,
+                d=d,
+                n_patch=n_patch,
+                store_images=store_images,
+                device=device,
+                distance_metric=distance_metric,
+                distance_chunk_size=distance_chunk_size,
+            )
+        else:
+            raise ValueError(
+                f"Unsupported model.coreset_mode={coreset_mode!r}; "
+                "expected 'image_entries' or 'patch_vectors'."
+            )
 
     # ------------------------------------------------------------------
     # Override train() so the backbone always stays in eval mode.
@@ -183,25 +234,34 @@ class MetaNATHCore(nn.Module):
                 coreset_updated:  bool      - whether Coreset changed
         """
         # --- Step 1: feature extraction with the frozen backbone. ---
-        z_cls, z_patches, patch_grid = self.extract_features(x)
+        with self.profiler.measure("feature_extraction"):
+            z_cls, z_patches, patch_grid = self.extract_features(x)
 
         # --- Step 2: Test-Time Adaptation with TITANS Fast Memory. ---
-        z_updated, surprise = self.ttt_engine.process(z_cls)
+        if self.use_titans:
+            with self.profiler.measure("titans_fast_memory"):
+                z_updated, surprise = self.ttt_engine.process(z_cls)
+        else:
+            z_updated, surprise = z_cls, 0.0
 
         # --- Step 3: gate the adapted representation. ---
-        approved, acc_score = self.gating.should_consolidate(z_updated, z_cls)
+        if self.use_acc:
+            approved, acc_score = self.gating.should_consolidate(z_updated, z_cls)
+        else:
+            approved, acc_score = True, 1.0
 
         # --- Step 4: consolidate approved samples into Slow Memory. ---
         coreset_updated = False
         if update_coreset and approved:
             # Store adapted embeddings, because z_updated reflects the batch
             # after Fast Memory has absorbed it.
-            n_updated = self.coreset.update_batch(
-                cls_embs=z_updated.detach(),
-                patch_embs_batch=z_patches.detach(),
-                images=x.detach() if self.coreset.store_images else None,
-                task_id=task_id,
-            )
+            with self.profiler.measure("coreset_update"):
+                n_updated = self.coreset.update_batch(
+                    cls_embs=z_updated.detach(),
+                    patch_embs_batch=z_patches.detach(),
+                    images=x.detach() if self.coreset.store_images else None,
+                    task_id=task_id,
+                )
             coreset_updated = n_updated > 0
 
         return {
@@ -303,14 +363,16 @@ class MetaNATHCore(nn.Module):
                 "with update_coreset=True before calling score_image()."
             )
 
-        _, z_patches, patch_grid = self.extract_features(x)
+        with self.profiler.measure("feature_extraction"):
+            _, z_patches, patch_grid = self.extract_features(x)
 
         # --- Batch Scoring (CADIC Eq. 8-9) ---
         # Use optimized batch scoring.
-        s_img_batch, s_pix_batch = self.coreset.compute_anomaly_score(
-            patch_embs_batch=z_patches,
-            b=b,
-        )
+        with self.profiler.measure("nearest_neighbor_scoring"):
+            s_img_batch, s_pix_batch = self.coreset.compute_anomaly_score(
+                patch_embs_batch=z_patches,
+                b=b,
+            )
 
         # --- Batch upsampling. ---
         B = z_patches.shape[0]
@@ -320,12 +382,13 @@ class MetaNATHCore(nn.Module):
         s_pix_reshaped = s_pix_batch.reshape(B, 1, H_patch, W_patch).to(self.device_str)
         
         # Interpolate the full batch in one GPU operation.
-        anomaly_maps_batch = F.interpolate(
-            s_pix_reshaped,
-            size=(x.shape[-2], x.shape[-1]),
-            mode="bilinear",
-            align_corners=False,
-        ) # [B, 1, H, W]
+        with self.profiler.measure("anomaly_map_upsampling"):
+            anomaly_maps_batch = F.interpolate(
+                s_pix_reshaped,
+                size=(x.shape[-2], x.shape[-1]),
+                mode="bilinear",
+                align_corners=False,
+            ) # [B, 1, H, W]
 
         # Package results.
         results = []
@@ -353,6 +416,7 @@ class MetaNATHCore(nn.Module):
         return {
             "backbone":   self.backbone.state_dict() if include_backbone else None,
             "backbone_name": self.backbone_name,
+            "backbone_provider": self.backbone_provider,
             "ttt_engine": self.ttt_engine.state_dict(),
             "gating":     self.gating.state_dict(),
             "coreset":    self.coreset.state_dict(include_images=include_images),
@@ -360,14 +424,56 @@ class MetaNATHCore(nn.Module):
                 "d":                self.d,
                 "device":           self.device_str,
                 "patch_grid":       self.patch_grid,
+                "backbone_provider": self.backbone_provider,
+                "backbone_pretrained": self.backbone_pretrained,
+                "feature_layer": self.feature_layer,
+                "feature_apply_final_norm": self.feature_apply_final_norm,
+                "use_titans": self.use_titans,
+                "use_acc": self.use_acc,
+                "coreset_mode": getattr(self.coreset, "mode", "image_entries"),
             },
         }
 
     def load_full_state_dict(self, sd: dict) -> None:
         """Load a checkpoint produced by full_state_dict()."""
+        saved_name = sd.get("backbone_name", self.backbone_name)
+        saved_provider = sd.get("backbone_provider", sd.get("config", {}).get("backbone_provider", "transformers"))
+        if saved_name != self.backbone_name or saved_provider != self.backbone_provider:
+            raise ValueError(
+                "Checkpoint backbone does not match the configured feature extractor: "
+                f"checkpoint={saved_provider}:{saved_name}, "
+                f"configured={self.backbone_provider}:{self.backbone_name}."
+            )
+        checkpoint_config = sd.get("config", {})
+        compatibility_fields = {
+            "backbone_pretrained": self.backbone_pretrained,
+            "feature_layer": self.feature_layer,
+            "feature_apply_final_norm": self.feature_apply_final_norm,
+            "use_titans": self.use_titans,
+            "use_acc": self.use_acc,
+        }
+        for field, configured_value in compatibility_fields.items():
+            saved_value = checkpoint_config.get(field)
+            if saved_value is not None and saved_value != configured_value:
+                raise ValueError(
+                    f"Checkpoint {field}={saved_value!r} does not match configured value "
+                    f"{configured_value!r}."
+                )
+        checkpoint_mode = checkpoint_config.get("coreset_mode")
+        current_mode = getattr(self.coreset, "mode", "image_entries")
+        if checkpoint_mode is not None and checkpoint_mode != current_mode:
+            raise ValueError(
+                f"Checkpoint coreset mode {checkpoint_mode!r} does not match configured mode {current_mode!r}."
+            )
+        checkpoint_distance = sd.get("coreset", {}).get("distance_metric")
+        if checkpoint_distance is not None and checkpoint_distance != self.coreset.distance_metric:
+            raise ValueError(
+                f"Checkpoint distance_metric={checkpoint_distance!r} does not match configured "
+                f"value {self.coreset.distance_metric!r}."
+            )
         if sd.get("backbone") is not None:
             self.backbone.load_state_dict(sd["backbone"])
-        self.backbone_name = sd.get("backbone_name", self.backbone_name)
+        self.backbone_name = saved_name
         self.ttt_engine.load_state_dict(sd["ttt_engine"])
         self.gating.load_state_dict(sd["gating"])
         self.coreset.load_state_dict(sd["coreset"])
