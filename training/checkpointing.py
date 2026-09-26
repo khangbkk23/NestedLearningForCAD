@@ -49,6 +49,15 @@ class CheckpointManager:
         if not self.save_models or self.checkpoint_policy == "none":
             return []
 
+        if (
+            self.checkpoint_policy == "best_and_last"
+            and str(eval_metrics.get("evaluation_split", "unknown")).lower() != "validation"
+        ):
+            raise ValueError(
+                "checkpoint_policy='best_and_last' requires metrics explicitly marked "
+                "evaluation_split='validation'. Official test metrics cannot select checkpoints."
+            )
+
         payload = {
             "task_id": task_id,
             "category": category,

@@ -17,8 +17,10 @@ def _load_config(path: Path) -> Dict[str, Any]:
 
 
 def _metric_delta(before: Dict[str, Any], after: Dict[str, Any], metric: str) -> Dict[str, Any]:
-    before_value = float(before.get(metric, 0.0))
-    after_value = float(after.get(metric, 0.0))
+    if metric not in before or metric not in after:
+        raise ValueError(f"Acceptance metric {metric!r} must be present in both validation summaries.")
+    before_value = float(before[metric])
+    after_value = float(after[metric])
     return {
         "metric": metric,
         "before": before_value,
@@ -34,6 +36,22 @@ def evaluate_acceptance(
 ) -> Dict[str, Any]:
     acceptance_cfg = config.get("phase3", {}).get("acceptance", {})
     enabled = bool(acceptance_cfg.get("enabled", True))
+    if not enabled:
+        return {
+            "enabled": False,
+            "accepted": False,
+            "decision": "disabled",
+            "checks": [],
+            "reason": "Phase 3 metric acceptance is disabled until a validation protocol is configured.",
+        }
+    for label, summary in (("before", before), ("after", after)):
+        split = str(summary.get("evaluation_split", "")).lower()
+        if split != "validation":
+            raise ValueError(
+                f"Refusing Phase 3 acceptance: {label} summary has evaluation_split={split!r}; "
+                "both inputs must be produced from a predeclared validation split. "
+                "Official test metrics cannot accept or reject a checkpoint."
+            )
     primary_metric = str(acceptance_cfg.get("primary_metric", "final_cumulative_pixel_aupr"))
     min_primary_delta = float(acceptance_cfg.get("min_primary_delta", -0.005))
     image_metric = str(acceptance_cfg.get("image_metric", "final_cumulative_image_auroc"))

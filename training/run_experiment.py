@@ -7,6 +7,7 @@ import argparse
 import copy
 import json
 import sys
+import warnings
 from datetime import datetime
 from typing import Dict, Any, Optional
 
@@ -34,6 +35,14 @@ def _model_geometry(model: MetaNATHCore) -> Dict[str, Any]:
     return {
         'patch_grid': list(patch_grid) if patch_grid is not None else None,
         'n_patch': int(model.coreset.n_patch) if model.coreset.n_patch is not None else None,
+        'backbone_name': model.backbone_name,
+        'backbone_provider': model.backbone_provider,
+        'feature_layer': model.feature_layer if model.backbone_provider == 'timm' else None,
+        'coreset_mode': getattr(model.coreset, 'mode', 'image_entries'),
+        'coreset_capacity': int(model.coreset.max_size),
+        'coreset_capacity_unit': getattr(model.coreset, 'mode', 'image_entries'),
+        'distance_metric': model.coreset.distance_metric,
+        'device': model.device_str,
     }
 
 
@@ -96,7 +105,8 @@ def apply_profile(config: Dict[str, Any], profile: str) -> Dict[str, Any]:
 
     if profile == 'tiny':
         dataset_cfg['batch_size'] = min(int(dataset_cfg.get('batch_size', 32)), 8)
-        dataset_cfg['img_size'] = min(int(dataset_cfg.get('img_size', 256)), 128)
+        if str(model_cfg.get('backbone_provider', 'transformers')).lower() != 'timm':
+            dataset_cfg['img_size'] = min(int(dataset_cfg.get('img_size', 256)), 128)
         dataset_cfg['num_workers'] = 0
         training_cfg['epochs_per_task'] = 1
         training_cfg['stream_repeats'] = 1
@@ -107,7 +117,8 @@ def apply_profile(config: Dict[str, Any], profile: str) -> Dict[str, Any]:
 
     if profile == 'small':
         dataset_cfg['batch_size'] = min(int(dataset_cfg.get('batch_size', 32)), 16)
-        dataset_cfg['img_size'] = min(int(dataset_cfg.get('img_size', 256)), 192)
+        if str(model_cfg.get('backbone_provider', 'transformers')).lower() != 'timm':
+            dataset_cfg['img_size'] = min(int(dataset_cfg.get('img_size', 256)), 192)
         dataset_cfg['num_workers'] = min(int(dataset_cfg.get('num_workers', 4)), 2)
         training_cfg['epochs_per_task'] = min(int(training_cfg.get('epochs_per_task', 10)), 2)
         training_cfg['stream_repeats'] = min(int(training_cfg.get('stream_repeats', training_cfg['epochs_per_task'])), 2)
@@ -122,6 +133,14 @@ def build_model(config: Dict[str, Any]) -> torch.nn.Module:
     training_cfg = config.get('training', {})
     n_patch_cfg = model_cfg.get('n_patch', None)
     n_patch = None if n_patch_cfg is None else int(n_patch_cfg)
+    requested_device = str(training_cfg.get('device', 'cuda'))
+    if requested_device.startswith('cuda') and not torch.cuda.is_available():
+        warnings.warn(
+            f"Requested device {requested_device!r} is unavailable; falling back to CPU. "
+            "Patch-vector coreset updates can be substantially slower on CPU.",
+            RuntimeWarning,
+        )
+    device = requested_device if torch.cuda.is_available() or requested_device == 'cpu' else 'cpu'
 
     return MetaNATHCore(
         d=int(model_cfg.get('embed_dim', 768)),
@@ -129,8 +148,19 @@ def build_model(config: Dict[str, Any]) -> torch.nn.Module:
         max_coreset_size=int(model_cfg.get('max_coreset_size', 1000)),
         n_patch=n_patch,
         store_images=bool(model_cfg.get('store_images', False)),
-        device=str(training_cfg.get('device', 'cuda')),
+        device=device,
         backbone_name=model_cfg.get('backbone', 'facebook/dinov2-base'),
+        backbone_provider=model_cfg.get('backbone_provider', 'transformers'),
+        backbone_pretrained=bool(model_cfg.get('backbone_pretrained', True)),
+        allow_backbone_fallback=bool(model_cfg.get('allow_backbone_fallback', False)),
+        feature_layer=int(model_cfg.get('feature_layer', 9)),
+        feature_apply_final_norm=bool(model_cfg.get('feature_apply_final_norm', False)),
+        coreset_mode=model_cfg.get('coreset_mode', 'image_entries'),
+        distance_metric=str(config.get('memory', {}).get('distance_metric', 'euclidean')),
+        distance_chunk_size=int(config.get('memory', {}).get('distance_chunk_size', 512)),
+        use_titans=bool(model_cfg.get('use_titans', True)),
+        use_acc=bool(model_cfg.get('use_acc', True)),
+        profiling_enabled=bool(config.get('profiling', {}).get('enabled', False)),
     )
 
 
@@ -214,7 +244,8 @@ def run_experiment(config: Dict[str, Any], run_suffix: str = '', disable_wandb: 
     wandb_run = maybe_init_wandb(config, run_name=run_name, run_dir=run_dir, disable_wandb=disable_wandb)
 
     epochs_per_task = int(training_cfg.get('stream_repeats', training_cfg.get('epochs_per_task', 1)))
-    pixel_sample_limit = int(evaluation_cfg.get('pixel_sample_limit', 10000))
+    configured_pixel_limit = evaluation_cfg.get('pixel_sample_limit', 10000)
+    pixel_sample_limit = None if configured_pixel_limit is None or str(configured_pixel_limit).lower() == 'full' else int(configured_pixel_limit)
     eval_mode = str(evaluation_cfg.get('mode', 'current')).lower()
     cumulative_frequency = int(evaluation_cfg.get('cumulative_frequency', 5))
     final_cumulative = bool(evaluation_cfg.get('final_cumulative', True))
@@ -397,16 +428,28 @@ def run_experiment(config: Dict[str, Any], run_suffix: str = '', disable_wandb: 
         'pixel_score_norm': pixel_score_norm,
         'gaussian_smoothing_sigma': gaussian_smoothing_sigma,
         'checkpoint_policy': checkpoint_policy,
+        'evaluation_split': 'test',
+        'evaluation_metric_semantics': 'mean task-level test metrics at each task-end model state; not a final-checkpoint macro',
+        'pixel_sample_limit': pixel_sample_limit,
+        'pixel_metric_is_approximate': any(
+            bool(rec['eval'].get('pixel_metric_is_approximate', False)) for rec in task_records
+        ),
         **_model_geometry(model),
         'avg_eval_image_auroc': avg_eval_image_auroc,
         'avg_eval_auroc': avg_eval_image_auroc,
         'avg_eval_pixel_auroc': float(np.mean(eval_pixel_aurocs)) if eval_pixel_aurocs else 0.0,
         'avg_eval_pixel_aupr': float(np.mean(eval_pixel_auprs)) if eval_pixel_auprs else 0.0,
         'avg_eval_image_ap': float(np.mean(eval_image_aps)) if eval_image_aps else 0.0,
+        'mean_task_end_image_auroc': avg_eval_image_auroc,
+        'mean_task_end_pixel_auroc': float(np.mean(eval_pixel_aurocs)) if eval_pixel_aurocs else 0.0,
+        'mean_task_end_pixel_aupr': float(np.mean(eval_pixel_auprs)) if eval_pixel_auprs else 0.0,
+        'runtime_profile': model.profiler.summary(),
     }
     if final_cumulative_metrics is not None:
         summary['final_cumulative_image_auroc'] = float(final_cumulative_metrics.get('image_auroc', 0.0))
         summary['final_cumulative_pixel_aupr'] = float(final_cumulative_metrics.get('pixel_aupr', 0.0))
+        summary['pooled_final_image_auroc'] = summary['final_cumulative_image_auroc']
+        summary['pooled_final_pixel_aupr'] = summary['final_cumulative_pixel_aupr']
 
     if forgetting_matrix_enabled:
         final_task_id = int(task_records[-1]['task_id']) if task_records else 0

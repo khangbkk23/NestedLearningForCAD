@@ -43,8 +43,10 @@ class ContinualAnomalyDataset(Dataset):
     Train mode
     ----------
     Loads only *normal* images (per CLAD framework).
-    With 50 % probability, applies synthetic anomaly generation via the
-    configured generator (superpixel | perlin | destseg | realnet | mixed).
+    Synthetic anomaly generation is controlled by
+    dataset.synthetic_anomaly_probability (default 0.5 for legacy runs).
+    Set it to 0.0 for CADIC parity to use every original train/good image.
+    The configured generator can be superpixel | perlin | destseg | realnet | mixed.
     Switch the generator in the active YAML config:
     dataset.anomaly_generator: "perlin"
 
@@ -59,6 +61,9 @@ class ContinualAnomalyDataset(Dataset):
         self.category     = category
         self.split_ratio  = cfg.get('split_ratio', 0.8)
         self.is_train     = is_train
+        self.synthetic_anomaly_probability = float(cfg.get('synthetic_anomaly_probability', 0.5))
+        if not 0.0 <= self.synthetic_anomaly_probability <= 1.0:
+            raise ValueError("dataset.synthetic_anomaly_probability must be in [0, 1].")
 
         self.transform        = transform
         self.target_transform = target_transform
@@ -66,7 +71,7 @@ class ContinualAnomalyDataset(Dataset):
         self.loader        = default_image_loader
         self.loader_target = default_mask_loader
 
-        if self.is_train:
+        if self.is_train and self.synthetic_anomaly_probability > 0.0:
             self.anomaly_generator = build_anomaly_generator(cfg)
             gen_name = cfg.get('anomaly_generator', 'superpixel')
             logger.info(f"[{category.upper()}] Anomaly generator: '{gen_name}'")
@@ -150,7 +155,11 @@ class ContinualAnomalyDataset(Dataset):
         img_w, img_h = img.size   # (width, height)
 
         if self.is_train:
-            if np.random.rand() > 0.5:
+            inject_anomaly = self.synthetic_anomaly_probability >= 1.0 or (
+                self.synthetic_anomaly_probability > 0.0
+                and np.random.rand() > 1.0 - self.synthetic_anomaly_probability
+            )
+            if inject_anomaly:
                 img_np = np.array(img).astype(np.float32)   # (H, W, 3)
                 result_np, mask_np, has_anomaly = self.anomaly_generator.generate(
                     img_np, self.category
@@ -201,8 +210,23 @@ class ContinualStreamingManager:
         self.split_ratio = self.dataset_cfg.get('split_ratio', 0.8)
         self.img_size = self.dataset_cfg['img_size']
         
+        interpolation_name = str(self.dataset_cfg.get('interpolation', 'bilinear')).lower()
+        interpolation_modes = {
+            'nearest': transforms.InterpolationMode.NEAREST,
+            'bilinear': transforms.InterpolationMode.BILINEAR,
+            'bicubic': transforms.InterpolationMode.BICUBIC,
+            'lanczos': transforms.InterpolationMode.LANCZOS,
+        }
+        if interpolation_name not in interpolation_modes:
+            raise ValueError(
+                "dataset.interpolation must be one of: "
+                f"{', '.join(sorted(interpolation_modes))}; got {interpolation_name!r}."
+            )
         self.data_transforms = transforms.Compose([
-            transforms.Resize((self.img_size, self.img_size)),
+            transforms.Resize(
+                (self.img_size, self.img_size),
+                interpolation=interpolation_modes[interpolation_name],
+            ),
             transforms.ToTensor(),
             transforms.Normalize(mean=self.dataset_cfg.get('mean', [0.485, 0.456, 0.406]), 
                                  std=self.dataset_cfg.get('std', [0.229, 0.224, 0.225]))
@@ -223,7 +247,13 @@ class ContinualStreamingManager:
         
         predefined_order = self.dataset_cfg.get('class_order', [])
         if predefined_order:
-            categories = [c for c in predefined_order if os.path.isdir(os.path.join(self.root_dir, c))]
+            missing = [c for c in predefined_order if not os.path.isdir(os.path.join(self.root_dir, c))]
+            if missing and bool(self.dataset_cfg.get('strict_class_order', False)):
+                raise FileNotFoundError(
+                    "dataset.class_order contains categories missing from dataset.root_dir: "
+                    + ", ".join(missing)
+                )
+            categories = [c for c in predefined_order if c not in missing]
         else:
             categories = [d for d in os.listdir(self.root_dir) if os.path.isdir(os.path.join(self.root_dir, d))]
         return categories

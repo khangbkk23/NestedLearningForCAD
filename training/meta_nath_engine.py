@@ -3,7 +3,7 @@ import numpy as np
 import time
 import torch.nn.functional as F
 from tqdm import tqdm
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 from sklearn.metrics import roc_auc_score, average_precision_score
 
 class MetaNATHEngine:
@@ -115,7 +115,8 @@ class MetaNATHEngine:
         test_loader,
         task_id: int,
         verbose: bool = True,
-        pixel_sample_limit: int = 10000,
+        pixel_sample_limit: Optional[int] = 10000,
+        evaluation_split: str = "test",
     ) -> Dict[str, Any]:
         """
         Evaluation Phase
@@ -123,8 +124,12 @@ class MetaNATHEngine:
         self.model.eval()
         all_image_scores = []
         all_image_labels = []
-        all_pixel_scores = []
-        all_pixel_labels = []
+        pixel_score_chunks = []
+        pixel_label_chunks = []
+        pixel_sample_count = 0
+        pixel_metric_is_approximate = False
+        if pixel_sample_limit is not None and int(pixel_sample_limit) <= 0:
+            raise ValueError("pixel_sample_limit must be a positive integer or None for full-pixel evaluation.")
         eval_start = time.time()
         eval_num_images = 0
         
@@ -151,20 +156,28 @@ class MetaNATHEngine:
                         anomaly_map = self._postprocess_anomaly_map(res['anomaly_map'])
                         map_flat = anomaly_map.numpy().flatten()
                         
-                        # Sample per image to avoid building very large pixel lists.
-                        if len(mask_flat) > pixel_sample_limit:
-                            indices = np.random.choice(len(mask_flat), pixel_sample_limit, replace=False)
-                            all_pixel_scores.extend(map_flat[indices])
-                            all_pixel_labels.extend(mask_flat[indices])
-                        else:
-                            all_pixel_scores.extend(map_flat)
-                            all_pixel_labels.extend(mask_flat)
+                        # None means exact full-pixel evaluation. A finite limit
+                        # is a debug approximation and is recorded in the result.
+                        if pixel_sample_limit is not None and len(mask_flat) > int(pixel_sample_limit):
+                            indices = np.random.choice(len(mask_flat), int(pixel_sample_limit), replace=False)
+                            map_flat = map_flat[indices]
+                            mask_flat = mask_flat[indices]
+                            pixel_metric_is_approximate = True
+                        pixel_score_chunks.append(np.asarray(map_flat, dtype=np.float32))
+                        pixel_label_chunks.append(np.asarray(mask_flat, dtype=np.uint8))
+                        pixel_sample_count += len(mask_flat)
 
         image_auroc = roc_auc_score(all_image_labels, all_image_scores) if len(np.unique(all_image_labels)) > 1 else 0.0
         
         pixel_auroc = 0.0
         pixel_aupr = 0.0
-        if len(all_pixel_labels) > 0 and len(np.unique(all_pixel_labels)) > 1:
+        if pixel_score_chunks:
+            all_pixel_scores = np.concatenate(pixel_score_chunks)
+            all_pixel_labels = np.concatenate(pixel_label_chunks)
+        else:
+            all_pixel_scores = np.empty((0,), dtype=np.float32)
+            all_pixel_labels = np.empty((0,), dtype=np.uint8)
+        if all_pixel_labels.size > 0 and np.unique(all_pixel_labels).size > 1:
             pixel_auroc = roc_auc_score(all_pixel_labels, all_pixel_scores)
             pixel_aupr = average_precision_score(all_pixel_labels, all_pixel_scores)
 
@@ -182,6 +195,11 @@ class MetaNATHEngine:
             "auroc": image_auroc,
             "eval_num_images": eval_num_images,
             "eval_seconds": eval_seconds,
+            "evaluation_split": str(evaluation_split),
+            "pixel_sample_limit": pixel_sample_limit,
+            "pixel_metric_is_approximate": pixel_metric_is_approximate,
+            "pixel_samples_used": int(pixel_sample_count),
+            "pixel_ap_implementation": "sklearn.average_precision_score",
         }
 
     def _postprocess_anomaly_map(self, anomaly_map: torch.Tensor) -> torch.Tensor:

@@ -229,7 +229,17 @@ def main() -> None:
 
     task_filter = _parse_task_ids(args.task_ids, args.max_tasks)
     evaluation_cfg = config.get("evaluation", {})
-    pixel_sample_limit = int(args.pixel_sample_limit or evaluation_cfg.get("pixel_sample_limit", 10000))
+    configured_pixel_limit = args.pixel_sample_limit
+    if configured_pixel_limit is None:
+        configured_pixel_limit = evaluation_cfg.get("pixel_sample_limit", 10000)
+    if configured_pixel_limit is None or str(configured_pixel_limit).lower() == "full":
+        # This diagnostic retains per-pixel score distributions in Python lists;
+        # keep its default bounded even when the main evaluator is configured
+        # for exact full-pixel metrics.
+        configured_pixel_limit = 10000
+    pixel_sample_limit = int(configured_pixel_limit)
+    if pixel_sample_limit <= 0:
+        raise ValueError("pixel_sample_limit must be a positive integer for score comparison.")
     requested_device = str(config.get("training", {}).get("device", "cuda"))
     device = requested_device if torch.cuda.is_available() or requested_device == "cpu" else "cpu"
 
@@ -237,6 +247,7 @@ def main() -> None:
         "before_checkpoint": args.before,
         "after_checkpoint": args.after,
         "pixel_sample_limit": pixel_sample_limit,
+        "pixel_metric_is_approximate": True,
         "tasks": [],
     }
 

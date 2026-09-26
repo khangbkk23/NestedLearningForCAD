@@ -126,7 +126,8 @@ def main() -> None:
     )
     stream_manager = ContinualStreamingManager(config)
 
-    pixel_sample_limit = int(evaluation_cfg.get("pixel_sample_limit", 10000))
+    configured_pixel_limit = evaluation_cfg.get("pixel_sample_limit", 10000)
+    pixel_sample_limit = None if configured_pixel_limit is None or str(configured_pixel_limit).lower() == "full" else int(configured_pixel_limit)
     forgetting_matrix_enabled = bool(evaluation_cfg.get("forgetting_matrix", False))
     forgetting_metric = str(evaluation_cfg.get("forgetting_metric", "image_auroc"))
 
@@ -188,7 +189,7 @@ def main() -> None:
     task_pbar.close()
 
     final_cumulative_metrics = None
-    if records:
+    if records and bool(evaluation_cfg.get("final_cumulative", True)):
         if not args.quiet:
             print("\n===== Final Cumulative Evaluation =====")
         cumulative_loader = stream_manager.get_cumulative_test_loader()
@@ -211,6 +212,9 @@ def main() -> None:
         "checkpoint": str(args.checkpoint),
         "output_dir": str(output_dir),
         "tasks_completed": len(records),
+        "evaluation_split": "test",
+        "metric_aggregation": "macro_average_of_tasks_using_the_same_final_checkpoint",
+        "runtime_profile": model.profiler.summary(),
         "nearest_neighbors": int(memory_cfg.get("nearest_neighbors", 2)),
         "pixel_score_norm": str(evaluation_cfg.get("pixel_score_norm", "none")).lower(),
         "gaussian_smoothing_sigma": float(evaluation_cfg.get("gaussian_smoothing_sigma", 0.0)),
@@ -218,6 +222,13 @@ def main() -> None:
         "avg_eval_pixel_auroc": float(np.mean(pixel_aurocs)) if pixel_aurocs else 0.0,
         "avg_eval_pixel_aupr": float(np.mean(pixel_auprs)) if pixel_auprs else 0.0,
         "avg_eval_image_ap": float(np.mean(image_aps)) if image_aps else 0.0,
+        "final_checkpoint_macro_image_auroc": float(np.mean(image_aurocs)) if image_aurocs else 0.0,
+        "final_checkpoint_macro_pixel_auroc": float(np.mean(pixel_aurocs)) if pixel_aurocs else 0.0,
+        "final_checkpoint_macro_pixel_aupr": float(np.mean(pixel_auprs)) if pixel_auprs else 0.0,
+        "pixel_sample_limit": pixel_sample_limit,
+        "pixel_metric_is_approximate": any(
+            bool(rec["eval"].get("pixel_metric_is_approximate", False)) for rec in records
+        ),
     }
     if final_cumulative_metrics is not None:
         summary["final_cumulative_image_auroc"] = float(final_cumulative_metrics.get("image_auroc", 0.0))

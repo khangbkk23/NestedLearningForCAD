@@ -61,6 +61,12 @@ class NestedBackboneConsolidator:
         self.predictor = nn.Linear(self.core.d, self.core.d, bias=False).to(self.device)
 
     def execute_global_consolidation(self) -> Dict[str, Any]:
+        if getattr(self.core.coreset, "mode", "image_entries") == "patch_vectors":
+            raise RuntimeError(
+                "Phase 3 consolidation needs source images and image-level anchors. "
+                "Patch-vector CADIC mode keeps only feature vectors; use a separately "
+                "budgeted anchor/image memory before enabling Phase 3."
+            )
         images, targets, anchor_stats = self.core.coreset.get_top_k_by_utility(
             self.config.top_k_anchors,
             balanced_by_task=bool(self.config.balanced_anchors),
