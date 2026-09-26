@@ -39,6 +39,7 @@ wandb/
 *.swo
 *~
 tempCodeRunnerFile.py
+agents/
 
 # OS
 .DS_Store

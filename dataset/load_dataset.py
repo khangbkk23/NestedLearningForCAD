@@ -59,6 +59,13 @@ class ContinualAnomalyDataset(Dataset):
         self.category     = category
         self.split_ratio  = cfg.get('split_ratio', 0.8)
         self.is_train     = is_train
+        # The exact CADIC control consumes the complete train/good stream and
+        # never synthesizes anomalies. Keep the historical generator path as
+        # the default for the existing Meta-NATH experiments.
+        self.cadic_parity = bool(cfg.get('cadic_parity', False))
+        self.synthetic_anomaly = bool(
+            cfg.get('synthetic_anomaly', not self.cadic_parity)
+        ) if self.is_train else False
 
         self.transform        = transform
         self.target_transform = target_transform
@@ -66,7 +73,7 @@ class ContinualAnomalyDataset(Dataset):
         self.loader        = default_image_loader
         self.loader_target = default_mask_loader
 
-        if self.is_train:
+        if self.is_train and self.synthetic_anomaly:
             self.anomaly_generator = build_anomaly_generator(cfg)
             gen_name = cfg.get('anomaly_generator', 'superpixel')
             logger.info(f"[{category.upper()}] Anomaly generator: '{gen_name}'")
@@ -89,7 +96,7 @@ class ContinualAnomalyDataset(Dataset):
         logger.info(f"[{self.category.upper()}] Loaded {len(self.data_all)} samples (Train={self.is_train})")
 
     def _parse_mvtec(self, category_path):
-        if self.is_train:
+        if self.is_train and self.synthetic_anomaly:
             img_dir = os.path.join(category_path, 'train', 'good')
             for img_path in sorted(glob.glob(os.path.join(img_dir, '*.png'))):
                 self.data_all.append({
@@ -124,10 +131,10 @@ class ContinualAnomalyDataset(Dataset):
         normal_imgs = sorted([img for img in glob.glob(os.path.join(normal_dir, '*.*')) if img.lower().endswith(('.png', '.jpg', '.jpeg'))])
         split_idx = int(len(normal_imgs) * self.split_ratio)
         
-        if self.is_train:
+        if self.is_train and self.synthetic_anomaly:
             for img_path in normal_imgs[:split_idx]:
                 self.data_all.append({'img_path': img_path, 'mask_path': '', 'cls_name': self.category, 'specie_name': 'normal', 'anomaly': 0})
-        else:
+        elif not self.is_train:
             for img_path in normal_imgs[split_idx:]:
                 self.data_all.append({'img_path': img_path, 'mask_path': '', 'cls_name': self.category, 'specie_name': 'normal', 'anomaly': 0})
             
@@ -173,6 +180,13 @@ class ContinualAnomalyDataset(Dataset):
             else:
                 mask_arr = np.array(self.loader_target(mask_path)) > 0
                 img_mask = Image.fromarray((mask_arr.astype(np.uint8) * 255), mode='L')
+        else:
+            # Exact CADIC mode: every indexed train/good image remains a
+            # normal sample and is eligible for the memory update.
+            img_mask = Image.fromarray(
+                np.zeros((img_h, img_w), dtype=np.uint8), mode='L'
+            )
+            anomaly = 0
 
         img      = self.transform(img)             if self.transform        is not None else img
         img_mask = self.target_transform(img_mask) if self.target_transform is not None else img_mask
@@ -197,7 +211,17 @@ class ContinualStreamingManager:
         self.root_dir = self.dataset_cfg['root_dir']
         self.batch_size = self.dataset_cfg['batch_size']
         self.num_workers = self.dataset_cfg.get('num_workers', 4)
-        self.drop_last_train = bool(self.dataset_cfg.get('drop_last_train', True))
+        # A CADIC parity stream must not discard the final partial batch.
+        self.drop_last_train = (
+            False if bool(self.dataset_cfg.get('cadic_parity', False))
+            else bool(self.dataset_cfg.get('drop_last_train', True))
+        )
+        # Loading official test data during training makes accidental test
+        # feedback easy. The historical path keeps its old default; the
+        # parity runner opts out and owns final evaluation separately.
+        self.load_test_during_stream = bool(
+            self.dataset_cfg.get('load_test_during_stream', True)
+        )
         self.split_ratio = self.dataset_cfg.get('split_ratio', 0.8)
         self.img_size = self.dataset_cfg['img_size']
         
@@ -275,29 +299,38 @@ class ContinualStreamingManager:
             target_transform=self.gt_transforms
         )
         
-        current_test_dataset = ContinualAnomalyDataset(
-            cfg=self.dataset_cfg, 
-            category=current_category, 
-            is_train=False, 
-            transform=self.data_transforms, 
-            target_transform=self.gt_transforms
-        )
-        
-        self.test_datasets_history.append(current_test_dataset)
-        eval_mode = str(self.evaluation_cfg.get('mode', 'current')).lower()
-        if eval_mode == 'cumulative':
-            eval_dataset = ConcatDataset(self.test_datasets_history)
+        current_test_dataset = None
+        if self.load_test_during_stream:
+            current_test_dataset = ContinualAnomalyDataset(
+                cfg=self.dataset_cfg,
+                category=current_category,
+                is_train=False,
+                transform=self.data_transforms,
+                target_transform=self.gt_transforms
+            )
+            self.test_datasets_history.append(current_test_dataset)
+            eval_mode = str(self.evaluation_cfg.get('mode', 'current')).lower()
+            if eval_mode == 'cumulative':
+                eval_dataset = ConcatDataset(self.test_datasets_history)
+            else:
+                eval_dataset = current_test_dataset
         else:
-            eval_dataset = current_test_dataset
+            eval_dataset = None
 
         loader_kwargs = self._loader_kwargs()
         
         train_loader = DataLoader(train_dataset, shuffle=True, drop_last=self.drop_last_train, **loader_kwargs)
-        test_loader = DataLoader(eval_dataset, shuffle=False, drop_last=False, **loader_kwargs)
+        test_loader = (
+            DataLoader(eval_dataset, shuffle=False, drop_last=False, **loader_kwargs)
+            if eval_dataset is not None else None
+        )
         
         task_info = {
             'task_id': self.current_task_idx,
             'category': current_category,
+            'train_file_count': len(train_dataset),
+            'train_drop_last': self.drop_last_train,
+            'test_loaded_during_stream': self.load_test_during_stream,
         }
         
         self.current_task_idx += 1
