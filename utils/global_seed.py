@@ -2,9 +2,9 @@ import os
 import random
 import numpy as np
 import torch
-from conf.config import load_config
 
-def set_seed(seed: int = 42, deterministic: bool = True):
+
+def set_seed(seed: int = 42, deterministic: bool = True) -> None:
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
@@ -24,5 +24,7 @@ def set_seed(seed: int = 42, deterministic: bool = True):
     print(f"Global seed set to {seed}")
     
 if __name__ == "__main__":
+    from conf.config import load_config
+
     config = load_config()
     set_seed(config['training']['seed'])

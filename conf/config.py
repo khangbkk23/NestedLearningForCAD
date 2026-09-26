@@ -1,7 +1,12 @@
 import yaml
 import os
+from pathlib import Path
 
-def load_config(config_path="config.yaml"):
+DEFAULT_CONFIG_PATH = Path(__file__).resolve().parent / "reference" / "phase1_baseline.yaml"
+
+
+def load_config(config_path=None):
+    config_path = str(config_path or DEFAULT_CONFIG_PATH)
     if not os.path.exists(config_path):
         raise FileNotFoundError(f"Cannot find config file at {config_path}")
         

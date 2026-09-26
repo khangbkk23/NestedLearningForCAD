@@ -1,8 +1,7 @@
-"""
-Training utilities for continual learning
+"""Training package for the Meta-NATH CAD pipeline.
+
+Keep package import lightweight. Import concrete modules directly, e.g.
+``from training.meta_nath_engine import MetaNATHEngine``.
 """
 
-from .trainer import Trainer
-from .evaluator import Evaluator
-
-__all__ = ['Trainer', 'Evaluator']
+__all__ = []
