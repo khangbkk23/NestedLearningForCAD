@@ -1,7 +1,5 @@
-"""Single strict metric implementation for benchmark reporting."""
-from __future__ import annotations
+# /home/catlemon/Dev/CAD/NestedLearningForCAD/training/benchmark_metrics_v1.py
 import numpy as np
-
 
 def _arrays(scores, labels, name):
     s, y = np.asarray(scores, dtype=float).reshape(-1), np.asarray(labels).reshape(-1)
@@ -11,20 +9,17 @@ def _arrays(scores, labels, name):
         return None
     return s, y.astype(int)
 
-
 def image_auroc(scores, labels):
     a = _arrays(scores, labels, "image")
     if a is None: return float("nan")
     from sklearn.metrics import roc_auc_score
     return float(roc_auc_score(*a[::-1]))
 
-
 def image_ap(scores, labels):
     a = _arrays(scores, labels, "image")
     if a is None: return float("nan")
     from sklearn.metrics import average_precision_score
     return float(average_precision_score(*a[::-1]))
-
 
 def pixel_aupr(maps, masks):
     s, y = np.asarray(maps, dtype=float), np.asarray(masks).astype(int)
@@ -34,7 +29,6 @@ def pixel_aupr(maps, masks):
     from sklearn.metrics import average_precision_score
     return float(average_precision_score(*a[::-1]))
 
-
 def pixel_auroc(maps, masks):
     s, y = np.asarray(maps, dtype=float), np.asarray(masks).astype(int)
     if s.ndim != 3 or y.shape != s.shape: raise ValueError("pixel shapes must be [B,H,W] and equal")
@@ -43,12 +37,10 @@ def pixel_auroc(maps, masks):
     from sklearn.metrics import roc_auc_score
     return float(roc_auc_score(*a[::-1]))
 
-
 def compute_metrics(image_scores, labels, maps, masks):
     return {"i_auroc": image_auroc(image_scores, labels), "i_ap": image_ap(image_scores, labels),
             "p_aupr": pixel_aupr(maps, masks), "p_auroc": pixel_auroc(maps, masks),
             "n_images": int(np.asarray(labels).size), "n_pixels": int(np.asarray(masks).size)}
-
 
 def macro_task_metrics(per_task):
     out = {}
@@ -61,7 +53,6 @@ def macro_task_metrics(per_task):
     out["macro_final_i_auroc"] = out["i_auroc"]
     out["macro_final_p_aupr"] = out["p_aupr"]
     return out
-
 
 def forgetting_matrix(performance, formula="mean_prior_max_minus_final"):
     if formula != "mean_prior_max_minus_final": raise ValueError("unsupported FM formula")

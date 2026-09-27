@@ -1,13 +1,14 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# This script intentionally does not download anything.  Place the archive in
-# ./data or pass its path as the only argument; the prepared dataset always
-# ends up in <repository>/data/mvtec.
+# Download the official MVTec AD archive (unless a local archive is supplied)
+# and prepare it at <repository>/data/mvtec.
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 DATA_DIR="${REPO_ROOT}/data"
 TARGET_DIR="${DATA_DIR}/mvtec"
 ARCHIVE_PATH="${1:-}"
+DOWNLOAD_URL="https://www.mydrive.ch/shares/150996/b52ecdcbf521176e9db9c731f2304b27/download/420938113-1629960298/mvtec_anomaly_detection.tar.xz"
+DEFAULT_ARCHIVE="${DATA_DIR}/mvtec_anomaly_detection.tar.xz"
 
 CATEGORIES=(
   bottle cable capsule carpet grid hazelnut leather metal_nut
@@ -19,8 +20,9 @@ usage() {
 Usage:
   bash dataset/download_mvtec_ad.sh [ARCHIVE]
 
-ARCHIVE may be a .tar.xz, .tar.gz, .tar, or .zip file. If omitted, exactly one
-MVTec archive is selected from ${DATA_DIR}. The archive is never deleted.
+ARCHIVE may be a .tar.xz, .tar.gz, .tar, or .zip file. If omitted, the MVTec
+archive is downloaded from the configured source URL into ${DEFAULT_ARCHIVE}.
+An existing partial download is resumed; a complete archive is reused.
 Prepared output: ${TARGET_DIR}
 EOF
 }
@@ -33,18 +35,33 @@ fi
 mkdir -p "${DATA_DIR}"
 
 if [[ -z "${ARCHIVE_PATH}" ]]; then
-  mapfile -t candidates < <(find "${DATA_DIR}" -maxdepth 1 -type f \( \
-    -iname '*.tar.xz' -o -iname '*.txz' -o -iname '*.tar.gz' -o \
-    -iname '*.tgz' -o -iname '*.tar' -o -iname '*.zip' \
-  \) -print | sort)
-  if [[ "${#candidates[@]}" -ne 1 ]]; then
-    echo "[ERROR] Expected exactly one downloaded archive in ${DATA_DIR}; found ${#candidates[@]}." >&2
-    usage >&2
+  ARCHIVE_PATH="${DEFAULT_ARCHIVE}"
+  echo "[INFO] Checking download URL..."
+  remote_size="$(curl -fsSIL --retry 2 --max-time 30 "${DOWNLOAD_URL}" \
+    | awk 'BEGIN { IGNORECASE=1 } /^Content-Length:/ { gsub("\\r", "", $2); size=$2 } END { print size }')" || {
+    echo "[ERROR] Download URL is not reachable: ${DOWNLOAD_URL}" >&2
+    exit 2
+  }
+  if [[ ! "${remote_size}" =~ ^[0-9]+$ ]] || [[ "${remote_size}" -le 0 ]]; then
+    echo "[ERROR] Download URL did not provide a valid Content-Length." >&2
     exit 2
   fi
-  ARCHIVE_PATH="${candidates[0]}"
+  if [[ -f "${ARCHIVE_PATH}" ]]; then
+    local_size="$(stat -c '%s' "${ARCHIVE_PATH}")"
+    if [[ "${local_size}" -eq "${remote_size}" ]]; then
+      echo "[OK] Archive already downloaded: ${ARCHIVE_PATH} (${local_size} bytes)."
+    elif [[ "${local_size}" -lt "${remote_size}" ]]; then
+      echo "[INFO] Resuming archive download at byte ${local_size}/${remote_size}..."
+      curl -fL --retry 3 --retry-delay 2 --continue-at - --output "${ARCHIVE_PATH}" "${DOWNLOAD_URL}"
+    else
+      echo "[ERROR] Existing archive is larger than the remote file: ${ARCHIVE_PATH}" >&2
+      exit 2
+    fi
+  else
+    echo "[INFO] Downloading MVTec AD archive (${remote_size} bytes)..."
+    curl -fL --retry 3 --retry-delay 2 --output "${ARCHIVE_PATH}" "${DOWNLOAD_URL}"
+  fi
 fi
-
 if [[ ! -f "${ARCHIVE_PATH}" || ! -s "${ARCHIVE_PATH}" ]]; then
   echo "[ERROR] Archive does not exist or is empty: ${ARCHIVE_PATH}" >&2
   exit 2

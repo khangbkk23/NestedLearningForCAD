@@ -1,5 +1,4 @@
-"""Leakage-barriered benchmark phases and state mutation guard."""
-from __future__ import annotations
+# training/benchmark_engine_v1.py
 import hashlib, json, time
 import torch
 from training.benchmark_metrics_v1 import compute_metrics, macro_task_metrics, forgetting_matrix
