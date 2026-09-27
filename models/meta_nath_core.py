@@ -1,3 +1,4 @@
+# models/meta_nath_core.py
 """
 meta_nath_core.py
 -----------------
@@ -16,9 +17,6 @@ Design notes:
     - forward() runs Phase 1 (TTT) + Phase 2 (consolidation)
       while scoring is handled separately by score_image()
 """
-
-from __future__ import annotations
-
 import logging
 import math
 import os

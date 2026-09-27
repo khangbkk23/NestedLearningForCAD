@@ -1,3 +1,4 @@
+# dataset/anomaly_generators/superpixel.py
 """
 Nested Learning's own method
 
@@ -5,9 +6,7 @@ Nested Learning's own method
   2. Semantic mask        — SLIC superpixel selection + area filter (0.5%–15%)
   3. Anomaly source       — DTD texture (augmented) OR self-shift + luminance jitter
   4. Alpha blend          — factor * (mask * src) + (1-factor) * (mask * img)
-
 """
-
 import glob
 import os
 
@@ -15,7 +14,6 @@ import cv2
 import numpy as np
 
 from .base import AnomalyGeneratorBase
-
 
 _AUGMENTER_NAMES = [
     "gamma_contrast", "brightness", "sharpness", "hue_saturation",

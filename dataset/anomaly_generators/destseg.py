@@ -1,8 +1,8 @@
+# dataset/anomaly_generators/destseg.py
 """
 DeSTSegAnomalyGenerator
 
-Reference: DeSTSeg — Segmentation-Based Deep Anomaly Detection with Self-Supervised
-           Training (Zhang et al., CVPR 2023)
+Reference: DeSTSeg — Segmentation-Based Deep Anomaly Detection with Self-Supervised Training (Zhang et al., CVPR 2023)
 
 Pipeline
 --------
@@ -19,7 +19,6 @@ import numpy as np
 
 from .base import AnomalyGeneratorBase
 from .perlin import rand_perlin_2d 
-
 
 class DeSTSegAnomalyGenerator(AnomalyGeneratorBase):
     """
@@ -83,9 +82,7 @@ class DeSTSegAnomalyGenerator(AnomalyGeneratorBase):
 
         dtd = self._dtd_source_raw(h, w)
         beta = np.random.uniform(self.beta_lo, self.beta_hi)
-
         m = mask[:, :, None]
         # Same DRAEM blend formula
         result = img_np * (1 - m) + (1 - beta) * dtd * m + beta * img_np * m
-
         return result.astype(np.float32), mask, True

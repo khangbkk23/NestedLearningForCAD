@@ -1,0 +1,8 @@
+id: metanath_legacy_v1
+version: 1
+adapter: metanath_legacy
+exact_parity_claim: false
+preprocessing: {image_size: 224, resize: direct_square_bilinear_pil, mean: [0.485, 0.456, 0.406], std: [0.229, 0.224, 0.225]}
+runtime: {batch_size: 8, dtype: float32}
+checkpoint: {path: "", selection_provenance: historical_unknown, requires_existing_final_state: true}
+unresolved_assumptions: [historical_checkpoint_selection, historical_backbone_identity]

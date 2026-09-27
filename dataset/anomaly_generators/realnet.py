@@ -1,14 +1,13 @@
+# dataset/anomaly_generators/realnet.py
 """
-Reference: RealNet — A Feature Selection Network with Realistic Synthetic Anomaly
-           for Anomaly Detection (Zhang et al., CVPR 2024)
+Reference: RealNet — A Feature Selection Network with Realistic Synthetic Anomaly for Anomaly Detection (Zhang et al., CVPR 2024)
 
 Pipeline
 --------
   1. Perlin noise mask × foreground mask  → final mask   (both-aware)
   2. Probabilistic source choice:
        • 'dtd'  (p = dtd_weight)   → DTD texture + 3 colour augments
-       • 'sdas' (p = 1-dtd_weight) → SDAS images (class-specific generated
-                                      anomalies, or replay-buffer images)
+       • 'sdas' (p = 1-dtd_weight) → SDAS images (class-specific generated anomalies, or replay-buffer images)
   3. Blend:
        factor * (mask * src) + (1-factor) * (mask * img) + (1-mask) * img
 """

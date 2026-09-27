@@ -19,7 +19,6 @@ data/
 datasets/
 *.tar.gz
 *.zip
-
 # Generated experiment artifacts
 checkpoints/
 logs/
@@ -39,6 +38,7 @@ wandb/
 *.swo
 *~
 tempCodeRunnerFile.py
+agents/
 
 # OS
 .DS_Store
