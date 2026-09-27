@@ -1,3 +1,4 @@
+# scripts/pipeline/compare_checkpoint_scores.py
 import os
 os.environ.setdefault("NUMEXPR_MAX_THREADS", "1")
 os.environ.setdefault("OMP_NUM_THREADS", "1")

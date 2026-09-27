@@ -1,14 +1,4 @@
-"""
-consolidation_engine.py
------------------------
-Phase 3 N2B-NC consolidation for Meta-NATH CAD.
-
-This module owns the algorithmic logic. Notebooks and CLI scripts should call
-into it instead of carrying training code in cells.
-"""
-
-from __future__ import annotations
-
+# training/consolidation_engine.py
 import copy
 import re
 from dataclasses import dataclass

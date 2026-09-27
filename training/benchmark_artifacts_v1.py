@@ -1,5 +1,4 @@
-"""Immutable benchmark artifacts; tensors remain torch files."""
-from __future__ import annotations
+# training/benchmark_artifacts_v1.py
 import json, os, platform, subprocess, sys, time
 from pathlib import Path
 import yaml

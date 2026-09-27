@@ -1,6 +1,4 @@
-"""Safe config resolution and explicit protocol compatibility checks."""
-from __future__ import annotations
-
+# training/benchmark_config_v1.py
 import copy
 import os
 import re
