@@ -3,6 +3,24 @@ from dataclasses import dataclass
 from typing import Any, Dict, Optional, Tuple
 import torch
 
+
+@torch.no_grad()
+def euclidean_distance_mm(x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
+    """Return FP32 Euclidean distances using CADIC Eq. (7).
+
+    The caller may tile ``x`` and ``y`` to bound temporary memory.  Keeping
+    this primitive explicit makes the GEMM based distance path auditable and
+    avoids the size-dependent non-MM ``torch.cdist`` implementation.
+    """
+    if x.ndim != 2 or y.ndim != 2 or x.shape[1] != y.shape[1]:
+        raise ValueError("euclidean_distance_mm requires [N,D] and [M,D] tensors")
+    x = x.to(dtype=torch.float32)
+    y = y.to(dtype=torch.float32, device=x.device)
+    x2 = (x * x).sum(dim=1, keepdim=True)
+    y2 = (y * y).sum(dim=1).unsqueeze(0)
+    d2 = x2 + y2 - 2.0 * (x @ y.transpose(0, 1))
+    return d2.clamp_min_(0.0).sqrt()
+
 @dataclass(frozen=True)
 class CADICPatchCoresetConfig:
     budget: int = 10_000
@@ -196,9 +214,9 @@ class CADICPatchCoresetV1:
             # with a direct chunked distance pass to c*.
             support_indices = self._topk_indices(c_star, k)
             support = self.features[support_indices]
-            support_dist = torch.linalg.vector_norm(
-                support - image[star_row], dim=1
-            )
+            support_dist = euclidean_distance_mm(
+                image[star_row].reshape(1, -1), support
+            ).squeeze(0)
 
             log_den = torch.logsumexp(support_dist, dim=0)
             ratio = torch.exp(star_score - log_den)
@@ -290,7 +308,7 @@ class CADICPatchCoresetV1:
             ),
             "pair_max_bytes": self._distance_profile["pair_max_bytes"],
             "nearest_max_bytes": self._distance_profile["nearest_max_bytes"],
-            "distance_compute_mode": "donot_use_mm_for_euclid_dist",
+            "distance_compute_mode": "explicit_fp32_gemm_eq7",
             "distance_dtype": "float32",
         }
 
@@ -351,15 +369,7 @@ class CADICPatchCoresetV1:
             ):
                 part = bank[start : start + self.config.chunk_size]
 
-                # Keep the distance path in the same FP32 precision as the
-                # stored CADIC features. A fixed kernel avoids torch's
-                # size-dependent matrix-multiplication cutoff.
-                distances = torch.cdist(
-                    query_part,
-                    part,
-                    p=2,
-                    compute_mode="donot_use_mm_for_euclid_dist",
-                )
+                distances = euclidean_distance_mm(query_part, part)
                 self._record_distance_block("nearest", distances)
 
                 values, local = torch.min(distances, dim=1)
@@ -398,12 +408,7 @@ class CADICPatchCoresetV1:
                 cols = self.features[
                     col_start : col_start + chunk
                 ]
-                distances = torch.cdist(
-                    rows,
-                    cols,
-                    p=2,
-                    compute_mode="donot_use_mm_for_euclid_dist",
-                )
+                distances = euclidean_distance_mm(rows, cols)
                 self._record_distance_block("pair", distances)
 
                 if row_start == col_start:
@@ -447,12 +452,7 @@ class CADICPatchCoresetV1:
 
         for start in range(0, self.count, chunk):
             part = self.features[start : start + chunk]
-            values.append(
-                torch.linalg.vector_norm(
-                    part - query,
-                    dim=1,
-                )
-            )
+            values.append(euclidean_distance_mm(query.reshape(1, -1), part).squeeze(0))
             indices.append(
                 torch.arange(
                     start,

@@ -45,12 +45,15 @@ class CADICBenchmarkAdapterV1(BenchmarkMethodAdapter):
             ),
             device=self.device,
         )
+        self.update_unit = str(mc.get("update_unit", "image"))
+        if self.update_unit not in {"image", "loader_batch"}:
+            raise ValueError("CADIC memory.update_unit must be 'image' or 'loader_batch'")
         self.timings = {"feature_seconds": 0.0, "update_seconds": 0.0, "score_seconds": 0.0}
 
     def fit_task(self, task_id, task_name, train_loader):
         n = 0
         total_batches = len(train_loader)
-        total_images = len(train_loader.dataset)
+        total_images = len(train_loader.dataset) if hasattr(train_loader, "dataset") else len(train_loader)
 
         for batch_idx, batch in enumerate(train_loader, start=1):
             batch_images = int(batch["images"].shape[0])
@@ -68,7 +71,14 @@ class CADICBenchmarkAdapterV1(BenchmarkMethodAdapter):
             self.timings["feature_seconds"] += feature_seconds
 
             start = time.perf_counter()
-            result = self.coreset.update(patches)
+            if self.update_unit == "image":
+                result = {"incoming": 0, "accepted": 0, "replaced": 0, "rejected": 0}
+                for image_patches in patches:
+                    current = self.coreset.update(image_patches)
+                    for key in result:
+                        result[key] += int(current[key])
+            else:
+                result = self.coreset.update(patches)
             update_seconds = time.perf_counter() - start
             self.timings["update_seconds"] += update_seconds
             n += batch_images
@@ -82,7 +92,7 @@ class CADICBenchmarkAdapterV1(BenchmarkMethodAdapter):
                 flush=True,
             )
 
-        return {"samples": n, "coreset": self.coreset.stats()}
+        return {"samples": n, "coreset": self.coreset.stats(), "update_unit": self.update_unit}
 
     def score_batch(self, batch):
         start = time.perf_counter()
@@ -120,7 +130,15 @@ class CADICBenchmarkAdapterV1(BenchmarkMethodAdapter):
         # extractor checkpoint. Timers are profiler data rather than state.
 
     def profile_metadata(self):
-        return {"distance_blocks": self.coreset.distance_profile(), **self.timings}
+        return {
+            "distance_blocks": self.coreset.distance_profile(),
+            "matmul_runtime_policy": {
+                "float32_matmul_precision": torch.get_float32_matmul_precision(),
+                "cuda_matmul_allow_tf32": bool(torch.backends.cuda.matmul.allow_tf32),
+                "cudnn_allow_tf32": bool(torch.backends.cudnn.allow_tf32),
+            },
+            **self.timings,
+        }
 
     def memory_stats(self):
         extractor_bytes = sum(
@@ -138,12 +156,22 @@ class CADICBenchmarkAdapterV1(BenchmarkMethodAdapter):
         )
         counter_bytes = sum(sys.getsizeof(value) for value in counters)
         continual_bytes = self.coreset.memory_bytes + counter_bytes
+        distance_profile = self.coreset.distance_profile()
+        working_peak_bytes = max(
+            int(distance_profile.get("pair_max_bytes", 0)),
+            int(distance_profile.get("nearest_max_bytes", 0)),
+        )
+        runtime_cache_bytes = 0
+        current_state_bytes = extractor_bytes + buffer_bytes + continual_bytes
 
         return {
             "continual_memory_bytes": continual_bytes,
             "model_parameter_bytes": extractor_bytes,
             "model_buffer_bytes": buffer_bytes,
-            "total_deployment_bytes": continual_bytes + extractor_bytes + buffer_bytes,
+            "runtime_cache_bytes": runtime_cache_bytes,
+            "working_memory_peak_bytes": working_peak_bytes,
+            "current_state_bytes": current_state_bytes,
+            "total_deployment_bytes": current_state_bytes,
             "persistent_bytes": continual_bytes,
             "coreset_feature_bytes": self.coreset.memory_bytes,
             "counter_metadata_bytes": counter_bytes,
@@ -153,7 +181,7 @@ class CADICBenchmarkAdapterV1(BenchmarkMethodAdapter):
             ),
             "extractor_parameter_bytes": extractor_bytes,
             "coreset_count": self.coreset.count,
-            "checkpoint_bytes": None,
+            "benchmark_checkpoint_disk_bytes": None,
         }
 
     def method_metadata(self):
@@ -162,6 +190,8 @@ class CADICBenchmarkAdapterV1(BenchmarkMethodAdapter):
             "exact_parity_claim": False,
             "cadic": self.extractor.protocol_metadata(),
             "coreset": self.coreset.stats(),
+            "update_unit": self.update_unit,
+            "loader_batch_size": self.config["runtime"]["batch_size"],
             "public_compatibility_choice": self.config["extractor"].get(
                 "public_compatibility_choice"
             ),

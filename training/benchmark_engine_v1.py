@@ -35,6 +35,21 @@ def _state_equal(a, b):
     return a == b
 
 
+def _loader_sample_count(loader):
+    """Return a logging-only sample count for DataLoader-like objects."""
+    if hasattr(loader, "dataset"):
+        try:
+            return len(loader.dataset)
+        except TypeError:
+            pass
+    if hasattr(loader, "__len__"):
+        try:
+            return len(loader)
+        except TypeError:
+            pass
+    return "?"
+
+
 class BenchmarkEngineV1:
     def __init__(self, protocol, adapter, artifacts, device="cpu", fail_on_state_mutation=False):
         self.protocol = protocol
@@ -79,7 +94,7 @@ class BenchmarkEngineV1:
             loader = self._load(dataset.build_train_loader, task_id, max_train_images)
             print(
                 f"\n[TRAIN] Task {task_id + 1}/{limit}: {task_name} | "
-                f"samples={len(loader.dataset)} | batches={len(loader)}",
+                f"samples={_loader_sample_count(loader)} | batches={len(loader)}",
                 flush=True,
             )
 
@@ -92,7 +107,7 @@ class BenchmarkEngineV1:
             rows.append({
                 "task_id": task_id,
                 "task_name": task_name,
-                "train_samples": len(loader.dataset),
+                "train_samples": _loader_sample_count(loader),
                 "result": result,
             })
 
@@ -119,7 +134,7 @@ class BenchmarkEngineV1:
             loader = self._load(dataset.build_test_loader, task_id)
             print(
                 f"[EVAL] Task {task_id + 1}/{len(names)}: {name} | "
-                f"samples={len(loader.dataset)} | batches={len(loader)}",
+                f"samples={_loader_sample_count(loader)} | batches={len(loader)}",
                 flush=True,
             )
             scores, labels, maps, masks = [], [], [], []
@@ -191,11 +206,7 @@ class BenchmarkEngineV1:
             for task_id in range(state_idx + 1):
                 task_name = dataset.task_names[task_id]
                 loader = self._load(dataset.build_test_loader, task_id)
-                sample_count = (
-                    len(loader.dataset)
-                    if hasattr(loader, "dataset")
-                    else "?"
-                )
+                sample_count = _loader_sample_count(loader)
                 print(
                     f"  [FM] Task {task_id + 1}/{state_idx + 1}: {task_name} | "
                     f"samples={sample_count}",
