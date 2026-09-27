@@ -23,6 +23,8 @@ class CADICPatchCoresetConfig:
     distance: str = "euclidean"
     chunk_size: int = 2048
     image_neighbors: int = 9
+    query_chunk_size: int = 256
+    pair_chunk_size: int = 256
 
 
 class CADICPatchCoresetV1:
@@ -45,6 +47,8 @@ class CADICPatchCoresetV1:
             raise ValueError("CADIC v1 is defined with Euclidean distance")
         if self.config.dtype != "float32":
             raise ValueError("CADIC v1 currently requires float32 feature storage")
+        if min(self.config.chunk_size, self.config.query_chunk_size, self.config.pair_chunk_size) < 1:
+            raise ValueError("distance chunk sizes must be positive")
         self.device = torch.device(device)
         self.features = torch.empty(
             (0, self.config.dim), dtype=torch.float32, device=self.device
@@ -54,6 +58,13 @@ class CADICPatchCoresetV1:
         self.replaced_features = 0
         self.rejected_features = 0
         self.update_batches = 0
+        # Diagnostics belong to the profiler, not to the scientific model
+        # state. Scoring may increase these maxima without changing memory.
+        self._distance_profile = {
+            "pair_max_shape": [0, 0], "pair_max_elements": 0,
+            "nearest_max_shape": [0, 0], "nearest_max_elements": 0,
+            "pair_max_bytes": 0, "nearest_max_bytes": 0,
+        }
 
     @property
     def count(self) -> int:
@@ -174,7 +185,9 @@ class CADICPatchCoresetV1:
             support_indices = self._topk_indices(c_star, k)
             support = self.features[support_indices]
             support_dist = torch.linalg.vector_norm(support - image[star_row], dim=1)
-            weight = 1.0 - torch.exp(star_score - torch.logsumexp(support_dist, dim=0))
+            log_den = torch.logsumexp(support_dist, dim=0)
+            ratio = torch.exp(star_score - log_den)
+            weight = 1.0 - ratio
             all_pixel.append(pixel)
             all_indices.append(indices)
             all_image.append(weight * star_score)
@@ -228,18 +241,50 @@ class CADICPatchCoresetV1:
             "update_batches": self.update_batches,
         }
 
+    def distance_profile(self) -> Dict[str, Any]:
+        """Actual largest allocated distance block, with configured bounds."""
+        return {
+            **self._distance_profile,
+            "pair_chunk_size": self.config.pair_chunk_size,
+            "query_chunk_size": self.config.query_chunk_size,
+            "bank_chunk_size": self.config.chunk_size,
+            "pair_bound_elements": self.config.pair_chunk_size ** 2,
+            "nearest_bound_elements": self.config.query_chunk_size * self.config.chunk_size,
+            "pair_max_bytes": self._distance_profile["pair_max_bytes"],
+            "nearest_max_bytes": self._distance_profile["nearest_max_bytes"],
+            "distance_compute_mode": "donot_use_mm_for_euclid_dist",
+        }
+
+    def _record_distance_block(self, kind: str, distances: torch.Tensor) -> None:
+        count = int(distances.numel())
+        if count > self._distance_profile[f"{kind}_max_elements"]:
+            self._distance_profile[f"{kind}_max_elements"] = count
+            self._distance_profile[f"{kind}_max_shape"] = list(distances.shape)
+            self._distance_profile[f"{kind}_max_bytes"] = count * distances.element_size()
+
     @torch.no_grad()
     def _nearest(self, query: torch.Tensor, bank: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
-        best = torch.full((query.shape[0],), float("inf"), device=query.device)
+        if query.ndim != 2 or bank.ndim != 2 or query.shape[1] != bank.shape[1] or not bank.shape[0]:
+            raise ValueError("nearest requires [Q,D] and a nonempty [M,D] bank")
+        best = torch.full((query.shape[0],), float("inf"), dtype=torch.float64, device=query.device)
         indices = torch.zeros(query.shape[0], dtype=torch.long, device=query.device)
-        chunk = max(1, int(self.config.chunk_size))
-        for start in range(0, bank.shape[0], chunk):
-            part = bank[start:start + chunk]
-            distances = torch.cdist(query, part, p=2)
-            values, local = torch.min(distances, dim=1)
-            mask = values < best
-            best[mask] = values[mask]
-            indices[mask] = start + local[mask]
+        for query_start in range(0, query.shape[0], self.config.query_chunk_size):
+            query_part = query[query_start:query_start + self.config.query_chunk_size]
+            best_part = best[query_start:query_start + len(query_part)]
+            index_part = indices[query_start:query_start + len(query_part)]
+            for start in range(0, bank.shape[0], self.config.chunk_size):
+                part = bank[start:start + self.config.chunk_size]
+                # A fixed kernel avoids changing distances/ties at torch's
+                # size-dependent matrix-multiplication cutoff (25 rows).
+                distances = torch.cdist(query_part.to(torch.float64), part.to(torch.float64), p=2,
+                                        compute_mode="donot_use_mm_for_euclid_dist")
+                self._record_distance_block("nearest", distances)
+                values, local = torch.min(distances, dim=1)
+                # Strict improvement preserves the lowest global bank index
+                # on ties, both within a block and across successive blocks.
+                mask = values < best_part
+                best_part[mask] = values[mask]
+                index_part[mask] = start + local[mask]
         return best, indices
 
     @torch.no_grad()
@@ -247,24 +292,31 @@ class CADICPatchCoresetV1:
         if self.count < 2:
             return torch.tensor(float("inf"), device=self.device), 0
         best_value = torch.tensor(float("inf"), device=self.device)
-        best_row = 0
-        chunk = max(1, min(int(self.config.chunk_size), 512))
-        # Tile both axes: the closest-pair temporary is at most chunk² rather
-        # than a full M×M matrix at the 10k patch budget.
+        best_pair = (self.count, self.count)
+        chunk = self.config.pair_chunk_size
+        # Only unordered pairs i < j are eligible. Tie policy is the
+        # lexicographically first global (i,j), replacing its i member.
         for row_start in range(0, self.count, chunk):
             rows = self.features[row_start:row_start + chunk]
-            for col_start in range(0, self.count, chunk):
+            for col_start in range(row_start, self.count, chunk):
                 cols = self.features[col_start:col_start + chunk]
-                distances = torch.cdist(rows, cols, p=2)
-                for local in range(rows.shape[0]):
-                    col = row_start + local - col_start
-                    if 0 <= col < cols.shape[0]:
-                        distances[local, col] = float("inf")
+                distances = torch.cdist(rows.to(torch.float64), cols.to(torch.float64), p=2,
+                                        compute_mode="donot_use_mm_for_euclid_dist")
+                self._record_distance_block("pair", distances)
+                if row_start == col_start:
+                    # Mask self distances and symmetric duplicates in place;
+                    # each temporary remains bounded by pair_chunk_size².
+                    for local in range(rows.shape[0]):
+                        distances[local, :local + 1] = float("inf")
                 value, flat = torch.min(distances.reshape(-1), dim=0)
-                if bool(value < best_value):
+                flat_idx = int(flat.item())
+                local_row = flat_idx // cols.shape[0]
+                col = flat_idx % cols.shape[0]
+                pair = (row_start + local_row, col_start + col)
+                if bool(value < best_value) or (bool(value == best_value) and pair < best_pair):
                     best_value = value
-                    best_row = row_start + int(flat.item() // cols.shape[0])
-        return best_value, best_row
+                    best_pair = pair
+        return best_value, best_pair[0]
 
     @torch.no_grad()
     def _topk_indices(self, query: torch.Tensor, k: int) -> torch.Tensor:
@@ -273,9 +325,10 @@ class CADICPatchCoresetV1:
         chunk = max(1, int(self.config.chunk_size))
         for start in range(0, self.count, chunk):
             part = self.features[start:start + chunk]
-            values.append(torch.linalg.vector_norm(part - query, dim=1))
+            values.append(torch.linalg.vector_norm(part.to(torch.float64) - query.to(torch.float64), dim=1))
             indices.append(torch.arange(start, start + part.shape[0], device=self.device))
         distances = torch.cat(values)
         all_indices = torch.cat(indices)
-        order = sorted(range(self.count), key=lambda i: (float(distances[i].item()), i))[:k]
-        return all_indices[torch.tensor(order, dtype=torch.long, device=self.device)]
+        # Input is in global index order; a stable sort resolves all ties by
+        # that order without thousands of per-element GPU synchronizations.
+        return all_indices[torch.argsort(distances, stable=True)[:k]]

@@ -100,6 +100,11 @@ def validate_configs(protocol, method, smoke=False):
                 or extractor["feature_normalization"] != "none" or memory["distance"] != "euclidean"
                 or type(memory["budget"]) is not int or memory["budget"] < 2
                 or type(memory["chunk_size"]) is not int or memory["chunk_size"] < 1
+                or type(memory.get("query_chunk_size", 256)) is not int
+                or memory.get("query_chunk_size", 256) < 1
+                or type(memory.get("pair_chunk_size", 256)) is not int
+                or memory.get("pair_chunk_size", 256) < 1
+                or extractor["feature_dim"] != 768 or memory["dtype"] != "float32"
                 or type(method["scoring"]["image_neighbors_b"]) is not int
                 or method["scoring"]["image_neighbors_b"] < 2):
             raise ValueError("Invalid CADIC-compatible declaration")

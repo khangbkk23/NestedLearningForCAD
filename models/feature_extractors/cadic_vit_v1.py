@@ -51,7 +51,7 @@ class CADICViTFeatureExtractor(nn.Module):
             raise ValueError("layer_indexing must be one_based or zero_based")
         if not config.checkpoint_path or not Path(config.checkpoint_path).is_file():
             raise FileNotFoundError(
-                "CADIC exact mode requires an explicit ViT-B/8 checkpoint; "
+                "CADIC-compatible mode requires an explicit ViT-B/8 checkpoint; "
                 f"not found: {config.checkpoint_path!r}"
             )
         if not config.checkpoint_identity:
@@ -63,7 +63,7 @@ class CADICViTFeatureExtractor(nn.Module):
             import timm  # type: ignore
         except Exception as exc:  # pragma: no cover - dependency-specific
             raise RuntimeError(
-                "CADIC exact mode requires timm to instantiate ViT-B/8"
+                "CADIC-compatible mode requires timm to instantiate ViT-B/8"
             ) from exc
 
         self.model = timm.create_model(
@@ -97,6 +97,11 @@ class CADICViTFeatureExtractor(nn.Module):
             raise RuntimeError(f"invalid selected block index {self.block_index}")
         self._captured: Optional[torch.Tensor] = None
         self._hook = blocks[self.block_index].register_forward_hook(self._capture)
+        self.eval()
+
+    def train(self, mode: bool = True):
+        """Keep the canonical representation frozen and in inference mode."""
+        return super().train(False)
 
     def _capture(self, _module: nn.Module, _inputs: Any, output: Any) -> None:
         if isinstance(output, (tuple, list)):
@@ -109,13 +114,14 @@ class CADICViTFeatureExtractor(nn.Module):
     @torch.no_grad()
     def extract_patch_features(self, images: torch.Tensor) -> torch.Tensor:
         images = images.to(self.device)
-        if images.ndim != 4 or tuple(images.shape[-2:]) != (224, 224):
+        if images.ndim != 4 or images.shape[1] != 3 or tuple(images.shape[-2:]) != (224, 224):
             raise ValueError(f"expected [B,3,224,224], got {tuple(images.shape)}")
         self._captured = None
         _ = self.model(images)
         if self._captured is None:
             raise RuntimeError("selected ViT block produced no captured tokens")
         tokens = self._captured
+        self._captured = None
         if tokens.ndim != 3 or tokens.shape[1] != 785 or tokens.shape[2] != 768:
             raise RuntimeError(
                 f"CADIC geometry assertion failed: expected [B,785,768], got {tuple(tokens.shape)}"
@@ -135,9 +141,11 @@ class CADICViTFeatureExtractor(nn.Module):
             "layer_number": self.config.layer_number,
             "layer_indexing": self.config.layer_indexing,
             "block_index": self.block_index,
-            "feature_normalization": "unspecified_by_paper",
+            "feature_normalization": "none (declared compatibility assumption)",
+            "exact_parity_claim": False,
             "preprocessing": {
                 "resize": [224, 224],
+                "resize_rule": "PIL direct square bilinear",
                 "mean": list(self.config.mean),
                 "std": list(self.config.std),
             },

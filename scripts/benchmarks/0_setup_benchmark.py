@@ -1,8 +1,5 @@
 # scripts/benchmarks/0_setup_benchmark.py
 """Resolve configs and create an immutable, train-only manifest."""
-from training.benchmark_artifacts_v1 import BenchmarkArtifacts, git_metadata
-from dataset.benchmark_manifest_v1 import build_training_manifest
-from training.benchmark_config_v1 import load_configs, validate_configs
 import argparse
 import json
 import os
@@ -14,6 +11,9 @@ import re
 from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
+from training.benchmark_artifacts_v1 import BenchmarkArtifacts, git_metadata
+from dataset.benchmark_manifest_v1 import build_training_manifest
+from training.benchmark_config_v1 import load_configs, validate_configs
 
 def args():
     p = argparse.ArgumentParser()

@@ -1,11 +1,4 @@
-# scripts/benchmarks/1_run_benchmark.py
 """Run prepared benchmark phases with a hard train/evaluation barrier."""
-from models.fake_benchmark_adapter_v1 import FakeBenchmarkAdapter
-from training.benchmark_config_v1 import validate_configs
-from training.benchmark_engine_v1 import BenchmarkEngineV1
-from training.benchmark_artifacts_v1 import BenchmarkArtifacts
-from dataset.benchmark_protocol_v1 import MVTecContinualProtocol
-from dataset.benchmark_manifest_v1 import validate_manifest
 import argparse
 import json
 import sys
@@ -15,6 +8,12 @@ import yaml
 import torch
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
+from models.fake_benchmark_adapter_v1 import FakeBenchmarkAdapter
+from training.benchmark_config_v1 import validate_configs
+from training.benchmark_engine_v1 import BenchmarkEngineV1
+from training.benchmark_artifacts_v1 import BenchmarkArtifacts
+from dataset.benchmark_protocol_v1 import MVTecContinualProtocol
+from dataset.benchmark_manifest_v1 import validate_manifest
 
 def args():
     p = argparse.ArgumentParser()
@@ -72,10 +71,12 @@ def main():
         macro = json.loads((art.metrics/"final_macro.json").read_text()) if (art.metrics/"final_macro.json").is_file() else {}
         fm = json.loads((art.metrics/"forgetting_summary.json").read_text()
                         ) if (art.metrics/"forgetting_summary.json").is_file() else {}
-        summary = {**macro, "fm_i": fm.get("fm"), "fm_p": None, "method": method["id"], "protocol": protocol["id"], "memory": adapter.memory_stats(
-        ), "runtime": engine.times, "reportable": runmeta.get("reportable", False), "smoke": runmeta.get("smoke", False)}
+        memory = adapter.memory_stats()
+        memory["checkpoint_bytes"] = sum(p.stat().st_size for p in art.states.glob("*.pt"))
+        memory["total_deployment_bytes"] = int(memory.get("continual_memory_bytes", memory.get("persistent_bytes", 0))) + int(memory.get("model_parameter_bytes", 0)) + int(memory.get("checkpoint_bytes", 0))
+        summary = {**macro, "fm_i": fm.get("fm"), "fm_p": fm.get("fm_p"), "method": method["id"], "protocol": protocol["id"], "memory": memory, "runtime": engine.times, "inference_fps": engine.times.get("inference_fps"), "reportable": runmeta.get("reportable", False), "smoke": runmeta.get("smoke", False)}
         art.write_json("profile/runtime.json", engine.times)
-        art.write_json("profile/memory.json", adapter.memory_stats())
+        art.write_json("profile/memory.json", memory)
         art.summarize(summary)
 
 if __name__ == "__main__":

@@ -14,7 +14,11 @@ class FakeBenchmarkAdapter(BenchmarkMethodAdapter):
         x = batch["images"].to(self.device); score = x.mean(dim=(1,2,3)) + self.offset
         maps = score[:, None, None].expand(-1, x.shape[-2], x.shape[-1])
         return {"image_scores": score.detach().cpu(), "anomaly_maps": maps.detach().cpu()}
-    def state_dict(self): return {"offset": self.offset.detach().cpu(), "updates": self.updates}
+    def state_dict(self): return {"offset": self.offset.detach().cpu().clone(), "updates": self.updates}
     def load_state_dict(self, state): self.offset = state["offset"].to(self.device).clone(); self.updates = int(state["updates"])
-    def memory_stats(self): return {"persistent_bytes": int(self.offset.numel()*self.offset.element_size()), "updates": self.updates}
+    def memory_stats(self):
+        size = int(self.offset.numel() * self.offset.element_size())
+        return {"persistent_bytes": size, "continual_memory_bytes": size,
+                "model_parameter_bytes": 0, "total_deployment_bytes": size,
+                "checkpoint_bytes": None, "updates": self.updates}
     def method_metadata(self): return {"adapter": "fake", "reportable": False}

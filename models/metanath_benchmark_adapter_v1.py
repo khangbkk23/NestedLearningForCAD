@@ -20,5 +20,19 @@ class MetaNATHLegacyAdapterV1(BenchmarkMethodAdapter):
         return {"image_scores":scores,"anomaly_maps":maps}
     def state_dict(self): return self.model.full_state_dict(include_backbone=False,include_images=False)
     def load_state_dict(self,state): self.model.load_full_state_dict(state)
-    def memory_stats(self): return {"persistent_bytes":0,"historical_selection_provenance":self.config["checkpoint"].get("selection_provenance")}
+    def memory_stats(self):
+        def tensor_bytes(value):
+            if isinstance(value, torch.Tensor):
+                return int(value.numel() * value.element_size())
+            if isinstance(value, dict):
+                return sum(tensor_bytes(item) for item in value.values())
+            if isinstance(value, (list, tuple)):
+                return sum(tensor_bytes(item) for item in value)
+            return 0
+        model_bytes = tensor_bytes(self.model.backbone.state_dict())
+        continual = tensor_bytes(self.model.coreset.state_dict())
+        return {"persistent_bytes": continual, "continual_memory_bytes": continual,
+                "model_parameter_bytes": model_bytes, "checkpoint_bytes": None,
+                "total_deployment_bytes": continual + model_bytes,
+                "historical_selection_provenance": self.config["checkpoint"].get("selection_provenance")}
     def method_metadata(self): return {"adapter":"metanath_legacy","reportable":False,"selection_provenance":self.config["checkpoint"].get("selection_provenance")}

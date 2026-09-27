@@ -53,7 +53,9 @@ def compute_metrics(image_scores, labels, maps, masks):
 def macro_task_metrics(per_task):
     out = {}
     for key in ("i_auroc", "i_ap", "p_aupr", "p_auroc"):
-        vals = [float(v[key]) for v in per_task.values() if np.isfinite(v[key])]
+        # Every task contributes equally. An undefined task cannot silently
+        # disappear from the denominator of a reportable macro average.
+        vals = [float(v[key]) for v in per_task.values()]
         out[key] = float(np.mean(vals)) if vals else float("nan")
     out["task_count"] = len(per_task)
     out["macro_final_i_auroc"] = out["i_auroc"]
@@ -65,10 +67,22 @@ def forgetting_matrix(performance, formula="mean_prior_max_minus_final"):
     if formula != "mean_prior_max_minus_final": raise ValueError("unsupported FM formula")
     matrix = np.asarray(performance, dtype=float)
     if matrix.ndim != 2 or matrix.shape[0] != matrix.shape[1]: raise ValueError("FM matrix must be square")
+    k = matrix.shape[0]
+    if k == 0:
+        raise ValueError("FM requires at least one task")
     values = []
-    for task in range(matrix.shape[1]):
-        prior = matrix[: matrix.shape[0], task]
+    # CADIC Eq. (10)-(11): j<k, max over every available prior state;
+    # divide by k-1. The final task is never a zero added to the mean.
+    for task in range(k - 1):
+        prior = matrix[:-1, task]
+        available = prior[np.isfinite(prior)]
         final = matrix[-1, task]
-        values.append(float(np.max(prior[:-1]) - final) if task < matrix.shape[0] - 1 else 0.0)
+        if not available.size or not np.isfinite(final):
+            raise ValueError("FM needs finite historical and final scores for every old task")
+        values.append(float(np.max(available) - final))
     return {"matrix": matrix.tolist(), "per_task_forgetting": values,
-            "fm": float(np.mean(values)) if values else 0.0, "formula": formula}
+            "fm": float(np.sum(values) / (k - 1)) if k > 1 else None,
+            "denominator": k - 1, "formula": formula,
+            "clamped_at_zero": False,
+            "unlearned_cells": "not_evaluated",
+            "single_task_convention": "undefined"}

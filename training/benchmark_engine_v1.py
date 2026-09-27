@@ -58,12 +58,20 @@ class BenchmarkEngineV1:
         self.times["inference_fps"] = total / self.times["final_eval_wall_seconds"] if self.times["final_eval_wall_seconds"] else None
         macro = macro_task_metrics(per)
         self.artifacts.write_json("metrics/final_per_task.json", per); self.artifacts.write_json("metrics/final_macro.json", macro)
+        profile = getattr(self.adapter, "profile_metadata", lambda: {})()
+        self.artifacts.write_json("profile/adapter.json", profile)
         return per, macro
 
     def evaluate_forgetting(self, dataset, max_tasks=None):
         states = sorted(self.artifacts.states.glob("task_*.pt")); n = len(states); matrix_i, matrix_p = [], []
+        if max_tasks is not None:
+            states = states[:max_tasks]
+            n = len(states)
+        if n < 1:
+            raise ValueError("FM requires at least one saved task state")
         for state_path in states:
             self.adapter.load_state_dict(torch.load(state_path, map_location=self.device, weights_only=False)); row_i, row_p = [], []
+            before = _fingerprint(self.adapter.state_dict())
             for task_id in range(n):
                 loader = self._load(dataset.build_test_loader, task_id); scores, labels, maps, masks = [], [], [], []
                 for batch in loader:
@@ -71,9 +79,13 @@ class BenchmarkEngineV1:
                     maps.append(out["anomaly_maps"]); masks.append(batch["masks"])
                 from training.benchmark_metrics_v1 import image_auroc, pixel_aupr
                 row_i.append(image_auroc(scores, labels)); row_p.append(pixel_aupr(torch.cat(maps).numpy(), torch.cat(masks).numpy()))
+            if before != _fingerprint(self.adapter.state_dict()):
+                raise RuntimeError("adapter state mutated during forgetting evaluation")
             matrix_i.append(row_i); matrix_p.append(row_p)
         image = forgetting_matrix(matrix_i); pixel = forgetting_matrix(matrix_p)
-        result = {"matrix": matrix_i, "image": image, "pixel": pixel, "fm": image["fm"], "fm_p": pixel["fm"]}
+        result = {"matrix": matrix_i, "image": image, "pixel": pixel,
+                  "fm": image["fm"], "fm_p": pixel["fm"],
+                  "final_state_evaluated_after_training": True}
         self.artifacts.write_json("metrics/forgetting_matrix.json", {"image": matrix_i, "pixel": matrix_p})
         self.artifacts.write_json("metrics/forgetting_summary.json", result)
         return result
