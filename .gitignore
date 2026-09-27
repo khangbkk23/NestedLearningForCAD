@@ -19,7 +19,6 @@ data/
 datasets/
 *.tar.gz
 *.zip
-
 # Generated experiment artifacts
 checkpoints/
 logs/
