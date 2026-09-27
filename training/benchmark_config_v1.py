@@ -102,6 +102,7 @@ def validate_configs(protocol, method, smoke=False):
                 or memory.get("query_chunk_size", 256) < 1
                 or type(memory.get("pair_chunk_size", 256)) is not int
                 or memory.get("pair_chunk_size", 256) < 1
+                or memory.get("update_unit", "image") not in {"image", "loader_batch"}
                 or extractor["feature_dim"] != 768 or memory["dtype"] != "float32"
                 or type(method["scoring"]["image_neighbors_b"]) is not int
                 or method["scoring"]["image_neighbors_b"] < 2):

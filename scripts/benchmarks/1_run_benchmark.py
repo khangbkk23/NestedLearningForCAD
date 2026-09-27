@@ -72,8 +72,11 @@ def main():
         fm = json.loads((art.metrics/"forgetting_summary.json").read_text()
                         ) if (art.metrics/"forgetting_summary.json").is_file() else {}
         memory = adapter.memory_stats()
-        memory["checkpoint_bytes"] = sum(p.stat().st_size for p in art.states.glob("*.pt"))
-        memory["total_deployment_bytes"] = int(memory.get("continual_memory_bytes", memory.get("persistent_bytes", 0))) + int(memory.get("model_parameter_bytes", 0)) + int(memory.get("checkpoint_bytes", 0))
+        memory["benchmark_checkpoint_disk_bytes"] = sum(
+            p.stat().st_size for p in art.states.glob("*.pt")
+        )
+        # Historical task checkpoints are benchmark artifacts, not deployed
+        # state. Keep total_deployment_bytes from adapter.memory_stats().
         summary = {**macro, "fm_i": fm.get("fm"), "fm_p": fm.get("fm_p"), "method": method["id"], "protocol": protocol["id"], "memory": memory, "runtime": engine.times, "inference_fps": engine.times.get("inference_fps"), "reportable": runmeta.get("reportable", False), "smoke": runmeta.get("smoke", False)}
         art.write_json("profile/runtime.json", engine.times)
         art.write_json("profile/memory.json", memory)

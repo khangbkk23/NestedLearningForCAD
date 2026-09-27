@@ -13,11 +13,49 @@ from dataset.benchmark_manifest_v1 import build_training_manifest, manifest_dige
 from dataset.benchmark_protocol_v1 import MVTecContinualProtocol
 from models.fake_benchmark_adapter_v1 import FakeBenchmarkAdapter
 from models.cadic_patch_coreset_v1 import CADICPatchCoresetConfig, CADICPatchCoresetV1
+from models.cadic_paperfaithful import (
+    CADICPatchCoresetConfig as PaperCADICPatchCoresetConfig,
+    CADICPatchCoresetV1 as PaperCADICPatchCoresetV1,
+    CADICBenchmarkAdapterV1 as PaperCADICBenchmarkAdapterV1,
+    euclidean_distance_mm,
+)
 from training.benchmark_artifacts_v1 import BenchmarkArtifacts
 from training.benchmark_engine_v1 import BenchmarkEngineV1
 from training.benchmark_metrics_v1 import forgetting_matrix, pixel_aupr
 
 TASKS = ["bottle"]
+
+
+def _slow_cadic_update(features, budget, incoming):
+    """Reference equations (1)-(6) for small test tensors."""
+    x = incoming.clone().to(dtype=torch.float32)
+    accepted = replaced = rejected = 0
+    if features.shape[0] < budget:
+        take = min(budget - features.shape[0], x.shape[0])
+        if take:
+            features = torch.cat((features, x[:take]), dim=0)
+            accepted += take
+        x = x[take:]
+    while x.numel() and features.shape[0] >= budget:
+        distances = torch.cdist(x, features, p=2)
+        nearest, _ = distances.min(dim=1)
+        farthest_value, farthest_row = nearest.max(dim=0)
+        pair_value = torch.tensor(float("inf"), dtype=torch.float32)
+        pair = (features.shape[0], features.shape[0])
+        for i in range(features.shape[0]):
+            for j in range(i + 1, features.shape[0]):
+                value = torch.linalg.vector_norm(features[i] - features[j])
+                if value < pair_value or (value == pair_value and (i, j) < pair):
+                    pair_value, pair = value, (i, j)
+        if not bool(farthest_value > pair_value):
+            rejected += int(x.shape[0])
+            break
+        features[pair[0]] = x[farthest_row]
+        replaced += 1
+        keep = torch.ones(x.shape[0], dtype=torch.bool)
+        keep[farthest_row] = False
+        x = x[keep]
+    return features, {"accepted": accepted, "replaced": replaced, "rejected": rejected}
 
 def make_mvtec(root):
     train = root / "bottle" / "train" / "good"
@@ -153,6 +191,115 @@ def test_cadic_closest_pair_blockwise_matches_direct_and_nonzero_row():
     assert coreset.distance_profile()["pair_max_shape"] == [2, 2]
 
 
+def test_cadic_eq7_matrix_distance_matches_reference_random_ties_and_zeroes():
+    x = torch.tensor([[0.0, 0.0], [1.0, 2.0], [-3.0, 4.0]], dtype=torch.float32)
+    y = torch.tensor([[0.0, 0.0], [1.0, 0.0], [0.0, 2.0], [1.0, 2.0]], dtype=torch.float32)
+    actual = euclidean_distance_mm(x, y)
+    reference = torch.cdist(x, y, p=2)
+    assert actual.dtype == torch.float32
+    assert torch.allclose(actual, reference, atol=2e-5, rtol=2e-5)
+    assert torch.equal(actual.min(dim=1).indices, reference.min(dim=1).indices)
+
+    torch.manual_seed(7)
+    random_x = torch.randn(9, 5, dtype=torch.float32)
+    random_y = torch.randn(11, 5, dtype=torch.float32)
+    assert torch.allclose(
+        euclidean_distance_mm(random_x, random_y),
+        torch.cdist(random_x, random_y, p=2),
+        atol=3e-5,
+        rtol=3e-5,
+    )
+
+
+def test_cadic_eq7_chunk_invariance_and_duplicate_pair_tie():
+    bank = torch.tensor([[0.0, 0.0], [2.0, 0.0], [2.0, 0.0], [5.0, 0.0]])
+    query = torch.tensor([[1.0, 0.0], [4.0, 0.0], [0.0, 0.0]])
+    outputs = []
+    for chunk in (1, 2, 4):
+        c = PaperCADICPatchCoresetV1(
+            PaperCADICPatchCoresetConfig(
+                budget=4,
+                dim=2,
+                chunk_size=chunk,
+                query_chunk_size=chunk,
+                pair_chunk_size=chunk,
+            )
+        )
+        c.features = bank.clone()
+        outputs.append((c._nearest(query, bank), c._closest_pair()))
+    for values, pair in outputs[1:]:
+        assert torch.allclose(values[0], outputs[0][0][0])
+        assert torch.equal(values[1], outputs[0][0][1])
+        assert pair[1] == outputs[0][1][1] == 1
+        assert pair[0].item() == pytest.approx(outputs[0][1][0].item())
+
+
+class _RecordingCoreset:
+    def __init__(self, real):
+        self.real = real
+        self.calls = []
+        self.count = 0
+        self.config = real.config
+
+    def update(self, patches):
+        self.calls.append(patches.detach().clone())
+        result = self.real.update(patches)
+        self.count = self.real.count
+        return result
+
+    def stats(self):
+        return self.real.stats()
+
+
+class _FixedExtractor:
+    def __init__(self, patches):
+        self.patches = patches
+
+    def extract_patch_features(self, images):
+        return self.patches.to(images.device)
+
+    def protocol_metadata(self):
+        return {}
+
+
+def _adapter_for_update_unit(mode, patches):
+    adapter = object.__new__(PaperCADICBenchmarkAdapterV1)
+    adapter.device = torch.device("cpu")
+    adapter.config = {"runtime": {"batch_size": 2}, "extractor": {}}
+    real = PaperCADICPatchCoresetV1(
+        PaperCADICPatchCoresetConfig(
+            budget=3, dim=1, chunk_size=3, query_chunk_size=3, pair_chunk_size=3
+        )
+    )
+    adapter.coreset = _RecordingCoreset(real)
+    adapter.extractor = _FixedExtractor(patches)
+    adapter.update_unit = mode
+    adapter.timings = {"feature_seconds": 0.0, "update_seconds": 0.0, "score_seconds": 0.0}
+    return adapter
+
+
+def test_cadic_update_unit_is_explicit_and_changes_candidate_grouping():
+    patches = torch.tensor(
+        [[[0.0], [15.0], [19.0], [7.0], [9.0]],
+         [[-3.0], [-8.0], [-12.0], [7.0], [14.0]]]
+    )
+    batch = [{"images": torch.zeros(2, 3, 1, 1)}]
+    image_adapter = _adapter_for_update_unit("image", patches)
+    batch_adapter = _adapter_for_update_unit("loader_batch", patches)
+    image_result = image_adapter.fit_task(0, "x", batch)
+    batch_result = batch_adapter.fit_task(0, "x", batch)
+
+    assert len(image_adapter.coreset.calls) == 2
+    assert [tuple(x.shape) for x in image_adapter.coreset.calls] == [(5, 1), (5, 1)]
+    assert len(batch_adapter.coreset.calls) == 1
+    assert tuple(batch_adapter.coreset.calls[0].shape) == (2, 5, 1)
+    assert image_adapter.coreset.real.features[:, 0].tolist() != batch_adapter.coreset.real.features[:, 0].tolist()
+    assert image_result["update_unit"] == "image"
+    assert batch_result["update_unit"] == "loader_batch"
+    assert image_adapter.method_metadata()["update_unit"] == "image"
+    assert batch_adapter.method_metadata()["update_unit"] == "loader_batch"
+
+
 def test_cadic_nearest_two_dimensional_chunking_matches_direct_and_ties():
     bank = torch.tensor([
         [0.0, 0.0],
@@ -237,6 +384,47 @@ def test_cadic_load_state_is_clone_independent():
     target.features[0, 0] = 999.0
 
     assert state["features"][0, 0].item() == 1.0
+
+
+def test_cadic_optimized_updates_match_slow_equation_reference():
+    streams = [
+        torch.tensor([[0.0], [1.0], [2.0], [10.0], [11.0], [20.0]]),
+        torch.tensor([[0.0], [0.0], [4.0], [4.0], [8.0], [1.0], [9.0]]),
+        torch.tensor([[3.0, 1.0], [2.0, 8.0], [9.0, 2.0], [0.0, 0.0], [4.0, 4.0]]),
+    ]
+    for stream in streams:
+        budget = 3
+        optimized = PaperCADICPatchCoresetV1(
+            PaperCADICPatchCoresetConfig(
+                budget=budget,
+                dim=stream.shape[1],
+                chunk_size=2,
+                query_chunk_size=2,
+                pair_chunk_size=2,
+            )
+        )
+        reference = torch.empty((0, stream.shape[1]), dtype=torch.float32)
+        for start in range(0, stream.shape[0], 2):
+            group = stream[start : start + 2]
+            result = optimized.update(group)
+            reference, expected = _slow_cadic_update(reference, budget, group)
+            assert torch.equal(optimized.features, reference)
+            assert optimized.count == reference.shape[0]
+            assert result["accepted"] == expected["accepted"]
+            assert result["replaced"] == expected["replaced"]
+            assert result["rejected"] == expected["rejected"]
+            assert optimized.seen_features == min(stream[: start + 2].shape[0], stream.shape[0])
+
+
+def test_cadic_memory_accounting_excludes_historical_checkpoints():
+    adapter = object.__new__(PaperCADICBenchmarkAdapterV1)
+    adapter.coreset = PaperCADICPatchCoresetV1(PaperCADICPatchCoresetConfig(budget=2, dim=2))
+    adapter.coreset.update(torch.ones(2, 2))
+    adapter.extractor = torch.nn.Linear(2, 2)
+    memory = adapter.memory_stats()
+    assert memory["benchmark_checkpoint_disk_bytes"] is None
+    assert memory["total_deployment_bytes"] == memory["current_state_bytes"]
+    assert memory["total_deployment_bytes"] < memory["current_state_bytes"] + 10_000_000
 
 
 def test_cadic_forgetting_uses_historical_maximum_and_separate_metrics():
