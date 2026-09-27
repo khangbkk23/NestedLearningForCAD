@@ -13,7 +13,7 @@ __pycache__/
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
-
+tmp/
 # Dataset archives and local data
 data/
 datasets/

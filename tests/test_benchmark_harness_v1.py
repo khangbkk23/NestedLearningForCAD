@@ -12,12 +12,13 @@ import torch
 from dataset.benchmark_manifest_v1 import build_training_manifest, manifest_digest
 from dataset.benchmark_protocol_v1 import MVTecContinualProtocol
 from models.fake_benchmark_adapter_v1 import FakeBenchmarkAdapter
-from models.cadic_patch_coreset_v1 import (
-    CADICPatchCoresetConfig,
-    CADICPatchCoresetV1,
+from models.cadic_patch_coreset_v1 import CADICPatchCoresetConfig, CADICPatchCoresetV1
+from models.cadic_paperfaithful import (
+    CADICPatchCoresetConfig as PaperCADICPatchCoresetConfig,
+    CADICPatchCoresetV1 as PaperCADICPatchCoresetV1,
+    CADICBenchmarkAdapterV1 as PaperCADICBenchmarkAdapterV1,
     euclidean_distance_mm,
 )
-from models.cadic_benchmark_adapter_v1 import CADICBenchmarkAdapterV1
 from training.benchmark_artifacts_v1 import BenchmarkArtifacts
 from training.benchmark_engine_v1 import BenchmarkEngineV1
 from training.benchmark_metrics_v1 import forgetting_matrix, pixel_aupr
@@ -215,8 +216,8 @@ def test_cadic_eq7_chunk_invariance_and_duplicate_pair_tie():
     query = torch.tensor([[1.0, 0.0], [4.0, 0.0], [0.0, 0.0]])
     outputs = []
     for chunk in (1, 2, 4):
-        c = CADICPatchCoresetV1(
-            CADICPatchCoresetConfig(
+        c = PaperCADICPatchCoresetV1(
+            PaperCADICPatchCoresetConfig(
                 budget=4,
                 dim=2,
                 chunk_size=chunk,
@@ -262,11 +263,11 @@ class _FixedExtractor:
 
 
 def _adapter_for_update_unit(mode, patches):
-    adapter = object.__new__(CADICBenchmarkAdapterV1)
+    adapter = object.__new__(PaperCADICBenchmarkAdapterV1)
     adapter.device = torch.device("cpu")
     adapter.config = {"runtime": {"batch_size": 2}, "extractor": {}}
-    real = CADICPatchCoresetV1(
-        CADICPatchCoresetConfig(
+    real = PaperCADICPatchCoresetV1(
+        PaperCADICPatchCoresetConfig(
             budget=3, dim=1, chunk_size=3, query_chunk_size=3, pair_chunk_size=3
         )
     )
@@ -393,8 +394,8 @@ def test_cadic_optimized_updates_match_slow_equation_reference():
     ]
     for stream in streams:
         budget = 3
-        optimized = CADICPatchCoresetV1(
-            CADICPatchCoresetConfig(
+        optimized = PaperCADICPatchCoresetV1(
+            PaperCADICPatchCoresetConfig(
                 budget=budget,
                 dim=stream.shape[1],
                 chunk_size=2,
@@ -416,8 +417,8 @@ def test_cadic_optimized_updates_match_slow_equation_reference():
 
 
 def test_cadic_memory_accounting_excludes_historical_checkpoints():
-    adapter = object.__new__(CADICBenchmarkAdapterV1)
-    adapter.coreset = CADICPatchCoresetV1(CADICPatchCoresetConfig(budget=2, dim=2))
+    adapter = object.__new__(PaperCADICBenchmarkAdapterV1)
+    adapter.coreset = PaperCADICPatchCoresetV1(PaperCADICPatchCoresetConfig(budget=2, dim=2))
     adapter.coreset.update(torch.ones(2, 2))
     adapter.extractor = torch.nn.Linear(2, 2)
     memory = adapter.memory_stats()
