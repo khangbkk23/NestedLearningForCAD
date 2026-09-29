@@ -1,6 +1,6 @@
 # HOPE-CAD v1 architecture decision (revised Task 1)
 
-**Decision: PASS.** The accepted direction remains `frozen ViT-B/8 → Self-Modifying Titans → CMS → HOPE representation → anomaly head`. No implementation is included here.
+**Decision: PASS.** The accepted direction remains `frozen ViT-B/8 → Self-Modifying Titans → CMS → HOPE representation → anomaly head`. The standalone SMT, generic CMS, and SMT-to-CMS HOPE wrapper are implemented; anomaly scoring remains deferred.
 
 ## Complete forward path
 
@@ -10,17 +10,17 @@ HOPE output is the scoring representation. Raw backbone patches are never used a
 
 ## State persistence and official evaluation
 
-All persistent `M_k,M_v,M_q,M_eta,M_alpha,M_memory`, Titans momentum/optimizer state, CMS parameters/optimizer state, CMS scheduler counters, and the Head-A reference state continue across all 15 MVTec tasks with **no task-boundary reset**. Only a new independent run/seed/replicate resets to initial state. For test image `i`, deep-clone the entire persistent state into `S_work_i`; primary Head B may run the 784 patches causally with Titans updates in the clone; keep CMS frozen for that image; score; discard the clone. Persistent state, reference state, counters, and relevant RNG remain unchanged, so test ordering cannot matter. Persistent state, reference bank, counters, and relevant RNG remain unchanged, so test ordering cannot matter.
+All persistent linear `M_k,M_v,M_q,M_eta,M_alpha,M_memory` states, CMS current level buffers, detached gradient accumulators, CMS counters, and the Head-A reference state continue across all 15 MVTec tasks with **no task-boundary reset**. The canonical Eq. 90–93 SMT path has no extra momentum buffer; CMS v1 uses no optimizer object or momentum slots. Only a new independent run/seed/replicate resets to static initialization. For test image `i`, deep-clone the entire persistent state into `S_work_i`; primary Head B may run the 784 patches causally with Titans updates in the clone; keep CMS frozen for that image; score; discard the clone. Persistent state, reference state, counters, and relevant RNG remain unchanged, so test ordering cannot matter.
 
 CMS is frozen during evaluation because its v1 clock is completed normal-image events. This is a deliberate CAD adaptation that prevents test images from creating continual knowledge and preserves strict official-test isolation while still allowing the paper-faithful fast memory to produce a per-image working trajectory.
 
 ## Clocks
 
-Titans uses patch chunks. The implementation contract must expose `memory_chunk_size` and `auxiliary_memory_chunk_size` separately. Auxiliary means applicable `M_k,M_v,M_q,M_eta,M_alpha`; v1 may set both to 16 as an explicit experimental hypothesis. CMS uses image events: level 1 updates after every 1 normal training image; level 2 after every 8. Thus updates/image are approximately 1 and 0.125; for a task with `N` good images they are `N` and `floor(N/8)`. These are **EXPERIMENTAL-HYPOTHESIS**, intentionally separated from the approximately 49 Titans chunk transitions per image.
+Titans uses patch chunks. The implementation contract exposes `memory_chunk_size` and `auxiliary_memory_chunk_size` separately. Auxiliary means `M_k,M_v,M_eta,M_alpha` and optional `M_q`; each control is a scalar output. Each stream contains every token exactly once and flushes its shorter remainder. At coincident boundaries, all candidates are prepared from pre-boundary states before committing updates. This independent pending-stream behavior is a **PROJECT-MAPPING** for unequal clocks. CMS uses generic `update_periods`, with one completed normal image as one project-defined event. Period `p` commits after events `p,2p,...`; no event-0 update and no partial-period flush. The initial `[1,8]` mapping therefore gives approximately 1 and 0.125 updates/image.
 
 ## CMS objective boundary
 
-Titans has the paper-grounded associative L2 objective and surprise/retention update. CMS Eq. 71 allows an objective of choice. `models/hope_cad/continuum_memory_v1.py` must expose a generic objective/update interface and cannot bake in anomaly loss, NN distance, or the Titans L2 loss. The CAD self-supervised CMS objective remains open for a later task if the papers do not justify one.
+Titans has the paper-grounded associative L2 objective and surprise/retention update. CMS Eq. 71 allows an objective of choice. `ContinuumMemorySystem.commit_image` accepts one objective callable per level with `(level_index, level_input, level_output, metadata)` and performs local detached gradient accumulation. It cannot bake in anomaly loss, NN distance, or the Titans L2 loss. The CAD self-supervised CMS objective remains open for a later task if the papers do not justify one.
 
 ## Primary and secondary anomaly heads
 
@@ -32,22 +32,32 @@ Canonical `C0-CADIC` remains the existing CADIC-compatible patch memory with its
 
 ## Paper ambiguity and spatial operator
 
-Eq. 79/83–88 show adaptive `M_q`, but nearby prose calls `q_t=x_tW_q` the only non-adaptive projection. The source is internally inconsistent. v1 chooses adaptive `M_q` as a **PAPER-INFERRED** interpretation of the explicit equations, with a fixed `W_q` base/initial projection and an implementation flag for the alternative. The paper's local convolution window 4 is used as its **PAPER-DEFINED** 1D raster operator. The row-boundary adjacency `(0,27)→(1,0)` is documented; a 2D equivalent is deferred as a labeled CAD adaptation/ablation.
+The canonical self-modifying path uses fixed `q=W_q(x)` with `adaptive_q=False`. Eq. 79–82 show a preceding fully adaptive variant containing `M_q`; Eq. 83 writes `q_t=x_tW_q` as the only non-adaptive projection, while Eq. 85 still includes `q` in the optimized-memory set. `adaptive_q=True` remains an explicit **PAPER-INFERRED** alternative caused by that ambiguity. The paper's local convolution window 4 is used as its **PAPER-DEFINED** 1D raster operator. The row-boundary adjacency `(0,27)→(1,0)` is documented; a 2D equivalent is deferred as a labeled CAD adaptation/ablation.
+
+Eq. 88 presents `alpha_t I-eta_t k_t k_t^T` while allowing arbitrary memory architectures and then instantiating the residual MLP in Eq. 89; Eq. 93 derives the rank-one form specifically for a linear memory. The canonical implementation therefore uses the fully derived linear path and defers residual MLP fast memories. Scalar `eta`/`alpha` outputs, sigmoid control postprocessors, same-length zero padding, Xavier initialization, and asynchronous unequal-clock handling are explicit **PROJECT-MAPPINGS** where the source is silent.
 
 ## Versioned implementation contract
 
 Future modules are named exactly:
 
-- `models/hope_cad/self_modifying_titans_v1.py`
-- `models/hope_cad/continuum_memory_v1.py`
-- `models/hope_cad/hope_block_v1.py`
-- `models/hope_cad/state_v1.py`
+- `models/hope_cad/self_modifying_titans.py`
+- `models/hope_cad/continuum_memory.py`
+- `models/hope_cad/hope_block.py`
+- `models/hope_cad/state.py`
 
 The adapter will implement `fit_task`, `score_batch`, `state_dict`, `load_state_dict`, `memory_stats`, and `method_metadata` without changing the benchmark protocol.
+
+## CMS core state contract
+
+The current CMS implementation is generic over `K`, `dim`, `hidden_dim`, `update_periods`, and `learning_rates`. Every level owns static initialization parameters, current mutable buffers, same-shaped gradient/error accumulators, `pending_count`, and `update_count`; the module owns `completed_events`. `forward` is strictly read-only. `commit_image` requires `B=1`, computes all level inputs/outputs from pre-event states, validates every objective and gradient before any persistent mutation, then commits due levels in ascending index order. `commit_batch` is transport over ordered singleton events. `reset_state` copies static initialization into current buffers, clears accumulators/counters, and does not draw random values. Incomplete periods remain serialized. CMS test clones are isolated and reject mutation. These exact level geometry, optimizer, image-clock, local-detachment, no-flush, and test-freeze choices are **PROJECT-MAPPING**; no Eq.72/73/74 behavior is implemented.
 
 ## Historical paths rejected
 
 `meta_nath_core.py` scores raw backbone patches; `titans_memory.py` is a single CLS matrix with `k=v`, no self-modifying MLP memories, no paper chunked deep memory, and no HOPE composition; `acc_gating.py` is a heuristic gate rather than a learning level; `cadic_coreset.py` is an image-entry/N2B-NC historical memory rather than the isolated patch control; historical trainers/consolidation/NSP2/CBP/Phase 3 are not HOPE/CMS.
+
+## HOPE composition contract
+
+`models/hope_cad/hope_block.py` is a thin composition layer over the locked child systems. Its read-only path is exactly `smt.forward(x, update=False) → memory_prediction → cms.forward`, with no raw-token, projection, residual, surprise, or anomaly bypass. A normal-image `commit_image` performs one SMT update pass and one CMS image event, passes the exact causal SMT output to CMS, and atomically restores both children from mutable-state snapshots if any operation fails. `commit_batch` processes images in order. `evaluate_image` deep-clones the full wrapper, allows SMT to evolve in the private clone, keeps CMS read-only, returns the clone's CMS output, and discards the clone. `reset_state` delegates once to each child; native nested `state_dict` continuation includes both children and wrapper schema metadata. The wrapper adds no online tensor state. These transaction and evaluation-isolation choices are **PROJECT-MAPPING** decisions made for CAD test isolation; the SMT→CMS ordering and final CMS output are the paper-grounded HOPE path.
 
 ## Falsification matrix
 
