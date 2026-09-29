@@ -33,6 +33,7 @@ class HOPECommitResult:
     update_counts: tuple[int, ...]
     eta: torch.Tensor
     alpha: torch.Tensor
+    cms_level_outputs: tuple[torch.Tensor, ...]
 
 
 class HopeBlock(nn.Module):
@@ -209,6 +210,7 @@ class HopeBlock(nn.Module):
         try:
             smt_result = self.smt.forward(x, update=True)
             representation = self._representation(smt_result, x.shape)
+            cms_inspection = self.cms.inspect(representation)
             cms_result = self.cms.commit_image(representation, objectives, metadata)
             output = cms_result.output
             if output.shape != x.shape or not torch.isfinite(output).all().item():
@@ -223,6 +225,7 @@ class HopeBlock(nn.Module):
                 update_counts=cms_result.update_counts,
                 eta=smt_result.eta.detach(),
                 alpha=smt_result.alpha.detach(),
+                cms_level_outputs=tuple(value.detach() for value in cms_inspection.level_outputs),
             )
         except Exception:
             self._restore_online_state(before)

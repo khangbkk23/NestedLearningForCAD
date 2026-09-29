@@ -28,6 +28,15 @@ class CMSCommitResult:
     pending_counts: tuple[int, ...]
     update_counts: tuple[int, ...]
 
+
+@dataclass(frozen=True)
+class CMSInspection:
+    """Detached pre-event level outputs for diagnostics."""
+
+    input: torch.Tensor
+    level_outputs: tuple[torch.Tensor, ...]
+    output: torch.Tensor
+
 class _CMSLevel(nn.Module):
     """Residual two-layer MLP with slow initial parameters and fast buffers."""
     def __init__(self, dim: int, hidden_dim: int) -> None:
@@ -160,6 +169,18 @@ class ContinuumMemorySystem(nn.Module):
         """Compute the representation without mutating any persistent state."""
         self._validate_input(x)
         return self._read_chain(x)[-1]
+
+    @torch.no_grad()
+    def inspect(self, x: torch.Tensor) -> CMSInspection:
+        """Return detached pre-event level outputs without changing state."""
+        self._validate_input(x)
+        chain = self._read_chain(x)
+        detached = tuple(value.detach().clone() for value in chain)
+        return CMSInspection(
+            input=detached[0],
+            level_outputs=detached[1:],
+            output=detached[-1],
+        )
 
     def commit_image(self, x: torch.Tensor, objectives: Sequence[Objective],metadata: Mapping[str, Any] | None = None) -> CMSCommitResult:
         if self._evaluation_frozen:
