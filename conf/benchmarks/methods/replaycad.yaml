@@ -1,0 +1,33 @@
+method_id: replaycad
+id: replaycad
+version: 1
+execution_mode: native
+replaycad_root: ${REPLAYCAD_ROOT}
+cache_root: ${REPLAYCAD_CACHE_ROOT}
+detector_python: ${REPLAYCAD_DETECTOR_PYTHON}
+ldm_python: ${REPLAYCAD_LDM_PYTHON}
+dataset_root: ${MVTEC_ROOT}
+paths:
+  textual_inversion: textual_inversion-main
+  condition_main: textual_inversion-main/main.py
+  generation_script: textual_inversion-main/scripts/txt2img_with_mask.py
+  generation_config: textual_inversion-main/configs/latent-diffusion/generate_with_mask.yaml
+  sam_root: ${REPLAYCAD_SAM_ROOT}
+  ldm_checkpoint: textual_inversion-main/models/model.ckpt
+  stable_diffusion_checkpoint: textual_inversion-main/models/ldm/stable-diffusion-v1/model.ckpt
+  invad_config: configs/invad/invad_mvtec.py
+  invad_assets: model/pretrain
+preprocessing: {image_size: 256, source: ReplayCAD/InvAD author config, mask_resize: author_evaluator}
+detector: {config: configs/invad/invad_mvtec.py, final_epoch: 200, batch_size: 32, gpus: 1, pretrained_encoder: true}
+replay_generation:
+  n_samples: 8
+  n_iter: 25
+  configured_samples_per_class: 800
+  count_policy: record_actual
+  per_class_n_iter: {screw: 100, metal_nut: 100, transistor: 100, grid: 100, bottle: 25, cable: 50, capsule: 25, carpet: 25, hazelnut: 25, leather: 25, pill: 25, tile: 25, toothbrush: 25, wood: 25}
+condition_learning: {seed: 0, max_steps: 20000, checkpoint_steps: {}, expected_checkpoint_policy: author_script_exact}
+seed: 0
+requested_gpus: 1
+selected_classes: all
+assets: {sam_masks: required, ldm_checkpoint: required, detector_encoder: required}
+reported_reference: {source: ReplayCAD paper, image_auroc: 0.948, pixel_aupr: 0.537, image_fm: 0.045, pixel_fm: 0.055}

@@ -1,8 +1,11 @@
 # scripts/benchmarks/2_compare_benchmarks.py
-"""Read-only comparison table; never ranks or selects a run."""
+"""Backward-compatible comparison wrapper."""
 import argparse
 import json
 from pathlib import Path
+import sys
+ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT))
 
 def main():
     p = argparse.ArgumentParser()
@@ -10,6 +13,10 @@ def main():
     p.add_argument("--output", required=True)
     p.add_argument("--allow-protocol-mismatch", action="store_true")
     a = p.parse_args()
+    # New normalized artifacts are handled by compare.py; retain this old CLI.
+    if any((Path(x)/"normalized_metrics"/"final_macro.json").is_file() for x in a.runs):
+        from scripts.benchmarks.compare import main as new_main
+        return new_main([arg for x in a.runs for arg in ("--run", x)] + ["--output", a.output] + (["--allow-protocol-mismatch"] if a.allow_protocol_mismatch else []))
     records = []
     protocols = set()
     protocol_hashes = set()

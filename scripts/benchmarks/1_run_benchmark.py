@@ -1,4 +1,4 @@
-"""Run prepared benchmark phases with a hard train/evaluation barrier."""
+"""Backward-compatible CADIC runner; method-specific logic remains unchanged."""
 import argparse
 import json
 import sys
@@ -14,6 +14,7 @@ from training.benchmark_engine_v1 import BenchmarkEngineV1
 from training.benchmark_artifacts_v1 import BenchmarkArtifacts
 from dataset.benchmark_protocol_v1 import MVTecContinualProtocol
 from dataset.benchmark_manifest_v1 import validate_manifest
+from scripts.benchmarks.common.artifacts import atomic_json
 
 def args():
     p = argparse.ArgumentParser()
@@ -26,6 +27,7 @@ def args():
     p.add_argument("--max-train-images", type=int)
     p.add_argument("--num-workers", type=int, default=0)
     p.add_argument("--fail-on-state-mutation", action="store_true")
+    p.add_argument("--dry-run", action="store_true")
     return p.parse_args()
 
 def main():
@@ -35,6 +37,9 @@ def main():
     method = yaml.safe_load((run/"method_resolved.yaml").read_text())
     manifest = json.loads((run/"manifest_train.json").read_text())
     runmeta = json.loads((run/"run.json").read_text())
+    if a.dry_run:
+        print(json.dumps({"run_dir": str(run), "phase": a.phase, "device": a.device, "tasks": a.max_tasks, "resume": a.resume}, indent=2))
+        return
     if (a.max_tasks or a.max_train_images) and runmeta.get("reportable", False):
         raise SystemExit("smoke caps are forbidden for reportable runs")
     validate_manifest(manifest, protocol, int(runmeta["seed"]))
@@ -81,6 +86,22 @@ def main():
         art.write_json("profile/runtime.json", engine.times)
         art.write_json("profile/memory.json", memory)
         art.summarize(summary)
+    # New symmetric result contract; legacy metrics and checkpoints are kept.
+    _write_normalized(run, art, protocol, method, runmeta)
+
+def _write_normalized(run, art, protocol, method, runmeta):
+    macro = json.loads((art.metrics/"final_macro.json").read_text()) if (art.metrics/"final_macro.json").is_file() else {}
+    per = json.loads((art.metrics/"final_per_task.json").read_text()) if (art.metrics/"final_per_task.json").is_file() else {}
+    records={}
+    for name in ("i_auroc","p_aupr","i_ap","p_auroc"):
+        value=macro.get(name)
+        records[name]={"metric":name,"value":None if value is None else value,"availability":value is not None and value == value,"reason":None if value is not None and value == value else "not_available","source":"reproduced"}
+    atomic_json(run/"normalized_metrics"/"final_macro.json",{"schema":"normalized_metrics_v1","source":"reproduced","metrics":records,"task_count":macro.get("task_count")})
+    atomic_json(run/"normalized_metrics"/"final_per_task.json",{"schema":"normalized_metrics_v1","source":"reproduced","per_task":per})
+    fm=json.loads((art.metrics/"forgetting_summary.json").read_text()) if (art.metrics/"forgetting_summary.json").is_file() else {"fm":None,"fm_p":None}
+    atomic_json(run/"normalized_metrics"/"forgetting.json",{"availability":fm.get("fm") is not None,"fm_i":fm.get("fm"),"fm_p":fm.get("fm_p"),"reason":None if fm.get("fm") is not None else "not_computed"})
+    matrix=json.loads((art.metrics/"continual_matrix.json").read_text()) if (art.metrics/"continual_matrix.json").is_file() else None
+    atomic_json(run/"normalized_metrics"/"continual_matrix.json",matrix or {"matrix_available":False,"reason":"legacy_result_did_not_emit_matrix"})
 
 if __name__ == "__main__":
     main()

@@ -1,5 +1,5 @@
 # scripts/benchmarks/0_setup_benchmark.py
-"""Resolve configs and create an immutable, train-only manifest."""
+"""Backward-compatible CADIC setup wrapper."""
 import argparse
 import json
 import os
@@ -25,6 +25,7 @@ def args():
     p.add_argument("--run-name")
     p.add_argument("--require-clean-git", action="store_true")
     p.add_argument("--smoke", action="store_true")
+    p.add_argument("--dry-run", action="store_true")
     return p.parse_args()
 
 def main():
