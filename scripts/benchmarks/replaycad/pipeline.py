@@ -82,8 +82,11 @@ def command_plan(method, selected, run_dir, *, smoke=False, condition_max_steps=
     for cls in selected:
         steps = condition_max_steps if smoke and condition_max_steps else method.get("condition_learning", {}).get("max_steps", 20000)
         config_name="add_mask.yaml" if cls in {"screw","metal_nut","hazelnut"} else ("add_mask_3_direction.yaml" if cls=="grid" else "add_mask_no_flip.yaml")
-        commands.append({"stage":"conditions", "class":cls, "argv":[str(ldm_py), "textual_inversion-main/main.py", "--base", f"textual_inversion-main/configs/latent-diffusion/{config_name}", "-t", "--actual_resume", "textual_inversion-main/models/model.ckpt", "-n", "LD_mvtec_addmask", "--gpus", "0", "--data_root", f"data/mvtec_generate/{cls}", "--init_word", "screw", "--max_steps", str(steps), "--logdir", str(conditions/cls/"logs")], "cwd":str(workspace), "output":str(conditions/cls)})
-        gen=method.get("replay_generation",{}); niter=gen.get("per_class_n_iter",{}).get(cls,gen.get("n_iter",25))
+        # The author parser calls ``.strip()`` on this option, so a bare
+        # numeric ``0`` is parsed as an int and fails before training.  A
+        # trailing comma preserves the author's one-GPU string form.
+        commands.append({"stage":"conditions", "class":cls, "argv":[str(ldm_py), "textual_inversion-main/main.py", "--base", f"textual_inversion-main/configs/latent-diffusion/{config_name}", "-t", "--actual_resume", "textual_inversion-main/models/model.ckpt", "-n", "LD_mvtec_addmask", "--gpus", "0,", "--data_root", f"data/mvtec_generate/{cls}", "--init_word", "screw", "--max_steps", str(steps), "--logdir", str(conditions/cls/"logs")], "cwd":str(workspace), "output":str(conditions/cls)})
+        gen=method.get("replay_generation",{}); niter=1 if smoke else gen.get("per_class_n_iter",{}).get(cls,gen.get("n_iter",25))
         commands.append({"stage":"generate", "class":cls, "argv":[str(ldm_py), "textual_inversion-main/scripts/txt2img_with_mask.py", "--n_samples", str(generation_max_samples or gen.get("n_samples",8)), "--n_iter", str(niter)], "cwd":str(workspace), "output":str(generated/cls)})
     commands.append({"stage":"detector", "argv":[str(detector_py), "run.py", "-c", "configs/invad/invad_mvtec.py", "-m", "train", "data.meta", "replay_meta.json"], "cwd":str(workspace)})
     return commands
@@ -91,13 +94,26 @@ def command_plan(method, selected, run_dir, *, smoke=False, condition_max_steps=
 def prepare_workspace(run_dir, root, dataset, sam_root, selected):
     """Create only cache-owned symlinks; canonical MVTec and author trees stay read-only."""
     ws=Path(run_dir)/"replay"/"workspace"; ws.mkdir(parents=True,exist_ok=True)
-    for name, target in (("textual_inversion-main",Path(root)/"textual_inversion-main"),("run.py",Path(root)/"run.py"),("configs",Path(root)/"configs"),("model",Path(root)/"model"),("trainer",Path(root)/"trainer"),("data_src",Path(root)/"data")):
+    # Keep the author package tree importable from its expected cwd while
+    # retaining a workspace-owned ``data`` directory for canonical dataset
+    # links and generated replay metadata.
+    for name, target in (("textual_inversion-main",Path(root)/"textual_inversion-main"),("run.py",Path(root)/"run.py"),("configs",Path(root)/"configs"),("model",Path(root)/"model"),("trainer",Path(root)/"trainer"),("loss",Path(root)/"loss"),("optim",Path(root)/"optim"),("util",Path(root)/"util"),("data_src",Path(root)/"data")):
         link=ws/name
         if not link.exists() and target.exists(): link.symlink_to(target, target_is_directory=target.is_dir())
     if sam_root:
         link=ws/"SAM"
         if not link.exists() and Path(sam_root).exists(): link.symlink_to(Path(sam_root), target_is_directory=True)
     data=ws/"data"/"mvtec_generate"; data.mkdir(parents=True,exist_ok=True)
+    # ``run.py`` imports the author's data registry from a package named
+    # ``data``.  Keep that package in the workspace alongside the benchmark
+    # dataset view so its relative imports and metadata paths resolve without
+    # copying or editing author files.
+    data_pkg=ws/"data"
+    source_pkg=Path(root)/"data"
+    if source_pkg.is_dir():
+        for source in source_pkg.glob("*.py"):
+            link=data_pkg/source.name
+            if not link.exists(): link.symlink_to(source)
     for cls in selected:
         target=data/cls
         source=Path(dataset)/cls/"train"/"good"
@@ -114,7 +130,15 @@ def metadata(run_dir, dataset_root, selected, generated_root):
         class_link=mv/cls
         if not class_link.exists() and (dataset_root/cls).is_dir(): class_link.symlink_to((dataset_root/cls).resolve(), target_is_directory=True)
         train=[]; gen=generated_root/cls
-        for p in sorted(gen.glob("*.png")):
+        # The released MVTec generator writes JPEGs (and paired *_mask.jpg
+        # files), while some configurations write PNGs.  Treat only the
+        # image member of each pair as a replay training sample.
+        generated_images = sorted(
+            p for p in gen.iterdir() if p.is_file()
+            and p.suffix.lower() in {".png", ".jpg", ".jpeg"}
+            and not p.stem.endswith("_mask")
+        ) if gen.is_dir() else []
+        for p in generated_images:
             target=mv/"generate"/cls/"samples"; target.mkdir(parents=True,exist_ok=True); link=target/p.name
             if not link.exists(): link.symlink_to(p.resolve())
             train.append({"img_path":link.relative_to(mv).as_posix(),"mask_path":"","cls_name":cls,"specie_name":"generated","anomaly":0})

@@ -17,7 +17,26 @@ def args(argv=None):
     p=argparse.ArgumentParser(); p.add_argument("--run-dir",required=True); p.add_argument("--stage",choices=["preflight","conditions","generate","metadata","detector","evaluate","normalize","all"],default="all"); p.add_argument("--device",default="cuda"); p.add_argument("--resume",action="store_true"); p.add_argument("--tasks"); p.add_argument("--dry-run",action="store_true"); p.add_argument("--smoke",action="store_true"); p.add_argument("--condition-max-steps",type=int); p.add_argument("--generation-max-samples",type=int); p.add_argument("--detector-max-epochs",type=int); p.add_argument("--execution-mode",choices=["native","continual_boundaries"]); return p.parse_args(argv)
 
 def load_run(run):
-    run=Path(run); meta=read_json(run/"run.json",{}); protocol=load_yaml(run/"protocol_resolved.yaml"); method=load_yaml(run/"method_resolved.yaml"); return run,meta,protocol,method
+    run=Path(run).expanduser().resolve(); meta=read_json(run/"run.json",{}); protocol=load_yaml(run/"protocol_resolved.yaml"); method=load_yaml(run/"method_resolved.yaml"); return run,meta,protocol,method
+
+def detector_child_env(exe):
+    """Environment needed by author-side CUDA extensions, without source edits."""
+    exe=Path(exe)
+    nvidia_root=next(iter((exe.parent.parent/"lib").glob("python*/site-packages/nvidia")), None)
+    cuda_include=[str(exe.parent.parent/"include")]
+    cuda_lib=[str(exe.parent.parent/"lib")]
+    if nvidia_root:
+        cuda_include.extend(str(p) for p in sorted(nvidia_root.glob("*/include")))
+        cuda_lib.extend(str(p) for p in sorted(nvidia_root.glob("*/lib")))
+    return {
+        "PATH":str(exe.parent)+os.pathsep+os.environ.get("PATH",""),
+        "CUDA_HOME":str(exe.parent.parent),
+        "CUDA_PATH":str(exe.parent.parent),
+        "CUDACXX":str(exe.parent/"nvcc"),
+        "CPATH":os.pathsep.join(cuda_include)+os.pathsep+os.environ.get("CPATH",""),
+        "LIBRARY_PATH":os.pathsep.join(cuda_lib)+os.pathsep+os.environ.get("LIBRARY_PATH",""),
+        "LD_LIBRARY_PATH":os.pathsep.join(cuda_lib)+os.pathsep+os.environ.get("LD_LIBRARY_PATH","") ,
+    }
 
 def ensure_preflight(run, protocol, method, selected):
     statuses,paths=preflight(method,protocol,project_root=ROOT,run_dir=run,selected=selected); atomic_json(run/"preflight.json",{"statuses":statuses,"paths":paths}); return statuses,paths
@@ -41,9 +60,14 @@ def run_conditions(run, method, selected, *, paths, a, commands):
         # Upstream main writes relative logs; use a class-owned working directory and
         # an explicit data root. No upstream source is copied or modified.
         argv=_condition_command(cmd,cls,run,paths,a.smoke,a.condition_max_steps)
+        command_error = None
         try: run_command(argv,cwd=cmd["cwd"],log_path=target/"condition.log")
-        except CommandError:
-            atomic_json(target/"status.json",{"status":"failed","reason":"condition_command_failed"}); raise
+        except CommandError as exc:
+            # The released MVTec DataModule has no test_dataloader(), so the
+            # author process can exit nonzero after it has already emitted the
+            # requested condition checkpoint. Preserve the log and accept the
+            # checkpoint only when both expected files are present.
+            command_error = str(exc)
         expected=expected_checkpoint(cls,method,a.smoke,a.condition_max_steps)
         pairs=list(target.rglob(f"embeddings_gs-{expected}.pt"))
         pairs=[p for p in pairs if p.parent.name=="checkpoints"]
@@ -51,7 +75,10 @@ def run_conditions(run, method, selected, *, paths, a, commands):
         if not pairs or not mask or not mask[0].is_file():
             atomic_json(target/"status.json",{"status":"failed","reason":"expected_condition_checkpoint_missing","expected_step":expected}); raise RuntimeError(f"{cls}: expected_condition_checkpoint_missing at step {expected}")
         shutil.copy2(pairs[0],target/pairs[0].name); shutil.copy2(mask[0],target/mask[0].name)
-        atomic_json(target/"selection.json",{"status":"pass","expected_step":expected,"embedding":str(target/pairs[0].name),"mask":str(target/mask[0].name)})
+        result={"status":"pass","expected_step":expected,"embedding":str(target/pairs[0].name),"mask":str(target/mask[0].name)}
+        if command_error: result.update({"author_exit":"nonzero_after_checkpoint","author_error":command_error})
+        atomic_json(target/"selection.json",result)
+        atomic_json(target/"status.json",result)
 
 def run_generate(run, method, selected, paths, a, commands):
     cache_root=Path(paths["cache"])/run.name/"generated"; cache_root.mkdir(parents=True,exist_ok=True)
@@ -68,28 +95,49 @@ def run_generate(run, method, selected, paths, a, commands):
         sel=run/"author_outputs"/"conditions"/cls/"selection.json"
         if not sel.is_file(): raise RuntimeError(f"{cls}: condition selection missing")
         selection=json.loads(sel.read_text()); step=int(selection["expected_step"])
-        gen=method.get("replay_generation",{}); niter=gen.get("per_class_n_iter",{}).get(cls,gen.get("n_iter",25))
+        gen=method.get("replay_generation",{}); niter=1 if a.smoke else gen.get("per_class_n_iter",{}).get(cls,gen.get("n_iter",25))
         argv=[str(paths["ldm_python"]), "textual_inversion-main/scripts/txt2img_with_mask.py", "--ddim_eta", "0.0", "--n_samples", str(a.generation_max_samples or gen.get("n_samples",8)), "--n_iter", str(niter), "--embedding_path", str(run/"author_outputs"/"conditions"/cls/selection["embedding"]), "--class_layer_path", str(run/"author_outputs"/"conditions"/cls/selection["mask"]), "--prompt", "a photo of *", "--outdir", str(out)]
         argv += ["--conference_mask_path", f"SAM/data/mvtec_conference/{cls}"]
         run_command(argv,cwd=cmd["cwd"],log_path=run/"logs"/f"generate_{cls}.log")
-        files=sorted(out.glob("*.png")); gen=method.get("replay_generation",{}); configured=int(gen.get("n_samples",8)); niter=int(gen.get("per_class_n_iter",{}).get(cls,gen.get("n_iter",25))); bytes_=sum(p.stat().st_size for p in files)
+        files=sorted(
+            p for p in out.iterdir() if p.is_file()
+            and p.suffix.lower() in {".png", ".jpg", ".jpeg"}
+            and not p.stem.endswith("_mask")
+        )
+        gen=method.get("replay_generation",{}); configured=int(gen.get("n_samples",8)); niter=int(gen.get("per_class_n_iter",{}).get(cls,gen.get("n_iter",25))); bytes_=sum(p.stat().st_size for p in out.iterdir() if p.is_file() and p.suffix.lower() in {".png", ".jpg", ".jpeg"})
         atomic_json(out/"manifest.json",{"class":cls,"configured_n_samples":configured,"configured_n_iter":niter,"actual_generated_images":len(files),"generated_bytes":bytes_,"deterministic":False,"seed":method.get("seed")})
 
 def run_detector(run, method, paths, a):
     if a.dry_run: return
     root=Path(paths["root"]); exe=Path(paths["detector_python"]); out=run/"author_outputs"/"invad"; out.mkdir(parents=True,exist_ok=True)
     if a.resume and (out/"ckpt.pth").is_file(): return
+    sam_raw=method.get("paths",{}).get("sam_root",""); sam=os.environ.get("REPLAYCAD_SAM_ROOT","") if str(sam_raw).startswith("${") else sam_raw
+    prepare_workspace(run,root,paths["dataset"],sam,[])
     ws=run/"replay"/"workspace"; view=run/"replay"/"dataset_view"/"mvtec"; data=ws/"data"; data.mkdir(parents=True,exist_ok=True)
     link=data/"mvtec"
     if not link.exists(): link.symlink_to(view.resolve(),target_is_directory=True)
     shutil.copy2(run/"replay"/"replay_metadata.json",view/"replay_meta.json")
     cfg=root/method.get("detector",{}).get("config","configs/invad/invad_mvtec.py")
-    argv=[str(exe),str(ws/"run.py"),"-c","configs/invad/invad_mvtec.py","-m","train","data.meta","replay_meta.json"]
-    if a.smoke and a.detector_max_epochs: argv += ["trainer.epoch_full",str(a.detector_max_epochs),"epoch_full",str(a.detector_max_epochs)]
+    argv=[str(exe),str(ws/"run.py"),"-c","configs/invad/invad_mvtec.py","-m","train","data.meta=replay_meta.json"]
+    if a.smoke and a.detector_max_epochs:
+        argv += [f"trainer.epoch_full={a.detector_max_epochs}",f"epoch_full={a.detector_max_epochs}"]
+        # A one-sample smoke replay would otherwise be dropped by the
+        # author's normal ``drop_last=True`` batch of 32, yielding zero
+        # optimizer steps and no checkpoint.
+        argv += ["trainer.data.batch_size_per_gpu=1", "trainer.data.batch_size=1"]
     if a.device=="cpu": raise RuntimeError("ReplayCAD InvAD author code requires CUDA")
-    run_command(argv,cwd=ws,log_path=out/"detector.log")
-    for candidate in ws.rglob("metric.txt"):
-        if candidate.is_file(): shutil.copy2(candidate,out/"metric.txt"); break
+    # Author code builds StyleGAN2 extensions at import time.  Its subprocess
+    # must see tools from the selected detector environment (not only the
+    # host wrapper environment), in particular that environment's ``ninja``.
+    # Point the extension builder at the same CUDA toolkit that supplies the
+    # detector environment's nvcc and headers.  This is a subprocess
+    # environment fix; author source and CUDA kernels remain untouched.
+    child_env=detector_child_env(exe)
+    run_command(argv,cwd=ws,env=child_env,log_path=out/"detector.log")
+    checkpoints=sorted(ws.rglob("ckpt.pth"), key=lambda p:p.stat().st_mtime)
+    if checkpoints:
+        candidate=checkpoints[-1].parent/"metric.txt"
+        if candidate.is_file(): shutil.copy2(candidate,out/"metric.txt")
     for candidate in ws.rglob("*.pth"):
         target=out/candidate.name
         if not target.exists(): shutil.copy2(candidate,target)
@@ -97,16 +145,25 @@ def run_detector(run, method, paths, a):
 def run_evaluate(run, method, paths, a):
     if a.dry_run: return
     ws=Path(run)/"replay"/"workspace"; out=Path(run)/"author_outputs"/"invad"; checkpoints=sorted(ws.rglob("ckpt.pth"), key=lambda p:p.stat().st_mtime)
-    if a.resume and (out/"metric.txt").is_file(): return
+    # Training writes a (possibly empty/ghost) metric.txt too.  It is not an
+    # evaluation completion marker, so resume must use an explicit marker.
+    if a.resume and (out/"evaluation_complete.json").is_file(): return
     if not checkpoints: raise RuntimeError("final configured ReplayCAD checkpoint ckpt.pth is missing")
     final=checkpoints[-1]; base=ws/"runs"; rel=final.parent.relative_to(base) if final.is_relative_to(base) else final.parent.name
-    argv=[str(paths["detector_python"]),str(ws/"run.py"),"-c","configs/invad/invad_mvtec.py","-m","test","trainer.resume_dir",str(rel),"data.meta","replay_meta.json"]
-    run_command(argv,cwd=ws,log_path=out/"evaluate.log")
-    for candidate in ws.rglob("metric.txt"):
-        if candidate.is_file(): shutil.copy2(candidate,out/"metric.txt"); break
+    argv=[str(paths["detector_python"]),str(ws/"run.py"),"-c","configs/invad/invad_mvtec.py","-m","test",f"trainer.resume_dir={rel}","data.meta=replay_meta.json"]
+    run_command(argv,cwd=ws,env=detector_child_env(paths["detector_python"]),log_path=out/"evaluate.log")
+    candidate=final.parent/"metric.txt"
+    if candidate.is_file(): shutil.copy2(candidate,out/"metric.txt")
+    atomic_json(out/"evaluation_complete.json",{"checkpoint":str(final),"resume_dir":str(rel),"metric_path":str(out/"metric.txt")})
 
 def main(argv=None):
     a=args(argv); run,meta,protocol,method=load_run(a.run_dir); ensure_run_dir(run,overwrite=True)
+    if a.smoke:
+        # Keep the explicit smoke mode bounded when callers do not provide
+        # caps.  These are compatibility probes and are never reportable.
+        a.condition_max_steps = a.condition_max_steps or 501
+        a.generation_max_samples = a.generation_max_samples or 1
+        a.detector_max_epochs = a.detector_max_epochs or 1
     selected=tasks_arg(a.tasks) if a.tasks else list(meta.get("task_order",protocol.get("task_order",[])))
     if meta.get("reportable") and (a.smoke or any(x is not None for x in (a.condition_max_steps,a.generation_max_samples,a.detector_max_epochs))): raise SystemExit("smoke caps cannot be applied to reportable runs")
     if a.execution_mode: meta["execution_mode"]=a.execution_mode

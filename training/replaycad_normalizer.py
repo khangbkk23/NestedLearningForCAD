@@ -39,6 +39,32 @@ def parse_metric_lines(path, classes, final_epoch=None):
             out[cls] = {"i_auroc": nums[2*i], "p_aupr": nums[2*i+1]}
     return {"rows": [{"epoch": e, "raw": line} for e, _, line in rows], "final_epoch": chosen, "classes": list(classes), "per_task": out, "raw_path": str(path)}
 
+def parse_evaluation_log(path, classes, final_epoch=None):
+    """Parse the author's final evaluator table without rewriting metric.txt.
+
+    InvAD's released ``test`` path logs the evaluated values in a Markdown
+    table but leaves the training ``metric.txt`` (often a zero/ghost row)
+    untouched.  The table's first and third numeric cells are the configured
+    ``mAUROC_sp_max`` and ``mAP_px`` columns respectively.
+    """
+    text = Path(path).read_text(errors="replace")
+    per = {}
+    rows = []
+    for cls in classes:
+        pattern = re.compile(
+            rf"^\|\s*{re.escape(cls)}\s*\|\s*([-+]?\d+(?:\.\d+)?)\s*\|.*?\|\s*([-+]?\d+(?:\.\d+)?)\s*\|",
+            re.MULTILINE,
+        )
+        match = pattern.search(text)
+        if match:
+            image, pixel = _number(match.group(1)), _number(match.group(2))
+            per[cls] = {"i_auroc": image, "p_aupr": pixel,
+                        "native_metrics": {"mAUROC_sp_max": image, "mAP_px": pixel}}
+            rows.append({"class": cls, "raw": match.group(0)})
+    return {"rows": rows, "final_epoch": final_epoch, "classes": list(classes),
+            "per_task": per, "raw_path": str(path), "source_format": "author_evaluation_table",
+            "native_metric_names": ["mAUROC_sp_max", "mAP_px"]}
+
 def normalize_native(native, *, source="reproduced", semantics_match=True):
     per = native.get("per_task", {})
     def avg(name):
@@ -53,7 +79,13 @@ def normalize_native(native, *, source="reproduced", semantics_match=True):
 def normalize_run(run_dir, metric_path=None, classes=None, final_epoch=None, semantics_match=True, source="reproduced"):
     run = Path(run_dir); classes = classes or json.loads((run / "run.json").read_text()).get("task_order", [])
     metric_path = Path(metric_path or run / "author_outputs" / "invad" / "metric.txt")
-    native = parse_metric_lines(metric_path, classes, final_epoch) if metric_path.is_file() else {"rows": [], "per_task": {}, "final_epoch": None}
+    evaluation_log = run / "author_outputs" / "invad" / "evaluate.log"
+    evaluation_done = run / "author_outputs" / "invad" / "evaluation_complete.json"
+    if evaluation_done.is_file() and evaluation_log.is_file():
+        native = parse_evaluation_log(evaluation_log, classes, final_epoch)
+        native["raw_metric_path"] = str(metric_path) if metric_path.is_file() else None
+    else:
+        native = parse_metric_lines(metric_path, classes, final_epoch) if metric_path.is_file() else {"rows": [], "per_task": {}, "final_epoch": None}
     atomic_json(run / "author_outputs" / "native_metrics.json", native)
     normalized = normalize_native(native, source=source, semantics_match=semantics_match)
     atomic_json(run / "normalized_metrics" / "final_macro.json", normalized)
