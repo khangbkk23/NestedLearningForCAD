@@ -103,7 +103,9 @@ def stability_matched_step(
     # Do not evaluate eta / 0, even in the branch rejected by torch.where.
     safe_injection = torch.where(injection > 0, injection, torch.ones_like(injection))
     soft_cap = injection * (-torch.expm1(-raw_eta / safe_injection))
-    spectral = (2.0 * alpha * (1.0 - 1e-6)) / key.square().sum(-1).clamp_min(1e-20)
+    key_norm_squared = key.square().sum(-1).clamp_min(1e-20)
+    inverse_key_norm = torch.rsqrt(key_norm_squared)
+    spectral = (2.0 * alpha * (1.0 - 1e-6)) * inverse_key_norm.square()
     rounded = torch.nextafter(spectral.detach(), torch.zeros_like(spectral))
     spectral = spectral + (rounded - spectral).detach()
     return GuardedStep(torch.minimum(soft_cap, spectral), injection, spectral)

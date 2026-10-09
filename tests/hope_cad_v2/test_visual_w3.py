@@ -143,6 +143,16 @@ class RecurrenceTests(W3TestCase):
             gradients = torch.autograd.grad(step.executed.sum(), (key, delta, eta, alpha), create_graph=True)
             self.assertTrue(all(bool(torch.isfinite(g).all()) for g in gradients))
 
+    def test_spectral_limit_backward_is_finite_near_denominator_floor(self):
+        key = torch.tensor([[1.01e-10, 0.0]], dtype=torch.float32, requires_grad=True)
+        delta = torch.zeros_like(key)
+        eta = torch.tensor([0.1], dtype=torch.float32, requires_grad=True)
+        alpha = torch.tensor([0.9], dtype=torch.float32, requires_grad=True)
+        self.assertGreater(key.square().sum().item(), 1e-20)
+        step = stability_matched_step(key, delta, eta, alpha)
+        gradients = torch.autograd.grad(step.executed.sum(), (key, eta, alpha))
+        self.assertTrue(all(bool(torch.isfinite(gradient).all()) for gradient in gradients))
+
     def test_spectral_and_injection_limits_and_ulp_rounding(self):
         key = torch.tensor([[1., 0.], [1., 0.]], dtype=torch.float64)
         delta = torch.tensor([[0., 0.], [10., 0.]], dtype=torch.float64)
