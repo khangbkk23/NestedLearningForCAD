@@ -1,5 +1,7 @@
 # Meta-NATH CAD: Nested Learning for Continual Anomaly Detection
 
+> **Current project guide (2026-10-09): [Nested Learning for CAD — instruction_CAD_v2.md](instruction_CAD_v2.md).** The README below documents the historical Meta-NATH pipeline. The v2 architecture is frozen; [W3 visual memory is implemented and locally tested](docs/hope_cad/w3_implementation.md) with 23 passing tests. The complete HOPE-CAD method is not implemented or experimentally validated yet. See the current guide for code status, protocols, and next work packages.
+
 <div align="center">
 
 **A continual industrial anomaly detection pipeline built around frozen DINOv2 features, TITANS-style fast memory, ACC gating, CADIC coreset memory, and metric-gated Phase 3 consolidation.**
