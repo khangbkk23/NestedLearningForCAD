@@ -137,6 +137,35 @@ def test_spatial_allocation_is_per_bin_and_does_not_exceed_quota():
         assert bank.count <= bank.config.budget
 
 
+def test_occupancy_rows_are_disjoint_in_both_allocations():
+    """Regression for finding I1: no view may report the same bank more than once."""
+    global_memory = NormalSupportMemory(
+        budget=BUDGET, grid=4, allocation=ALLOCATION_GLOBAL, dim=DIM
+    )
+    for image in random_images(5, seed=11):
+        global_memory.update(image)
+    global_view = global_memory.occupancy()
+    assert len(global_view["bins"]) == 1
+    assert global_view["partitioned"] is False
+    assert global_view["bins_are_disjoint"] is True
+    assert sum(row["count"] for row in global_view["bins"]) == global_view["total_count"]
+    assert global_view["capacity_total"] == BUDGET
+    assert sum(row["replaced"] for row in global_view["bins"]) == int(
+        global_memory._global.replaced_features
+    )
+
+    spatial_memory = NormalSupportMemory(
+        budget=BUDGET, grid=4, allocation=ALLOCATION_SPATIAL, dim=DIM
+    )
+    for image in random_images(5, seed=12):
+        spatial_memory.update(image)
+    spatial_view = spatial_memory.occupancy()
+    assert len(spatial_view["bins"]) == 16
+    assert spatial_view["partitioned"] is True
+    assert sum(row["count"] for row in spatial_view["bins"]) == spatial_view["total_count"]
+    assert spatial_view["capacity_total"] == BUDGET
+
+
 def test_global_allocation_banks_are_a_single_shared_bank():
     """LOCAL scoring under global allocation must not partition capacity."""
     memory = NormalSupportMemory(budget=BUDGET, grid=4, allocation=ALLOCATION_GLOBAL, dim=DIM)

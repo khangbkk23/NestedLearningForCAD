@@ -42,6 +42,8 @@ import torch
 
 from models.cadic_patch_coreset_v1 import CADICPatchCoresetV1, CADICPatchCoresetConfig
 
+from exps.ad01.hope_cad_ad01_fast_coreset import FastCADICPatchCoresetV1
+
 GRID_SIDE = 28
 PATCHES = GRID_SIDE * GRID_SIDE
 
@@ -90,11 +92,21 @@ class NormalSupportMemory:
     grid: int = 4
     allocation: str = ALLOCATION_GLOBAL
     dim: int = 768
-    chunk_size: int = 256
-    query_chunk_size: int = 256
-    pair_chunk_size: int = 256
+    # Coarse tiling on purpose. The CADIC update rule scans an O(M^2) distance
+    # matrix roughly five hundred times per image once the bank is full; at the
+    # old 256-point tiles that was over a hundred kernel launches per scan and
+    # dominated the runtime. The selected pair and the stored bank are provably
+    # unchanged by the tiling (`test_coarse_tiling_selects_the_same_closest_pair`).
+    chunk_size: int = 2048
+    query_chunk_size: int = 2048
+    pair_chunk_size: int = 2048
     image_neighbors: int = 9
     device: str | torch.device = "cpu"
+    # Distance-kernel choice. `fast` keeps CADIC's replacement rule and tie
+    # policy but forms distances with a matrix multiply instead of many small
+    # `torch.cdist` tiles. It is validated against the frozen reference before
+    # being used for a reported run.
+    fast: bool = False
     _bins: torch.Tensor = field(init=False, repr=False)
     _banks: list[CADICPatchCoresetV1] = field(init=False, repr=False, default_factory=list)
     _global: CADICPatchCoresetV1 | None = field(init=False, repr=False, default=None)
@@ -111,8 +123,10 @@ class NormalSupportMemory:
         self._bins = bin_assignment(self.grid, device=self.device)
         self.n_bins = self.grid * self.grid
 
+        coreset_cls = FastCADICPatchCoresetV1 if self.fast else CADICPatchCoresetV1
+
         def make(budget: int) -> CADICPatchCoresetV1:
-            return CADICPatchCoresetV1(
+            return coreset_cls(
                 CADICPatchCoresetConfig(
                     budget=budget,
                     dim=self.dim,
@@ -141,7 +155,7 @@ class NormalSupportMemory:
             # A one-dimensional CADIC coreset over lattice positions. It sees
             # exactly the same patch stream with the same replacement rule, so
             # its row order matches the scored bank's row order entry for entry.
-            self._provenance = CADICPatchCoresetV1(
+            self._provenance = coreset_cls(
                 CADICPatchCoresetConfig(
                     budget=self.budget,
                     dim=1,
@@ -383,8 +397,50 @@ class NormalSupportMemory:
     # ----------------------------------------------------------- diagnostics
 
     def occupancy(self) -> dict[str, Any]:
-        """Per-bin capacity, fill, replacement and eviction accounting."""
-        banks = self.bin_banks()
+        """Per-bin capacity, fill, replacement and eviction accounting.
+
+        **AD-02 correction (finding I1 of the AD-01 independent review).** The
+        previous version iterated `bin_banks()`, which under global allocation
+        returns the *same* single bank `n_bins` times. Summing those rows
+        therefore reported 40,000 stored vectors for a 2,500 budget and sixteen
+        times the true replacement count. The stored AD-01 records are unchanged
+        and were not re-run; this view is corrected here so that no reader can
+        sum non-disjoint rows again.
+
+        A global allocation now reports exactly one bank with `partitioned =
+        False`; a spatial allocation reports one row per bin. In both cases the
+        rows are disjoint and `sum(bin count) == total_count`.
+        """
+        if self.allocation == ALLOCATION_GLOBAL:
+            bank = self._global
+            fill = bank.count / max(1, bank.config.budget)
+            row = dict(
+                bin_id=0,
+                capacity=int(bank.config.budget),
+                count=int(bank.count),
+                fill_ratio=fill,
+                inserts=int(sum(self._insert_counts)),
+                seen=int(bank.seen_features),
+                replaced=int(bank.replaced_features),
+                rejected=int(bank.rejected_features),
+                accepted=int(bank.accepted_features),
+            )
+            return {
+                "allocation": self.allocation,
+                "partitioned": False,
+                "grid": self.grid,
+                "n_bins": 1,
+                "total_budget": self.budget,
+                "total_count": self.count,
+                "capacity_total": int(bank.config.budget),
+                "bins_are_disjoint": True,
+                "sum_bins_is_total": True,
+                "bins": [row],
+                "min_fill_ratio": fill,
+                "max_fill_ratio": fill,
+            }
+
+        banks = self._banks
         rows = []
         for bin_id in range(self.n_bins):
             bank = banks[bin_id]
@@ -403,14 +459,68 @@ class NormalSupportMemory:
             )
         return {
             "allocation": self.allocation,
+            "partitioned": True,
             "grid": self.grid,
             "n_bins": self.n_bins,
             "total_budget": self.budget,
             "total_count": self.count,
+            "capacity_total": int(sum(r["capacity"] for r in rows)),
+            "bins_are_disjoint": True,
+            "sum_bins_is_total": True,
             "bins": rows,
             "min_fill_ratio": min(r["fill_ratio"] for r in rows),
             "max_fill_ratio": max(r["fill_ratio"] for r in rows),
         }
+
+    def clone_banks(self) -> dict[str, Any]:
+        """Freeze the current bank contents for later replay.
+
+        Only the banks and provenance are copied; the object itself is not
+        deep-copied. The CADIC rules are deterministic, so restoring a frozen
+        bank reproduces the trajectory exactly, which is what lets one update
+        pass serve both scoring modes without re-streaming the categories.
+        """
+        return {
+            "fast": self.fast,
+            "bins": [bank.features.clone() for bank in self._banks],
+            "counters": [
+                (
+                    bank.seen_features,
+                    bank.accepted_features,
+                    bank.replaced_features,
+                    bank.rejected_features,
+                )
+                for bank in self._banks
+            ],
+            "bank_bin": None if self._bank_bin is None else self._bank_bin.clone(),
+            "provenance": (
+                None
+                if self._provenance is None
+                else self._provenance.features.clone()
+            ),
+            "insert_counts": list(self._insert_counts),
+        }
+
+    def restore_banks(self, frozen: dict[str, Any]) -> None:
+        """Restore a bank frozen by `clone_banks` in place."""
+        if bool(frozen["fast"]) != self.fast:
+            raise ValueError("frozen bank was built with a different coreset mode")
+        for bank, features, counters in zip(
+            self._banks, frozen["bins"], frozen["counters"]
+        ):
+            bank.features = features.clone()
+            (
+                bank.seen_features,
+                bank.accepted_features,
+                bank.replaced_features,
+                bank.rejected_features,
+            ) = counters
+        if self._provenance is not None and frozen["provenance"] is not None:
+            self._provenance.features = frozen["provenance"].clone()
+        self._bank_bin = (
+            None if frozen["bank_bin"] is None else frozen["bank_bin"].clone()
+        )
+        self._insert_counts = list(frozen["insert_counts"])
 
     def state_dict(self) -> dict[str, Any]:
         return {
@@ -419,6 +529,7 @@ class NormalSupportMemory:
             "grid": self.grid,
             "allocation": self.allocation,
             "dim": self.dim,
+            "fast": self.fast,
             "bins": [bank.state_dict() for bank in self._banks],
             "insert_counts": list(self._insert_counts),
             "provenance": None if self._provenance is None else self._provenance.state_dict(),
