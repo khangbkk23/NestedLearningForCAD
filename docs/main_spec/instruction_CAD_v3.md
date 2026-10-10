@@ -4,13 +4,13 @@
 
 **Ngày chốt revision v3:** 2026-10-10. **Design ID:** `hope_cad_v3_masked_teacher_cms`. **Selection-rule ID:** `prefix_cms_stress_v3`.
 
-**Architecture/selection: FROZEN FOR IMPLEMENTATION v3. W3 visual front end: implemented/tested tại `hope_cad_v2@363634b`, 24/24 tests trong Kaggle có T4; chưa có trong checkout clone. Full method: NOT IMPLEMENTED END-TO-END / NOT EXPERIMENTALLY VALIDATED.** [Báo cáo W3 v2](hope_cad/w3_implementation_v2.md) giữ historical artifact 23-test, failure trước fix và artifact Kaggle mới đã kiểm source hashes. W4/W5 và các gate mới của v3 vẫn proposed/pending. Tài liệu phân biệt evidence numerical correctness với full CAD learning/benchmark.
+**Architecture/selection: FROZEN FOR IMPLEMENTATION v3. W1 protocol/registry và W4 CMS/outer/selection đã có implementation, tested bằng fixtures; W3 đã có sẵn và kiểm lại 24/24 tests. Full RGB method chưa end-to-end / chưa experimentally validated.** [Báo cáo W3](w3_implementation_v2.md) giữ lịch sử artifact; [báo cáo chặng 1](stage1_implementation.md) ghi tests mới và pending canonical-T4/upstream/real-prefix gates.
 
-**Nhánh làm việc:** chỉ `hope_cad_v2_clone`, giữ HEAD `a89fd48f94ed9c5deb26041151ea63b79911342f` theo yêu cầu ngày 2026-10-10. `hope_cad_v2` là source tham khảo W3 ở `6dbe4f1` và fix `363634b`; không cập nhật clone bằng các commit này trong task tài liệu. Khang tiếp tục ReplayCAD trên `dikhang_space`; `main` là nhánh tích hợp. Trước W4 trên clone cần bước tích hợp W3 được cho phép và kiểm chứng source/test tương ứng.
+**Nhánh làm việc:** chỉ `hope_cad_v2_1`. W3 đã được người dùng đưa vào nhánh này trước chặng 1; không cần merge/cherry-pick. Khang phụ trách ReplayCAD riêng. Không thao tác trên các nhánh khác.
 
 **Quy ước phiên bản.** Đây là bản đầy đủ kế thừa v2, tích hợp các sửa đổi sau audit; ba tài liệu v2 và báo cáo W3 cũ được giữ nguyên. Design/method ID mới là `hope_cad_v3_masked_teacher_cms`, selection-rule ID là `prefix_cms_stress_v3`, vì quy tắc chọn cấu hình đã thay đổi. Topology, recurrence, initialization, teacher, masks, final score, clocks và quyền dữ liệu cốt lõi giữ nguyên. Namespace code `models/hope_cad_v2/`, `scripts/hope_cad_v2/`, các tên module `_v2` và protocol IDs `mvtec_1x15_prefix_cal_v2` / `visa_1x12_prefix_cal_v2` vẫn là các tên kế thừa; không tạo bản sao code chỉ để đổi số. Full run phải ghi method ID v3 và selection-rule ID riêng, không lấy component metadata W3 v2 làm identity của full method.
 
-**Phạm vi checkout ngày 2026-10-10.** Theo yêu cầu mới nhất, chỉ soạn tài liệu trên `hope_cad_v2_clone@a89fd48f94ed9c5deb26041151ea63b79911342f`, không cập nhật nhánh này bằng code W3. W3 có ở nhánh `hope_cad_v2`: commit `6dbe4f1` thêm implementation, commit `363634b18d98eefc6da28660a99b967988077ef3` sửa backward của spectral guard gần denominator floor và thêm regression test. Các đường dẫn W3 dưới đây là bản đồ source ở nhánh đó hoặc đích tích hợp tương lai, **không phải file đã có tại HEAD của clone**. W4/W5, full method v3 và các gate mới vẫn **proposed/not implemented**. Snapshot `a89fd48` của baseline/core/pilots trong các bảng lịch sử được giữ nguyên; không gán W3 hay kết quả test mới vào commit này.
+**Checkout hiện hành — chặng 1.** Theo chỉ dẫn mới nhất của người dùng, chỉ làm việc trên `hope_cad_v2_1`, bắt đầu từ `5187e4d3ba5fe756520e2499ec6b90a4b6f91507`; W3 `363634b` đã có sẵn. Code mới W1/W4 ở working tree, chưa commit/push. [Báo cáo chặng 1](stage1_implementation.md) xác định source/function, tests/artifacts và các gate còn pending. Snapshot `a89fd48`/`hope_cad_v2_clone` và các nhãn “proposed/not implemented” trong nội dung freeze bên dưới được giữ làm lịch sử tại thời điểm soạn spec; trạng thái implementation hiện tại lấy theo báo cáo chặng 1. Không thay hợp đồng toán học hoặc gán code mới cho commit cũ.
 
 ### Tóm tắt
 
@@ -26,8 +26,8 @@ CADIC patch-memory là baseline chính; các kết quả thật do nhóm cung c�
 
 Đọc tài liệu này trước, rồi đọc các implementation được chỉ ra ở §12 và các tests tương ứng. Không cần đọc toàn bộ historical docs để hiểu phạm vi hiện tại. Hai tài liệu bổ trợ là:
 
-- [Architecture decision v3](hope_cad/architecture_decision_v3.md): bản ghi freeze, phương trình và ranh giới claim.
-- [Planning v3](hope_cad/planning_CAD_v3.md): phần A audit implementation/config/branches, phần B công việc và nghiệm thu.
+- [Architecture decision v3](architecture_decision_v3.md): bản ghi freeze, phương trình và ranh giới claim.
+- [Planning v3](planning_CAD_v3.md): phần A audit implementation/config/branches, phần B công việc và nghiệm thu.
 
 Tài liệu hiện tại tự chứa các quyết định cần để triển khai; không dùng câu “xem docs cũ” để bỏ trống thuật toán. Tuy nhiên, không tài liệu nào thay được source code khi kiểm tra behavior, raw artifacts khi xác nhận thí nghiệm, hoặc paper khi thay đổi/chứng minh định lý. Các provenance chưa có trong workspace được ghi là chưa xác minh, không điền giả để tạo cảm giác “hiểu 100%”.
 
@@ -50,7 +50,7 @@ Không tự sửa định nghĩa phương pháp theo code cũ để “khớp sp
 
 Trong lượt chuẩn bị spec: đã đọc source/papers/docs và làm các sanity checks toán học nhỏ ở §15. Chưa chạy pytest repository, chưa load backbone weights, chưa chạy benchmark GPU. Các bảng CADIC do người dùng xác nhận là kết quả thật; full HOPE-CAD theo contract v3 chưa có kết quả.
 
-Cập nhật W3 sau freeze v2: artifact local ngày 2026-10-09 ghi 23 unittest tests trên source `6dbe4f1`, CPU FP64/FP32 và reduced CUDA trên RTX 3050 Ti. Source đó fail canonical full-grid CPU backward trên Kaggle theo transcript người dùng. Fix `363634b` thêm regression gần denominator floor và đã pass **24/24, không failures/errors/skips** trong [artifact Kaggle](../results/hope_cad_v2/w3_verification_kaggle.json); 7/7 source hashes khớp commit. Runtime Linux/Python 3.13.15/PyTorch 2.11.0+cu128, CUDA runtime 12.8, Tesla T4. Canonical full-grid tests vẫn là CPU; CUDA test dùng reduced fixture. Chưa AD benchmark, full-grid T4/16-event profile hoặc upstream numerical parity. W3 chưa có ở HEAD clone; tests legacy không có execution evidence mới từ suite này.
+Cập nhật W3 sau freeze v2: artifact local ngày 2026-10-09 ghi 23 unittest tests trên source `6dbe4f1`, CPU FP64/FP32 và reduced CUDA trên RTX 3050 Ti. Source đó fail canonical full-grid CPU backward trên Kaggle theo transcript người dùng. Fix `363634b` thêm regression gần denominator floor và đã pass **24/24, không failures/errors/skips** trong [artifact Kaggle](../../results/hope_cad_v2/w3_verification_kaggle.json); 7/7 source hashes khớp commit. Runtime Linux/Python 3.13.15/PyTorch 2.11.0+cu128, CUDA runtime 12.8, Tesla T4. Canonical full-grid tests vẫn là CPU; CUDA test dùng reduced fixture. Chưa AD benchmark, full-grid T4/16-event profile hoặc upstream numerical parity. W3 chưa có ở HEAD clone; tests legacy không có execution evidence mới từ suite này.
 
 ## 2. Bài toán, phạm vi và giả thuyết
 
@@ -603,7 +603,7 @@ Artifacts cần đồng bộ từ nơi đã chạy: `run.json`, resolved method/
 | HOPE v1 self-modifying + CMS | `SelfModifyingTitans`, `ContinuumMemorySystem`, `HopeBlock` | Implemented core, chưa là full v2 CAD; không gán validation từ tên tests |
 | P1/P2/anomaly heads/outer pilots | `exps/` và `scripts/exps/` ở hai commit mới | Implemented experiments; thiếu artifacts để xác nhận các claims thực nghiệm |
 | ReplayCAD | Native pipeline scaffold và normalizer | `continual_boundaries` còn explicit unsupported; Khang đang làm |
-| Visual front end W3 (source nhánh tham khảo) | `hope_cad_v2@363634b`: `FourScanVisualMemory`, `scan_chunked`, `HOPECADVisualBlock`, `scan_reference`, spectral-backward fix/regression | **Implemented/tested tại `363634b`**: Kaggle 24/24, 7/7 hashes khớp; full-grid CPU/reduced CUDA. Historical local 23-test tại `6dbe4f1` giữ riêng; chưa có trong clone. [Evidence W3](hope_cad/w3_implementation_v2.md) |
+| Visual front end W3 (source nhánh tham khảo) | `hope_cad_v2@363634b`: `FourScanVisualMemory`, `scan_chunked`, `HOPECADVisualBlock`, `scan_reference`, spectral-backward fix/regression | **Implemented/tested tại `363634b`**: Kaggle 24/24, 7/7 hashes khớp; full-grid CPU/reduced CUDA. Historical local 23-test tại `6dbe4f1` giữ riêng; chưa có trong clone. [Evidence W3](w3_implementation_v2.md) |
 | Full visual VisionHOPE + CMS + dense head + benchmark v3 | Visual ở nhánh tham khảo; CMS/outer loop/head/adapter/selection v3 còn thiếu | **Not implemented end-to-end**, chưa experimentally validated |
 | Official VisA adapter trong common benchmark | Chưa có protocol/validator v2 | **Not implemented**; loader legacy không thay thế |
 
@@ -625,21 +625,21 @@ Tất cả đường dẫn code dưới đây là relative từ root, trỏ tớ
 
 | File / symbol | Vai trò và điều cần biết khi sửa |
 |---|---|
-| [cadic_vit_v1.py](../models/feature_extractors/cadic_vit_v1.py), `CADICViTFeatureExtractor.extract_patch_features/protocol_metadata` | Strict local timm weights, frozen layer-9 patches, geometry assertions; không random fallback |
-| [cadic_patch_coreset_v1.py](../models/cadic_patch_coreset_v1.py), `CADICPatchCoresetV1.update/pixel_scores/score` | Ordinary cdist implementation, patch memory, deterministic tie handling |
-| [paperfaithful core](../models/cadic_paperfaithful/cadic_patch_coreset.py), `euclidean_distance_mm`, `CADICPatchCoresetV1` | GEMM distances, repeated farthest-vs-closest-pair update; score Eq.9; state/statistics |
-| [ordinary adapter](../models/cadic_benchmark_adapter_v1.py), `fit_task/score_batch` | Whole loader batch đưa vào update, dù metadata khai image |
-| [paperfaithful adapter](../models/cadic_paperfaithful/cadic_benchmark_adapter.py), `fit_task/score_batch/memory_stats` | Honors image update; lựa chọn baseline route phải explicit |
-| [adapter ABC](../models/benchmark_adapter_base_v1.py), `BenchmarkMethodAdapter` | Interface fit/score/state/memory/metadata; reuse concept cho adapter mới |
-| [manifest](../dataset/benchmark_manifest_v1.py), `build_training_manifest/validate_manifest` | Task order + lexicographic paths; hash identities không đầy đủ content provenance |
-| [protocol](../dataset/benchmark_protocol_v1.py), `MVTecContinualProtocol` | Normal train, RGB transform, nearest GT resize, fixed manifest/no loader shuffle |
-| [config validator](../training/benchmark_config_v1.py), `validate_configs/apply_overrides` | V1 MVTec/adapter/metric constraints; không dùng làm generic VisA/v2 validator bằng cách bỏ checks |
-| [engine](../training/benchmark_engine_v1.py), `BenchmarkEngineV1.train/evaluate_final/evaluate_forgetting` | Task checkpoints, all-pixel final/matrix evaluation; mutation check hiện optional, chưa kiểm đủ RNG |
-| [metrics](../training/benchmark_metrics_v1.py), `compute_metrics/macro_task_metrics/forgetting_matrix` | Exact sklearn point metrics, macro, signed forgetting; source chuẩn công thức hiện có |
-| [artifacts](../training/benchmark_artifacts_v1.py) | Run/checkpoint/metric artifact handling của harness |
-| [setup CLI](../scripts/benchmarks/0_setup_benchmark.py), `main` | Resolve YAML/overrides, run metadata và manifest |
-| [run CLI](../scripts/benchmarks/1_run_benchmark.py), `main` | all/train/eval/fm/summarize; import ordinary adapter; không tự chọn paperfaithful chỉ từ tên YAML |
-| [paperfaithful launcher](../scripts/benchmarks/run_cadic_paperfaithful.sh), `run_phase` | Linux Bash wrapper, budget/GPU/tag, seed 0, monkeypatch adapter, train/eval |
+| [cadic_vit_v1.py](../../models/feature_extractors/cadic_vit_v1.py), `CADICViTFeatureExtractor.extract_patch_features/protocol_metadata` | Strict local timm weights, frozen layer-9 patches, geometry assertions; không random fallback |
+| [cadic_patch_coreset_v1.py](../../models/cadic_patch_coreset_v1.py), `CADICPatchCoresetV1.update/pixel_scores/score` | Ordinary cdist implementation, patch memory, deterministic tie handling |
+| [paperfaithful core](../../models/cadic_paperfaithful/cadic_patch_coreset.py), `euclidean_distance_mm`, `CADICPatchCoresetV1` | GEMM distances, repeated farthest-vs-closest-pair update; score Eq.9; state/statistics |
+| [ordinary adapter](../../models/cadic_benchmark_adapter_v1.py), `fit_task/score_batch` | Whole loader batch đưa vào update, dù metadata khai image |
+| [paperfaithful adapter](../../models/cadic_paperfaithful/cadic_benchmark_adapter.py), `fit_task/score_batch/memory_stats` | Honors image update; lựa chọn baseline route phải explicit |
+| [adapter ABC](../../models/benchmark_adapter_base_v1.py), `BenchmarkMethodAdapter` | Interface fit/score/state/memory/metadata; reuse concept cho adapter mới |
+| [manifest](../../dataset/benchmark_manifest_v1.py), `build_training_manifest/validate_manifest` | Task order + lexicographic paths; hash identities không đầy đủ content provenance |
+| [protocol](../../dataset/benchmark_protocol_v1.py), `MVTecContinualProtocol` | Normal train, RGB transform, nearest GT resize, fixed manifest/no loader shuffle |
+| [config validator](../../training/benchmark_config_v1.py), `validate_configs/apply_overrides` | V1 MVTec/adapter/metric constraints; không dùng làm generic VisA/v2 validator bằng cách bỏ checks |
+| [engine](../../training/benchmark_engine_v1.py), `BenchmarkEngineV1.train/evaluate_final/evaluate_forgetting` | Task checkpoints, all-pixel final/matrix evaluation; mutation check hiện optional, chưa kiểm đủ RNG |
+| [metrics](../../training/benchmark_metrics_v1.py), `compute_metrics/macro_task_metrics/forgetting_matrix` | Exact sklearn point metrics, macro, signed forgetting; source chuẩn công thức hiện có |
+| [artifacts](../../training/benchmark_artifacts_v1.py) | Run/checkpoint/metric artifact handling của harness |
+| [setup CLI](../../scripts/benchmarks/0_setup_benchmark.py), `main` | Resolve YAML/overrides, run metadata và manifest |
+| [run CLI](../../scripts/benchmarks/1_run_benchmark.py), `main` | all/train/eval/fm/summarize; import ordinary adapter; không tự chọn paperfaithful chỉ từ tên YAML |
+| [paperfaithful launcher](../../scripts/benchmarks/run_cadic_paperfaithful.sh), `run_phase` | Linux Bash wrapper, budget/GPU/tag, seed 0, monkeypatch adapter, train/eval |
 
 `scripts/benchmarks/cadic/setup.py` và `run.py` là wrappers của legacy-numbered benchmark CLIs, không một implementation CADIC khác. `training/benchmark_core.py`, `cadic_engine.py`, `dataset/benchmark_protocol.py` và `benchmark_manifest.py` là compatibility/re-export layers quanh v1. `fake_benchmark_adapter_v1.py` dùng fixtures/smoke, không scientific baseline. `cadic_dev_split_v1.py` có utility normal dev split, nhưng canonical v1 protocol vẫn `dev_mode:disabled`.
 
@@ -649,10 +649,10 @@ Tất cả đường dẫn code dưới đây là relative từ root, trỏ tớ
 
 | File / symbol | Thực tế source | Khoảng cách tới contract v3 |
 |---|---|---|
-| [self_modifying_titans.py](../models/hope_cad/self_modifying_titans.py), `SelfModifyingTitans._run/_prepare_update` | Multi-map linear memories, fixed-query default, optional adaptive query, 1D conv, chunk processing | Không four spatial scans/VisionHOPE guards; working state persistence và init khác |
-| [continuum_memory.py](../models/hope_cad/continuum_memory.py), `_CMSLevel.objective_gradient`, `ContinuumMemorySystem.commit_image` | Caller-supplied local objectives, periods, gradient accumulators, state/counters | Local detached inputs/weights; sum accumulator; không dùng nguyên cho exact outer unroll hiện tại |
-| [hope_block.py](../models/hope_cad/hope_block.py), `HopeBlock.commit_image/evaluate_image` | Composition, snapshot/rollback, clone cho eval; tests composition có sẵn | Chưa dense CAD objective/head/adapter; visual eval dynamics khác per-view reset hiện tại |
-| [state.py](../models/hope_cad/state.py) | Snapshot, equality, tensor bytes, finite-state helpers | Có thể kế thừa patterns và bổ sung schema/RNG checks |
+| [self_modifying_titans.py](../../models/hope_cad/self_modifying_titans.py), `SelfModifyingTitans._run/_prepare_update` | Multi-map linear memories, fixed-query default, optional adaptive query, 1D conv, chunk processing | Không four spatial scans/VisionHOPE guards; working state persistence và init khác |
+| [continuum_memory.py](../../models/hope_cad/continuum_memory.py), `_CMSLevel.objective_gradient`, `ContinuumMemorySystem.commit_image` | Caller-supplied local objectives, periods, gradient accumulators, state/counters | Local detached inputs/weights; sum accumulator; không dùng nguyên cho exact outer unroll hiện tại |
+| [hope_block.py](../../models/hope_cad/hope_block.py), `HopeBlock.commit_image/evaluate_image` | Composition, snapshot/rollback, clone cho eval; tests composition có sẵn | Chưa dense CAD objective/head/adapter; visual eval dynamics khác per-view reset hiện tại |
+| [state.py](../../models/hope_cad/state.py) | Snapshot, equality, tensor bytes, finite-state helpers | Có thể kế thừa patterns và bổ sung schema/RNG checks |
 
 `scripts/hope_cad/probe_real_features.py` và `benchmark_hope_core.py` kiểm tra core/probe/performance, không thay final AD benchmark. Docs v1 là mô tả version này; các dòng “outer/anomaly deferred” không có nghĩa mọi experiment trên branch mới đều vắng mặt.
 
@@ -766,7 +766,7 @@ Chưa có CLI full HOPE-CAD training/evaluation. Verifier W3 có trên nhánh th
 pixi run python scripts/hope_cad_v2/verify_visual.py
 ```
 
-Lệnh verifier local đã chạy 23 tests trên source `6dbe4f1`, lưu `results/hope_cad_v2/w3_verification.json`; giữ là historical evidence. Trên Kaggle, lệnh `python -u scripts/hope_cad_v2/verify_visual.py --output /kaggle/working/w3_verification.json` đã chạy **24/24 pass** trên `363634b`; file tải về hiện lưu thành [artifact Kaggle](../results/hope_cad_v2/w3_verification_kaggle.json). Source hashes đã khớp 7/7, không dùng JSON 23-test cũ để chứng nhận fix. Dùng output path riêng cho mỗi source/run và export artifact có hash vì `results/` bị gitignore. Đọc repo artifact trong task này không là rerun tests. Các training scripts ở §13 vẫn proposed, cần `--help`, preflight, explicit config/run-dir/phase, smoke/reportable flags và resume.
+Lệnh verifier local đã chạy 23 tests trên source `6dbe4f1`, lưu `results/hope_cad_v2/w3_verification.json`; giữ là historical evidence. Trên Kaggle, lệnh `python -u scripts/hope_cad_v2/verify_visual.py --output /kaggle/working/w3_verification.json` đã chạy **24/24 pass** trên `363634b`; file tải về hiện lưu thành [artifact Kaggle](../../results/hope_cad_v2/w3_verification_kaggle.json). Source hashes đã khớp 7/7, không dùng JSON 23-test cũ để chứng nhận fix. Dùng output path riêng cho mỗi source/run và export artifact có hash vì `results/` bị gitignore. Đọc repo artifact trong task này không là rerun tests. Các training scripts ở §13 vẫn proposed, cần `--help`, preflight, explicit config/run-dir/phase, smoke/reportable flags và resume.
 
 ### 14.2 Kaggle là môi trường thí nghiệm chính
 
@@ -803,7 +803,7 @@ Compute ledger seed-0 tối đa: M/C2/C3 mỗi method 3 fits, C4 1 fit, C0/C1 m�
 
 W1/W2 có thể làm đồng thời theo phần việc; W3→W4→W5→W6 cần correctness dependency. Hạ tầng VisA/fixtures thiết kế sớm, full VisA sau MVTec acceptance để không nhân đôi lỗi. ReplayCAD chưa xong không chặn HOPE correctness/pilot; bảng continual comparison phải chờ actual task-continuation evidence của baseline đó.
 
-Clone hiện không có W3: tích hợp source đã audit cần được người dùng cho phép riêng, không coi tạo tài liệu là tích hợp code. Init diagnostics làm trước full W4; minimal W4 cần để đo post-outer và exact resource spike. Long gate là selection implementation W4, được nghiệm thu trước scientific pilot W6. Upstream numerical parity vẫn là gate riêng, không được đánh dấu done từ oracle nội bộ.
+**Cập nhật chặng 1:** W3 đã có trên `hope_cad_v2_1`; yêu cầu tích hợp vào clone cũ chỉ còn là lịch sử. W4 reference đã triển khai và kiểm bằng fixtures; canonical-T4/upstream/real-prefix gates vẫn pending như [báo cáo chặng 1](stage1_implementation.md). Init diagnostics đã có artifact; post-calibration reduced diagnostics không thay canonical/real-feature validation.
 
 Bạn phụ trách HOPE; Khang phụ trách ReplayCAD. Giao diện phối hợp: dataset identities/order, backbone/preprocessing hashes, train/test permissions, output shape/resolution, checkpoint-task meaning, metrics, resource accounting. Không gửi message/commit thay Khang chỉ vì tài liệu có phân công.
 
@@ -837,9 +837,9 @@ Một script in-memory dùng `pixi run python`, PyTorch `2.12.0+cu126`, CPU floa
 | Four masks 28×28 | Counts `(196,196,196,196)`, union 784, không overlap |
 | Shared-gain recurrence, 20 random FP64 fixtures, 28 tokens/chunk | Max observed gain norm `0.829776978685745`, không violation trong fixtures này |
 
-Các sanity checks trên được thực hiện lúc freeze, không proof theorem hoặc validation CAD. Historical W3 suite đã pass **23 tests** ở source `6dbe4f1`: independent oracle, first/second derivatives, CPU canonical-grid FP32/FP64, reset/state isolation và reduced CUDA parity; canonical max error 2.45e-6. Sau failure Kaggle của source này, fix `363634b` đã pass **24 tests** trong artifact riêng: canonical CPU max error 3.8356514462378755e-6, relative L2 3.9874268127461064e-7; reduced CUDA-vs-CPU max error 3.5762786865234375e-7. [Báo cáo W3](hope_cad/w3_implementation_v2.md) ghi command/environment/hashes, chronology và phạm vi. W4/W5 tests chưa triển khai; không gán kết quả W3 cho các phần đó.
+Các sanity checks trên được thực hiện lúc freeze, không proof theorem hoặc validation CAD. Historical W3 suite đã pass **23 tests** ở source `6dbe4f1`: independent oracle, first/second derivatives, CPU canonical-grid FP32/FP64, reset/state isolation và reduced CUDA parity; canonical max error 2.45e-6. Sau failure Kaggle của source này, fix `363634b` đã pass **24 tests** trong artifact riêng: canonical CPU max error 3.8356514462378755e-6, relative L2 3.9874268127461064e-7; reduced CUDA-vs-CPU max error 3.5762786865234375e-7. [Báo cáo W3](w3_implementation_v2.md) ghi command/environment/hashes, chronology và phạm vi. W4/W5 tests chưa triển khai; không gán kết quả W3 cho các phần đó.
 
-Ngày 2026-10-10 đã kiểm [artifact Kaggle](../results/hope_cad_v2/w3_verification_kaggle.json) khớp `363634b` ở đủ 7 files; không chạy lại W3 trên clone thiếu source. Artifact được tạo `2026-10-09T15:46:02Z` (22:46:02 ngày 2026-10-09, Asia/Bangkok), 24 tests trong 6.706 s, không failures/errors/skips. Đây là correctness-suite runtime, không throughput/VRAM profile của full method. Synthetic init contraction §4.3.2 vẫn là transcript audit riêng trước fix, chưa được verifier này đo lại; upstream parity, long CMS gate, full-grid/16-event T4 profile và AD/forgetting còn pending.
+Ngày 2026-10-10 đã kiểm [artifact Kaggle](../../results/hope_cad_v2/w3_verification_kaggle.json) khớp `363634b` ở đủ 7 files; không chạy lại W3 trên clone thiếu source. Artifact được tạo `2026-10-09T15:46:02Z` (22:46:02 ngày 2026-10-09, Asia/Bangkok), 24 tests trong 6.706 s, không failures/errors/skips. Đây là correctness-suite runtime, không throughput/VRAM profile của full method. Synthetic init contraction §4.3.2 vẫn là transcript audit riêng trước fix, chưa được verifier này đo lại; upstream parity, long CMS gate, full-grid/16-event T4 profile và AD/forgetting còn pending.
 
 ## 16. Rủi ro, giới hạn và quản lý thay đổi
 
@@ -877,12 +877,12 @@ Khi implementation tiến triển, cập nhật status bằng file/symbol/commit
 
 | Nguồn local / primary | Dùng cho phần nào | Không được suy rộng |
 |---|---|---|
-| [CADIC paper](papers/CADIC_Continual_Anomaly_Detection_Based_on_Incremental_Coreset.pdf), [primary text](https://arxiv.org/html/2511.08634v1) | Patch coreset, incremental rule, AD score, literature baseline | Exact local parity khi preprocessing/initialization assumptions chưa xác minh |
-| [CAD Fundamental](papers/CAD_Fundamental.pdf) | Bối cảnh continual AD, replay/memory và forgetting | Metric/task setting khác không tự equivalent protocol này |
-| [Nested Learning](papers/Nested_Learning_The_Illusion_of_Deep_Learning_Architectures.pdf), [primary text](https://arxiv.org/html/2512.24695v1) | Nested objectives/timescales, HOPE/CMS; Eq.70–71 objective choice, self-modifying formulations | Không cung cấp sẵn objective CAD và kết quả dự án |
+| [CADIC paper](../papers/CADIC_Continual_Anomaly_Detection_Based_on_Incremental_Coreset.pdf), [primary text](https://arxiv.org/html/2511.08634v1) | Patch coreset, incremental rule, AD score, literature baseline | Exact local parity khi preprocessing/initialization assumptions chưa xác minh |
+| [CAD Fundamental](../papers/CAD_Fundamental.pdf) | Bối cảnh continual AD, replay/memory và forgetting | Metric/task setting khác không tự equivalent protocol này |
+| [Nested Learning](../papers/Nested_Learning_The_Illusion_of_Deep_Learning_Architectures.pdf), [primary text](https://arxiv.org/html/2512.24695v1) | Nested objectives/timescales, HOPE/CMS; Eq.70–71 objective choice, self-modifying formulations | Không cung cấp sẵn objective CAD và kết quả dự án |
 | [VisionHOPE](https://github.com/khangbkk23/NestedLearningForCAD/blob/6dbe4f1/docs/papers/VISIONHOPE_2609.33325v1.pdf), [primary text](https://arxiv.org/html/2609.33325v1) | Linear visual memories, chunk read/update, four scans, safeguards; Eq.27 và Appendices B/C | Không có CMS/CAD validation hoặc guarantee non-forgetting |
 | [Official VisionHOPE repository](https://github.com/PSRben/VisionHOPE) | W3 ghi reference commit `98cfb5d6004472a0ba3d212d3cf884393e39c134`, license MIT; implementation viết từ mathematical contract | Chỉ audit operator paths liên quan; chưa direct numerical parity hoặc full-backbone port; giữ higher-order path riêng |
-| [ReplayCAD paper](papers/ReplayCAD_Generative_Diffusion_Replay_for_Continual_Anomaly_Detection.pdf) | Generative replay baseline và native conditions | Native InvAD numbers không là shared ViT-B/8 result |
+| [ReplayCAD paper](../papers/ReplayCAD_Generative_Diffusion_Replay_for_Continual_Anomaly_Detection.pdf) | Generative replay baseline và native conditions | Native InvAD numbers không là shared ViT-B/8 result |
 | [Reverse Distillation](https://openaccess.thecvf.com/content/CVPR2022/html/Deng_Anomaly_Detection_via_Reverse_Distillation_From_One-Class_Embedding_CVPR_2022_paper.html) | Tiền lệ normal-only teacher discrepancy cho AD | Không là proof hiệu quả head v3 |
 | [UniAD](https://papers.nips.cc/paper/2022/hash/1d774c112926348c3e25ea47d87c835b-Abstract-Conference.html) | Nguy cơ identity shortcuts trong reconstruction AD | Không gán RGB mask contract của đồ án cho UniAD |
 | [VisA official preparation](https://github.com/amazon-science/spot-diff/blob/main/utils/prepare_data.py) | One-class split và dataset layout | Không thay bằng arbitrary 80/20 split |

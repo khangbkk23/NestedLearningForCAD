@@ -1,10 +1,10 @@
 # W3 — Visual self-modifying memory cho Nested Learning for CAD — báo cáo v2
 
-Ngày cập nhật báo cáo: 2026-10-10, bổ sung artifact Kaggle đã được đặt trong repo. Nhánh tài liệu: `hope_cad_v2_clone@a89fd48f94ed9c5deb26041151ea63b79911342f`, không chứa code W3. Source tham khảo: `hope_cad_v2@6dbe4f1` (historical local 23-test), sau đó `363634b18d98eefc6da28660a99b967988077ef3` (fix spectral backward, 24-test Kaggle pass). Không merge source hoặc đổi HEAD clone trong task này. Báo cáo cũ giữ nguyên; version báo cáo không phải version module.
+Ngày cập nhật báo cáo: 2026-10-10. Nhánh hiện hành `hope_cad_v2_1` đã có source W3 `363634b`, bắt đầu chặng 1 tại `5187e4d`; suite W3 chạy lại pass 24/24. Không sửa các source W3 đã audit. Historical local 23-test và artifact Kaggle 24-test vẫn giữ riêng. [Báo cáo chặng 1](stage1_implementation.md) bổ sung init contraction, W4 correctness và handoff upstream/T4.
 
-**Trạng thái: W3 implemented/tested tại source `363634b`; 24/24 tests pass trong môi trường Kaggle có Tesla T4, 7/7 source hashes khớp artifact. Chưa có trong checkout clone, chưa experimentally validated CAD.** Canonical full-grid tests chạy CPU; reduced-fixture parity/backward chạy CUDA. Historical local 23-test ở `6dbe4f1` được giữ riêng. CMS/outer learning/anomaly head và các gate bổ sung của v3 chưa hoàn tất; bản sửa numerical giữ nguyên recurrence/initialization.
+**Trạng thái: W3 implemented/tested tại source `363634b`, đã có trên nhánh hiện hành và pass lại suite. Chưa experimentally validated CAD.** Historical Kaggle 24/24 có 7/7 hashes khớp source, canonical CPU và reduced CUDA. Chặng 1 thêm CMS/outer learning ở mức feature predictor; full RGB adapter, upstream numerical parity và exact canonical-T4 profile vẫn pending. Không suy hiệu quả CAD từ test numerical.
 
-Các đường dẫn source trong bảng liên kết tới **`363634b`, commit khớp artifact Kaggle mới** để không tạo local links sai trên clone. [Decision v3](architecture_decision_v3.md), [planning v3](planning_CAD_v3.md) và [instruction v3](../instruction_CAD_v3.md) là contract hiện hành. Source W3 vẫn ở namespace `hope_cad_v2`; component metadata v2 không chứng nhận full method v3 đã có.
+Các đường dẫn source trong bảng tiếp tục trỏ commit `363634b` khớp historical artifact Kaggle; source đó hiện cũng có trong checkout. [Decision](architecture_decision_v3.md), [planning](planning_CAD_v3.md), [instruction](instruction_CAD_v3.md) giữ contract; [báo cáo chặng 1](stage1_implementation.md) ghi trạng thái mới. Namespace `hope_cad_v2` giữ nguyên.
 
 ## 1. Những gì đã triển khai
 

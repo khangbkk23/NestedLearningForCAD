@@ -1,0 +1,10 @@
+id: visa_1x12_prefix_cal_v2
+version: 2
+dataset: {name: VisA, root: "${VISA_ROOT}", split_csv: split_csv/1cls.csv}
+task_order: [candle, capsules, cashew, chewinggum, fryum, macaroni1, macaroni2, pcb1, pcb2, pcb3, pcb4, pipe_fryum]
+training: {normal_only: true, dev_mode: first_task_prefix, drop_last: false}
+calibration: {prefix_cap: 100, minimum_prefix: 32, support_length: 16, split: contiguous_50_20_15_remainder, online_exclude: [normal_validation, normal_probe]}
+evaluation: {final_per_task: true, primary: [i_auroc, p_aupr], aggregation: macro_tasks, pixels: all, pooled: secondary_only}
+forgetting: {enabled: true, formula: mean_prior_max_minus_final}
+leakage: {official_test_feedback: forbidden, test_checkpoint_selection: forbidden, test_early_stopping: forbidden, test_parameter_tuning: forbidden, future_task_calibration: forbidden}
+smoke: {reportable: false}

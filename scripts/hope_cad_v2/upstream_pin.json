@@ -1,0 +1,25 @@
+{
+  "upstream": "https://github.com/PSRben/VisionHOPE",
+  "commit": "98cfb5d6004472a0ba3d212d3cf884393e39c134",
+  "license": "MIT",
+  "source_sha256": {
+    "models/srnl_core/__init__.py": "7b27cbf75edeb34ac91851f4fd5b409f51db84de01aca855609c79d75dd617ea",
+    "models/srnl_core/csrc/memory.cuh": "5c2feab03050a3ec619676dadc335bc97e9ca5f964a32d9c131d11d38048f422",
+    "models/srnl_core/csrc/chunk_backward_dispatch.cuh": "87b174ba68270ca1cec672f5f8d5e52fab0c28f553004b594837ab4b081875b6",
+    "utils/cuda_source.py": "b27656e3b135878b2dfadcf26c804d2201efe2a365d45265eadc59b749836d43",
+    "models/srnl_core/csrc/lines.cu": "50966411dbbfbbc5ddb9f7b8f1d9ab3a7057330be2d4fa8f569456f0ec3cf935",
+    "models/srnl_core/source.py": "6e6abaeeaf0267e8f97b34e8567a6dfffd8453f3eadce0b9889e85a4e5ee52a4",
+    "models/srnl_core/csrc/chunk.cpp": "7962fa9543150539d3886757354fea67846ca494728c7c5ac146db576f06d6ef",
+    "models/srnl_core/csrc/chunk.cu": "f74a2bfecd1f037c29f289074f26b6acf55eb66a50514be195498f65ba3ed3eb",
+    "models/srnl_core/csrc/fused.cu": "f2a33b2811944ebb9fca6d755a0ededd90cfe7a170f97e1cb3d3d7a06e0171eb",
+    "models/srnl_core/csrc/inference_recurrence.cuh": "f20c91fa865e30bdf355e53267f9a92b541fac468776a6478cb548360494f7ff",
+    "models/srnl_core/csrc/lines.cpp": "4100ce10cc4876e6791dab9e893824dfe4cb8fd7f5f3f670d196cf77b15f4914",
+    "models/srnl_core/csrc/parallel_line.cuh": "cd5e51e69103efe7ec471c997e7b2f0b18b4d84c23cdd360b97a5442623dffaf",
+    "models/srnl_core/lines.py": "bd0fd4af1f22f953893c91249aac0961ba39e5ca97e28b384f7d6c8e5d721e13",
+    "models/srnl_core/chunk.py": "acbf2651ad111c678deca2fd372e1debb7efb11962290fdc35fa3d11b7752ef7",
+    "utils/cuda.py": "09a8a624855139c6b5ba7388d5412565ff0bf57acd752d31f77ba54527ebce78",
+    "LICENSE": "35a6ebe5ac6f07311bc669e9b28a94029b66b709b3612e320aa8a8a048a287ba",
+    "models/srnl_core/csrc/fused.cpp": "ca3a79a413402cdeb3b8331f474f68bc40bbbfdb5b31b4272e71ce15ce3e92ad",
+    "models/srnl_core/fused.py": "ab5335550bbf13a9a49718f766d3406f3234bce97559ee05bb429f632f7e7a20"
+  }
+}

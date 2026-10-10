@@ -2,11 +2,11 @@
 
 Ngày chốt revision v3: 2026-10-10. Trạng thái: **BƯỚC 3–4 HOÀN TẤT Ở MỨC SPEC; ARCHITECTURE/SELECTION FROZEN FOR IMPLEMENTATION; gate mới pending**.
 
-Tài liệu này thực hiện đầy đủ phần A/B của planning và tích hợp audit v3. Kiến trúc/selection được chốt trong [architecture_decision_v3.md](architecture_decision_v3.md); [instruction_CAD_v3.md](../instruction_CAD_v3.md) là guide A–Z. W3 đã implemented/tested ở source nhánh `hope_cad_v2` được chỉ ra dưới đây, không có tại HEAD clone; full method và W4/W5 còn proposed. Không thay đổi code/semantics của v1 hoặc các tài liệu v2.
+Tài liệu này giữ đầy đủ planning A/B và contract v3 trong [architecture_decision_v3.md](architecture_decision_v3.md); [instruction_CAD_v3.md](instruction_CAD_v3.md) là guide A–Z. [Báo cáo chặng 1](stage1_implementation.md) cập nhật implementation W1/W3/W4 trên `hope_cad_v2_1`; không thay code v1, spec v2 hoặc các quyết định toán học đã freeze.
 
 **Quy ước phiên bản.** Đây là bản đầy đủ kế thừa v2, tích hợp các sửa đổi sau audit; ba tài liệu v2 và báo cáo W3 cũ được giữ nguyên. Design/method ID mới là `hope_cad_v3_masked_teacher_cms`, selection-rule ID là `prefix_cms_stress_v3`, vì quy tắc chọn cấu hình đã thay đổi. Topology, recurrence, initialization, teacher, masks, final score, clocks và quyền dữ liệu cốt lõi giữ nguyên. Namespace code `models/hope_cad_v2/`, `scripts/hope_cad_v2/`, các tên module `_v2` và protocol IDs `mvtec_1x15_prefix_cal_v2` / `visa_1x12_prefix_cal_v2` vẫn là các tên kế thừa; không tạo bản sao code chỉ để đổi số. Full run phải ghi method ID v3 và selection-rule ID riêng, không lấy component metadata W3 v2 làm identity của full method.
 
-**Phạm vi checkout ngày 2026-10-10.** Theo yêu cầu mới nhất, chỉ soạn tài liệu trên `hope_cad_v2_clone@a89fd48f94ed9c5deb26041151ea63b79911342f`, không cập nhật nhánh này bằng code W3. W3 có ở nhánh `hope_cad_v2`: commit `6dbe4f1` thêm implementation, commit `363634b18d98eefc6da28660a99b967988077ef3` sửa backward của spectral guard gần denominator floor và thêm regression test. Các đường dẫn W3 dưới đây là bản đồ source ở nhánh đó hoặc đích tích hợp tương lai, **không phải file đã có tại HEAD của clone**. W4/W5, full method v3 và các gate mới vẫn **proposed/not implemented**. Snapshot `a89fd48` của baseline/core/pilots trong các bảng lịch sử được giữ nguyên; không gán W3 hay kết quả test mới vào commit này.
+**Checkout hiện hành — chặng 1.** Theo chỉ dẫn mới nhất của người dùng, chỉ làm việc trên `hope_cad_v2_1`, bắt đầu từ `5187e4d3ba5fe756520e2499ec6b90a4b6f91507`; W3 `363634b` đã có sẵn. Code mới W1/W4 ở working tree, chưa commit/push. [Báo cáo chặng 1](stage1_implementation.md) xác định source/function, tests/artifacts và các gate còn pending. Snapshot `a89fd48`/`hope_cad_v2_clone` và các nhãn “proposed/not implemented” trong nội dung freeze bên dưới được giữ làm lịch sử tại thời điểm soạn spec; trạng thái implementation hiện tại lấy theo báo cáo chặng 1. Không thay hợp đồng toán học hoặc gán code mới cho commit cũ.
 
 ## 0. Mục tiêu và các ràng buộc đã biết
 
@@ -91,7 +91,7 @@ Ngày 2026-10-09, source W3 được thêm trên `hope_cad_v2`, sau đó commit 
 
 **Acceptance:** numerical NaN/Inf, state mutation sai hoặc gradient bị disconnect do implementation là correctness failure. Biên độ nhỏ ở init là **warning cần đo tiếp**, không tự động fail kiến trúc hoặc ép đổi initialization. Diagnostics completeness là gate sớm; utility được đánh giá sau calibration bằng trained static/reset/freeze controls và final-score sensitivity. Không đặt một cutoff dựa vào fixture đã xem rồi gọi là preregistered pass. Nếu chưa có bằng chứng utility thì ghi inconclusive/no-go cho claim H3, không bịa threshold đảm bảo gain. Mọi sửa init/retention/guards để xử lý quan sát phải thành method revision trước anomaly-test evaluation.
 
-Upstream core đã được đối chiếu source/đại số với recurrence; chưa chạy numerical parity trực tiếp. Gate phải đồng nhất explicit weights/queries/controls, tránh vùng clamp ±10 không chung giữa implementations; first-order upstream không thay higher-order oracle. Phạm vi và tolerances đầy đủ ở [decision §3.3](architecture_decision_v3.md#33-fidelity-với-paperupstream-và-gate-so-số). Long CMS gate/C4/VisA QA bên dưới là proposed requirements, chưa có CMS experiment để gọi validated.
+Upstream core đã được đối chiếu source/đại số với recurrence và numerical parity trực tiếp đã PASS 19/19 fixtures trên Tesla T4 tại pin `98cfb5d6004472a0ba3d212d3cf884393e39c134`. Gate dùng explicit weights/queries/controls và tránh vùng clamp ±10 không chung giữa implementations; first-order upstream không thay higher-order oracle. Phạm vi và tolerances đầy đủ ở [decision §3.3](architecture_decision_v3.md#33-fidelity-với-paperupstream-và-gate-so-số). Đây là low-level normalized-query forward/state/first-gradient parity, không phải full-backbone/Hessian hoặc CAD utility validation.
 
 ### A4. Kết quả CADIC đã có
 
@@ -156,7 +156,7 @@ Nguồn: [CADIC](https://arxiv.org/html/2511.08634v1), [Nested Learning](https:/
 | F10 | Metric pilot upsample native mask, harness hiện dùng 224×224 | Main track dùng cùng resolution 224×224 như harness đã khóa; native-resolution chỉ bảng phụ hoặc một protocol version riêng áp dụng cho mọi method |
 | F11 | C4 phải match β của M nhưng v2 cho mọi CMS control tự search | C4 chính kế thừa β_M; fit/chọn own step, không tự chọn β. Tuned variant là ID phụ |
 | F12 | Validation 16 events không sàng lọc long-horizon drift | `prefix_cms_stress_v3`: 1,024 support/query-repeat events, normal-validation loss + state/accumulator gates; không mở quyền dữ liệu |
-| F13 | Oracle nội bộ cùng theo spec chưa là upstream fidelity | Giữ recurrence; numerical upstream-core parity pinned SHA còn pending; differences và higher-order scope khai báo |
+| F13 | Oracle nội bộ cùng theo spec chưa tự đủ làm upstream fidelity | Giữ recurrence; numerical upstream-core parity pinned SHA đã PASS 19/19 low-level fixtures; differences và higher-order scope vẫn khai báo |
 | F14 | Init contraction có thể làm visual branch ít tác dụng | Diagnostics ngay sau W3; post-calibration sau minimal W4; tiny init không tự fail design |
 | F15 | VisA nearest resize có thể mất defect nhỏ | Preflight counts và giữ official image labels/all images; shared 224-pixel policy, không sửa riêng method |
 
@@ -356,7 +356,7 @@ Bootstrap reference khóa 2,000 replicates, RNG seed 20261009; paired image weig
 | W0 — Freeze, **DONE ở mức tài liệu** | Architecture/data access, clone/source scope, hypotheses/ablations và selection v3 | [Architecture decision v3](architecture_decision_v3.md), instruction v3; gate mới pending, không claim implementation |
 | W1 — Baseline/protocol | Thu hồi A4.1 provenance; explicit adapter IDs; protocol/validator v2 cho prefix split/VisA/order study; ReplayCAD schema agreement | Per-image update, full Eq.9 score, exact metric; unknown adapter fail rõ, không fallback legacy; smoke/resume đúng; v1 immutable |
 | W2 — Kaggle runtime, **partial evidence** | Lock dependency/Python/PyTorch/timm/parquet; notebook chỉ bootstrap/CLI; weights/data preflight, mounts/config overrides, resume/export | Kaggle W3 synthetic suite đã pass; chưa đóng W2. Còn clean-session extractor + tiny harness, đúng assets/manifests/masks và crash-resume |
-| W3 — Visual operator, **implemented/tested tại `363634b`, chưa tích hợp clone** | Token oracle, rank-one chunks, four scans/guards/init/geometry; bổ sung upstream-core parity và diagnostics A3.2 | 24/24 pass trong Kaggle có T4, 7/7 source hashes khớp; canonical full-grid CPU, reduced CUDA. Upstream parity, diagnostics v3 còn thiếu, real features và full-grid/16-event T4 profiling vẫn pending |
+| W3 — Visual operator, **implemented/tested trên `hope_cad_v2_1`** | Token oracle, rank-one chunks, four scans/guards/init/geometry; upstream-core parity và diagnostics A3.2 | W1/W3/W4 verifier 56/56 PASS; upstream parity 19/19 fixtures PASS; canonical exact-16 forward/backward PASS trên T4. Real features và CAD utility vẫn chưa được xác nhận |
 | W4 — CMS objective/outer loop | Functional state; local teacher losses; averaged accumulators; 16-support exact unroll; prefix pools/selection/export, inherited-β C4 và long gate B5.1 | Finite differences và counts `(16,2)`; batch transport equivalence trong tolerance; atomic rollback; resume mid-period; meta graph giữ đúng dependencies; resource spike sớm và trace long-gate loss/norm/finite |
 | W5 — Dense CAD integration | Full coverage masks, final CMS residual head, adapter `fit_task/score_batch/state_dict/memory_stats`, scoring trước update | 100% patches scored; intervention vào CMS làm đổi final score; test permutation không đổi output; persistent state/counters/RNG không đổi |
 | W6 — Mechanism pilot | C0/C1/C2/M; validation chọn cấu hình; probe diagnostic; reset/freeze/static mean controls; stability/contraction/compute | Tách acquisition khỏi static fitting; no NaN/Inf, không chỉ norms; fit một T4; gate fail báo failed/inconclusive theo scope; init warning không tự đổi design; thay recipe phải revision trước test |
@@ -366,7 +366,7 @@ Bootstrap reference khóa 2,000 replicates, RNG seed 20261009; paired image weig
 
 W1/W2 có thể triển khai song song về mặt công việc; W3→W4→W5→W6 có phụ thuộc correctness. Không dùng từ “hoàn thành HOPE” ở W3 khi chưa có CAD objective/head/benchmark.
 
-Với clone hiện ở `a89fd48`, trước khi implement W4 cần được cho phép tích hợp source W3 từ ref đã audit và chạy tests đúng source mới; task tài liệu này không thực hiện tích hợp đó. Diagnostics init làm ngay sau W3, không đợi W6; post-calibration cần minimal W4 nên không thể yêu cầu trước khi W4 tồn tại. Long gate là phần selection W4, được kiểm chứng trong W6 trước scientific pilot.
+**Cập nhật chặng 1:** W3 đã có trên `hope_cad_v2_1`; yêu cầu tích hợp vào clone cũ chỉ còn là lịch sử. W4 reference đã triển khai và kiểm bằng fixtures; canonical-T4 và upstream gates đã PASS theo [báo cáo chặng 1](stage1_implementation.md). Real-prefix gate và CAD utility vẫn pending; init/reduced diagnostics không thay canonical real-feature validation.
 
 **Engineering acceptance bắt buộc:** deterministic state lifecycle, no data leakage trong protocol mới, no hidden task routing, scores đi qua CMS, bounded resource tracking, exact resume, artifact provenance. Đây là pass/fail độc lập với model accuracy.
 
@@ -440,7 +440,7 @@ ReplayCAD chưa sẵn sàng không chặn correctness/pilot HOPE. Nhưng bảng 
 
 ### B11. Nội dung `instruction_CAD_v3.md` sau khi freeze
 
-Các quyết định F1–F5/F9/F10 đã chốt. [instruction_CAD_v3.md](../instruction_CAD_v3.md) là tài liệu bước 5, bao gồm abstract/contribution scope, CAD formalization, toán học, equation-to-code map, algorithms/shapes/state, data/metrics, codespace, môi trường/commands, reproducibility và limitations. Đây là entry point tự chứa cho người/AI tiếp quản; không yêu cầu đọc tuần tự mọi docs lịch sử.
+Các quyết định F1–F5/F9/F10 đã chốt. [instruction_CAD_v3.md](instruction_CAD_v3.md) là tài liệu bước 5, bao gồm abstract/contribution scope, CAD formalization, toán học, equation-to-code map, algorithms/shapes/state, data/metrics, codespace, môi trường/commands, reproducibility và limitations. Đây là entry point tự chứa cho người/AI tiếp quản; không yêu cầu đọc tuần tự mọi docs lịch sử.
 
 Mỗi module ghi `implemented`, `tested`, `experimentally validated` hoặc `proposed/not implemented` kèm evidence. Phần kế thừa paper, lựa chọn implementation và giả thuyết mới tách nhãn rõ. Khi code thay đổi, update bảng evidence và snapshot; không biến kế hoạch thành mô tả hệ thống đã tồn tại.
 
@@ -452,6 +452,6 @@ Sau rà soát chuyên môn và theo quyền quyết định người dùng giao,
 2. **Objective/head:** normal-only masked fixed-teacher prediction, squared residual từ decoded output cuối CMS; không moving-space NN bank.
 3. **Dữ liệu:** prefix task đầu, 4 pools đã định nghĩa, không future-task calibration; paper-control và matched-method tracks riêng.
 
-Nhánh thực hiện revision tài liệu là `hope_cad_v2_clone@a89fd48`, không cập nhật bằng W3 từ `hope_cad_v2` theo yêu cầu ngày 2026-10-10. Lịch sử nguồn `dikhang_space@a89fd48` giữ nguyên; MVTec trước VisA; Kaggle là môi trường chính; bạn làm HOPE, Khang làm ReplayCAD. Không còn câu hỏi về ba quyết định mục C.
+Revision tài liệu ban đầu được tạo trên `hope_cad_v2_clone@a89fd48`; đó là lịch sử freeze. Checkout triển khai hiện hành là `hope_cad_v2_1`, bắt đầu tại `5187e4d3ba5fe756520e2499ec6b90a4b6f91507`, và chỉ nhánh này nằm trong scope thao tác. Lịch sử nguồn `dikhang_space@a89fd48` giữ nguyên; MVTec trước VisA; Kaggle là môi trường chính; bạn làm HOPE, Khang làm ReplayCAD. Không còn câu hỏi về ba quyết định mục C.
 
-Bước 3–4 hoàn tất ở mức tài liệu v3; W3 `363634b` đã có artifact Kaggle 24-test khớp source, chưa được tích hợp clone. Cần thu thập tiếp CADIC provenance, full-pipeline runtime/full-grid và exact-unroll T4 measurement, upstream parity, diagnostics/gate/selected β và own step của từng method. Chúng là evidence/đầu ra W1–W6, không điền giả. Full method v3 và W4/W5 còn **proposed/not implemented**, không có benchmark CAD xác nhận hiệu quả.
+Bước 3–4 hoàn tất ở mức tài liệu v3. Trên `hope_cad_v2_1`, W3 và W4 feature-level đã implemented/tested; Chặng 1 technical acceptance đã PASS với verifier 56/56, canonical exact-16 T4 và upstream parity 19/19 fixtures. Cần thu thập tiếp CADIC matched-prefix provenance, full RGB pipeline, real-prefix selection/gate/selected β và benchmark của từng method. Chúng là evidence/đầu ra W2/W5–W7, không điền giả. Chưa có benchmark CAD xác nhận hiệu quả của full method v3.
