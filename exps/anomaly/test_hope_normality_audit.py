@@ -9,7 +9,7 @@ from exps.hope_image_synchronous_memory import (
     ImageSynchronousMemory, aggregate_image_statistics, fingerprint, local_objective,
     propose_transition,
 )
-from exps.hope_normality_audit import (
+from exps.anomaly.hope_normality_audit import (
     cosine_summary, direction_overlap, fit_teacher_map, fixed_teacher, interimage_cosine_correlation,
     objective_gradient, relational_alignment,
 )

@@ -11,14 +11,14 @@ import torch
 from torch.nn import functional as F
 from sklearn.metrics import average_precision_score, roc_auc_score
 
-from exps.hope_anomaly_signal import (
+from exps.anomaly.hope_anomaly_signal import (
     CATEGORIES, PooledCovariance, bootstrap_image_counts, development_manifests,
     evaluate_metrics, histogram_ap, native_mask, pixel_map, residual_scores,
 )
 from exps.hope_image_synchronous_memory import ImageSynchronousMemory, fingerprint
 from models.hope_cad.self_modifying_titans import SelfModifyingTitans
 from models.cadic_patch_coreset_v1 import CADICPatchCoresetConfig, CADICPatchCoresetV1
-from scripts.exps.hope_anomaly_signal import validate_dev_cache, manifest_identity, write_json, read_json, save_table, table_records
+from scripts.exps.anomaly.hope_anomaly_signal import validate_dev_cache, manifest_identity, write_json, read_json, save_table, table_records
 
 
 def memory():

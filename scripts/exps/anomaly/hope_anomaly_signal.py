@@ -17,7 +17,7 @@ from torch.utils.data import DataLoader
 import yaml
 
 from dataset.benchmark_protocol_v1 import _ImageDataset
-from exps.hope_anomaly_signal import (
+from exps.anomaly.hope_anomaly_signal import (
     CATEGORIES, CHECKPOINTS, METHOD_NAMES, PooledCovariance, bootstrap_image_counts,
     development_manifests, evaluate_metrics, native_mask, pixel_map, residual_scores,
     score_distribution, sha256,
@@ -27,7 +27,7 @@ from models.cadic_patch_coreset_v1 import CADICPatchCoresetConfig, CADICPatchCor
 from scripts.hope_cad.probe_real_features import EXPECTED_CHECKPOINT_SHA, feature_metadata, make_extractor
 
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[3]
 MEMORY_ROOT = ROOT / "results/hope_cad/memory_learning_gate"
 DEFAULT_OUTPUT = ROOT / "results/hope_cad/anomaly_signal_gate"
 DATA_ROOT = ROOT / "data/mvtec"

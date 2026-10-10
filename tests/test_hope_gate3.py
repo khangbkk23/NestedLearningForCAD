@@ -6,7 +6,7 @@ from pathlib import Path
 import pytest
 import torch
 
-from exps.hope_gate3 import (
+from exps.task3r.hope_gate3 import (
     anchor_rows_at_checkpoint, anchor_stream, build_retention_matrix,
     check_event_counters, evaluate_anchor, fit_slopes, full_geometry,
     load_200_stream, load_checkpoint, neutral_retention, reference_outputs,
@@ -187,7 +187,7 @@ def test_neutral_retention_uses_whole_image_horizon():
 
 
 def test_old_artifact_reference_fields_are_renamed_without_mutating_source():
-    from scripts.exps.hope_gate3 import correct_reference_semantics
+    from scripts.exps.task3r.hope_gate3 import correct_reference_semantics
     original = {"event_id": 1, "pre_smt_rms": .1, "pre_hope_rms": .2, "smt_rms_fresh_read_only": .1, "hope_rms_fresh_read_only": .2, "smt_rms": .05, "hope_rms": .1}
     snapshot = dict(original)
     corrected = correct_reference_semantics([original], [{"smt_rms": .4, "hope_rms": .5}])[0]
@@ -200,7 +200,7 @@ def test_old_artifact_reference_fields_are_renamed_without_mutating_source():
 
 
 def test_pareto_dominance_keeps_adaptation_and_history_separate():
-    from scripts.exps.hope_gate3 import pareto_frontier
+    from scripts.exps.task3r.hope_gate3 import pareto_frontier
     def point(name, stability, plasticity):
         return {"candidate": name, "classification": "STABLE", **{f"mean_corrected_{space}_relative_l2": stability for space in ("smt", "hope")}, **{f"mean_corrected_{space}_anchor_cosine": 1 - stability for space in ("smt", "hope")}, **{f"mean_{space}_anchor_amplitude_change": stability for space in ("smt", "hope")}, **{f"mean_current_image_{space}_relative_l2": plasticity for space in ("smt", "hope")}}
     low = point("low", .01, .01)

@@ -14,7 +14,7 @@ import numpy as np
 import torch
 from torch.nn import functional as F
 
-from exps.hope_outer_learning_p1_v1 import CENTERS, Counters, MEMORIES
+from exps.ol03.hope_outer_learning_p1_v1 import CENTERS, Counters, MEMORIES
 
 
 ROLES = (("meta_train_support", 0, 60), ("meta_train_query", 60, 80),

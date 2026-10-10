@@ -16,13 +16,13 @@ from exps.hope_image_synchronous_memory import (
     ImageSynchronousMemory, aggregate_image_statistics, fingerprint, geometry,
     local_objective, propose_transition, fixed_association_read_errors,
 )
-from exps.hope_normality_audit import (
+from exps.anomaly.hope_normality_audit import (
     FrozenTeacherMap, cosine_summary, direction_overlap, fit_teacher_map, fixed_teacher,
     interimage_cosine_correlation,
     objective_gradient, output_change, relational_alignment,
 )
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[3]
 SOURCE = ROOT / "results/hope_cad/memory_learning_gate"
 OUTPUT = ROOT / "results/hope_cad/normality_objective_audit"
 CLASSES = ("bottle", "carpet", "hazelnut")

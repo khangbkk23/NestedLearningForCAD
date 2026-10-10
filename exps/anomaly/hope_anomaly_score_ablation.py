@@ -18,13 +18,13 @@ import torch
 from torch.nn import functional as F
 import yaml
 
-from exps.hope_anomaly_signal import (
+from exps.anomaly.hope_anomaly_signal import (
     CATEGORIES, CHECKPOINTS, METHOD_NAMES, PooledCovariance,
     bootstrap_image_counts, native_mask, pixel_map, sha256,
 )
 from exps.hope_image_synchronous_memory import fingerprint
 from models.cadic_patch_coreset_v1 import CADICPatchCoresetV1
-from scripts.exps import hope_anomaly_signal as original
+from scripts.exps.anomaly import hope_anomaly_signal as original
 
 
 COSINE_EPS = 1e-8
@@ -51,7 +51,7 @@ def original_process_status(pid_file: Path) -> dict[str, Any]:
     parts = cmd_file.read_bytes().split(b"\0")
     parts = [p.decode(errors="replace") for p in parts if p]
     match = bool(parts and Path(parts[0]).name.startswith("python")) and any(
-        Path(p).as_posix().endswith("scripts/exps/hope_anomaly_signal.py") for p in parts)
+        Path(p).as_posix().endswith("scripts/exps/anomaly/hope_anomaly_signal.py") for p in parts)
     return {"pid": pid, "alive": match, "identity": "RUNNING" if match else "STALE_PID",
             "command": parts}
 

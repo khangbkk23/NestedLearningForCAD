@@ -20,7 +20,7 @@ import pandas as pd
 import torch
 from torch.nn import functional as F
 
-from exps.hope_outer_learning_pilot_v1 import (
+from exps.ol04.hope_outer_learning_pilot_v1 import (
     CENTER_IDS, CENTERS, EXPECTED_CACHE_SHA, EXPECTED_CHECKPOINT_SHA,
     atomic_json, atomic_torch, commit, copy_parameters, detached_state, event,
     file_sha, initial_state, inventory, make_schedule, mask_rgb, nontriviality,
@@ -31,7 +31,7 @@ from exps.hope_outer_learning_pilot_v1 import (
 )
 
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[3]
 DEFAULT_OUT = ROOT / "results/hope_cad/outer_learning_pilot_v1/shared_gpu_attempt"
 SOURCE_CACHE = ROOT / "results/hope_cad/memory_learning_gate/features/class_bottle.pt"
 SOURCE_FIXTURE = ROOT / "results/hope_cad/memory_learning_gate/p0_initial_fixture.pt"

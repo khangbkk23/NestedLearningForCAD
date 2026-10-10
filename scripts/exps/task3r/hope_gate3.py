@@ -13,7 +13,7 @@ from typing import Any, Mapping, Sequence
 import torch
 import yaml
 
-from exps.hope_gate3 import (
+from exps.task3r.hope_gate3 import (
     ANCHOR_POSITIONS, CHECKPOINTS, CLASS_ORDER, SELF_REFERENCE_TOLERANCE,
     anchor_stream, artifact_fingerprints, boundary_rows, classify_long,
     evaluate_checkpoint_anchors, fit_slopes, load_200_stream, neutral_retention,
@@ -26,7 +26,7 @@ from exps.hope_retention_stabilization import (
 )
 from exps.hope_update_stabilization import UpdateMapping, pm0_oracle_check
 
-REPO_ROOT = Path(__file__).resolve().parents[2]
+REPO_ROOT = Path(__file__).resolve().parents[3]
 FEATURE_ROOT = REPO_ROOT / "results/hope_cad/real_feature_probe/real_cpu_seed0/features"
 ORIGINAL_ROOT = REPO_ROOT / "results/hope_cad/update_stabilization/gate3_seed0"
 REPAIR_ROOT = REPO_ROOT / "results/hope_cad/update_stabilization/gate3_repair_seed0"

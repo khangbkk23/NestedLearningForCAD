@@ -19,7 +19,7 @@ import torch
 from torch.nn import functional as F
 
 from exps.hope_image_synchronous_memory import ImageSynchronousMemory, aggregate_image_statistics
-from exps.hope_outer_learning_p1_v1 import (
+from exps.ol03.hope_outer_learning_p1_v1 import (
     CENTERS, MEMORIES, checkpoint_payload, detached_parameters, functional_image_event,
     functional_state_to_detached_snapshot, functional_support_sequence,
     initial_functional_state, load_checkpoint, masked_synthetic_rgb, mock_patch_backbone,
@@ -29,7 +29,7 @@ from exps.hope_outer_learning_p1_v1 import (
 from models.hope_cad.self_modifying_titans import SelfModifyingTitans
 
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[3]
 LOCKED_SOURCES = (
     "models/hope_cad/self_modifying_titans.py", "models/hope_cad/continuum_memory.py",
     "models/hope_cad/hope_block.py", "exps/hope_image_synchronous_memory.py",

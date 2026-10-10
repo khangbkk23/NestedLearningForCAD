@@ -12,18 +12,18 @@ import pytest
 import torch
 from torch.nn import functional as F
 
-from exps.hope_outer_learning_p1_v1 import (
+from exps.ol03.hope_outer_learning_p1_v1 import (
     synthetic_parameters, initial_functional_state, propose_functional_event,
     functional_support_sequence, read_query_without_update,
 )
-from exps.hope_outer_learning_pilot_v1 import (
+from exps.ol04.hope_outer_learning_pilot_v1 import (
     CENTER_IDS, CENTERS, Parameters, ROLES, atomic_json, commit, copy_parameters,
     detached_state, event, initial_state, inventory, make_schedule, mask_rgb,
     nontriviality, paired_bootstrap, parameters_sha, predict_with_product,
     propose, read, restore_parameters, ridge_fit, ridge_read, schedule_sha,
     serialize_parameters, state_fingerprint, support_sequence, teacher_error, parameter_storage_bytes,
 )
-from scripts.exps.hope_outer_learning_pilot_v1 import save_fit_checkpoint, write_table
+from scripts.exps.ol04.hope_outer_learning_pilot_v1 import save_fit_checkpoint, write_table
 
 
 @pytest.fixture(autouse=True)

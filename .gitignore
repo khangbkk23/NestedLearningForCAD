@@ -27,7 +27,8 @@ wandb/
 *.pth
 *.pt
 *.ckpt
-
+AGENTS*
+SKILL*
 # Notebook checkpoints
 .ipynb_checkpoints/
 

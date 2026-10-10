@@ -12,7 +12,7 @@ import pytest
 import torch
 from torch.nn import functional as F
 
-from exps.hope_outer_learning_p1_v1 import (
+from exps.ol03.hope_outer_learning_p1_v1 import (
     ARMS, CENTERS, Configuration, Counters, FunctionalState, MEMORIES,
     checkpoint_payload, commit_functional_event, detached_parameters, evaluate_arm,
     functional_image_event, functional_state_to_detached_snapshot,
@@ -22,7 +22,7 @@ from exps.hope_outer_learning_p1_v1 import (
     read_with_transition, restore_checkpoint, save_checkpoint,
     state_fingerprint, synthetic_parameters, tensor_inventory,
 )
-from scripts.exps.hope_outer_learning_stage0_v1 import (
+from scripts.exps.ol01.hope_outer_learning_stage0_v1 import (
     check_forward_parity, check_gradients, check_graph_lifecycle,
     check_restart, install_synthetic_io_guard, run_validation,
     source_hashes, synthetic_inputs,

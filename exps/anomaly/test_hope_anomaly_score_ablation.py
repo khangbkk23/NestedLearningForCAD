@@ -8,13 +8,13 @@ import pytest
 import torch
 from torch.nn import functional as F
 
-from exps.hope_anomaly_score_ablation import (
+from exps.anomaly.hope_anomaly_score_ablation import (
     COSINE_EPS, affinity_components, affinity_scores, angular_components, angular_scores, assert_files_unchanged,
     file_manifest, original_process_status, verify_unit_arrays,
 )
 from exps.hope_image_synchronous_memory import ImageSynchronousMemory, fingerprint
 from models.hope_cad.self_modifying_titans import SelfModifyingTitans
-from scripts.exps.hope_anomaly_signal import write_json, read_json
+from scripts.exps.anomaly.hope_anomaly_signal import write_json, read_json
 
 
 def memory():
@@ -109,7 +109,7 @@ def test_identical_initial_state_has_zero_reset_effect():
 
 
 def test_bilinear_geometry_is_the_existing_unscaled_pixel_path():
-    from exps.hope_anomaly_signal import pixel_map
+    from exps.anomaly.hope_anomaly_signal import pixel_map
     scores = torch.linspace(0, 2, 784)
     result = pixel_map(scores, (53, 61))
     reference = F.interpolate(scores.reshape(1, 1, 28, 28), size=(53, 61), mode="bilinear", align_corners=False)
@@ -161,8 +161,8 @@ def test_wrong_label_and_nonfinite_artifacts_rejected():
 
 def test_better_frozen_readout_is_not_reported_as_memory_learning(tmp_path):
     import pandas as pd
-    from exps.hope_anomaly_signal import CATEGORIES, CHECKPOINTS, METHOD_NAMES
-    from scripts.exps.hope_anomaly_score_ablation import analyze_readout
+    from exps.anomaly.hope_anomaly_signal import CATEGORIES, CHECKPOINTS, METHOD_NAMES
+    from scripts.exps.anomaly.hope_anomaly_score_ablation import analyze_readout
 
     source, output = tmp_path / "raw", tmp_path / "angular"
     source.mkdir()
@@ -273,7 +273,7 @@ def test_spatial_identical_initial_state_has_zero_reset_effect():
 
 
 def test_parallel_score_progress_cannot_collide_between_seeds(tmp_path, monkeypatch):
-    from scripts.exps import hope_anomaly_score_ablation as runner
+    from scripts.exps.anomaly import hope_anomaly_score_ablation as runner
     original_progress = runner.original.progress
 
     def fake_seed(source, output, device, score, seed):

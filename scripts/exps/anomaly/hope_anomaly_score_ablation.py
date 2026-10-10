@@ -17,12 +17,12 @@ import pyarrow.parquet as pq
 import torch
 import yaml
 
-from exps.hope_anomaly_signal import CATEGORIES, CHECKPOINTS, METHOD_NAMES
-from exps.hope_anomaly_score_ablation import (
+from exps.anomaly.hope_anomaly_signal import CATEGORIES, CHECKPOINTS, METHOD_NAMES
+from exps.anomaly.hope_anomaly_score_ablation import (
     COSINE_EPS, affinity_scores, angular_scores, assert_files_unchanged, file_manifest,
     original_process_status, verify_original, verify_unit_arrays,
 )
-from scripts.exps import hope_anomaly_signal as original
+from scripts.exps.anomaly import hope_anomaly_signal as original
 
 
 DEFAULT_SOURCE = original.DEFAULT_OUTPUT
@@ -249,7 +249,7 @@ def score_visualizations(source, output, score="ANGULAR"):
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
     from PIL import Image
-    from exps.hope_anomaly_signal import native_mask, pixel_map
+    from exps.anomaly.hope_anomaly_signal import native_mask, pixel_map
     selection = original.read_json(source / "manifests/visualization_selection.json")
     lookup = {r["image_id"]: r for r in original.table_records(source / "manifests/anomaly_dev_manifest.parquet")}
     folder = output / "visualizations"
