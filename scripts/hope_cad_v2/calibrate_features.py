@@ -20,6 +20,18 @@ from training.hope_selection_v3 import search
 from scripts.hope_cad_v2.synthetic import feature_fixture
 from scripts.hope_cad_v2.artifacts import provenance, write_json
 
+MIN_SCIENTIFIC_GPU_BYTES = 12 * 1024**3
+
+
+def canonical_resource_block(device, cuda_available, total_memory_bytes):
+    if not str(device).startswith('cuda') or not cuda_available:
+        return 'scientific W6 selection requires a CUDA GPU with at least 12 GiB; no reduced substitute'
+    if total_memory_bytes is None or total_memory_bytes < MIN_SCIENTIFIC_GPU_BYTES:
+        available = 0 if total_memory_bytes is None else int(total_memory_bytes)
+        return (f'scientific W6 selection requires >=12 GiB CUDA memory; '
+                f'available={available} bytes; no reduced substitute')
+    return None
+
 
 def bundle_provider(bundle, device):
     if bundle.get('schema') != 'hope_frozen_prefix_features_v3' or not bundle.get('feature_identity'):
@@ -67,6 +79,21 @@ def main():
     if args.output_dir.exists() and any(args.output_dir.iterdir()):
         raise ValueError('use a new output directory; never overwrite a selection history')
     args.output_dir.mkdir(parents=True,exist_ok=True)
+    evidence = provenance()
+    if not args.synthetic_smoke:
+        memory_bytes = (torch.cuda.get_device_properties(args.device).total_memory
+                        if str(args.device).startswith('cuda') and torch.cuda.is_available()
+                        else None)
+        blocked = canonical_resource_block(args.device, torch.cuda.is_available(), memory_bytes)
+        if blocked:
+            write_json(args.output_dir/'source.json', evidence)
+            write_json(args.output_dir/'selection.json', dict(
+                status='pending_external_gpu', reportable=False, smoke=False,
+                method=args.method, selection_rule_id='prefix_cms_stress_v3',
+                required_gpu_bytes=MIN_SCIENTIFIC_GPU_BYTES,
+                available_gpu_bytes=memory_bytes, reason=blocked))
+            print(blocked)
+            return 2
     config = VisualBlockConfig(4,3,4,2,4,4) if args.synthetic_smoke else VisualBlockConfig()
     if args.synthetic_smoke:
         data = feature_fixture(config,args.device)
@@ -77,7 +104,6 @@ def main():
         feature_identity = dict(**bundle['feature_identity'], bundle_sha256=hashlib.sha256(args.bundle.read_bytes()).hexdigest())
     steps = 1 if args.synthetic_smoke else 200
     schedule = make_schedule(data,0,steps=steps)
-    evidence = provenance()
     write_json(args.output_dir/'source.json',evidence)
     write_json(args.output_dir/'schedule.json',schedule)
     selected_m = torch.load(args.selected_m,map_location='cpu',weights_only=False) if args.selected_m else None

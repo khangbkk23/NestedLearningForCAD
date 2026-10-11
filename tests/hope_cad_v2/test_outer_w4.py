@@ -9,7 +9,7 @@ from models.hope_cad_v2.predictor import HOPEFeaturePredictor
 from models.hope_cad_v2.visual_block import VisualBlockConfig
 from models.hope_cad_v2.teacher_head import frozen_teacher
 from models.hope_cad_v2.state import tensor_digest
-from training.hope_outer_learning_v2 import PrefixFeatures, make_schedule, fit, episode_loss, export_initialization
+from training.hope_outer_learning_v2 import PrefixFeatures, make_schedule, fit, episode_loss, export_initialization, capture_rng, restore_rng
 from training.hope_cms_stress_v3 import run_stress_gate
 
 
@@ -61,6 +61,14 @@ class OuterContracts(unittest.TestCase):
         self.assertEqual(full['feature_reads'], resumed['feature_reads'])
         self.assertEqual(tensor_digest((dict(self.model.named_parameters()),)),
                          tensor_digest((dict(resumed_model.named_parameters()),)))
+
+    @unittest.skipUnless(torch.cuda.is_available(), 'CUDA is required to reproduce device-mapped checkpoint RNG state')
+    def test_restore_rng_accepts_checkpoint_loaded_onto_cuda(self):
+        state = capture_rng()
+        state['torch'] = state['torch'].to('cuda')
+        state['cuda'] = [rng_state.to('cuda') for rng_state in state['cuda']]
+        restore_rng(state)
+        self.assertEqual(torch.get_rng_state().device.type, 'cpu')
 
     def test_nonfinite_fit_discards_earlier_shortlist(self):
         bad = torch.tensor(float('nan'), requires_grad=True)
@@ -135,6 +143,15 @@ class OuterContracts(unittest.TestCase):
             self.assertEqual(c4['selected']['shortlist']['step'],25)
             with self.assertRaises(ValueError):
                 search(factory,self.data,self.schedule,method='C4',selected_m=selected,smoke=False)
+
+    def test_scientific_selection_requires_canonical_gpu_memory(self):
+        from scripts.hope_cad_v2.calibrate_features import (
+            MIN_SCIENTIFIC_GPU_BYTES,
+            canonical_resource_block,
+        )
+        self.assertIsNotNone(canonical_resource_block('cpu', False, None))
+        self.assertIsNotNone(canonical_resource_block('cuda', True, 4 * 1024**3))
+        self.assertIsNone(canonical_resource_block('cuda', True, MIN_SCIENTIFIC_GPU_BYTES))
 
 
 if __name__ == '__main__': unittest.main()

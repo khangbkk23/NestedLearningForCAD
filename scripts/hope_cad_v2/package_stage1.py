@@ -19,7 +19,7 @@ def main():
     # Explicit source roots and extensions; never include arbitrary user files.
     for root in ('models','dataset','training','tests','scripts/hope_cad_v2','conf/benchmarks','docs/main_spec'):
         paths.update(f for f in (ROOT/root).rglob('*') if f.is_file() and f.suffix in ('.py','.json','.yaml','.md'))
-    paths.update(ROOT/p for p in ('pixi.toml','pixi.lock','README.md'))
+    paths.update(ROOT/p for p in ('pixi.toml','pixi.lock','README.md','requirements.txt'))
     paths = sorted(p for p in paths if p.exists())
     origin = provenance()
     manifest = dict(schema='stage1_source_bundle_v1',origin={k:v for k,v in origin.items() if k != 'source_sha256'},

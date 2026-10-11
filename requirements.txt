@@ -17,3 +17,4 @@ opencv-contrib-python>=4.10.0
 # Optional experiment tracking
 wandb>=0.17.0
 timm
+safetensors>=0.4.5

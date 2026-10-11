@@ -72,7 +72,19 @@ class CADICViTFeatureExtractor(nn.Module):
             num_classes=0,
             img_size=config.image_size,
         )
-        checkpoint = torch.load(config.checkpoint_path, map_location="cpu", weights_only=False)
+        checkpoint_path = Path(config.checkpoint_path)
+        if checkpoint_path.suffix.lower() == ".safetensors":
+            try:
+                from safetensors.torch import load_file
+            except ImportError as exc:  # pragma: no cover - dependency-specific
+                raise RuntimeError(
+                    "Safetensors checkpoints require the safetensors package"
+                ) from exc
+            checkpoint = load_file(str(checkpoint_path), device="cpu")
+        else:
+            checkpoint = torch.load(
+                checkpoint_path, map_location="cpu", weights_only=False
+            )
         if isinstance(checkpoint, dict):
             for key in ("state_dict", "model", "model_state_dict"):
                 if key in checkpoint and isinstance(checkpoint[key], dict):
@@ -80,6 +92,16 @@ class CADICViTFeatureExtractor(nn.Module):
                     break
         if not isinstance(checkpoint, dict):
             raise ValueError("checkpoint must contain a state-dict mapping")
+        model_state = self.model.state_dict()
+        classifier_keys = {"head.weight", "head.bias"}
+        unexpected_keys = set(checkpoint) - set(model_state) - classifier_keys
+        missing_keys = set(model_state) - set(checkpoint)
+        if unexpected_keys or missing_keys:
+            raise ValueError(
+                "checkpoint/model state mismatch: "
+                f"missing={sorted(missing_keys)}, unexpected={sorted(unexpected_keys)}"
+            )
+        checkpoint = {key: value for key, value in checkpoint.items() if key in model_state}
         self.model.load_state_dict(checkpoint, strict=True)
         self.model.to(self.device).eval()
         for parameter in self.model.parameters():

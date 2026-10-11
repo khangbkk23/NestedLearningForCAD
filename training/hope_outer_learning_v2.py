@@ -29,9 +29,9 @@ def capture_rng():
 def restore_rng(state):
     random.setstate(state['python'])
     np.random.set_state(state['numpy'])
-    torch.set_rng_state(state['torch'])
+    torch.set_rng_state(state['torch'].cpu())
     if state['cuda']:
-        torch.cuda.set_rng_state_all(state['cuda'])
+        torch.cuda.set_rng_state_all([rng_state.cpu() for rng_state in state['cuda']])
 
 
 class PrefixFeatures:
