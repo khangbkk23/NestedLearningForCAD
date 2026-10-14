@@ -14,8 +14,12 @@ from .scan_geometry import chunk_spans
 from .visual_memory import ScanResult, VisualMemoryState, validate_scan_inputs
 
 
-def scan_reference(z, q, initial: VisualMemoryState, chunk_size: int) -> ScanResult:
+def scan_reference(z, q, initial: VisualMemoryState, chunk_size: int, *, row_retention=None) -> ScanResult:
     validate_scan_inputs(z, q, initial, chunk_size)
+    if row_retention is not None and (not math.isfinite(row_retention) or not 0 < row_retention < 1):
+        raise ValueError('invalid row retention')
+    alpha_init = 0.9 if row_retention is None else math.exp(math.log(row_retention) / chunk_size)
+    alpha_bias = math.log(9.0) if row_retention is None else math.log(alpha_init) - math.log1p(-alpha_init)
     if z.device.type != "cpu" or z.dtype != torch.float64:
         raise ValueError("the independent oracle requires CPU float64")
     n, d = z.shape[-2:]
@@ -35,7 +39,7 @@ def scan_reference(z, q, initial: VisualMemoryState, chunk_size: int) -> ScanRes
                 key = key_raw / torch.sqrt(torch.sum(key_raw * key_raw) + 1e-6)
                 value = boundary[2] @ token
                 raw_eta = 0.025 * F.softplus((boundary[3] @ token).squeeze(0))
-                alpha = torch.sigmoid((boundary[4] @ token).squeeze(0) + math.log(9.0))
+                alpha = torch.sigmoid((boundary[4] @ token).squeeze(0) + alpha_bias)
                 delta = key - value
                 radius = torch.sqrt(torch.dot(delta, delta) + 1e-12) + 1e-6
                 injection = (1 - alpha) * (1 - 1e-3) / radius

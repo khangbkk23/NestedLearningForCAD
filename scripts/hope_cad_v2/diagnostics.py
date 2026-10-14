@@ -11,6 +11,7 @@ from models.hope_cad_v2.visual_memory import stability_matched_step
 def stats(tensor):
     value = tensor.detach().double()
     return dict(min=value.min().item(), mean=value.mean().item(), max=value.max().item(),
+                variance=value.var(unbiased=False).item(),
                 rms=value.square().mean().sqrt().item(),
                 zero_fraction=(value == 0).double().mean().item(),
                 subnormal_fraction=((value.abs() > 0) & (value.abs() < torch.finfo(tensor.dtype).tiny)).double().mean().item())
@@ -63,6 +64,8 @@ def visual_diagnostics(model, features):
     active_output, static_output = model.encode(features), static.encode(features)
     per_position = inspected.directional_outputs.double().square().mean(-1).sqrt().cpu().tolist()
     return dict(scope='visual component, synthetic or permitted normal-prefix features; no CAD utility claim',
+                model_visual_updates=model.dynamics.visual_updates,
+                operator_trace_scope='dynamic operator trace; static controls execute their fixed-map readout',
                 groups=groups, initial_maps=[stats(v) for v in memory.initial_state().tensors()],
                 final_maps=[stats(v) for v in inspected.final_state.tensors()],
                 restored_spatial_rms=per_position, output=stats(inspected.output),

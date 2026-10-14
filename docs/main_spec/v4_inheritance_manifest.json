@@ -1,0 +1,10 @@
+{
+  "schema": "full_spec_inheritance_v4",
+  "v3_parent_sha256": {
+    "docs/main_spec/architecture_decision_v3.md": "8b40e57bddc7add6adb5e81163864c1662f47fd17d5a1c6fab7d6df1bcc9e77f",
+    "docs/main_spec/instruction_CAD_v3.md": "ca47c48c5c1fca63edff497311a22e3199fd1f4a71466ac910d1cfe91fbed6a4",
+    "docs/main_spec/planning_CAD_v3.md": "d919b002eeff2f9e0aeb28a1356918ecc1728850795d3fd6e364144d6efc727d"
+  },
+  "all_parent_sections_retained": true,
+  "changes": "approved retention/joint/warm/400 recipe, current codespace/status/exposure"
+}

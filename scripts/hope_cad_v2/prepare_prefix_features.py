@@ -30,25 +30,30 @@ from models.hope_cad_v2.teacher_head import frozen_teacher
 from scripts.hope_cad_v2.artifacts import provenance, write_json
 from training.benchmark_config_v1 import load_configs
 from training.benchmark_config_v2 import validate_configs
+from training.hope_feature_contract_v3 import load_context, expected_feature_identity
+from training.hope_runtime_v3 import configure_runtime, atomic_torch_save, runtime_identity
+from training.hope_initialization_v3 import validate_initialization
 
 
-def prepare(protocol_path, method_path, run_dir, output, device, batch_size=None):
-    protocol, method = load_configs(protocol_path, method_path)
-    resolved = validate_configs(protocol, method)
-    torch.set_float32_matmul_precision("highest")
-    torch.backends.cuda.matmul.allow_tf32 = False
-    torch.backends.cudnn.allow_tf32 = False
-    run_dir = Path(run_dir)
-    manifest = json.loads((run_dir / "manifest_train.json").read_text(encoding="utf-8"))
-    lock = json.loads((run_dir / "baseline_lock.json").read_text(encoding="utf-8"))
-    if lock["identity"]["manifest_digest"] != manifest["digest"]:
-        raise ValueError("baseline lock and training manifest differ")
-    validate_prefix_manifest(manifest, protocol, verify_bytes=True)
-    role_manifest = calibration_roles(manifest)
+def prepare(protocol_path, method_path, run_dir, output, device, batch_size=None,
+            *, role='calibration', selected_initialization=None):
+    configure_runtime()
+    context = load_context(protocol_path, method_path, run_dir)
+    protocol, method = context['protocol'], context['method']
+    manifest, lock, role_manifest = context['manifest'], context['lock'], context['roles']
+    if role not in ('calibration', 'probe'):
+        raise ValueError('invalid feature role')
+    if role == 'probe':
+        if selected_initialization is None:
+            raise ValueError('probe extraction requires a selected real initialization')
+        path = Path(selected_initialization)
+        validate_initialization(torch.load(path, map_location='cpu', weights_only=False), context,
+                                selection_path=path.parent / 'selection.pt')
+    permitted_roles = ('normal_probe',) if role == 'probe' else ('meta_support', 'meta_query', 'normal_validation')
     permitted = {
         row["relative_path"]
-        for role in ("meta_support", "meta_query", "normal_validation")
-        for row in role_manifest["roles"][role]
+        for key in permitted_roles
+        for row in role_manifest["roles"][key]
     }
     rows = [row for row in manifest["entries"] if row["relative_path"] in permitted]
     if {row["relative_path"] for row in rows} != permitted:
@@ -114,8 +119,8 @@ def prepare(protocol_path, method_path, run_dir, output, device, batch_size=None
 
     expected_keys = {
         row["relative_path"]
-        for role in ("meta_support", "meta_query", "normal_validation")
-        for row in role_manifest["roles"][role]
+        for key in permitted_roles
+        for row in role_manifest["roles"][key]
     }
     if set(images) != expected_keys:
         raise RuntimeError("feature extraction escaped or omitted permitted role identities")
@@ -156,8 +161,10 @@ def prepare(protocol_path, method_path, run_dir, output, device, batch_size=None
         "roles_digest": role_manifest["digest"],
         "baseline_lock_digest": lock["digest"],
     }
+    feature_identity.update(expected_feature_identity(context))
     bundle = {
         "schema": "hope_frozen_prefix_features_v3",
+        "cache_role": role,
         "role_manifest": role_manifest,
         "feature_identity": feature_identity,
         "environment": environment,
@@ -165,13 +172,11 @@ def prepare(protocol_path, method_path, run_dir, output, device, batch_size=None
     }
     output = Path(output)
     output.parent.mkdir(parents=True, exist_ok=True)
-    temporary = output.with_suffix(output.suffix + ".tmp")
-    torch.save(bundle, temporary)
-    temporary.replace(output)
+    atomic_torch_save(bundle, output)
     evidence = {
         "status": "features_prepared_not_selected",
         "reportable": False,
-        "protocol_eligible": resolved["reportable"],
+        "protocol_eligible": True,
         "protocol_id": protocol["id"],
         "method_id": method["id"],
         "manifest_digest": manifest["digest"],
@@ -183,7 +188,8 @@ def prepare(protocol_path, method_path, run_dir, output, device, batch_size=None
             role: len(role_manifest["roles"][role])
             for role in ("meta_support", "meta_query", "normal_validation", "normal_probe")
         },
-        "probe_features_extracted": False,
+        "probe_features_extracted": role == 'probe',
+        "cache_role": role,
         "official_test_accessed": False,
         "bundle_sha256": file_hash(output),
         "bundle_bytes": output.stat().st_size,
@@ -207,10 +213,13 @@ def main():
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--device", default="cpu")
     parser.add_argument("--batch-size", type=int)
+    parser.add_argument('--role', choices=('calibration', 'probe'), default='calibration')
+    parser.add_argument('--selected-initialization', type=Path)
     args = parser.parse_args()
     if args.batch_size is not None and args.batch_size < 1:
         parser.error("--batch-size must be positive")
-    prepare(args.protocol, args.method, args.run_dir, args.output, args.device, args.batch_size)
+    prepare(args.protocol, args.method, args.run_dir, args.output, args.device, args.batch_size,
+            role=args.role, selected_initialization=args.selected_initialization)
 
 
 if __name__ == "__main__":

@@ -19,6 +19,16 @@ from training.hope_outer_learning_v2 import PrefixFeatures, make_schedule, expor
 from training.hope_selection_v3 import search
 from scripts.hope_cad_v2.synthetic import feature_fixture
 from scripts.hope_cad_v2.artifacts import provenance, write_json
+from training.hope_runtime_v3 import configure_runtime, runtime_identity, source_identity, atomic_torch_save, SPECS
+from training.hope_feature_contract_v3 import load_context, validate_bundle
+from training.hope_initialization_v3 import selection_receipt, validate_initialization
+from training.hope_search_journal_v3 import SearchJournal
+from dataset.benchmark_manifest_v1 import canonical_digest
+from dataset.benchmark_protocol_v2 import file_hash
+from scripts.hope_cad_v2.diagnostics import visual_diagnostics
+import json
+import time
+from training.hope_runtime_v3 import resource_usage
 
 MIN_SCIENTIFIC_GPU_BYTES = 12 * 1024**3
 
@@ -33,7 +43,10 @@ def canonical_resource_block(device, cuda_available, total_memory_bytes):
     return None
 
 
-def bundle_provider(bundle, device):
+def bundle_provider(bundle, device, context=None):
+    if context is None:
+        raise ValueError('a byte-verified shared protocol context is required')
+    validate_bundle(bundle, context)
     if bundle.get('schema') != 'hope_frozen_prefix_features_v3' or not bundle.get('feature_identity'):
         raise ValueError('invalid frozen feature bundle')
     required = ('backbone_sha256','preprocessing_sha256','mask_sha256','source_sha256')
@@ -71,12 +84,16 @@ def main():
     p.add_argument('--method', choices=('M','C0','C1','C2','C3','C4'), default='M')
     p.add_argument('--selected-m', type=Path)
     p.add_argument('--device', default='cpu')
+    p.add_argument('--protocol', default='conf/benchmarks/protocols/mvtec_1x15_prefix_cal_v2.yaml')
+    p.add_argument('--baseline-method', default='conf/benchmarks/methods/cadic_matched_prefix_v2.yaml')
+    p.add_argument('--lock-dir', type=Path)
+    p.add_argument('--resume', action='store_true')
     args = p.parse_args()
-    torch.set_num_threads(2)
-    torch.set_float32_matmul_precision('highest')
-    torch.backends.cuda.matmul.allow_tf32 = False
-    torch.backends.cudnn.allow_tf32 = False
-    if args.output_dir.exists() and any(args.output_dir.iterdir()):
+    configure_runtime()
+    started = time.perf_counter()
+    if str(args.device).startswith('cuda') and torch.cuda.is_available():
+        torch.cuda.reset_peak_memory_stats(args.device)
+    if args.output_dir.exists() and any(args.output_dir.iterdir()) and not args.resume:
         raise ValueError('use a new output directory; never overwrite a selection history')
     args.output_dir.mkdir(parents=True,exist_ok=True)
     evidence = provenance()
@@ -98,33 +115,57 @@ def main():
     if args.synthetic_smoke:
         data = feature_fixture(config,args.device)
         feature_identity = {'synthetic':True}
+        context = None
     else:
+        if args.lock_dir is None:
+            p.error('--lock-dir is required for scientific calibration')
+        context = load_context(args.protocol, args.baseline_method, args.lock_dir)
         bundle = torch.load(args.bundle,map_location='cpu',weights_only=False)
-        data = bundle_provider(bundle,args.device)
-        feature_identity = dict(**bundle['feature_identity'], bundle_sha256=hashlib.sha256(args.bundle.read_bytes()).hexdigest())
+        data = bundle_provider(bundle,args.device,context)
+        feature_identity = {**bundle['feature_identity'], 'bundle_sha256': file_hash(args.bundle)}
     steps = 1 if args.synthetic_smoke else 200
     schedule = make_schedule(data,0,steps=steps)
+    identity = dict(method=args.method, smoke=args.synthetic_smoke, source=source_identity(),
+                    runtime=runtime_identity(), features=feature_identity, schedule_digest=schedule['digest'],
+                    selected_m_sha256=file_hash(args.selected_m) if args.selected_m else None)
+    lock = dict(identity=identity, digest=canonical_digest(identity))
+    lock_path = args.output_dir/'selection_lock.json'
+    if lock_path.exists():
+        if json.loads(lock_path.read_text(encoding='utf-8')) != lock:
+            raise ValueError('selection resume source/runtime/data/recipe mismatch')
+    elif args.resume and any(args.output_dir.glob('*.pt')):
+        raise ValueError('unlocked historical selection cannot be resumed')
+    else:
+        write_json(lock_path, lock)
+    if (args.output_dir/'selection.pt').is_file():
+        previous = torch.load(args.output_dir/'selection.pt', map_location='cpu', weights_only=False)
+        if previous['status'] != 'selected':
+            print('selection_failed (preserved; failed candidates are not retried)')
+            return 1
+        # Recreate missing final exports after a crash using the completed outcome.
+    else:
+        previous = None
     write_json(args.output_dir/'source.json',evidence)
     write_json(args.output_dir/'schedule.json',schedule)
     selected_m = torch.load(args.selected_m,map_location='cpu',weights_only=False) if args.selected_m else None
     if selected_m is not None and selected_m.get('feature_identity') != feature_identity:
         raise ValueError('selected M used different frozen features/backbone/provenance')
+    if selected_m is not None and context is not None:
+        validate_initialization(torch.load(args.selected_m.parent/'deployment_initialization.pt',
+                                map_location='cpu', weights_only=False), context,
+                                selection_path=args.selected_m)
     factory = lambda method,beta,selected: HOPEFeaturePredictor(config,method,beta,selected).to(args.device)
-    def save_checkpoint(payload):
-        method = payload['metadata']['dynamics']['method']
-        beta = payload['metadata']['dynamics']['rates'][0]
-        path = args.output_dir/f'fit_{method}_b{beta}_lr{payload["outer_lr"]}_resume.pt'
-        temp = path.with_suffix('.tmp')
-        payload['provenance'] = evidence
-        torch.save(payload,temp)
-        temp.replace(path)
-    options = dict(checkpoint_callback=save_checkpoint)
+    options = {}
     if args.synthetic_smoke: options.update(max_steps=1,checkpoints=(0,1))
-    outcome = search(factory,data,schedule,method=args.method,selected_m=selected_m,
-                     smoke=args.synthetic_smoke,fit_options=options)
+    outcome = previous or search(factory,data,schedule,method=args.method,selected_m=selected_m,
+                     smoke=args.synthetic_smoke,fit_options=options,
+                     journal=SearchJournal(args.output_dir,data,device=args.device))
     outcome['feature_identity'] = feature_identity
     outcome['provenance'] = evidence
-    torch.save(outcome,args.output_dir/'selection.pt')
+    if args.selected_m is not None:
+        outcome['inherited_m_selection_sha256'] = file_hash(args.selected_m)
+    if previous is None:
+        atomic_torch_save(outcome,args.output_dir/'selection.pt')
     summaries = []
     for index,c in enumerate(outcome['candidates']):
         if 'gate' in c: write_json(args.output_dir/f'candidate_{index}_gate.json',c['gate'])
@@ -133,18 +174,35 @@ def main():
     selected = outcome['selected']
     write_json(args.output_dir/'selection.json',dict(status=outcome['status'],method=args.method,
                selection_rule_id='prefix_cms_stress_v3',reportable=False,smoke=args.synthetic_smoke,
-               selected_beta=selected['beta'] if selected else None,
+               selected_beta=selected['beta'] if selected and args.method not in ('C0','C1') else None,
+               selected_outer_lr=selected['outer_lr'] if selected else None,
                selected_step=selected['shortlist']['step'] if selected else None,
                candidates=summaries,feature_identity=feature_identity))
     if selected:
         model = factory(args.method,selected['beta'],selected['beta'] if args.method=='C4' else None)
         model.load_state_dict(selected['shortlist']['weights'],strict=True)
+        hashes = source_identity()
         record = dict(roles_digest=data.manifest['digest'],schedule_digest=schedule['digest'],
-                      source_sha256=evidence['source_sha256'],
-                      spec_sha256={k:v for k,v in evidence['source_sha256'].items() if k.startswith('docs/')},
+                      source_sha256=hashes,
+                      spec_sha256={k:hashes[k] for k in SPECS},
                       feature_identity=feature_identity)
-        torch.save(export_initialization(model,record),args.output_dir/'deployment_initialization.pt')
+        if not args.synthetic_smoke:
+            record['selection_receipt'] = selection_receipt(outcome,args.output_dir/'selection.pt')
+        exported = export_initialization(model,record)
+        if context is not None:
+            validate_initialization(exported, context, selection_path=args.output_dir/'selection.pt')
+        atomic_torch_save(exported,args.output_dir/'deployment_initialization.pt')
+        x,_,_ = data.get(data.ids('meta_support')[0],0,'meta_support')
+        write_json(args.output_dir/'selected_diagnostics.json', dict(
+            method=args.method, selected_step=selected['shortlist']['step'],
+            data_scope='meta_support', identity=data.ids('meta_support')[0], view=0,
+            diagnostics=visual_diagnostics(model,x)))
     print(outcome['status'])
+    write_json(args.output_dir/'resources.json', dict(**resource_usage(args.device),
+               elapsed_this_session_seconds=time.perf_counter()-started,
+               cache_bytes=args.bundle.stat().st_size if args.bundle else 0,
+               candidate_count=len(outcome['candidates']),
+               complete_artifact_bytes=sum(p.stat().st_size for p in args.output_dir.rglob('*') if p.is_file())))
     return 0 if selected else 1
 
 

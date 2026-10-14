@@ -67,7 +67,7 @@ class VisualMemoryResult:
 
 def _finite(name: str, *tensors: torch.Tensor) -> None:
     if any(not bool(torch.isfinite(t).all()) for t in tensors):
-        raise ValueError(f"non-finite {name}")
+        raise FloatingPointError(f"non-finite {name}")
 
 
 def validate_scan_inputs(z, q, initial, chunk_size) -> None:
@@ -89,7 +89,8 @@ def validate_scan_inputs(z, q, initial, chunk_size) -> None:
 
 
 def stability_matched_step(
-    key: torch.Tensor, delta: torch.Tensor, raw_eta: torch.Tensor, alpha: torch.Tensor
+    key: torch.Tensor, delta: torch.Tensor, raw_eta: torch.Tensor, alpha: torch.Tensor,
+    *, higher_order_safe: bool = False,
 ) -> GuardedStep:
     """Spec safeguards, including finite saturation and differentiable ULP rounding.
 
@@ -106,6 +107,13 @@ def stability_matched_step(
     key_norm_squared = key.square().sum(-1).clamp_min(1e-20)
     inverse_key_norm = torch.rsqrt(key_norm_squared)
     spectral = (2.0 * alpha * (1.0 - 1e-6)) * inverse_key_norm.square()
+    if higher_order_safe and key.dtype == torch.float32:
+        # Preserve EXACT FP32 forward cap; evaluate its continuous derivatives
+        # in FP64. An inactive near-floor rsqrt branch otherwise produces 0*Inf
+        # in the Hessian even though the physical selected step is finite.
+        norm64=key.double().square().sum(-1).clamp_min(1e-20)
+        continuous=(2.0*alpha.double()*(1.0-1e-6)/norm64).to(key.dtype)
+        spectral=continuous+(spectral-continuous).detach()
     rounded = torch.nextafter(spectral.detach(), torch.zeros_like(spectral))
     spectral = spectral + (rounded - spectral).detach()
     return GuardedStep(torch.minimum(soft_cap, spectral), injection, spectral)
@@ -118,6 +126,7 @@ def scan_chunked(
     chunk_size: int,
     *,
     capture: bool = False,
+    row_retention: float | None = None,
 ) -> ScanResult:
     """Vectorized boundary projections + rank-one shared-gain recurrence.
 
@@ -127,6 +136,10 @@ def scan_chunked(
     path; this function supports the higher-order graph needed by W4.
     """
     validate_scan_inputs(z, q, initial, chunk_size)
+    if row_retention is not None and (not math.isfinite(row_retention) or not 0 < row_retention < 1):
+        raise ValueError('row retention must be finite and strictly between zero and one')
+    alpha_init = 0.9 if row_retention is None else row_retention ** (1.0 / chunk_size)
+    alpha_bias = math.log(9.0) if row_retention is None else math.log(alpha_init / (1.0 - alpha_init))
     with torch.autocast(device_type=z.device.type, enabled=False):
         state = initial
         outputs, diagnostics = [], []
@@ -139,9 +152,10 @@ def scan_chunked(
             key = k_raw / (k_raw.square().sum(-1, keepdim=True) + 1e-6).sqrt()
             value = tokens @ boundary.value.transpose(-1, -2)
             eta = 0.025 * F.softplus((tokens @ boundary.eta.transpose(-1, -2)).squeeze(-1))
-            alpha = torch.sigmoid((tokens @ boundary.alpha.transpose(-1, -2)).squeeze(-1) + math.log(9.0))
+            alpha = torch.sigmoid((tokens @ boundary.alpha.transpose(-1, -2)).squeeze(-1) + alpha_bias)
             delta = key - value
-            step = stability_matched_step(key, delta, eta, alpha)
+            step = (stability_matched_step(key, delta, eta, alpha) if row_retention is None else
+                    stability_matched_step(key, delta, eta, alpha,higher_order_safe=True))
             outputs.append(queries @ boundary.content.transpose(-1, -2))
             gain = identity.expand(*z.shape[:-2], d, d)
             gains = []
@@ -174,13 +188,16 @@ class FourScanVisualMemory(nn.Module):
     fixtures; they are not new scientific configurations of the frozen method.
     """
 
-    def __init__(self, dim: int = 128, head_dim: int = 16, grid_size=(28, 28)):
+    def __init__(self, dim: int = 128, head_dim: int = 16, grid_size=(28, 28), *, row_retention=None):
         super().__init__()
         if any(type(n) is not int or n < 1 for n in (dim, head_dim)) or dim % head_dim:
             raise ValueError("dim must be a positive multiple of head_dim")
         if len(grid_size) != 2:
             raise ValueError("grid_size must have two dimensions")
         scan_routes(*grid_size)
+        if row_retention is not None and (not math.isfinite(row_retention) or not 0 < row_retention < 1):
+            raise ValueError('invalid row retention')
+        self.row_retention = row_retention
         self.dim, self.head_dim, self.heads = dim, head_dim, dim // head_dim
         self.grid_size = tuple(grid_size)
         self.query = nn.Linear(dim, dim, bias=False)
@@ -206,8 +223,11 @@ class FourScanVisualMemory(nn.Module):
                                  self.initial_eta, self.initial_alpha)
 
     def get_extra_state(self):
-        return {"schema": "hope_cad_v2_visual_w3_v1", "dim": self.dim,
-                "head_dim": self.head_dim, "grid_size": self.grid_size}
+        state = {"schema": "hope_cad_v2_visual_w3_v1", "dim": self.dim,
+                 "head_dim": self.head_dim, "grid_size": self.grid_size}
+        if self.row_retention is not None:
+            state.update(schema='hope_cad_v4_visual_row_retention', row_retention=self.row_retention)
+        return state
 
     def set_extra_state(self, state):
         if state != self.get_extra_state():
@@ -245,7 +265,8 @@ class FourScanVisualMemory(nn.Module):
                     matrix[indices].unsqueeze(0).expand(z.shape[0], -1, -1, -1, -1)
                     for matrix in self.initial_state().tensors()
                 ))
-                result = scan_chunked(route_heads(z), route_heads(q), initial, chunk_size, capture=capture)
+                result = scan_chunked(route_heads(z), route_heads(q), initial, chunk_size, capture=capture,
+                                      row_retention=self.row_retention)
                 for local, index in enumerate(indices):
                     tokens = result.output[:, local].transpose(1, 2).reshape(z.shape[0], h * w, self.dim)
                     restored[index] = routes[index].restore(tokens)

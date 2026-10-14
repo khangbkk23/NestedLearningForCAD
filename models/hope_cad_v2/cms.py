@@ -1,9 +1,9 @@
 """Exact local partial derivatives and multi-clock mean-gradient commits (v3 §4)."""
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 import math
 import torch
 from torch import nn
-from torch.func import functional_call
+from torch.func import functional_call, grad as functional_grad
 from .state import CMSState, finite_tensors, vector_norm
 
 
@@ -44,7 +44,7 @@ class EventResult:
 
 
 class ContinuumMemory(nn.Module):
-    def __init__(self, dim=256, hidden=(512, 512), periods=(1, 8), rates=(1e-3, 1e-3)):
+    def __init__(self, dim=256, hidden=(512, 512), periods=(1, 8), rates=(1e-3, 1e-3), *, objective='intermediate'):
         super().__init__()
         if (not hidden or len(hidden) != len(periods) or len(hidden) != len(rates)
                 or any(type(p) is not int or p < 1 for p in periods)
@@ -52,6 +52,9 @@ class ContinuumMemory(nn.Module):
             raise ValueError("invalid CMS dimensions/clocks/rates")
         self.levels = nn.ModuleList(CMSLevel(dim, h) for h in hidden)
         self.periods, self.rates = tuple(periods), tuple(rates)
+        if objective not in ('intermediate', 'joint_final'):
+            raise ValueError('unknown CMS objective')
+        self.objective = objective
 
     def initial_state(self, *, meta=False):
         weights = tuple({k: p.clone() if meta else p.detach().clone().requires_grad_(True)
@@ -99,13 +102,31 @@ class ContinuumMemory(nn.Module):
             raise ValueError("CMS event is one image, never a loader batch")
         with torch.enable_grad():
             working = state if meta else state.detached()
-            outputs = self.forward(x if meta else x.detach(), working)
-            predictions = tuple(decoder(h) for h in outputs)
-            losses = tuple(masked_teacher_loss(p, target, mask) for p in predictions)
+            encoded = x if meta else x.detach()
+            if self.objective == 'joint_final':
+                def local_objective(*independent_weights):
+                    local = replace(working, weights=tuple(independent_weights))
+                    outputs = self.forward(encoded, local)
+                    predictions = tuple(decoder(h) for h in outputs)
+                    losses = tuple(masked_teacher_loss(p, target, mask) for p in predictions)
+                    return losses[-1], (outputs, predictions, losses)
+                # grad treats each current parameter dictionary as an independent
+                # argument for the LOCAL partial, while its returned derivative
+                # still depends on all actual argument values/outer histories.
+                # Plain autograd.grad(loss, slow_weights) would also traverse
+                # fast_weights' earlier dependence on those slow_weights.
+                derivatives, (outputs, predictions, losses) = functional_grad(
+                    local_objective, argnums=tuple(range(len(working.weights))), has_aux=True
+                )(*working.weights)
+                grads = tuple(tuple(g[k] for k in w) for g,w in zip(derivatives,working.weights))
+            else:
+                outputs = self.forward(encoded, working)
+                predictions = tuple(decoder(h) for h in outputs)
+                losses = tuple(masked_teacher_loss(p, target, mask) for p in predictions)
+                grads = tuple(torch.autograd.grad(loss, tuple(w.values()), create_graph=meta,
+                                                  retain_graph=True)
+                              for loss, w in zip(losses, working.weights))
             finite_tensors((*outputs, *predictions, *losses), "CMS forward/loss")
-            grads = tuple(torch.autograd.grad(loss, tuple(w.values()), create_graph=meta,
-                                              retain_graph=True)
-                          for loss, w in zip(losses, working.weights))
             t = state.clock + 1
             weights, accumulators, pending, commits, diagnostics = [], [], [], [], []
             for i, (w, old, g) in enumerate(zip(working.weights, working.accumulators, grads)):

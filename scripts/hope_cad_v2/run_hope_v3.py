@@ -18,6 +18,10 @@ from training.benchmark_artifacts_v1 import BenchmarkArtifacts
 from training.benchmark_config_v1 import load_configs
 from training.benchmark_config_v2 import validate_configs
 from training.benchmark_engine_v1 import BenchmarkEngineV1
+from training.hope_runtime_v3 import configure_runtime, source_identity, runtime_identity
+from training.hope_feature_contract_v3 import load_context
+from training.hope_initialization_v3 import validate_initialization
+from training.hope_benchmark_engine_v3 import AtomicBenchmarkArtifacts, HOPEBenchmarkEngineV3
 
 
 def _plain(value):
@@ -48,6 +52,8 @@ def _load_context(args):
 
 def _build_adapter(args, baseline_method, lock):
     initialization = torch.load(args.initialization, map_location="cpu", weights_only=False)
+    context = load_context(args.protocol, args.baseline_method, args.lock_dir)
+    validate_initialization(initialization, context, selection_path=args.initialization.parent/'selection.pt')
     protocol_identity = {
         "protocol_id": lock["identity"]["protocol"]["id"],
         "manifest_digest": lock["identity"]["manifest_digest"],
@@ -60,6 +66,7 @@ def _build_adapter(args, baseline_method, lock):
         checkpoint_identity=baseline_method["extractor"]["checkpoint_identity"],
         device=args.device,
         protocol_identity=protocol_identity,
+        context=context,
     ), initialization
 
 
@@ -79,6 +86,7 @@ def main():
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--resume", action="store_true")
     args = parser.parse_args()
+    configure_runtime()
 
     if args.seed != 0:
         parser.error("the locked MVTec main run currently requires seed 0")
@@ -96,6 +104,8 @@ def main():
         "initialization_sha256": initialization["initial_cms_sha256"],
         "initialization_file_sha256": file_hash(args.initialization),
         "method_metadata": method_metadata,
+        "source_sha256": source_identity(),
+        "runtime": runtime_identity(),
     }
     run_lock = {"identity": run_identity, "digest": canonical_digest(run_identity)}
     args.run_dir.mkdir(parents=True, exist_ok=True)
@@ -105,7 +115,7 @@ def main():
     if args.phase != "prepare" and not lock_path.exists():
         raise ValueError("prepare and lock the HOPE run before executing")
 
-    artifacts = BenchmarkArtifacts(args.run_dir)
+    artifacts = AtomicBenchmarkArtifacts(args.run_dir)
     evidence = provenance()
     if args.phase == "prepare":
         if not lock_path.exists():
@@ -126,7 +136,7 @@ def main():
         return 0
 
     dataset = PrefixContinualProtocol(protocol, manifest, baseline_method, args.seed)
-    engine = BenchmarkEngineV1(protocol, adapter, artifacts, args.device,
+    engine = HOPEBenchmarkEngineV3(protocol, adapter, artifacts, args.device,
                                fail_on_state_mutation=True)
     if args.phase == "train":
         if any(artifacts.states.iterdir()) and not args.resume:

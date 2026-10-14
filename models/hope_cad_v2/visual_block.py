@@ -39,7 +39,7 @@ class HOPECADVisualBlock(nn.Module):
     Reduced configs are explicitly noncanonical and intended for test fixtures.
     """
 
-    def __init__(self, config: VisualBlockConfig | None = None):
+    def __init__(self, config: VisualBlockConfig | None = None, *, row_retention=None):
         super().__init__()
         self.config = config or VisualBlockConfig()
         c = self.config
@@ -47,7 +47,7 @@ class HOPECADVisualBlock(nn.Module):
         self.input_norm = nn.LayerNorm(c.dim, eps=1e-6)
         self.in_projection = nn.Linear(c.dim, c.memory_dim)
         self.depthwise = nn.Conv2d(c.memory_dim, c.memory_dim, 3, padding=1, groups=c.memory_dim, bias=True)
-        self.memory = FourScanVisualMemory(c.memory_dim, c.head_dim, (c.height, c.width))
+        self.memory = FourScanVisualMemory(c.memory_dim, c.head_dim, (c.height, c.width), row_retention=row_retention)
         self.out_projection = nn.Linear(c.memory_dim, c.dim)
         self.ffn_norm = nn.LayerNorm(c.dim, eps=1e-6)
         self.ffn = nn.Sequential(nn.Linear(c.dim, 4 * c.dim), nn.GELU(), nn.Linear(4 * c.dim, c.dim))
@@ -72,7 +72,7 @@ class HOPECADVisualBlock(nn.Module):
         if x.device != self.projection.weight.device:
             raise ValueError("input and parameters must share device")
         if not bool(torch.isfinite(x).all()):
-            raise ValueError("non-finite masked patch features")
+            raise FloatingPointError("non-finite masked patch features")
         with torch.autocast(device_type=x.device.type, enabled=False):
             projected = self.projection(x)
             spatial = self.in_projection(self.input_norm(projected))
@@ -81,7 +81,7 @@ class HOPECADVisualBlock(nn.Module):
             residual = projected + self.out_projection(self.memory(z))
             output = residual + self.ffn(self.ffn_norm(residual))
             if not bool(torch.isfinite(output).all()):
-                raise ValueError("non-finite visual block output")
+                raise FloatingPointError("non-finite visual block output")
             return output
 
     def method_metadata(self) -> dict:

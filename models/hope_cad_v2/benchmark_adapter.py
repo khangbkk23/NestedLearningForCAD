@@ -15,12 +15,14 @@ from .predictor import HOPEFeaturePredictor
 from .teacher_head import frozen_teacher
 from .visual_block import VisualBlockConfig
 from training.hope_cms_session_v2 import CMSSession
+from training.hope_runtime_v3 import source_identity, runtime_identity
+from training.hope_initialization_v3 import validate_initialization
 
 
 class HOPEBenchmarkAdapterV3(BenchmarkMethodAdapter):
     def __init__(self, initialization, *, checkpoint_path, checkpoint_sha256,
                  checkpoint_identity, device="cpu", extractor=None,
-                 protocol_identity=None, allow_test_components=False):
+                 protocol_identity=None, allow_test_components=False, context=None):
         if initialization.get("schema") != "hope_deployment_initialization_v3":
             raise ValueError("expected a selected W4 deployment initialization")
         metadata = initialization.get("metadata", {})
@@ -36,6 +38,10 @@ class HOPEBenchmarkAdapterV3(BenchmarkMethodAdapter):
             raise ValueError("initialization and runtime backbone hashes differ")
         if extractor is not None and not allow_test_components:
             raise ValueError("extractor injection is restricted to explicit tests")
+        if not allow_test_components:
+            if context is None:
+                raise ValueError('scientific adapter requires a byte-verified protocol context')
+            validate_initialization(initialization, context)
 
         visual_config = VisualBlockConfig(**metadata["visual_config"])
         dynamics = metadata["dynamics"]
@@ -84,6 +90,8 @@ class HOPEBenchmarkAdapterV3(BenchmarkMethodAdapter):
             protocol_identity=deepcopy(protocol_identity),
             initialization_sha256=initialization["initial_cms_sha256"],
             provenance=deepcopy(initialization["provenance"]),
+            runtime_source_sha256=source_identity(),
+            runtime=runtime_identity(),
         )
         self.session = CMSSession(model, identity)
         self.timings = {"feature_seconds": 0.0, "update_seconds": 0.0, "score_seconds": 0.0}
@@ -96,8 +104,12 @@ class HOPEBenchmarkAdapterV3(BenchmarkMethodAdapter):
             raise ValueError(f"expected [B,3,{self.image_size[0]},{self.image_size[1]}] normalized RGB")
 
     def _extract(self, images):
+        if self.device.type == 'cuda':
+            torch.cuda.synchronize(self.device)
         started = time.perf_counter()
         features = self.extractor.extract_patch_features(images)
+        if self.device.type == 'cuda':
+            torch.cuda.synchronize(self.device)
         self.timings["feature_seconds"] += time.perf_counter() - started
         expected = (images.shape[0], self.config.height * self.config.width, self.config.input_dim)
         if features.shape != expected or not bool(torch.isfinite(features).all()):
@@ -136,6 +148,7 @@ class HOPEBenchmarkAdapterV3(BenchmarkMethodAdapter):
             "task_name": str(task_name),
             "samples": samples,
             "cms_clock": self.session.state.clock,
+            "event_cursor": self.session.cursor,
             "cms_commits": list(self.session.state.commits),
             "cms_pending": list(self.session.state.pending),
             "mean_level_losses": [
@@ -241,6 +254,7 @@ class HOPEBenchmarkAdapterV3(BenchmarkMethodAdapter):
             "protocol_identity": deepcopy(self.protocol_identity),
             "score": "four-view masked fixed-teacher squared patch residual; image=max; map=bilinear",
             "update": "one normal image event, score-before-update, CMS persistent across tasks",
+            "cms_updates": self.session.model.dynamics.cms_updates,
             "predictor": self.session.model.metadata(),
         }
 

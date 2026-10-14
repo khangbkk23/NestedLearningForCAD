@@ -158,7 +158,8 @@ def model_weights(model):
 
 
 def fit(model, data, schedule, *, outer_lr=1e-4, max_steps=200, checkpoints=SHORT_STEPS,
-        smoke=False, resume=None, checkpoint_callback=None, diagnostic_callback=None):
+        smoke=False, resume=None, checkpoint_callback=None, diagnostic_callback=None,
+        failure_callback=None):
     """Fit fails as a whole on any nonfinite; no rescue of an earlier candidate.
 
     checkpoint_callback receives exact optimizer/RNG/schedule state after every
@@ -210,11 +211,13 @@ def fit(model, data, schedule, *, outer_lr=1e-4, max_steps=200, checkpoints=SHOR
                 finite_tensors((p.grad for p in params), 'outer gradient')
                 norms = {name: p.grad.detach().double().norm().item() for name, p in model.named_parameters() if p.requires_grad}
                 norm = torch.nn.utils.clip_grad_norm_(params, 1.0, error_if_nonfinite=True)
+                post_clip_norm = torch.stack([p.grad.detach().double().square().sum() for p in params]).sum().sqrt().item()
                 optimizer.step()
                 finite_tensors(params, 'outer parameter proposal')
                 finite_tensors((value for state in optimizer.state.values() for value in state.values()
                                 if isinstance(value, torch.Tensor)), 'outer optimizer state')
-                result['training'].append(dict(step=step, loss=loss.item(), gradient_norm=float(norm), group_norms=norms))
+                result['training'].append(dict(step=step, loss=loss.item(), gradient_norm=float(norm),
+                                              post_clip_gradient_norm=post_clip_norm, group_norms=norms))
             if diagnostic_callback is not None and step in (0, 1, 5, 25):
                 diagnostic_callback(step, model)
             if step in checkpoints:
@@ -239,6 +242,8 @@ def fit(model, data, schedule, *, outer_lr=1e-4, max_steps=200, checkpoints=SHOR
         result['first_failure'] = dict(step=step, reason=str(error))
     result['elapsed_seconds'] = elapsed_prior + time.perf_counter() - started
     result['feature_reads'] = {k:data.reads[k]-reads_at_start[k] for k in data.reads}
+    if result['status'] == 'fit_failed' and failure_callback is not None:
+        failure_callback(deepcopy(result))
     return result
 
 

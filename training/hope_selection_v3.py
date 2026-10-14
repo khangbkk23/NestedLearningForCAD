@@ -9,7 +9,7 @@ from .hope_cms_stress_v3 import run_stress_gate
 
 
 def search(model_factory, data, schedule, *, method='M', seed=0, selected_m=None,
-           smoke=False, fit_options=None):
+           smoke=False, fit_options=None, journal=None):
     if seed != 0:
         raise ValueError('hyperparameter selection is seed 0 only; final seeds refit a locked recipe')
     if method not in ('M', 'C0', 'C1', 'C2', 'C3', 'C4'):
@@ -26,18 +26,32 @@ def search(model_factory, data, schedule, *, method='M', seed=0, selected_m=None
     candidates, rng = [], capture_rng()
     try:
         for value in values:
+            beta, lr = (1e-3 if static else value), (value if static else 1e-4)
+            saved = journal.load_candidate(method, beta, lr) if journal else None
+            if saved is not None:
+                candidates.append(saved)
+                continue
             # Common random numbers: same initialization and materialized episodes.
             random.seed(seed)
             np.random.seed(seed)
             torch.manual_seed(seed)
-            model = model_factory(method, 1e-3 if static else value,
+            model = model_factory(method, beta,
                                   value if method == 'C4' else None)
-            candidate = fit(model, data, schedule, outer_lr=value if static else 1e-4,
-                            smoke=smoke, **(fit_options or {}))
+            options = dict(fit_options or {})
+            if journal:
+                options.update(journal.fit_options(method, beta, lr))
+                options['failure_callback'] = lambda result: journal.save_candidate(method, beta, lr, result)
+            candidate = fit(model, data, schedule, outer_lr=lr, smoke=smoke, **options)
             if candidate['status'] == 'fit_complete':
                 model.load_state_dict(candidate['shortlist']['weights'], strict=True)
+                gate_options = journal.gate_options(method, beta, lr) if journal else {}
+                if journal:
+                    gate_options['failure_callback'] = lambda report: journal.save_candidate(
+                        method, beta, lr, {**candidate, 'gate': report})
                 candidate['gate'] = (dict(passed=True, status='not_applicable_static') if static
-                                     else run_stress_gate(model, data))
+                                     else run_stress_gate(model, data, **gate_options))
+            if journal:
+                journal.save_candidate(method, beta, lr, candidate)
             candidates.append(candidate)
         if static:
             eligible = [c for c in candidates if c['status'] == 'fit_complete']

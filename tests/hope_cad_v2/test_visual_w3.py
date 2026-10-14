@@ -179,7 +179,7 @@ class RecurrenceTests(W3TestCase):
         with self.assertRaises(ValueError):
             scan_reference(z.float(), q.float(), VisualMemoryState(*(t.float() for t in initial.tensors())), 1)
         z[0, 0, 0] = float('nan')
-        with self.assertRaisesRegex(ValueError, 'non-finite'):
+        with self.assertRaisesRegex(FloatingPointError, 'non-finite'):
             scan_chunked(z, q, initial, 1)
 
 
@@ -328,14 +328,16 @@ class SpatialBlockTests(W3TestCase):
             with self.assertRaises(ValueError):
                 VisualBlockConfig(**arguments)
         model = HOPECADVisualBlock(VisualBlockConfig(10, 8, 4, 2, 2, 3))
-        for x in (torch.randn(1, 6, 11), torch.randn(0, 6, 10), torch.randn(1, 6, 10).half(), torch.full((1,6,10), float('inf'))):
+        for x in (torch.randn(1, 6, 11), torch.randn(0, 6, 10), torch.randn(1, 6, 10).half()):
             with self.assertRaises(ValueError):
                 model(x)
         x = torch.randn(1, 6, 10)
         before = model(x)
         invalid = x.clone(); invalid[0, 0, 0] = float('nan')
-        with self.assertRaises(ValueError):
+        with self.assertRaises(FloatingPointError):
             model(invalid)
+        with self.assertRaises(FloatingPointError):
+            model(torch.full((1,6,10), float('inf')))
         torch.testing.assert_close(model(x), before, atol=0, rtol=0)
 
     @unittest.skipUnless(torch.cuda.is_available(), 'CUDA is unavailable; CPU tests still cover the contract')

@@ -33,12 +33,16 @@ def dynamics(method='M', beta=1e-3, *, selected_m_beta=None, dim=256):
 
 
 class HOPEFeaturePredictor(nn.Module):
-    def __init__(self, config=None, method='M', beta=1e-3, selected_m_beta=None):
+    def __init__(self, config=None, method='M', beta=1e-3, selected_m_beta=None, *, revision='v3'):
         super().__init__()
         config = config or VisualBlockConfig()
-        self.visual = HOPECADVisualBlock(config)
+        if revision not in ('v3', 'v4'):
+            raise ValueError('unregistered architecture revision')
+        self.revision = revision
+        self.visual = HOPECADVisualBlock(config, row_retention=0.9 if revision == 'v4' else None)
         self.dynamics = dynamics(method, beta, selected_m_beta=selected_m_beta, dim=config.dim)
-        self.cms = ContinuumMemory(config.dim, self.dynamics.hidden, self.dynamics.periods, self.dynamics.rates)
+        self.cms = ContinuumMemory(config.dim, self.dynamics.hidden, self.dynamics.periods, self.dynamics.rates,
+                                   objective='joint_final' if revision == 'v4' else 'intermediate')
         self.decoder = TeacherDecoder(config.dim, config.input_dim)
         if not self.dynamics.visual_updates:
             # These controls cannot affect a static boundary readout. Disclose inactive capacity.
@@ -72,8 +76,20 @@ class HOPEFeaturePredictor(nn.Module):
         from dataclasses import asdict
         if self.cms.periods != self.dynamics.periods or self.cms.rates != self.dynamics.rates:
             raise ValueError('CMS dynamics changed without a method configuration revision')
-        return dict(design_id='hope_cad_v3_masked_teacher_cms', component='W4_feature_predictor',
+        metadata = dict(design_id='hope_cad_v3_masked_teacher_cms', component='W4_feature_predictor',
                     full_rgb_adapter=False, canonical=self.visual.config.canonical,
                     visual_config=asdict(self.visual.config), dynamics=asdict(self.dynamics),
                     parameter_count=sum(p.numel() for p in self.parameters()),
                     active_parameter_count=sum(p.numel() for p in self.parameters() if p.requires_grad))
+        if self.revision == 'v4':
+            if self.cms.objective != 'joint_final' or self.visual.memory.row_retention != 0.9:
+                raise ValueError('v4 dynamics changed without a revision')
+            metadata.update(design_id='hope_cad_v4_warm_joint_cms_row_retention',
+                            cms_objective='joint_final', row_retention=0.9,
+                            outer_objective='mean_query_at_0_and_16')
+        return metadata
+
+
+class HOPEFeaturePredictorV4(HOPEFeaturePredictor):
+    def __init__(self, config=None, method='M', beta=1e-3, selected_m_beta=None):
+        super().__init__(config, method, beta, selected_m_beta, revision='v4')

@@ -1,6 +1,8 @@
 """Transactional feature-level deployment state used by W4 and the future W5 adapter."""
 from copy import deepcopy
 import torch
+from models.hope_cad_v2.cms import EventResult, masked_teacher_loss
+from models.hope_cad_v2.state import finite_tensors, tensor_digest
 from .hope_outer_learning_v2 import capture_rng, restore_rng
 
 
@@ -18,10 +20,20 @@ class CMSSession:
         """Factory receives next view. Failure rolls RNG, cursor and CMS back atomically."""
         rng = capture_rng()
         try:
-            features, target, mask = feature_factory(self.state.clock % 4)
+            features, target, mask = feature_factory(self.cursor % 4)
             with torch.no_grad():
                 x = self.model.encode(features)
-            proposal = self.model.cms.event(x, target, mask, self.model.decoder, self.state)
+            if self.model.dynamics.cms_updates:
+                proposal = self.model.cms.event(x, target, mask, self.model.decoder, self.state)
+            else:
+                # Static controls consume stream identities but never advance the
+                # CMS learning clock, accumulate gradients or commit weights.
+                with torch.no_grad():
+                    outputs = self.model.cms(x, self.state)
+                    losses = tuple(masked_teacher_loss(self.model.decoder(h), target, mask)
+                                   for h in outputs)
+                    finite_tensors((*outputs, *losses), 'static CMS forward')
+                proposal = EventResult(self.state, outputs, losses, ())
         except Exception:
             restore_rng(rng)
             raise
@@ -48,14 +60,18 @@ class CMSSession:
 
     def restore(self, payload):
         if (payload.get('schema') != 'hope_cms_session_v3' or payload['identity'] != self.identity
-                or payload['metadata'] != self.model.metadata() or type(payload['cursor']) is not int):
+                or payload['metadata'] != self.model.metadata() or type(payload['cursor']) is not int
+                or payload['cursor'] < 0):
             raise ValueError('deployment checkpoint identity mismatch')
         # Validate everything in an isolated clone before replacing live state/RNG.
         candidate = deepcopy(self.model)
         candidate.load_state_dict(payload['model'], strict=True)
         state = candidate.cms.load_state(payload['cms'])
-        if state.clock != payload['cursor']:
+        expected_clock = payload['cursor'] if candidate.dynamics.cms_updates else 0
+        if state.clock != expected_clock:
             raise ValueError('deployment cursor/clock mismatch')
+        if not candidate.dynamics.cms_updates and tensor_digest(state.weights) != tensor_digest(candidate.cms.initial_state().weights):
+            raise ValueError('static control cannot restore adapted CMS weights')
         old_rng = capture_rng()
         try:
             restore_rng(payload['rng'])

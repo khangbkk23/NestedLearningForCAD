@@ -18,7 +18,7 @@ def main():
     started = time.perf_counter()
     suite = unittest.defaultTestLoader.discover(str(ROOT/'tests/hope_cad_v2'), pattern='test_*.py')
     result = unittest.TextTestRunner(verbosity=2).run(suite)
-    write_json(args.output, dict(**provenance(), scope='W1/W3/W4 synthetic correctness, not real CAD validation',
+    write_json(args.output, dict(**provenance(), scope='W1-W6 numerical/protocol/integration fixtures, not real CAD validation',
                tests_run=result.testsRun, success=result.wasSuccessful(), reportable=False,
                failures=[(str(test), error) for test,error in result.failures],
                errors=[(str(test), error) for test,error in result.errors],
