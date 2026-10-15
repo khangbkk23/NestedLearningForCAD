@@ -28,6 +28,7 @@ wandb/
 *.pt
 *.ckpt
 AGENTS*
+!/AGENTS.md
 SKILL*
 # Notebook checkpoints
 .ipynb_checkpoints/
@@ -56,7 +57,8 @@ kaggle.json
 .env
 .env.local
 *.log
-
+AGENTS.md
 # pixi environments
 .pixi/*
 !.pixi/config.toml
+export/

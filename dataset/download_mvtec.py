@@ -1,133 +1,213 @@
-import argparse
-import lzma
+import sys
 import os
 import shutil
+import tempfile
+import stat
 import tarfile
-import urllib.error
+import zipfile
 import urllib.request
-from tqdm import tqdm
+from pathlib import Path
 
+# Cấu hình đường dẫn (tương đương REPO_ROOT/data)
+SCRIPT_DIR = Path(__file__).parent.resolve()
+# Nếu file script nằm trong thư mục con (ví dụ: dataset/), dùng .parent để ra REPO_ROOT
+REPO_ROOT = SCRIPT_DIR.parent 
+DATA_DIR = REPO_ROOT / "data"
+TARGET_DIR = DATA_DIR / "mvtec"
+DEFAULT_ARCHIVE = DATA_DIR / "mvtec_anomaly_detection.tar.xz"
 
-MVTec_URLS = [
-    "https://huggingface.co/datasets/micguida1/mvtech_anomaly_detection/resolve/main/mvtec_anomaly_detection.tar.xz",
-    "https://www.mvtec.com/fileadmin/Redaktion/mvtec.com/company/research/datasets/mvtec_anomaly_detection.tar.xz",
+DOWNLOAD_URL = "https://huggingface.co/datasets/micguida1/mvtech_anomaly_detection/resolve/main/mvtec_anomaly_detection.tar.xz"
+
+CATEGORIES = [
+    "bottle", "cable", "capsule", "carpet", "grid", "hazelnut", "leather", 
+    "metal_nut", "pill", "screw", "tile", "toothbrush", "transistor", "wood", "zipper"
 ]
 
-EXPECTED_CLASSES = [
-    "bottle", "cable", "capsule", "carpet", "grid",
-    "hazelnut", "leather", "metal_nut", "pill", "screw",
-    "tile", "toothbrush", "transistor", "wood", "zipper",
-]
+def usage():
+    print(f"""Usage:
+  python download_mvtec_ad.py [ARCHIVE]
 
+ARCHIVE may be a .tar.xz, .tar.gz, .tar, or .zip file. If omitted, the MVTec
+archive is downloaded from the configured source URL into {DEFAULT_ARCHIVE}.
+An existing partial download is resumed; a complete archive is reused.
+Prepared output: {TARGET_DIR}""")
 
-def _dataset_complete(root_dir):
-    return all(os.path.isdir(os.path.join(root_dir, cls_name)) for cls_name in EXPECTED_CLASSES)
+def validate_tree(root: Path) -> bool:
+    for category in CATEGORIES:
+        if not (root / category / "train" / "good").is_dir(): return False
+        if not (root / category / "test").is_dir(): return False
+        if not (root / category / "ground_truth").is_dir(): return False
+    return True
 
+def count_images(path: Path) -> int:
+    extensions = {'.png', '.jpg', '.jpeg'}
+    if not path.is_dir():
+        return 0
+    return sum(1 for p in path.rglob('*') if p.suffix.lower() in extensions and p.is_file())
 
-def _flatten_nested_root(extract_dir):
-    nested_root = os.path.join(extract_dir, "mvtec_anomaly_detection")
-    if not os.path.isdir(nested_root):
-        return
-
-    if _dataset_complete(extract_dir):
-        return
-
-    if _dataset_complete(nested_root):
-        for entry in os.listdir(nested_root):
-            src = os.path.join(nested_root, entry)
-            dst = os.path.join(extract_dir, entry)
-            if not os.path.exists(dst):
-                shutil.move(src, dst)
-        shutil.rmtree(nested_root, ignore_errors=True)
-
-
-def _safe_extract_tar(tar_path, extract_dir):
-    extract_dir_abs = os.path.abspath(extract_dir)
-    with tarfile.open(tar_path, "r:xz") as tar:
-        for member in tar.getmembers():
-            member_path = os.path.abspath(os.path.join(extract_dir, member.name))
-            if not member_path.startswith(extract_dir_abs + os.sep) and member_path != extract_dir_abs:
-                raise RuntimeError(f"Unsafe path in tar archive: {member.name}")
-        tar.extractall(path=extract_dir)
-
-
-def _download_with_fallbacks(urls, output_path):
-    last_error = None
-    for idx, url in enumerate(urls, start=1):
-        try:
-            print(f"Attempt {idx}/{len(urls)}: downloading from {url}")
-            request = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
-            
-            with urllib.request.urlopen(request, timeout=60) as response:
-                total_size = int(response.info().get('Content-Length', 0))
-                block_size = 1024 * 8
-                
-                with tqdm(total=total_size, unit='iB', unit_scale=True, desc=os.path.basename(output_path)) as pbar:
-                    with open(output_path, "wb") as target:
-                        while True:
-                            buffer = response.read(block_size)
-                            if not buffer:
-                                break
-                            target.write(buffer)
-                            pbar.update(len(buffer))
-            
-            print(f"Download completed: {output_path}")
-            return
-        except (urllib.error.HTTPError, urllib.error.URLError, TimeoutError, OSError) as exc:
-            last_error = exc
-            if os.path.exists(output_path):
-                os.remove(output_path)
-            print(f"Download failed from {url}: {exc}")
-
-    raise RuntimeError(
-        "All download URLs failed. Please download mvtec_anomaly_detection.tar.xz manually "
-        f"into {os.path.dirname(output_path)}. Last error: {last_error}"
-    )
-
-
-def download_and_extract_mvtec(data_dir="data"):
-    os.makedirs(data_dir, exist_ok=True)
-    tar_path = os.path.join(data_dir, "mvtec_anomaly_detection.tar.xz")
-    extract_dir = os.path.join(data_dir, "mvtec")
-    os.makedirs(extract_dir, exist_ok=True)
-
-    _flatten_nested_root(extract_dir)
-    if _dataset_complete(extract_dir):
-        print(f"MVTec dataset already prepared at: {extract_dir}. Skipping download/extract.")
-        return extract_dir
-
-    if not os.path.exists(tar_path):
-        _download_with_fallbacks(MVTec_URLS, tar_path)
-    else:
-        print(f"Using existing archive: {tar_path}")
-
-    print("Extracting archive...")
+def get_remote_size(url: str) -> int:
     try:
-        _safe_extract_tar(tar_path, extract_dir)
-    except (EOFError, tarfile.ReadError, lzma.LZMAError) as e:
-        print(f"Archive is corrupted: {e}")
-        print(f"Deleting corrupted file: {tar_path}")
-        os.remove(tar_path)
-        print("Please run the script again to restart the download.")
+        req = urllib.request.Request(url, method='HEAD')
+        with urllib.request.urlopen(req, timeout=30) as response:
+            return int(response.getheader('Content-Length', 0))
+    except Exception as e:
+        print(f"[ERROR] Download URL is not reachable: {url}\nDetails: {e}", file=sys.stderr)
+        sys.exit(2)
+
+def download_file_with_resume(url: str, dest: Path, remote_size: int):
+    local_size = dest.stat().st_size if dest.exists() else 0
+    
+    if local_size == remote_size:
+        print(f"[OK] Archive already downloaded: {dest} ({local_size} bytes).")
         return
-    _flatten_nested_root(extract_dir)
+    elif local_size > remote_size:
+        print(f"[ERROR] Existing archive is larger than the remote file: {dest}", file=sys.stderr)
+        sys.exit(2)
+        
+    req = urllib.request.Request(url)
+    if local_size > 0:
+        print(f"[INFO] Resuming archive download at byte {local_size}/{remote_size}...")
+        req.add_header('Range', f'bytes={local_size}-')
+        mode = 'ab'
+    else:
+        print(f"[INFO] Downloading MVTec AD archive ({remote_size} bytes)...")
+        mode = 'wb'
 
-    if not _dataset_complete(extract_dir):
-        raise RuntimeError(
-            "Extraction finished but dataset structure is incomplete. "
-            "Expected MVTec class folders were not found."
-        )
+    try:
+        with urllib.request.urlopen(req) as response, open(dest, mode) as out_file:
+            # Nếu server không hỗ trợ resume (không trả về 206), ghi đè lại từ đầu
+            if local_size > 0 and response.status != 206:
+                print("[INFO] Server doesn't support resume. Downloading from scratch...")
+                out_file.close()
+                with open(dest, 'wb') as retry_file:
+                    shutil.copyfileobj(response, retry_file)
+            else:
+                shutil.copyfileobj(response, out_file)
+    except Exception as e:
+        print(f"[ERROR] Download failed: {e}", file=sys.stderr)
+        sys.exit(2)
 
-    print(f"MVTec dataset is ready at: {extract_dir}")
-    return extract_dir
+def main():
+    # 1. Kiểm tra tham số đầu vào
+    archive_arg = sys.argv[1] if len(sys.argv) > 1 else ""
+    
+    if archive_arg in ["-h", "--help"]:
+        usage()
+        sys.exit(0)
 
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
 
-def parse_args():
-    parser = argparse.ArgumentParser(description="Download and extract MVTec AD dataset")
-    parser.add_argument("--data_dir", type=str, default="data", help="Root data directory")
-    return parser.parse_args()
+    # 2. Xử lý tải xuống hoặc nhận file cục bộ
+    if not archive_arg:
+        archive_path = DEFAULT_ARCHIVE
+        print("[INFO] Checking download URL...")
+        remote_size = get_remote_size(DOWNLOAD_URL)
+        if remote_size <= 0:
+            print("[ERROR] Download URL did not provide a valid Content-Length.", file=sys.stderr)
+            sys.exit(2)
+        download_file_with_resume(DOWNLOAD_URL, archive_path, remote_size)
+    else:
+        archive_path = Path(archive_arg).resolve()
 
+    if not archive_path.is_file() or archive_path.stat().st_size == 0:
+        print(f"[ERROR] Archive does not exist or is empty: {archive_path}", file=sys.stderr)
+        sys.exit(2)
+
+    # 3. Kiểm tra nếu đích đến đã sẵn sàng
+    if TARGET_DIR.is_dir() and validate_tree(TARGET_DIR):
+        print(f"[OK] MVTec is already prepared at {TARGET_DIR}; archive was not modified.")
+        sys.exit(0)
+
+    if TARGET_DIR.exists() and any(TARGET_DIR.iterdir()):
+        print(f"[ERROR] Destination exists but is incomplete: {TARGET_DIR}", file=sys.stderr)
+        print("        Move it aside before preparing a new archive.", file=sys.stderr)
+        sys.exit(3)
+
+    # 4. Giải nén vào thư mục tạm (Stage Dir)
+    def safe_target(stage: Path, name: str) -> Path:
+        path = (stage / name).resolve()
+        if os.path.commonpath([str(stage), str(path)]) != str(stage):
+            raise RuntimeError(f"unsafe archive path: {name}")
+        return path
+
+    print(f"[INFO] Extracting archive...")
+    with tempfile.TemporaryDirectory(dir=DATA_DIR, prefix=".mvtec_extract.") as stage_dir_str:
+        stage_dir = Path(stage_dir_str).resolve()
+        
+        if zipfile.is_zipfile(archive_path):
+            with zipfile.ZipFile(archive_path) as zf:
+                for info in zf.infolist():
+                    safe_target(stage_dir, info.filename)
+                    mode = (info.external_attr >> 16) & 0o170000
+                    if mode == stat.S_IFLNK:
+                        raise RuntimeError(f"symlink in archive is not allowed: {info.filename}")
+                zf.extractall(stage_dir)
+        elif tarfile.is_tarfile(archive_path):
+            with tarfile.open(archive_path, "r:*") as tf:
+                members = tf.getmembers()
+                for member in members:
+                    safe_target(stage_dir, member.name)
+                    if member.issym() or member.islnk() or member.isdev():
+                        raise RuntimeError(f"link/device in archive is not allowed: {member.name}")
+                tf.extractall(stage_dir, members=members)
+        else:
+            print(f"[ERROR] unsupported archive format: {archive_path}", file=sys.stderr)
+            sys.exit(2)
+
+        # Tìm SOURCE_ROOT chứa dataset hợp lệ trong đống đổ nát sau giải nén
+        source_root = None
+        for candidate in stage_dir.iterdir():
+            if candidate.is_dir() and validate_tree(candidate):
+                source_root = candidate
+                break
+        if not source_root and validate_tree(stage_dir):
+            source_root = stage_dir
+
+        if not source_root:
+            print("[ERROR] Archive extracted, but no canonical 15-category MVTec tree was found.", file=sys.stderr)
+            print("        Expected <root>/<category>/{train/good,test,ground_truth}.", file=sys.stderr)
+            sys.exit(4)
+
+        # 5. Di chuyển các thư mục category vào TARGET_DIR chính thức
+        TARGET_DIR.mkdir(parents=True, exist_ok=True)
+        for category in CATEGORIES:
+            shutil.move(str(source_root / category), str(TARGET_DIR / category))
+
+    # 6. Kiểm tra hậu di chuyển & In bảng thống kê kết quả
+    if not validate_tree(TARGET_DIR):
+        print(f"[ERROR] Prepared tree failed post-move validation: {TARGET_DIR}", file=sys.stderr)
+        sys.exit(5)
+
+    failed = False
+    total_train = 0
+    total_test = 0
+    
+    print(f"{'category':<14} {'train_good':>10} {'test_imgs':>10} {'gt_masks':>12}")
+    print(f"{'--------------':<14} {'----------':>10} {'----------':>10} {'------------':>12}")
+    
+    for category in CATEGORIES:
+        root = TARGET_DIR / category
+        train_count = count_images(root / "train" / "good")
+        test_count = count_images(root / "test")
+        gt_count = count_images(root / "ground_truth")
+        
+        print(f"{category:<14} {train_count:>10} {test_count:>10} {gt_count:>12}")
+        total_train += train_count
+        total_test += test_count
+        
+        if train_count == 0 or test_count == 0:
+            failed = True
+
+    print(f"\nTotal train/good images: {total_train}")
+    print(f"Total test images      : {total_test}")
+    
+    if failed:
+        print("[ERROR] One or more categories contain no train or test images.", file=sys.stderr)
+        sys.exit(6)
+
+    print(f"[OK] MVTec AD benchmark tree is ready at {TARGET_DIR}")
+    print(f"[INFO] Archive retained at {archive_path}")
+    print(f"[INFO] Benchmark root: {TARGET_DIR}")
 
 if __name__ == "__main__":
-    args = parse_args()
-    download_and_extract_mvtec(args.data_dir)
+    main()
