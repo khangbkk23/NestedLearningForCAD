@@ -1,0 +1,401 @@
+Cell 1:
+
+Verified source files: 200 origin: {'branch': 'hope_cad_v2_2', 'created_utc': '2026-10-15T14:46:19Z', 'cuda_device': 'NVIDIA GeForce RTX 3050 Ti Laptop GPU', 'cuda_runtime': '12.6', 'git_dirty': True, 'platform': 'Windows-11-10.0.26200-SP0', 'python': '3.14.4 | packaged by conda-forge | (main, Apr  8 2026, 02:08:03) [MSC v.1944 64 bit (AMD64)]', 'source_commit': 'b49a1036b3b79e8e28baf673dcb9da57476785f9', 'torch': '2.12.0+cu126', 'tracked_diff_sha256': 'b80c84555626d7382b30dae13d4cfea50927ea78697a2c7a49b7d39841534872'}
+{
+  "python": "3.13.15",
+  "packages": {
+    "torch": "2.11.0+cu128",
+    "torchvision": "0.26.0+cu128",
+    "numpy": "2.1.3",
+    "Pillow": "12.3.0",
+    "timm": "1.0.29",
+    "safetensors": "0.8.0",
+    "scikit-learn": "1.6.1",
+    "PyYAML": "6.0.3"
+  },
+  "device_name": "Tesla T4",
+  "cuda": "12.8",
+  "cudnn": 91900,
+  "matmul_precision": "highest",
+  "matmul_tf32": false,
+  "cudnn_tf32": false,
+  "cudnn_benchmark": false
+}
+Selected reviewed W6: /kaggle/input/datasets/qoctrn/hope-cad-v4-normal-evidence/hope_cad_v4_normal_evidence
+Phase: preflight job: M_seed0 resume: None W6: /kaggle/input/datasets/qoctrn/hope-cad-v4-normal-evidence/hope_cad_v4_normal_evidence
+
+cell 2:
+
+/usr/bin/python3 -B scripts/hope_cad_v2/run_w7.py --phase preflight --job M_seed0 --w6-dir /tmp/hope_w7_parent_w6 --work-dir /kaggle/working/hope_w7 --device cuda --session-hours 10.5 --session-start-monotonic 420.8248707 --skip-export
+test_atomic_failure_cannot_mutate_state_or_initials (test_cms_w4.CMSContracts.test_atomic_failure_cannot_mutate_state_or_initials) ... ok
+test_c4_inherited_beta_and_distinct_commit_counts (test_cms_w4.CMSContracts.test_c4_inherited_beta_and_distinct_commit_counts) ... ok
+test_exact_16_meta_gradient_matches_central_difference (test_cms_w4.CMSContracts.test_exact_16_meta_gradient_matches_central_difference) ... ok
+test_functional_deployment_numerical_parity_and_no_history (test_cms_w4.CMSContracts.test_functional_deployment_numerical_parity_and_no_history) ... ok
+test_loss_sums_channels_not_channel_mean (test_cms_w4.CMSContracts.test_loss_sums_channels_not_channel_mean) ... ok
+test_mean_accumulation_pre_event_oracle_and_clock (test_cms_w4.CMSContracts.test_mean_accumulation_pre_event_oracle_and_clock) ... ok
+test_outer_dependencies_to_input_decoder_and_both_initials (test_cms_w4.CMSContracts.test_outer_dependencies_to_input_decoder_and_both_initials) ... ok
+test_resume_mid_period_and_reject_corrupt_clock (test_cms_w4.CMSContracts.test_resume_mid_period_and_reject_corrupt_clock) ... ok
+test_failed_fit_is_never_rescued_and_gate_does_not_rank (test_cms_w4.MaskSelectionContracts.test_failed_fit_is_never_rescued_and_gate_does_not_rank) ... ok
+test_masks_cover_rgb_and_tokens_once (test_cms_w4.MaskSelectionContracts.test_masks_cover_rgb_and_tokens_once) ... ok
+test_batch_transport_resume_readonly_and_order (test_cms_w4.SessionContracts.test_batch_transport_resume_readonly_and_order) ... ok
+test_rng_cursor_state_rollback (test_cms_w4.SessionContracts.test_rng_cursor_state_rollback) ... ok
+test_atomic_save_failure_keeps_last_good_checkpoint (test_integration_v3.IntegrationContracts.test_atomic_save_failure_keeps_last_good_checkpoint) ... ok
+test_cache_rejects_forged_contract_and_probe_access (test_integration_v3.IntegrationContracts.test_cache_rejects_forged_contract_and_probe_access) ... ok
+test_journal_recovers_search_without_repeating_completed_candidates (test_integration_v3.IntegrationContracts.test_journal_recovers_search_without_repeating_completed_candidates) ... [C0] beta=0.001 outer_lr=3e-05 step=0 checkpoint saved
+[C0] beta=0.001 outer_lr=3e-05 step=1 checkpoint saved
+[C0] beta=0.001 outer_lr=0.0001 step=0 checkpoint saved
+[C0] beta=0.001 outer_lr=0.0001 step=1 checkpoint saved
+[C0] beta=0.001 outer_lr=0.0003 step=0 checkpoint saved
+[C0] beta=0.001 outer_lr=0.0003 step=1 checkpoint saved
+ok
+test_mechanism_controls_preserve_parameters_rng_and_never_fit_probe (test_integration_v3.IntegrationContracts.test_mechanism_controls_preserve_parameters_rng_and_never_fit_probe) ... ok
+test_random_initialization_cannot_enter_scientific_run (test_integration_v3.IntegrationContracts.test_random_initialization_cannot_enter_scientific_run) ... ok
+test_rgb_event_resume_matches_uninterrupted_through_slow_commit (test_integration_v3.IntegrationContracts.test_rgb_event_resume_matches_uninterrupted_through_slow_commit) ... [TRAIN] first: resume 0/6
+[TRAIN] second: resume 0/3
+[TRAIN] first: resume 0/6
+[TRAIN] first: resume 5/6
+[TRAIN] second: resume 0/3
+[TRAIN] first: resume 0/6
+[TRAIN] second: resume 0/3
+[TRAIN] first: resume 0/6
+[TRAIN] first: resume 5/6
+[TRAIN] second: resume 0/3
+ok
+test_selected_label_without_registered_gate_cannot_certify_weights (test_integration_v3.IntegrationContracts.test_selected_label_without_registered_gate_cannot_certify_weights) ... ok
+test_static_controls_never_adapt_across_tasks_and_resume (test_integration_v3.IntegrationContracts.test_static_controls_never_adapt_across_tasks_and_resume) ... ok
+test_stress_resume_matches_uninterrupted (test_integration_v3.IntegrationContracts.test_stress_resume_matches_uninterrupted) ... ok
+test_freeze_retains_weights_without_corrupting_clock_or_original_state (test_normal_forensics.ForensicInterventionContracts.test_freeze_retains_weights_without_corrupting_clock_or_original_state) ... ok
+test_freeze_second_preserves_first_update (test_normal_forensics.ForensicInterventionContracts.test_freeze_second_preserves_first_update) ... ok
+test_planned_pause_is_normal_completion_but_never_scientific_acceptance (test_notebook_handoff_v3.NotebookHandoffContracts.test_planned_pause_is_normal_completion_but_never_scientific_acceptance) ... ok
+test_bootstrap_accepts_zip_and_extracted_source_and_rejects_hash_drift (test_notebook_handoff_v4.NotebookHandoffContracts.test_bootstrap_accepts_zip_and_extracted_source_and_rejects_hash_drift) ... ok
+test_every_delivered_code_cell_compiles_and_has_a_unique_id (test_notebook_handoff_v4.NotebookHandoffContracts.test_every_delivered_code_cell_compiles_and_has_a_unique_id) ... ok
+test_explicit_v3_resume_is_rejected_before_copying_learned_files (test_notebook_handoff_v4.NotebookHandoffContracts.test_explicit_v3_resume_is_rejected_before_copying_learned_files) ... ok
+test_planned_pause_is_normal_completion_but_never_scientific_acceptance (test_notebook_handoff_v4.NotebookHandoffContracts.test_planned_pause_is_normal_completion_but_never_scientific_acceptance) ... ok
+test_exact_episode_reaches_all_active_parameter_groups (test_outer_w4.OuterContracts.test_exact_episode_reaches_all_active_parameter_groups) ... ok
+test_export_zero_clock_and_requires_identity (test_outer_w4.OuterContracts.test_export_zero_clock_and_requires_identity) ... ok
+test_fit_and_optimizer_rng_resume_match (test_outer_w4.OuterContracts.test_fit_and_optimizer_rng_resume_match) ... ok
+test_full_1024_event_gate_counts_trace_and_initialization_isolation (test_outer_w4.OuterContracts.test_full_1024_event_gate_counts_trace_and_initialization_isolation) ... ok
+test_long_gate_rejects_drift_and_does_not_retry (test_outer_w4.OuterContracts.test_long_gate_rejects_drift_and_does_not_retry) ... ok
+test_nonfinite_fit_discards_earlier_shortlist (test_outer_w4.OuterContracts.test_nonfinite_fit_discards_earlier_shortlist) ... ok
+test_restore_rng_accepts_checkpoint_loaded_onto_cuda (test_outer_w4.OuterContracts.test_restore_rng_accepts_checkpoint_loaded_onto_cuda) ... ok
+test_scientific_selection_requires_canonical_gpu_memory (test_outer_w4.OuterContracts.test_scientific_selection_requires_canonical_gpu_memory) ... ok
+test_search_one_shortlist_per_beta_and_c4_inheritance (test_outer_w4.OuterContracts.test_search_one_shortlist_per_beta_and_c4_inheritance) ... ok
+test_static_control_uses_17_images_and_discloses_inactive_maps (test_outer_w4.OuterContracts.test_static_control_uses_17_images_and_discloses_inactive_maps) ... ok
+test_notebook_bootstrap_time_is_subtracted_and_invalid_budgets_fail (test_pipeline_preflight_v3.PipelinePreflightContracts.test_notebook_bootstrap_time_is_subtracted_and_invalid_budgets_fail) ... Verified source files: 1
+Source origin: {'fixture': True}
+Verified source files: 1
+Source origin: {'fixture': True}
+Verified source files: 1
+Source origin: {'fixture': True}
+Verified source files: 1
+Source origin: {'fixture': True}
+session budget reached before the next command
+Evidence archive: /tmp/tmpm_au784h/hope_cad_v2_2_w1_w6_evidence.zip
+ok
+test_preflight_stops_before_selection_and_main_reuses_its_gates (test_pipeline_preflight_v3.PipelinePreflightContracts.test_preflight_stops_before_selection_and_main_reuses_its_gates) ... /usr/bin/python3 -B scripts/hope_cad_v2/verify_stage1.py --output /tmp/tmpoi2kogxi/evidence/verification.json
+fixture subprocess
+/usr/bin/python3 -B scripts/hope_cad_v2/profile_stage1.py --device cpu --output /tmp/tmpoi2kogxi/evidence/canonical_resource_profile.json
+fixture subprocess
+/usr/bin/python3 -B scripts/hope_cad_v2/run_matched_cadic.py --protocol conf/benchmarks/protocols/mvtec_1x15_prefix_cal_v2.yaml --method conf/benchmarks/methods/cadic_matched_prefix_v2.yaml --run-dir /tmp/tmpoi2kogxi/evidence/baseline_lock --phase prepare
+fixture subprocess
+/usr/bin/python3 -B scripts/hope_cad_v2/prepare_prefix_features.py --protocol conf/benchmarks/protocols/mvtec_1x15_prefix_cal_v2.yaml --method conf/benchmarks/methods/cadic_matched_prefix_v2.yaml --run-dir /tmp/tmpoi2kogxi/evidence/baseline_lock --output /tmp/tmpoi2kogxi/evidence/prefix_features.pt --device cpu --batch-size 1
+fixture subprocess
+/usr/bin/python3 -B scripts/hope_cad_v2/preflight_rgb.py --protocol conf/benchmarks/protocols/mvtec_1x15_prefix_cal_v2.yaml --baseline-method conf/benchmarks/methods/cadic_matched_prefix_v2.yaml --lock-dir /tmp/tmpoi2kogxi/evidence/baseline_lock --bundle /tmp/tmpoi2kogxi/evidence/prefix_features.pt --output-dir /tmp/tmpoi2kogxi/evidence/preflight_attempt_004 --device cpu
+fixture subprocess
+/usr/bin/python3 -B scripts/hope_cad_v2/preflight_outer.py --protocol conf/benchmarks/protocols/mvtec_1x15_prefix_cal_v2.yaml --baseline-method conf/benchmarks/methods/cadic_matched_prefix_v2.yaml --lock-dir /tmp/tmpoi2kogxi/evidence/baseline_lock --bundle /tmp/tmpoi2kogxi/evidence/prefix_features.pt --output-dir /tmp/tmpoi2kogxi/evidence/preflight_outer --device cpu
+fixture subprocess
+Evidence archive: /tmp/tmpoi2kogxi/hope_cad_v2_2_w1_w6_evidence.zip
+/usr/bin/python3 -B scripts/hope_cad_v2/run_matched_cadic.py --protocol conf/benchmarks/protocols/mvtec_1x15_prefix_cal_v2.yaml --method conf/benchmarks/methods/cadic_matched_prefix_v2.yaml --run-dir /tmp/tmpoi2kogxi/evidence/baseline_lock --phase prepare
+fixture subprocess
+/usr/bin/python3 -B scripts/hope_cad_v2/calibrate_features.py --protocol conf/benchmarks/protocols/mvtec_1x15_prefix_cal_v2.yaml --baseline-method conf/benchmarks/methods/cadic_matched_prefix_v2.yaml --lock-dir /tmp/tmpoi2kogxi/evidence/baseline_lock --bundle /tmp/tmpoi2kogxi/evidence/prefix_features.pt --output-dir /tmp/tmpoi2kogxi/evidence/selection/M --method M --device cpu
+fixture subprocess
+calibrate_features.py stopped with code 7; see 007_calibrate_features.log
+Evidence archive: /tmp/tmpoi2kogxi/hope_cad_v2_2_w1_w6_evidence.zip
+ok
+test_session_budget_pause_exports_evidence_and_returns_zero (test_pipeline_preflight_v3.PipelinePreflightContracts.test_session_budget_pause_exports_evidence_and_returns_zero) ... session budget reached before the next command
+Evidence archive: /tmp/tmp6aat3zyc/hope_cad_v2_2_w1_w6_evidence.zip
+ok
+test_notebook_bootstrap_time_is_subtracted_and_invalid_budgets_fail (test_pipeline_preflight_v4.PipelinePreflightContracts.test_notebook_bootstrap_time_is_subtracted_and_invalid_budgets_fail) ... session budget reached before the next command
+Evidence archive: /tmp/tmppu2wkd8g/hope_cad_v4_normal_evidence.zip
+ok
+test_preflight_stops_before_selection_and_main_reuses_its_gates (test_pipeline_preflight_v4.PipelinePreflightContracts.test_preflight_stops_before_selection_and_main_reuses_its_gates) ... /usr/bin/python3 -B scripts/hope_cad_v2/verify_v4.py --output /tmp/tmp_9wdejcc/evidence/verification.json
+fixture subprocess
+/usr/bin/python3 -B scripts/hope_cad_v2/profile_v4.py --device cpu --output /tmp/tmp_9wdejcc/evidence/canonical_resource_profile.json
+fixture subprocess
+/usr/bin/python3 -B scripts/hope_cad_v2/run_matched_cadic.py --protocol conf/benchmarks/protocols/mvtec_1x15_prefix_cal_v2.yaml --method conf/benchmarks/methods/cadic_matched_prefix_v2.yaml --run-dir /tmp/tmp_9wdejcc/evidence/baseline_lock --phase prepare
+fixture subprocess
+/usr/bin/python3 -B scripts/hope_cad_v2/prepare_prefix_features_v4.py --protocol conf/benchmarks/protocols/mvtec_1x15_prefix_cal_v2.yaml --method conf/benchmarks/methods/cadic_matched_prefix_v2.yaml --run-dir /tmp/tmp_9wdejcc/evidence/baseline_lock --output /tmp/tmp_9wdejcc/evidence/prefix_features.pt --device cpu --batch-size 1
+fixture subprocess
+/usr/bin/python3 -B scripts/hope_cad_v2/preflight_rgb_v4.py --protocol conf/benchmarks/protocols/mvtec_1x15_prefix_cal_v2.yaml --baseline-method conf/benchmarks/methods/cadic_matched_prefix_v2.yaml --lock-dir /tmp/tmp_9wdejcc/evidence/baseline_lock --bundle /tmp/tmp_9wdejcc/evidence/prefix_features.pt --output-dir /tmp/tmp_9wdejcc/evidence/preflight_attempt_004 --device cpu
+fixture subprocess
+/usr/bin/python3 -B scripts/hope_cad_v2/preflight_outer_v4.py --protocol conf/benchmarks/protocols/mvtec_1x15_prefix_cal_v2.yaml --baseline-method conf/benchmarks/methods/cadic_matched_prefix_v2.yaml --lock-dir /tmp/tmp_9wdejcc/evidence/baseline_lock --bundle /tmp/tmp_9wdejcc/evidence/prefix_features.pt --output-dir /tmp/tmp_9wdejcc/evidence/preflight_outer --device cpu
+fixture subprocess
+Evidence archive: /tmp/tmp_9wdejcc/hope_cad_v4_normal_evidence.zip
+/usr/bin/python3 -B scripts/hope_cad_v2/run_matched_cadic.py --protocol conf/benchmarks/protocols/mvtec_1x15_prefix_cal_v2.yaml --method conf/benchmarks/methods/cadic_matched_prefix_v2.yaml --run-dir /tmp/tmp_9wdejcc/evidence/baseline_lock --phase prepare
+fixture subprocess
+/usr/bin/python3 -B scripts/hope_cad_v2/calibrate_features_v4.py --protocol conf/benchmarks/protocols/mvtec_1x15_prefix_cal_v2.yaml --baseline-method conf/benchmarks/methods/cadic_matched_prefix_v2.yaml --lock-dir /tmp/tmp_9wdejcc/evidence/baseline_lock --bundle /tmp/tmp_9wdejcc/evidence/prefix_features.pt --output-dir /tmp/tmp_9wdejcc/evidence/selection/M --method M --device cpu
+fixture subprocess
+calibrate_features_v4.py stopped with code 7; see 007_calibrate_features_v4.log
+Evidence archive: /tmp/tmp_9wdejcc/hope_cad_v4_normal_evidence.zip
+ok
+test_session_budget_pause_exports_evidence_and_returns_zero (test_pipeline_preflight_v4.PipelinePreflightContracts.test_session_budget_pause_exports_evidence_and_returns_zero) ... session budget reached before the next command
+Evidence archive: /tmp/tmptn87_sgz/hope_cad_v4_normal_evidence.zip
+ok
+test_contract_errors_are_not_mislabeled_as_numerical_candidates (test_preflight_outer_v3.OuterPreflightContracts.test_contract_errors_are_not_mislabeled_as_numerical_candidates) ... ok
+test_corrupt_optimizer_resume_is_rejected_by_preflight (test_preflight_outer_v3.OuterPreflightContracts.test_corrupt_optimizer_resume_is_rejected_by_preflight) ... ok
+test_real_fit_path_serializes_optimizer_and_resumes_exactly (test_preflight_outer_v3.OuterPreflightContracts.test_real_fit_path_serializes_optimizer_and_resumes_exactly) ... ok
+test_visual_numeric_fit_failure_is_terminal_and_never_retried (test_preflight_outer_v3.OuterPreflightContracts.test_visual_numeric_fit_failure_is_terminal_and_never_retried) ... [M] beta=0.0001 outer_lr=0.0001 step=0 checkpoint saved
+[M] beta=0.001 outer_lr=0.0001 step=0 checkpoint saved
+[M] beta=0.01 outer_lr=0.0001 step=0 checkpoint saved
+ok
+test_visual_numeric_gate_failure_is_terminal_and_never_retried (test_preflight_outer_v3.OuterPreflightContracts.test_visual_numeric_gate_failure_is_terminal_and_never_retried) ... [M] beta=0.0001 outer_lr=0.0001 step=0 checkpoint saved
+[M] beta=0.001 outer_lr=0.0001 step=0 checkpoint saved
+[M] beta=0.01 outer_lr=0.0001 step=0 checkpoint saved
+ok
+test_empty_or_disagreeing_raw_mask_fails (test_protocol_w1.MaskQAContracts.test_empty_or_disagreeing_raw_mask_fails) ... ok
+test_tiny_defect_erasure_keeps_image_label_and_palette_nonzero (test_protocol_w1.MaskQAContracts.test_tiny_defect_erasure_keeps_image_label_and_palette_nonzero) ... ok
+test_minimum_prefix_and_floor_splits (test_protocol_w1.PrefixContracts.test_minimum_prefix_and_floor_splits) ... ok
+test_partition_data_permissions_and_matched_loader (test_protocol_w1.PrefixContracts.test_partition_data_permissions_and_matched_loader) ... ok
+test_role_tampering_and_changed_bytes_fail (test_protocol_w1.PrefixContracts.test_role_tampering_and_changed_bytes_fail) ... ok
+test_schedule_common_random_numbers_and_16_unique (test_protocol_w1.PrefixContracts.test_schedule_common_random_numbers_and_16_unique) ... ok
+test_effective_paperfaithful_image_update_counts (test_protocol_w1.RegistryContracts.test_effective_paperfaithful_image_update_counts) ...   [TRAIN:fixture] batch 1/1 | images=3/1 | coreset=0/4 | feature=0.00s | update=0.01s | coreset=4/4 | +accepted=4 | +replaced=1 | +rejected=1
+ok
+test_full_eq9_image_score_includes_distance_multiplier (test_protocol_w1.RegistryContracts.test_full_eq9_image_score_includes_distance_multiplier) ... ok
+test_registry_rejects_mislabeled_update_before_backbone_load (test_protocol_w1.RegistryContracts.test_registry_rejects_mislabeled_update_before_backbone_load) ... ok
+test_unknown_route_never_falls_back (test_protocol_w1.RegistryContracts.test_unknown_route_never_falls_back) ... ok
+test_frozen_configs_fail_unknown_routes_and_leakage_and_allow_locked_orders (test_protocol_w1.ValidatorContracts.test_frozen_configs_fail_unknown_routes_and_leakage_and_allow_locked_orders) ... ok
+test_resume_lock_ignores_mount_paths_but_not_checkpoint_or_adapter_hash (test_protocol_w1.ValidatorContracts.test_resume_lock_ignores_mount_paths_but_not_checkpoint_or_adapter_hash) ... ok
+test_exact16_warm_meta_gradient_matches_finite_difference (test_revision_v4.RevisionContracts.test_exact16_warm_meta_gradient_matches_finite_difference) ... ok
+test_export_schema_and_v3_session_restore_rejection (test_revision_v4.RevisionContracts.test_export_schema_and_v3_session_restore_rejection) ... ok
+test_full_grid_v4_float32_float64_parity_and_backward (test_revision_v4.RevisionContracts.test_full_grid_v4_float32_float64_parity_and_backward) ... ok
+test_joint_final_partials_mean_accumulator_pre_event_16 (test_revision_v4.RevisionContracts.test_joint_final_partials_mean_accumulator_pre_event_16) ... ok
+test_joint_functional_deployment_parity_and_ownership (test_revision_v4.RevisionContracts.test_joint_functional_deployment_parity_and_ownership) ... ok
+test_joint_validation_components_and_static_17_image_privileges (test_revision_v4.RevisionContracts.test_joint_validation_components_and_static_17_image_privileges) ... ok
+test_parent_import_copies_only_calibration_cache_and_checks_digest (test_revision_v4.RevisionContracts.test_parent_import_copies_only_calibration_cache_and_checks_digest) ... ok
+test_real_receipt_rejects_single_horizon_and_wrong_revision (test_revision_v4.RevisionContracts.test_real_receipt_rejects_single_horizon_and_wrong_revision) ... ok
+test_retention_finite_zero_saturation_and_near_floor_derivatives (test_revision_v4.RevisionContracts.test_retention_finite_zero_saturation_and_near_floor_derivatives) ... ok
+test_route_specific_retention_and_partial_tail (test_revision_v4.RevisionContracts.test_route_specific_retention_and_partial_tail) ... ok
+test_row_retention_oracle_and_all_five_maps_gradients (test_revision_v4.RevisionContracts.test_row_retention_oracle_and_all_five_maps_gradients) ... ok
+test_selection_filters_without_gate_ranking_and_c4_inherits_beta (test_revision_v4.RevisionContracts.test_selection_filters_without_gate_ranking_and_c4_inherits_beta) ... ok
+test_stress_constants_unchanged_and_full_1024_joint_clock (test_revision_v4.RevisionContracts.test_stress_constants_unchanged_and_full_1024_joint_clock) ... ok
+test_v3_defaults_and_cross_revision_weight_rejection (test_revision_v4.RevisionContracts.test_v3_defaults_and_cross_revision_weight_rejection) ... ok
+test_v4_fit_optimizer_rng_exact_resume_and_recipe_rejection (test_revision_v4.RevisionContracts.test_v4_fit_optimizer_rng_exact_resume_and_recipe_rejection) ... ok
+test_warm_objective_matches_two_readonly_queries_and_full_gradients (test_revision_v4.RevisionContracts.test_warm_objective_matches_two_readonly_queries_and_full_gradients) ... ok
+test_batch_order_does_not_change_per_image_scores (test_rgb_adapter_v4.RGBAdapterTests.test_batch_order_does_not_change_per_image_scores) ... ok
+test_checkpoint_roundtrip_preserves_cms_clock_and_readout (test_rgb_adapter_v4.RGBAdapterTests.test_checkpoint_roundtrip_preserves_cms_clock_and_readout) ... ok
+test_rgb_mask_is_applied_before_feature_extraction (test_rgb_adapter_v4.RGBAdapterTests.test_rgb_mask_is_applied_before_feature_extraction) ... ok
+test_training_rejects_anomaly_labeled_batch_before_state_change (test_rgb_adapter_v4.RGBAdapterTests.test_training_rejects_anomaly_labeled_batch_before_state_change) ... ok
+test_training_updates_one_image_and_scoring_is_read_only (test_rgb_adapter_v4.RGBAdapterTests.test_training_updates_one_image_and_scoring_is_read_only) ... ok
+test_batch_order_does_not_change_per_image_scores (test_rgb_adapter_w5.RGBAdapterTests.test_batch_order_does_not_change_per_image_scores) ... ok
+test_checkpoint_roundtrip_preserves_cms_clock_and_readout (test_rgb_adapter_w5.RGBAdapterTests.test_checkpoint_roundtrip_preserves_cms_clock_and_readout) ... ok
+test_rgb_mask_is_applied_before_feature_extraction (test_rgb_adapter_w5.RGBAdapterTests.test_rgb_mask_is_applied_before_feature_extraction) ... ok
+test_training_rejects_anomaly_labeled_batch_before_state_change (test_rgb_adapter_w5.RGBAdapterTests.test_training_rejects_anomaly_labeled_batch_before_state_change) ... ok
+test_training_updates_one_image_and_scoring_is_read_only (test_rgb_adapter_w5.RGBAdapterTests.test_training_updates_one_image_and_scoring_is_read_only) ... ok
+test_canonical_grid_and_invalid_geometry (test_visual_w3.GeometryTests.test_canonical_grid_and_invalid_geometry) ... ok
+test_rectangular_coordinate_order_and_inverse (test_visual_w3.GeometryTests.test_rectangular_coordinate_order_and_inverse) ... ok
+test_all_declared_visual_parameters_receive_finite_nonzero_gradients (test_visual_w3.GradientTests.test_all_declared_visual_parameters_receive_finite_nonzero_gradients) ... ok
+test_finite_difference_first_and_second_derivatives (test_visual_w3.GradientTests.test_finite_difference_first_and_second_derivatives) ... ok
+test_optimized_and_independent_oracle_gradients_agree (test_visual_w3.GradientTests.test_optimized_and_independent_oracle_gradients_agree) ... ok
+test_batch_transport_and_inputs_are_immutable (test_visual_w3.RecurrenceTests.test_batch_transport_and_inputs_are_immutable) ... ok
+test_float32_matches_fp64_oracle_at_spec_tolerance (test_visual_w3.RecurrenceTests.test_float32_matches_fp64_oracle_at_spec_tolerance) ... ok
+test_fp64_output_and_all_five_maps_match_independent_oracle (test_visual_w3.RecurrenceTests.test_fp64_output_and_all_five_maps_match_independent_oracle) ... ok
+test_gain_and_memory_bounds_are_relative_to_each_chunk_boundary (test_visual_w3.RecurrenceTests.test_gain_and_memory_bounds_are_relative_to_each_chunk_boundary) ... ok
+test_invalid_inputs_fail_explicitly (test_visual_w3.RecurrenceTests.test_invalid_inputs_fail_explicitly) ... ok
+test_later_chunks_do_not_modify_earlier_readout (test_visual_w3.RecurrenceTests.test_later_chunks_do_not_modify_earlier_readout) ... ok
+test_readout_is_from_chunk_boundary_not_current_token (test_visual_w3.RecurrenceTests.test_readout_is_from_chunk_boundary_not_current_token) ... ok
+test_spectral_and_injection_limits_and_ulp_rounding (test_visual_w3.RecurrenceTests.test_spectral_and_injection_limits_and_ulp_rounding) ... ok
+test_spectral_limit_backward_is_finite_near_denominator_floor (test_visual_w3.RecurrenceTests.test_spectral_limit_backward_is_finite_near_denominator_floor) ... ok
+test_zero_key_and_saturated_alpha_are_finite_in_forward_and_backward (test_visual_w3.RecurrenceTests.test_zero_key_and_saturated_alpha_are_finite_in_forward_and_backward) ... ok
+test_canonical_full_grid_float32_matches_float64_with_same_weights (test_visual_w3.SpatialBlockTests.test_canonical_full_grid_float32_matches_float64_with_same_weights) ... ok
+test_canonical_shapes_initialization_and_full_grid_forward_backward (test_visual_w3.SpatialBlockTests.test_canonical_shapes_initialization_and_full_grid_forward_backward) ... ok
+test_cuda_float32_cpu_parity_autocast_and_backward (test_visual_w3.SpatialBlockTests.test_cuda_float32_cpu_parity_autocast_and_backward) ... ok
+test_directions_have_independent_working_and_initial_maps (test_visual_w3.SpatialBlockTests.test_directions_have_independent_working_and_initial_maps) ... ok
+test_every_call_resets_per_image_view_and_preserves_parameters_rng (test_visual_w3.SpatialBlockTests.test_every_call_resets_per_image_view_and_preserves_parameters_rng) ... ok
+test_four_route_fusion_matches_explicit_oracle_on_rectangle (test_visual_w3.SpatialBlockTests.test_four_route_fusion_matches_explicit_oracle_on_rectangle) ... ok
+test_invalid_config_inputs_and_failed_call_do_not_change_state (test_visual_w3.SpatialBlockTests.test_invalid_config_inputs_and_failed_call_do_not_change_state) ... ok
+test_state_dict_roundtrip_and_geometry_mismatch_rejected (test_visual_w3.SpatialBlockTests.test_state_dict_roundtrip_and_geometry_mismatch_rejected) ... ok
+test_wrapper_order_matches_equation_and_no_extra_branches (test_visual_w3.SpatialBlockTests.test_wrapper_order_matches_equation_and_no_extra_branches) ... ok
+test_batched_baseline_transport_keeps_image_updates_and_resume (test_w7_engine.W7EngineContracts.test_batched_baseline_transport_keeps_image_updates_and_resume) ... [W7 TRAIN] a 0/3; total=0
+[W7 TRAIN] task=0 image=2/3 total=2
+[W7 TRAIN] task=0 image=3/3 total=3
+[W7 TRAIN] b 0/3; total=3
+[W7 TRAIN] task=1 image=2/3 total=5
+[W7 TRAIN] task=1 image=3/3 total=6
+[W7 TRAIN] c 0/3; total=6
+[W7 TRAIN] task=2 image=2/3 total=8
+[W7 TRAIN] task=2 image=3/3 total=9
+[W7 TRAIN] a 0/3; total=0
+[W7 TRAIN] task=0 image=2/3 total=2
+[W7 TRAIN] task=0 image=3/3 total=3
+[W7 TRAIN] b 0/3; total=3
+[W7 TRAIN] task=1 image=2/3 total=5
+[W7 TRAIN] b 2/3; total=5
+[W7 TRAIN] task=1 image=3/3 total=6
+[W7 TRAIN] c 0/3; total=6
+[W7 TRAIN] task=2 image=2/3 total=8
+[W7 TRAIN] task=2 image=3/3 total=9
+ok
+test_changed_raw_shard_and_training_cursor_fail_closed (test_w7_engine.W7EngineContracts.test_changed_raw_shard_and_training_cursor_fail_closed) ... [W7 TRAIN] a 0/3; total=0
+[W7 TRAIN] task=0 image=2/3 total=2
+[W7 TRAIN] task=0 image=3/3 total=3
+[W7 TRAIN] b 0/3; total=3
+[W7 TRAIN] task=1 image=2/3 total=5
+[W7 TRAIN] task=1 image=3/3 total=6
+[W7 TRAIN] c 0/3; total=6
+[W7 TRAIN] task=2 image=2/3 total=8
+[W7 TRAIN] task=2 image=3/3 total=9
+[W7 EVAL] checkpoint=2 task=0 images=2/4
+[W7 EVAL] checkpoint=2 task=0 images=4/4
+[W7 EVAL] checkpoint=2 task=1 images=2/4
+[W7 EVAL] checkpoint=2 task=1 images=4/4
+[W7 EVAL] checkpoint=2 task=2 images=2/4
+[W7 EVAL] checkpoint=2 task=2 images=4/4
+ok
+test_evaluation_shard_resume_and_future_task_rejection (test_w7_engine.W7EngineContracts.test_evaluation_shard_resume_and_future_task_rejection) ... [W7 TRAIN] a 0/3; total=0
+[W7 TRAIN] task=0 image=2/3 total=2
+[W7 TRAIN] task=0 image=3/3 total=3
+[W7 TRAIN] b 0/3; total=3
+[W7 TRAIN] task=1 image=2/3 total=5
+[W7 TRAIN] task=1 image=3/3 total=6
+[W7 TRAIN] c 0/3; total=6
+[W7 TRAIN] task=2 image=2/3 total=8
+[W7 TRAIN] task=2 image=3/3 total=9
+[W7 EVAL] checkpoint=2 task=0 images=2/4
+[W7 EVAL] checkpoint=2 task=0 images=4/4
+ok
+test_final_row_is_reused_by_matrix_without_training_or_rescoring (test_w7_engine.W7EngineContracts.test_final_row_is_reused_by_matrix_without_training_or_rescoring) ... [W7 TRAIN] a 0/3; total=0
+[W7 TRAIN] task=0 image=2/3 total=2
+[W7 TRAIN] task=0 image=3/3 total=3
+[W7 TRAIN] b 0/3; total=3
+[W7 TRAIN] task=1 image=2/3 total=5
+[W7 TRAIN] task=1 image=3/3 total=6
+[W7 TRAIN] c 0/3; total=6
+[W7 TRAIN] task=2 image=2/3 total=8
+[W7 TRAIN] task=2 image=3/3 total=9
+[W7 EVAL] checkpoint=2 task=0 images=2/4
+[W7 EVAL] checkpoint=2 task=0 images=4/4
+[W7 EVAL] checkpoint=2 task=1 images=2/4
+[W7 EVAL] checkpoint=2 task=1 images=4/4
+[W7 EVAL] checkpoint=2 task=2 images=2/4
+[W7 EVAL] checkpoint=2 task=2 images=4/4
+[W7 EVAL] checkpoint=0 task=0 images=2/4
+[W7 EVAL] checkpoint=0 task=0 images=4/4
+[W7 EVAL] checkpoint=1 task=0 images=2/4
+[W7 EVAL] checkpoint=1 task=0 images=4/4
+[W7 EVAL] checkpoint=1 task=1 images=2/4
+[W7 EVAL] checkpoint=1 task=1 images=4/4
+ok
+test_mid_task_resume_matches_uninterrupted_and_all_task_checkpoints (test_w7_engine.W7EngineContracts.test_mid_task_resume_matches_uninterrupted_and_all_task_checkpoints) ... [W7 TRAIN] a 0/3; total=0
+[W7 TRAIN] task=0 image=2/3 total=2
+[W7 TRAIN] task=0 image=3/3 total=3
+[W7 TRAIN] b 0/3; total=3
+[W7 TRAIN] task=1 image=2/3 total=5
+[W7 TRAIN] task=1 image=3/3 total=6
+[W7 TRAIN] c 0/3; total=6
+[W7 TRAIN] task=2 image=2/3 total=8
+[W7 TRAIN] task=2 image=3/3 total=9
+[W7 TRAIN] a 0/3; total=0
+[W7 TRAIN] task=0 image=2/3 total=2
+[W7 TRAIN] task=0 image=3/3 total=3
+[W7 TRAIN] b 0/3; total=3
+[W7 TRAIN] task=1 image=2/3 total=5
+[W7 TRAIN] b 2/3; total=5
+[W7 TRAIN] task=1 image=3/3 total=6
+[W7 TRAIN] c 0/3; total=6
+[W7 TRAIN] task=2 image=2/3 total=8
+[W7 TRAIN] task=2 image=3/3 total=9
+ok
+test_state_and_rng_mutation_are_detected_before_committing_scores (test_w7_engine.W7EngineContracts.test_state_and_rng_mutation_are_detected_before_committing_scores) ... [W7 TRAIN] a 0/3; total=0
+[W7 TRAIN] task=0 image=2/3 total=2
+[W7 TRAIN] task=0 image=3/3 total=3
+[W7 TRAIN] b 0/3; total=3
+[W7 TRAIN] task=1 image=2/3 total=5
+[W7 TRAIN] task=1 image=3/3 total=6
+[W7 TRAIN] c 0/3; total=6
+[W7 TRAIN] task=2 image=2/3 total=8
+[W7 TRAIN] task=2 image=3/3 total=9
+[W7 TRAIN] a 0/3; total=0
+[W7 TRAIN] task=0 image=2/3 total=2
+[W7 TRAIN] task=0 image=3/3 total=3
+[W7 TRAIN] b 0/3; total=3
+[W7 TRAIN] task=1 image=2/3 total=5
+[W7 TRAIN] task=1 image=3/3 total=6
+[W7 TRAIN] c 0/3; total=6
+[W7 TRAIN] task=2 image=2/3 total=8
+[W7 TRAIN] task=2 image=3/3 total=9
+ok
+test_suite_has_all_seeds_budgets_and_orders_without_duplicate_jobs (test_w7_engine.W7EngineContracts.test_suite_has_all_seeds_budgets_and_orders_without_duplicate_jobs) ... ok
+test_generated_phase_cells_compile_and_do_not_chain_other_phases (test_w7_handoff.W7HandoffContracts.test_generated_phase_cells_compile_and_do_not_chain_other_phases) ... ok
+test_partial_suite_inventory_does_not_claim_complete (test_w7_handoff.W7HandoffContracts.test_partial_suite_inventory_does_not_claim_complete) ... ok
+test_source_bootstrap_accepts_zip_and_extracted_inputs_and_rejects_changed_bytes (test_w7_handoff.W7HandoffContracts.test_source_bootstrap_accepts_zip_and_extracted_inputs_and_rejects_changed_bytes) ... ok
+test_actual_w7_preflight_resume_with_reduced_real_cms_and_rgb_fixture (test_w7_preflight.W7PreflightContracts.test_actual_w7_preflight_resume_with_reduced_real_cms_and_rgb_fixture) ... Verified source files: 1 origin: {}
+Verified source files: 1 origin: {}
+[W7 TRAIN] normal_prefix_part0 0/6; total=0
+[W7 TRAIN] task=0 image=6/6 total=6
+[W7 TRAIN] normal_prefix_part1 0/3; total=6
+[W7 TRAIN] task=1 image=3/3 total=9
+[W7 TRAIN] normal_prefix_part0 0/6; total=0
+[W7 TRAIN] normal_prefix_part0 5/6; total=5
+[W7 TRAIN] task=0 image=6/6 total=6
+[W7 TRAIN] normal_prefix_part1 0/3; total=6
+[W7 TRAIN] task=1 image=3/3 total=9
+ok
+test_fixed_refit_exports_terminal_weights_not_validation_shortlist_and_reuses_completed_fit (test_w7_refit.W7RefitContracts.test_fixed_refit_exports_terminal_weights_not_validation_shortlist_and_reuses_completed_fit) ... [W7 REFIT] C1 seed=1 fixed_step=400/400
+ok
+test_preserved_failure_cannot_be_retried (test_w7_refit.W7RefitContracts.test_preserved_failure_cannot_be_retried) ... ok
+test_constant_scores_handle_ties_without_division_by_zero (test_w7_statistics.W7StatisticsContracts.test_constant_scores_handle_ties_without_division_by_zero) ... ok
+test_exact_weighted_metrics_match_sklearn_including_ties_and_zero_weights (test_w7_statistics.W7StatisticsContracts.test_exact_weighted_metrics_match_sklearn_including_ties_and_zero_weights) ... ok
+test_forgetting_and_bwt_preserve_negative_forgetting_and_covariance (test_w7_statistics.W7StatisticsContracts.test_forgetting_and_bwt_preserve_negative_forgetting_and_covariance) ... ok
+test_pixel_histogram_uses_image_weights_and_passes_exact_32_replicates (test_w7_statistics.W7StatisticsContracts.test_pixel_histogram_uses_image_weights_and_passes_exact_32_replicates) ... ok
+test_whole_image_counts_are_stratified_and_shared_across_uses (test_w7_statistics.W7StatisticsContracts.test_whole_image_counts_are_stratified_and_shared_across_uses) ... ok
+test_zip_and_extracted_restore_verify_bytes_and_reject_traversal (test_w7_statistics.W7StatisticsContracts.test_zip_and_extracted_restore_verify_bytes_and_reject_traversal) ... ok
+
+----------------------------------------------------------------------
+Ran 130 tests in 89.168s
+
+OK
+[W7 TRAIN] normal_prefix_part0 0/6; total=0
+[W7 TRAIN] task=0 image=6/6 total=6
+[W7 TRAIN] normal_prefix_part1 0/3; total=6
+[W7 TRAIN] task=1 image=3/3 total=9
+[W7 TRAIN] normal_prefix_part0 0/6; total=0
+[W7 TRAIN] normal_prefix_part0 5/6; total=5
+[W7 TRAIN] task=0 image=6/6 total=6
+[W7 TRAIN] normal_prefix_part1 0/3; total=6
+[W7 TRAIN] task=1 image=3/3 total=9
+{
+  "status": "w7_preflight_passed",
+  "suite_digest": "17cd635b35e62484c5a000b4be4af503284e7d00da9aec79d64576c8d5055240",
+  "reportable": false,
+  "next": "7.1",
+  "official_test_accessed": false,
+  "requested_phase": "preflight",
+  "session_hours": 10.5,
+  "elapsed_since_notebook_start_seconds": 363.4488124239999,
+  "budget_includes_bootstrap": true
+}
+Runner exit code: 0
+
+
+cell 3:
+
+{
+  "path": "/kaggle/working/hope_cad_w7_evidence.zip",
+  "bytes": 65539129,
+  "sha256": "ce11eae03c2b6b9d3ccb5212af6425626c1147d1dc06e1f09880541054bed0fd",
+  "files": 18
+}
+{
+  "budget_includes_bootstrap": true,
+  "elapsed_since_notebook_start_seconds": 363.4488124239999,
+  "next": "7.1",
+  "official_test_accessed": false,
+  "reportable": false,
+  "requested_phase": "preflight",
+  "session_hours": 10.5,
+  "status": "w7_preflight_passed",
+  "suite_digest": "17cd635b35e62484c5a000b4be4af503284e7d00da9aec79d64576c8d5055240"
+}
+
+/kaggle/working/hope_cad_w7_evidence.zip
+Check the saved version Output. Completion needs artifact review; a pause resumes the SAME job.

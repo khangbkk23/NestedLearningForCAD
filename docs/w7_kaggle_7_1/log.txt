@@ -1,0 +1,533 @@
+cell 1:
+
+"Verified source files: 200 origin: {'branch': 'hope_cad_v2_2', 'created_utc': '2026-10-15T14:46:19Z', 'cuda_device': 'NVIDIA GeForce RTX 3050 Ti Laptop GPU', 'cuda_runtime': '12.6', 'git_dirty': True, 'platform': 'Windows-11-10.0.26200-SP0', 'python': '3.14.4 | packaged by conda-forge | (main, Apr  8 2026, 02:08:03) [MSC v.1944 64 bit (AMD64)]', 'source_commit': 'b49a1036b3b79e8e28baf673dcb9da57476785f9', 'torch': '2.12.0+cu126', 'tracked_diff_sha256': 'b80c84555626d7382b30dae13d4cfea50927ea78697a2c7a49b7d39841534872'}
+{
+  "python": "3.13.15",
+  "packages": {
+    "torch": "2.11.0+cu128",
+    "torchvision": "0.26.0+cu128",
+    "numpy": "2.1.3",
+    "Pillow": "12.3.0",
+    "timm": "1.0.29",
+    "safetensors": "0.8.0",
+    "scikit-learn": "1.6.1",
+    "PyYAML": "6.0.3"
+  },
+  "device_name": "Tesla T4",
+  "cuda": "12.8",
+  "cudnn": 91900,
+  "matmul_precision": "highest",
+  "matmul_tf32": false,
+  "cudnn_tf32": false,
+  "cudnn_benchmark": false
+}
+Phase: 7.1 job: M_seed0 resume: /kaggle/input/datasets/qoctrn/hope-cad-w7-evidence W6: /kaggle/input/datasets/qoctrn/hope-cad-v4-normal-evidence/hope_cad_v4_normal_evidence"
+
+cell 2:
+
+"/usr/bin/python3 -B scripts/hope_cad_v2/run_w7.py --phase 7.1 --job M_seed0 --w6-dir /tmp/hope_w7_parent_w6 --work-dir /kaggle/working/hope_w7 --device cuda --session-hours 10.5 --session-start-monotonic 353.053781263 --skip-export
+[W7 TRAIN] bottle 0/179; total=0
+[W7 TRAIN] task=0 image=16/179 total=16
+[W7 TRAIN] task=0 image=32/179 total=32
+[W7 TRAIN] task=0 image=48/179 total=48
+[W7 TRAIN] task=0 image=64/179 total=64
+[W7 TRAIN] task=0 image=80/179 total=80
+[W7 TRAIN] task=0 image=96/179 total=96
+[W7 TRAIN] task=0 image=112/179 total=112
+[W7 TRAIN] task=0 image=128/179 total=128
+[W7 TRAIN] task=0 image=144/179 total=144
+[W7 TRAIN] task=0 image=160/179 total=160
+[W7 TRAIN] task=0 image=176/179 total=176
+[W7 TRAIN] task=0 image=179/179 total=179
+[W7 TRAIN] cable 0/224; total=179
+[W7 TRAIN] task=1 image=16/224 total=195
+[W7 TRAIN] task=1 image=32/224 total=211
+[W7 TRAIN] task=1 image=48/224 total=227
+[W7 TRAIN] task=1 image=64/224 total=243
+[W7 TRAIN] task=1 image=80/224 total=259
+[W7 TRAIN] task=1 image=96/224 total=275
+[W7 TRAIN] task=1 image=112/224 total=291
+[W7 TRAIN] task=1 image=128/224 total=307
+[W7 TRAIN] task=1 image=144/224 total=323
+[W7 TRAIN] task=1 image=160/224 total=339
+[W7 TRAIN] task=1 image=176/224 total=355
+[W7 TRAIN] task=1 image=192/224 total=371
+[W7 TRAIN] task=1 image=208/224 total=387
+[W7 TRAIN] task=1 image=224/224 total=403
+[W7 TRAIN] capsule 0/219; total=403
+[W7 TRAIN] task=2 image=16/219 total=419
+[W7 TRAIN] task=2 image=32/219 total=435
+[W7 TRAIN] task=2 image=48/219 total=451
+[W7 TRAIN] task=2 image=64/219 total=467
+[W7 TRAIN] task=2 image=80/219 total=483
+[W7 TRAIN] task=2 image=96/219 total=499
+[W7 TRAIN] task=2 image=112/219 total=515
+[W7 TRAIN] task=2 image=128/219 total=531
+[W7 TRAIN] task=2 image=144/219 total=547
+[W7 TRAIN] task=2 image=160/219 total=563
+[W7 TRAIN] task=2 image=176/219 total=579
+[W7 TRAIN] task=2 image=192/219 total=595
+[W7 TRAIN] task=2 image=208/219 total=611
+[W7 TRAIN] task=2 image=219/219 total=622
+[W7 TRAIN] carpet 0/280; total=622
+[W7 TRAIN] task=3 image=16/280 total=638
+[W7 TRAIN] task=3 image=32/280 total=654
+[W7 TRAIN] task=3 image=48/280 total=670
+[W7 TRAIN] task=3 image=64/280 total=686
+[W7 TRAIN] task=3 image=80/280 total=702
+[W7 TRAIN] task=3 image=96/280 total=718
+[W7 TRAIN] task=3 image=112/280 total=734
+[W7 TRAIN] task=3 image=128/280 total=750
+[W7 TRAIN] task=3 image=144/280 total=766
+[W7 TRAIN] task=3 image=160/280 total=782
+[W7 TRAIN] task=3 image=176/280 total=798
+[W7 TRAIN] task=3 image=192/280 total=814
+[W7 TRAIN] task=3 image=208/280 total=830
+[W7 TRAIN] task=3 image=224/280 total=846
+[W7 TRAIN] task=3 image=240/280 total=862
+[W7 TRAIN] task=3 image=256/280 total=878
+[W7 TRAIN] task=3 image=272/280 total=894
+[W7 TRAIN] task=3 image=280/280 total=902
+[W7 TRAIN] grid 0/264; total=902
+[W7 TRAIN] task=4 image=16/264 total=918
+[W7 TRAIN] task=4 image=32/264 total=934
+[W7 TRAIN] task=4 image=48/264 total=950
+[W7 TRAIN] task=4 image=64/264 total=966
+[W7 TRAIN] task=4 image=80/264 total=982
+[W7 TRAIN] task=4 image=96/264 total=998
+[W7 TRAIN] task=4 image=112/264 total=1014
+[W7 TRAIN] task=4 image=128/264 total=1030
+[W7 TRAIN] task=4 image=144/264 total=1046
+[W7 TRAIN] task=4 image=160/264 total=1062
+[W7 TRAIN] task=4 image=176/264 total=1078
+[W7 TRAIN] task=4 image=192/264 total=1094
+[W7 TRAIN] task=4 image=208/264 total=1110
+[W7 TRAIN] task=4 image=224/264 total=1126
+[W7 TRAIN] task=4 image=240/264 total=1142
+[W7 TRAIN] task=4 image=256/264 total=1158
+[W7 TRAIN] task=4 image=264/264 total=1166
+[W7 TRAIN] hazelnut 0/391; total=1166
+[W7 TRAIN] task=5 image=16/391 total=1182
+[W7 TRAIN] task=5 image=32/391 total=1198
+[W7 TRAIN] task=5 image=48/391 total=1214
+[W7 TRAIN] task=5 image=64/391 total=1230
+[W7 TRAIN] task=5 image=80/391 total=1246
+[W7 TRAIN] task=5 image=96/391 total=1262
+[W7 TRAIN] task=5 image=112/391 total=1278
+[W7 TRAIN] task=5 image=128/391 total=1294
+[W7 TRAIN] task=5 image=144/391 total=1310
+[W7 TRAIN] task=5 image=160/391 total=1326
+[W7 TRAIN] task=5 image=176/391 total=1342
+[W7 TRAIN] task=5 image=192/391 total=1358
+[W7 TRAIN] task=5 image=208/391 total=1374
+[W7 TRAIN] task=5 image=224/391 total=1390
+[W7 TRAIN] task=5 image=240/391 total=1406
+[W7 TRAIN] task=5 image=256/391 total=1422
+[W7 TRAIN] task=5 image=272/391 total=1438
+[W7 TRAIN] task=5 image=288/391 total=1454
+[W7 TRAIN] task=5 image=304/391 total=1470
+[W7 TRAIN] task=5 image=320/391 total=1486
+[W7 TRAIN] task=5 image=336/391 total=1502
+[W7 TRAIN] task=5 image=352/391 total=1518
+[W7 TRAIN] task=5 image=368/391 total=1534
+[W7 TRAIN] task=5 image=384/391 total=1550
+[W7 TRAIN] task=5 image=391/391 total=1557
+[W7 TRAIN] leather 0/245; total=1557
+[W7 TRAIN] task=6 image=16/245 total=1573
+[W7 TRAIN] task=6 image=32/245 total=1589
+[W7 TRAIN] task=6 image=48/245 total=1605
+[W7 TRAIN] task=6 image=64/245 total=1621
+[W7 TRAIN] task=6 image=80/245 total=1637
+[W7 TRAIN] task=6 image=96/245 total=1653
+[W7 TRAIN] task=6 image=112/245 total=1669
+[W7 TRAIN] task=6 image=128/245 total=1685
+[W7 TRAIN] task=6 image=144/245 total=1701
+[W7 TRAIN] task=6 image=160/245 total=1717
+[W7 TRAIN] task=6 image=176/245 total=1733
+[W7 TRAIN] task=6 image=192/245 total=1749
+[W7 TRAIN] task=6 image=208/245 total=1765
+[W7 TRAIN] task=6 image=224/245 total=1781
+[W7 TRAIN] task=6 image=240/245 total=1797
+[W7 TRAIN] task=6 image=245/245 total=1802
+[W7 TRAIN] metal_nut 0/220; total=1802
+[W7 TRAIN] task=7 image=16/220 total=1818
+[W7 TRAIN] task=7 image=32/220 total=1834
+[W7 TRAIN] task=7 image=48/220 total=1850
+[W7 TRAIN] task=7 image=64/220 total=1866
+[W7 TRAIN] task=7 image=80/220 total=1882
+[W7 TRAIN] task=7 image=96/220 total=1898
+[W7 TRAIN] task=7 image=112/220 total=1914
+[W7 TRAIN] task=7 image=128/220 total=1930
+[W7 TRAIN] task=7 image=144/220 total=1946
+[W7 TRAIN] task=7 image=160/220 total=1962
+[W7 TRAIN] task=7 image=176/220 total=1978
+[W7 TRAIN] task=7 image=192/220 total=1994
+[W7 TRAIN] task=7 image=208/220 total=2010
+[W7 TRAIN] task=7 image=220/220 total=2022
+[W7 TRAIN] pill 0/267; total=2022
+[W7 TRAIN] task=8 image=16/267 total=2038
+[W7 TRAIN] task=8 image=32/267 total=2054
+[W7 TRAIN] task=8 image=48/267 total=2070
+[W7 TRAIN] task=8 image=64/267 total=2086
+[W7 TRAIN] task=8 image=80/267 total=2102
+[W7 TRAIN] task=8 image=96/267 total=2118
+[W7 TRAIN] task=8 image=112/267 total=2134
+[W7 TRAIN] task=8 image=128/267 total=2150
+[W7 TRAIN] task=8 image=144/267 total=2166
+[W7 TRAIN] task=8 image=160/267 total=2182
+[W7 TRAIN] task=8 image=176/267 total=2198
+[W7 TRAIN] task=8 image=192/267 total=2214
+[W7 TRAIN] task=8 image=208/267 total=2230
+[W7 TRAIN] task=8 image=224/267 total=2246
+[W7 TRAIN] task=8 image=240/267 total=2262
+[W7 TRAIN] task=8 image=256/267 total=2278
+[W7 TRAIN] task=8 image=267/267 total=2289
+[W7 TRAIN] screw 0/320; total=2289
+[W7 TRAIN] task=9 image=16/320 total=2305
+[W7 TRAIN] task=9 image=32/320 total=2321
+[W7 TRAIN] task=9 image=48/320 total=2337
+[W7 TRAIN] task=9 image=64/320 total=2353
+[W7 TRAIN] task=9 image=80/320 total=2369
+[W7 TRAIN] task=9 image=96/320 total=2385
+[W7 TRAIN] task=9 image=112/320 total=2401
+[W7 TRAIN] task=9 image=128/320 total=2417
+[W7 TRAIN] task=9 image=144/320 total=2433
+[W7 TRAIN] task=9 image=160/320 total=2449
+[W7 TRAIN] task=9 image=176/320 total=2465
+[W7 TRAIN] task=9 image=192/320 total=2481
+[W7 TRAIN] task=9 image=208/320 total=2497
+[W7 TRAIN] task=9 image=224/320 total=2513
+[W7 TRAIN] task=9 image=240/320 total=2529
+[W7 TRAIN] task=9 image=256/320 total=2545
+[W7 TRAIN] task=9 image=272/320 total=2561
+[W7 TRAIN] task=9 image=288/320 total=2577
+[W7 TRAIN] task=9 image=304/320 total=2593
+[W7 TRAIN] task=9 image=320/320 total=2609
+[W7 TRAIN] tile 0/230; total=2609
+[W7 TRAIN] task=10 image=16/230 total=2625
+[W7 TRAIN] task=10 image=32/230 total=2641
+[W7 TRAIN] task=10 image=48/230 total=2657
+[W7 TRAIN] task=10 image=64/230 total=2673
+[W7 TRAIN] task=10 image=80/230 total=2689
+[W7 TRAIN] task=10 image=96/230 total=2705
+[W7 TRAIN] task=10 image=112/230 total=2721
+[W7 TRAIN] task=10 image=128/230 total=2737
+[W7 TRAIN] task=10 image=144/230 total=2753
+[W7 TRAIN] task=10 image=160/230 total=2769
+[W7 TRAIN] task=10 image=176/230 total=2785
+[W7 TRAIN] task=10 image=192/230 total=2801
+[W7 TRAIN] task=10 image=208/230 total=2817
+[W7 TRAIN] task=10 image=224/230 total=2833
+[W7 TRAIN] task=10 image=230/230 total=2839
+[W7 TRAIN] toothbrush 0/60; total=2839
+[W7 TRAIN] task=11 image=16/60 total=2855
+[W7 TRAIN] task=11 image=32/60 total=2871
+[W7 TRAIN] task=11 image=48/60 total=2887
+[W7 TRAIN] task=11 image=60/60 total=2899
+[W7 TRAIN] transistor 0/213; total=2899
+[W7 TRAIN] task=12 image=16/213 total=2915
+[W7 TRAIN] task=12 image=32/213 total=2931
+[W7 TRAIN] task=12 image=48/213 total=2947
+[W7 TRAIN] task=12 image=64/213 total=2963
+[W7 TRAIN] task=12 image=80/213 total=2979
+[W7 TRAIN] task=12 image=96/213 total=2995
+[W7 TRAIN] task=12 image=112/213 total=3011
+[W7 TRAIN] task=12 image=128/213 total=3027
+[W7 TRAIN] task=12 image=144/213 total=3043
+[W7 TRAIN] task=12 image=160/213 total=3059
+[W7 TRAIN] task=12 image=176/213 total=3075
+[W7 TRAIN] task=12 image=192/213 total=3091
+[W7 TRAIN] task=12 image=208/213 total=3107
+[W7 TRAIN] task=12 image=213/213 total=3112
+[W7 TRAIN] wood 0/247; total=3112
+[W7 TRAIN] task=13 image=16/247 total=3128
+[W7 TRAIN] task=13 image=32/247 total=3144
+[W7 TRAIN] task=13 image=48/247 total=3160
+[W7 TRAIN] task=13 image=64/247 total=3176
+[W7 TRAIN] task=13 image=80/247 total=3192
+[W7 TRAIN] task=13 image=96/247 total=3208
+[W7 TRAIN] task=13 image=112/247 total=3224
+[W7 TRAIN] task=13 image=128/247 total=3240
+[W7 TRAIN] task=13 image=144/247 total=3256
+[W7 TRAIN] task=13 image=160/247 total=3272
+[W7 TRAIN] task=13 image=176/247 total=3288
+[W7 TRAIN] task=13 image=192/247 total=3304
+[W7 TRAIN] task=13 image=208/247 total=3320
+[W7 TRAIN] task=13 image=224/247 total=3336
+[W7 TRAIN] task=13 image=240/247 total=3352
+[W7 TRAIN] task=13 image=247/247 total=3359
+[W7 TRAIN] zipper 0/240; total=3359
+[W7 TRAIN] task=14 image=16/240 total=3375
+[W7 TRAIN] task=14 image=32/240 total=3391
+[W7 TRAIN] task=14 image=48/240 total=3407
+[W7 TRAIN] task=14 image=64/240 total=3423
+[W7 TRAIN] task=14 image=80/240 total=3439
+[W7 TRAIN] task=14 image=96/240 total=3455
+[W7 TRAIN] task=14 image=112/240 total=3471
+[W7 TRAIN] task=14 image=128/240 total=3487
+[W7 TRAIN] task=14 image=144/240 total=3503
+[W7 TRAIN] task=14 image=160/240 total=3519
+[W7 TRAIN] task=14 image=176/240 total=3535
+[W7 TRAIN] task=14 image=192/240 total=3551
+[W7 TRAIN] task=14 image=208/240 total=3567
+[W7 TRAIN] task=14 image=224/240 total=3583
+[W7 TRAIN] task=14 image=240/240 total=3599
+[W7 EVAL] checkpoint=14 task=0 images=8/83
+[W7 EVAL] checkpoint=14 task=0 images=16/83
+[W7 EVAL] checkpoint=14 task=0 images=24/83
+[W7 EVAL] checkpoint=14 task=0 images=32/83
+[W7 EVAL] checkpoint=14 task=0 images=40/83
+[W7 EVAL] checkpoint=14 task=0 images=48/83
+[W7 EVAL] checkpoint=14 task=0 images=56/83
+[W7 EVAL] checkpoint=14 task=0 images=64/83
+[W7 EVAL] checkpoint=14 task=0 images=72/83
+[W7 EVAL] checkpoint=14 task=0 images=80/83
+[W7 EVAL] checkpoint=14 task=0 images=83/83
+[W7 EVAL] checkpoint=14 task=1 images=8/150
+[W7 EVAL] checkpoint=14 task=1 images=16/150
+[W7 EVAL] checkpoint=14 task=1 images=24/150
+[W7 EVAL] checkpoint=14 task=1 images=32/150
+[W7 EVAL] checkpoint=14 task=1 images=40/150
+[W7 EVAL] checkpoint=14 task=1 images=48/150
+[W7 EVAL] checkpoint=14 task=1 images=56/150
+[W7 EVAL] checkpoint=14 task=1 images=64/150
+[W7 EVAL] checkpoint=14 task=1 images=72/150
+[W7 EVAL] checkpoint=14 task=1 images=80/150
+[W7 EVAL] checkpoint=14 task=1 images=88/150
+[W7 EVAL] checkpoint=14 task=1 images=96/150
+[W7 EVAL] checkpoint=14 task=1 images=104/150
+[W7 EVAL] checkpoint=14 task=1 images=112/150
+[W7 EVAL] checkpoint=14 task=1 images=120/150
+[W7 EVAL] checkpoint=14 task=1 images=128/150
+[W7 EVAL] checkpoint=14 task=1 images=136/150
+[W7 EVAL] checkpoint=14 task=1 images=144/150
+[W7 EVAL] checkpoint=14 task=1 images=150/150
+[W7 EVAL] checkpoint=14 task=2 images=8/132
+[W7 EVAL] checkpoint=14 task=2 images=16/132
+[W7 EVAL] checkpoint=14 task=2 images=24/132
+[W7 EVAL] checkpoint=14 task=2 images=32/132
+[W7 EVAL] checkpoint=14 task=2 images=40/132
+[W7 EVAL] checkpoint=14 task=2 images=48/132
+[W7 EVAL] checkpoint=14 task=2 images=56/132
+[W7 EVAL] checkpoint=14 task=2 images=64/132
+[W7 EVAL] checkpoint=14 task=2 images=72/132
+[W7 EVAL] checkpoint=14 task=2 images=80/132
+[W7 EVAL] checkpoint=14 task=2 images=88/132
+[W7 EVAL] checkpoint=14 task=2 images=96/132
+[W7 EVAL] checkpoint=14 task=2 images=104/132
+[W7 EVAL] checkpoint=14 task=2 images=112/132
+[W7 EVAL] checkpoint=14 task=2 images=120/132
+[W7 EVAL] checkpoint=14 task=2 images=128/132
+[W7 EVAL] checkpoint=14 task=2 images=132/132
+[W7 EVAL] checkpoint=14 task=3 images=8/117
+[W7 EVAL] checkpoint=14 task=3 images=16/117
+[W7 EVAL] checkpoint=14 task=3 images=24/117
+[W7 EVAL] checkpoint=14 task=3 images=32/117
+[W7 EVAL] checkpoint=14 task=3 images=40/117
+[W7 EVAL] checkpoint=14 task=3 images=48/117
+[W7 EVAL] checkpoint=14 task=3 images=56/117
+[W7 EVAL] checkpoint=14 task=3 images=64/117
+[W7 EVAL] checkpoint=14 task=3 images=72/117
+[W7 EVAL] checkpoint=14 task=3 images=80/117
+[W7 EVAL] checkpoint=14 task=3 images=88/117
+[W7 EVAL] checkpoint=14 task=3 images=96/117
+[W7 EVAL] checkpoint=14 task=3 images=104/117
+[W7 EVAL] checkpoint=14 task=3 images=112/117
+[W7 EVAL] checkpoint=14 task=3 images=117/117
+[W7 EVAL] checkpoint=14 task=4 images=8/78
+[W7 EVAL] checkpoint=14 task=4 images=16/78
+[W7 EVAL] checkpoint=14 task=4 images=24/78
+[W7 EVAL] checkpoint=14 task=4 images=32/78
+[W7 EVAL] checkpoint=14 task=4 images=40/78
+[W7 EVAL] checkpoint=14 task=4 images=48/78
+[W7 EVAL] checkpoint=14 task=4 images=56/78
+[W7 EVAL] checkpoint=14 task=4 images=64/78
+[W7 EVAL] checkpoint=14 task=4 images=72/78
+[W7 EVAL] checkpoint=14 task=4 images=78/78
+[W7 EVAL] checkpoint=14 task=5 images=8/110
+[W7 EVAL] checkpoint=14 task=5 images=16/110
+[W7 EVAL] checkpoint=14 task=5 images=24/110
+[W7 EVAL] checkpoint=14 task=5 images=32/110
+[W7 EVAL] checkpoint=14 task=5 images=40/110
+[W7 EVAL] checkpoint=14 task=5 images=48/110
+[W7 EVAL] checkpoint=14 task=5 images=56/110
+[W7 EVAL] checkpoint=14 task=5 images=64/110
+[W7 EVAL] checkpoint=14 task=5 images=72/110
+[W7 EVAL] checkpoint=14 task=5 images=80/110
+[W7 EVAL] checkpoint=14 task=5 images=88/110
+[W7 EVAL] checkpoint=14 task=5 images=96/110
+[W7 EVAL] checkpoint=14 task=5 images=104/110
+[W7 EVAL] checkpoint=14 task=5 images=110/110
+[W7 EVAL] checkpoint=14 task=6 images=8/124
+[W7 EVAL] checkpoint=14 task=6 images=16/124
+[W7 EVAL] checkpoint=14 task=6 images=24/124
+[W7 EVAL] checkpoint=14 task=6 images=32/124
+[W7 EVAL] checkpoint=14 task=6 images=40/124
+[W7 EVAL] checkpoint=14 task=6 images=48/124
+[W7 EVAL] checkpoint=14 task=6 images=56/124
+[W7 EVAL] checkpoint=14 task=6 images=64/124
+[W7 EVAL] checkpoint=14 task=6 images=72/124
+[W7 EVAL] checkpoint=14 task=6 images=80/124
+[W7 EVAL] checkpoint=14 task=6 images=88/124
+[W7 EVAL] checkpoint=14 task=6 images=96/124
+[W7 EVAL] checkpoint=14 task=6 images=104/124
+[W7 EVAL] checkpoint=14 task=6 images=112/124
+[W7 EVAL] checkpoint=14 task=6 images=120/124
+[W7 EVAL] checkpoint=14 task=6 images=124/124
+[W7 EVAL] checkpoint=14 task=7 images=8/115
+[W7 EVAL] checkpoint=14 task=7 images=16/115
+[W7 EVAL] checkpoint=14 task=7 images=24/115
+[W7 EVAL] checkpoint=14 task=7 images=32/115
+[W7 EVAL] checkpoint=14 task=7 images=40/115
+[W7 EVAL] checkpoint=14 task=7 images=48/115
+[W7 EVAL] checkpoint=14 task=7 images=56/115
+[W7 EVAL] checkpoint=14 task=7 images=64/115
+[W7 EVAL] checkpoint=14 task=7 images=72/115
+[W7 EVAL] checkpoint=14 task=7 images=80/115
+[W7 EVAL] checkpoint=14 task=7 images=88/115
+[W7 EVAL] checkpoint=14 task=7 images=96/115
+[W7 EVAL] checkpoint=14 task=7 images=104/115
+[W7 EVAL] checkpoint=14 task=7 images=112/115
+[W7 EVAL] checkpoint=14 task=7 images=115/115
+[W7 EVAL] checkpoint=14 task=8 images=8/167
+[W7 EVAL] checkpoint=14 task=8 images=16/167
+[W7 EVAL] checkpoint=14 task=8 images=24/167
+[W7 EVAL] checkpoint=14 task=8 images=32/167
+[W7 EVAL] checkpoint=14 task=8 images=40/167
+[W7 EVAL] checkpoint=14 task=8 images=48/167
+[W7 EVAL] checkpoint=14 task=8 images=56/167
+[W7 EVAL] checkpoint=14 task=8 images=64/167
+[W7 EVAL] checkpoint=14 task=8 images=72/167
+[W7 EVAL] checkpoint=14 task=8 images=80/167
+[W7 EVAL] checkpoint=14 task=8 images=88/167
+[W7 EVAL] checkpoint=14 task=8 images=96/167
+[W7 EVAL] checkpoint=14 task=8 images=104/167
+[W7 EVAL] checkpoint=14 task=8 images=112/167
+[W7 EVAL] checkpoint=14 task=8 images=120/167
+[W7 EVAL] checkpoint=14 task=8 images=128/167
+[W7 EVAL] checkpoint=14 task=8 images=136/167
+[W7 EVAL] checkpoint=14 task=8 images=144/167
+[W7 EVAL] checkpoint=14 task=8 images=152/167
+[W7 EVAL] checkpoint=14 task=8 images=160/167
+[W7 EVAL] checkpoint=14 task=8 images=167/167
+[W7 EVAL] checkpoint=14 task=9 images=8/160
+[W7 EVAL] checkpoint=14 task=9 images=16/160
+[W7 EVAL] checkpoint=14 task=9 images=24/160
+[W7 EVAL] checkpoint=14 task=9 images=32/160
+[W7 EVAL] checkpoint=14 task=9 images=40/160
+[W7 EVAL] checkpoint=14 task=9 images=48/160
+[W7 EVAL] checkpoint=14 task=9 images=56/160
+[W7 EVAL] checkpoint=14 task=9 images=64/160
+[W7 EVAL] checkpoint=14 task=9 images=72/160
+[W7 EVAL] checkpoint=14 task=9 images=80/160
+[W7 EVAL] checkpoint=14 task=9 images=88/160
+[W7 EVAL] checkpoint=14 task=9 images=96/160
+[W7 EVAL] checkpoint=14 task=9 images=104/160
+[W7 EVAL] checkpoint=14 task=9 images=112/160
+[W7 EVAL] checkpoint=14 task=9 images=120/160
+[W7 EVAL] checkpoint=14 task=9 images=128/160
+[W7 EVAL] checkpoint=14 task=9 images=136/160
+[W7 EVAL] checkpoint=14 task=9 images=144/160
+[W7 EVAL] checkpoint=14 task=9 images=152/160
+[W7 EVAL] checkpoint=14 task=9 images=160/160
+[W7 EVAL] checkpoint=14 task=10 images=8/117
+[W7 EVAL] checkpoint=14 task=10 images=16/117
+[W7 EVAL] checkpoint=14 task=10 images=24/117
+[W7 EVAL] checkpoint=14 task=10 images=32/117
+[W7 EVAL] checkpoint=14 task=10 images=40/117
+[W7 EVAL] checkpoint=14 task=10 images=48/117
+[W7 EVAL] checkpoint=14 task=10 images=56/117
+[W7 EVAL] checkpoint=14 task=10 images=64/117
+[W7 EVAL] checkpoint=14 task=10 images=72/117
+[W7 EVAL] checkpoint=14 task=10 images=80/117
+[W7 EVAL] checkpoint=14 task=10 images=88/117
+[W7 EVAL] checkpoint=14 task=10 images=96/117
+[W7 EVAL] checkpoint=14 task=10 images=104/117
+[W7 EVAL] checkpoint=14 task=10 images=112/117
+[W7 EVAL] checkpoint=14 task=10 images=117/117
+[W7 EVAL] checkpoint=14 task=11 images=8/42
+[W7 EVAL] checkpoint=14 task=11 images=16/42
+[W7 EVAL] checkpoint=14 task=11 images=24/42
+[W7 EVAL] checkpoint=14 task=11 images=32/42
+[W7 EVAL] checkpoint=14 task=11 images=40/42
+[W7 EVAL] checkpoint=14 task=11 images=42/42
+[W7 EVAL] checkpoint=14 task=12 images=8/100
+[W7 EVAL] checkpoint=14 task=12 images=16/100
+[W7 EVAL] checkpoint=14 task=12 images=24/100
+[W7 EVAL] checkpoint=14 task=12 images=32/100
+[W7 EVAL] checkpoint=14 task=12 images=40/100
+[W7 EVAL] checkpoint=14 task=12 images=48/100
+[W7 EVAL] checkpoint=14 task=12 images=56/100
+[W7 EVAL] checkpoint=14 task=12 images=64/100
+[W7 EVAL] checkpoint=14 task=12 images=72/100
+[W7 EVAL] checkpoint=14 task=12 images=80/100
+[W7 EVAL] checkpoint=14 task=12 images=88/100
+[W7 EVAL] checkpoint=14 task=12 images=96/100
+[W7 EVAL] checkpoint=14 task=12 images=100/100
+[W7 EVAL] checkpoint=14 task=13 images=8/79
+[W7 EVAL] checkpoint=14 task=13 images=16/79
+[W7 EVAL] checkpoint=14 task=13 images=24/79
+[W7 EVAL] checkpoint=14 task=13 images=32/79
+[W7 EVAL] checkpoint=14 task=13 images=40/79
+[W7 EVAL] checkpoint=14 task=13 images=48/79
+[W7 EVAL] checkpoint=14 task=13 images=56/79
+[W7 EVAL] checkpoint=14 task=13 images=64/79
+[W7 EVAL] checkpoint=14 task=13 images=72/79
+[W7 EVAL] checkpoint=14 task=13 images=79/79
+[W7 EVAL] checkpoint=14 task=14 images=8/151
+[W7 EVAL] checkpoint=14 task=14 images=16/151
+[W7 EVAL] checkpoint=14 task=14 images=24/151
+[W7 EVAL] checkpoint=14 task=14 images=32/151
+[W7 EVAL] checkpoint=14 task=14 images=40/151
+[W7 EVAL] checkpoint=14 task=14 images=48/151
+[W7 EVAL] checkpoint=14 task=14 images=56/151
+[W7 EVAL] checkpoint=14 task=14 images=64/151
+[W7 EVAL] checkpoint=14 task=14 images=72/151
+[W7 EVAL] checkpoint=14 task=14 images=80/151
+[W7 EVAL] checkpoint=14 task=14 images=88/151
+[W7 EVAL] checkpoint=14 task=14 images=96/151
+[W7 EVAL] checkpoint=14 task=14 images=104/151
+[W7 EVAL] checkpoint=14 task=14 images=112/151
+[W7 EVAL] checkpoint=14 task=14 images=120/151
+[W7 EVAL] checkpoint=14 task=14 images=128/151
+[W7 EVAL] checkpoint=14 task=14 images=136/151
+[W7 EVAL] checkpoint=14 task=14 images=144/151
+[W7 EVAL] checkpoint=14 task=14 images=151/151
+[W7 FINAL] {"i_auroc": 0.6680103643965034, "i_ap": 0.832416527581625, "p_aupr": 0.170162967530927, "p_auroc": 0.811590308211294, "task_count": 15, "macro_final_i_auroc": 0.6680103643965034, "macro_final_p_aupr": 0.170162967530927}
+{
+  "status": "7.1_complete_pending_review",
+  "job": "M_seed0",
+  "suite_digest": "17cd635b35e62484c5a000b4be4af503284e7d00da9aec79d64576c8d5055240",
+  "scientific_status": "benchmark output requires review; no automatic superiority claim",
+  "reportable": false,
+  "requested_phase": "7.1",
+  "session_hours": 10.5,
+  "elapsed_since_notebook_start_seconds": 2694.888162144,
+  "budget_includes_bootstrap": true
+}
+Runner exit code: 0"
+
+cell 3:
+
+"{
+  "path": "/kaggle/working/hope_cad_w7_evidence.zip",
+  "bytes": 460054213,
+  "sha256": "9bdf8089155e2c325e96057892d52db4d641391546680bc09d0bc765fd831e65",
+  "files": 303
+}
+{
+  "budget_includes_bootstrap": true,
+  "elapsed_since_notebook_start_seconds": 2694.888162144,
+  "job": "M_seed0",
+  "reportable": false,
+  "requested_phase": "7.1",
+  "scientific_status": "benchmark output requires review; no automatic superiority claim",
+  "session_hours": 10.5,
+  "status": "7.1_complete_pending_review",
+  "suite_digest": "17cd635b35e62484c5a000b4be4af503284e7d00da9aec79d64576c8d5055240"
+}
+
+/kaggle/working/hope_cad_w7_evidence.zip
+Check the saved version Output. Completion needs artifact review; a pause resumes the SAME job."
+
+Total time: 45min

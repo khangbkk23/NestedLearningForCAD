@@ -41,7 +41,11 @@ class HOPEBenchmarkAdapterV4(BenchmarkMethodAdapter):
         if not allow_test_components:
             if context is None:
                 raise ValueError('scientific adapter requires a byte-verified protocol context')
-            validate_initialization(initialization, context)
+            if 'w7_refit_receipt' in initialization:
+                from training.hope_w7_refit import validate_refit
+                validate_refit(initialization, context)
+            else:
+                validate_initialization(initialization, context)
 
         visual_config = VisualBlockConfig(**metadata["visual_config"])
         dynamics = metadata["dynamics"]
