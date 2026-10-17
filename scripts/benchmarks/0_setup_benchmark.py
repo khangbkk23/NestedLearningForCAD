@@ -21,7 +21,7 @@ def args():
     p.add_argument("--method", required=True)
     p.add_argument("--seed", type=int, required=True)
     p.add_argument("--set", dest="overrides", action="append", default=[])
-    p.add_argument("--output-root", default=str(ROOT/"results/benchmarks"))
+    p.add_argument("--output-root", default=str(ROOT.parent/".agents/artifacts/runs/benchmarks"))
     p.add_argument("--run-name")
     p.add_argument("--require-clean-git", action="store_true")
     p.add_argument("--smoke", action="store_true")

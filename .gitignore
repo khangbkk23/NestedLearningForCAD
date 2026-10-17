@@ -1,64 +1,30 @@
-# Virtual environments
-venv/
-env/
-ENV/
+# Local environments, datasets and generated files
+.pixi/
 .venv/
-
-# Python cache and build artifacts
 __pycache__/
 *.py[cod]
-*$py.class
-*.so
-*.pyd
 .pytest_cache/
-.mypy_cache/
-.ruff_cache/
-tmp/
-# Dataset archives and local data
+.cache/
 data/
 datasets/
-*.tar.gz
-*.zip
-# Generated experiment artifacts
-checkpoints/
-logs/
 results/
-wandb/
-*.pth
-*.pt
-*.ckpt
-AGENTS*
-!/AGENTS.md
-SKILL*
-# Notebook checkpoints
-.ipynb_checkpoints/
-
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-tempCodeRunnerFile.py
-agents/
-
-# OS
-.DS_Store
-Thumbs.db
-
-# Distribution / packaging
+logs/
+checkpoints/
 dist/
 build/
 *.egg-info/
-.eggs/
-
-# Secrets and local configs
-kaggle.json
-.env
-.env.local
+*.zip
+*.tar*
+*.pt
+*.pth
+*.ckpt
+*.safetensors
 *.log
-AGENTS.md
-# pixi environments
-.pixi/*
-!.pixi/config.toml
-export/
+.ipynb_checkpoints/
+.vscode/
+.idea/
+.env
+.env.*
+kaggle.json
+.DS_Store
+Thumbs.db

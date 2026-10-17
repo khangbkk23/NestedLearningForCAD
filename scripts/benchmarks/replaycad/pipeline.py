@@ -13,7 +13,7 @@ def cfg_paths(method, project_root):
     root_raw = method.get("replaycad_root", "")
     cache_raw = method.get("cache_root", "")
     root = resolve_root(root_raw, project_root) if root_raw and not root_raw.startswith("${") else Path(os.environ.get("REPLAYCAD_ROOT", "/__missing_replaycad_root__")).expanduser()
-    cache = resolve_root(cache_raw, project_root) if cache_raw and not cache_raw.startswith("${") else Path(os.environ.get("REPLAYCAD_CACHE_ROOT", str(project_root / "results" / "replaycad_cache"))).expanduser()
+    cache = resolve_root(cache_raw, project_root) if cache_raw and not cache_raw.startswith("${") else Path(os.environ.get("REPLAYCAD_CACHE_ROOT", str(project_root.parent / ".agents" / "artifacts" / "runs" / "replaycad_cache"))).expanduser()
     dataset = method.get("dataset_root", "")
     dataset = resolve_root(dataset, project_root) if dataset and not dataset.startswith("${") else Path(os.environ.get("MVTEC_ROOT", "/__missing_mvtec_root__")).expanduser()
     def exe(k):

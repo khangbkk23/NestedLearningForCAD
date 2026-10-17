@@ -50,7 +50,7 @@ def test_author_commands_use_external_cwd_and_cache_outputs(tmp_path):
     method={"replay_generation":{"n_samples":8,"n_iter":25,"per_class_n_iter":{"bottle":25}},"condition_learning":{"max_steps":20000}}
     cmds=command_plan(method,["bottle"],tmp_path,smoke=True,condition_max_steps=3,generation_max_samples=1)
     condition=next(x for x in cmds if x["stage"]=="conditions")
-    assert condition["cwd"].endswith("replay/workspace")
+    assert Path(condition["cwd"]).parts[-2:] == ("replay", "workspace")
     assert "--max_steps" in condition["argv"] and "3" in condition["argv"]
     assert str(tmp_path/"author_outputs") in condition["output"]
 

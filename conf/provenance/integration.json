@@ -1,0 +1,23 @@
+{
+  "schema": "v6_integration_provenance_v1",
+  "worktree": "hope_cad_v6",
+  "method_id": "hope_cad_v5_causal_support_controller",
+  "khang_base": "b9859440832422af20890aed9dc479d8c0e3b1d8",
+  "ours": "9e86478b150ec1ca100ffa20918e91de6a89de71",
+  "merge_base": "a89fd48f94ed9c5deb26041151ea63b79911342f",
+  "reviewed_khang_commits": [
+    "a3699a3",
+    "afac073",
+    "7ef2be0",
+    "d89f2f1",
+    "b985944"
+  ],
+  "khang_new_paths": 66,
+  "ours_new_paths": 249,
+  "overlap_paths": [],
+  "algorithm_changed": false,
+  "operational_source_schema": "hope_support_v5_source_v2",
+  "old_source_v1_resume_compatible": false,
+  "history_location": "../.agents/artifacts/maintenance/20261017-v6-integration",
+  "part_B_checkout_removal": false
+}

@@ -6,6 +6,7 @@ from __future__ import annotations
 import copy
 import time
 
+import numpy as np
 import torch
 
 from training.benchmark_metrics_v1 import compute_metrics, forgetting_matrix, macro_task_metrics
@@ -26,6 +27,8 @@ def _clone_state(value):
 def _state_equal(a, b):
     if isinstance(a, torch.Tensor) and isinstance(b, torch.Tensor):
         return a.dtype == b.dtype and tuple(a.shape) == tuple(b.shape) and torch.equal(a, b)
+    if isinstance(a, np.ndarray) and isinstance(b, np.ndarray):
+        return a.dtype == b.dtype and a.shape == b.shape and np.array_equal(a, b)
     if isinstance(a, dict) and isinstance(b, dict):
         return set(a) == set(b) and all(_state_equal(a[k], b[k]) for k in a)
     if isinstance(a, list) and isinstance(b, list):

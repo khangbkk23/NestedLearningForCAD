@@ -56,8 +56,7 @@ def main():
         from models.cadic_benchmark_adapter_v1 import CADICBenchmarkAdapterV1
         adapter = CADICBenchmarkAdapterV1(method, device)
     else:
-        from models.metanath_benchmark_adapter_v1 import MetaNATHLegacyAdapterV1
-        adapter = MetaNATHLegacyAdapterV1(method, device)
+        raise ValueError("Unsupported adapter in current CADIC baseline CLI")
     art = BenchmarkArtifacts(run)
     engine = BenchmarkEngineV1(protocol, adapter, art,device, a.fail_on_state_mutation)
     if a.phase in ("all", "train"):

@@ -1,0 +1,9 @@
+{
+  "schema": "external_reference_v1",
+  "official_repository": "https://github.com/HULEI7/ReplayCAD",
+  "official_HEAD_observed": "acc619597c3d14aa35f20f42ac2ed9d1c012678b",
+  "khang_gitlink": "6d09dc332c0acfd6da9263ffa47b5d0712f128df",
+  "status": "external_checkout_required_khang_gitlink_origin_unverified",
+  "environment_variable": "REPLAYCAD_ROOT",
+  "automatic_checkout_or_substitution": false
+}

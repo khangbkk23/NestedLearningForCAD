@@ -1,0 +1,122 @@
+{
+  "schema": "hope_support_revision_contract_v5",
+  "design_id": "hope_cad_v5_causal_support_controller",
+  "frozen_for_implementation_date": "2026-10-17",
+  "authority": "user authorized Stage 2 architecture choice/spec/implementation",
+  "scientific_status": "not_experimentally_validated",
+  "backbone_sha256": "2c4839589adbbf701573dd155e1814f8adb145cd4d235bb86a93269369e111ec",
+  "geometry": {
+    "image_size": 224,
+    "grid": [
+      28,
+      28
+    ],
+    "raw_dim": 768,
+    "block_index": 8,
+    "raw_normalization": "none",
+    "score": "CADIC Euclidean Eq8 and full Eq9",
+    "b": 9,
+    "bank_budget": 10000,
+    "distance_tiles": 256
+  },
+  "context": {
+    "projected_dim": 32,
+    "dim": 32,
+    "memory_dim": 32,
+    "head_dim": 8,
+    "projection_seed": 20261017,
+    "row_retention": 0.9,
+    "statistics_dim": 16,
+    "normalization": "image projected RMS with epsilon1e-6"
+  },
+  "learning": {
+    "fast_lr": 0.05,
+    "fast_gradient_transform": "g/sqrt(1+sum(g^2))",
+    "slow_lr": 0.0001,
+    "slow_period": 8,
+    "meta_support": 4,
+    "meta_query": 4,
+    "outer_clip": 1.0,
+    "utility_loss": "half squared tanh prediction error",
+    "head_initial_bias": 0.05,
+    "head_weight_scale": 0.01,
+    "warmup_completed_labels": 32,
+    "admission_threshold": 0.0,
+    "fast_state_persistent": true,
+    "task_boundary_flush": false
+  },
+  "credit": {
+    "delay_images": 1,
+    "bank_fixed_during_delay": true,
+    "reward": "(Jminus-Jplus)/(Jminus+Jplus+1e-8)",
+    "risk": "0.5 mean squared NN +0.5 max squared NN per image",
+    "anchor_weight": 1.0,
+    "anchor_images": 32,
+    "anchor_patches_per_image": 8,
+    "anchor_sampling": "uniform image reservoir; deterministic seed, uniform patch indices",
+    "shadow_bank": "one exact alternative bank; counted persistent bytes",
+    "terminal_pending": "censor, do not hallucinate future label"
+  },
+  "pilot": {
+    "dataset": "MVTec AD",
+    "first_online_images": 256,
+    "seed": 0,
+    "jobs": [
+      "CADIC",
+      "GEOMETRIC",
+      "FIRST_ORDER",
+      "NESTED"
+    ],
+    "normal_only": true,
+    "preflight_images": 24,
+    "trial_budget": 1,
+    "reject_fraction_range": [
+      0.01,
+      0.99
+    ],
+    "minimum_completed_labels": 64,
+    "minimum_slow_updates": 8,
+    "prequential_mean_risk_max_ratio_to_cadic": 1.1,
+    "decision": "review gates; never auto change architecture or launch anomaly evaluation"
+  },
+  "controls_planned": [
+    "FAST_ONLY",
+    "NO_SELF_MODIFICATION",
+    "NO_ANCHOR_OBJECTIVE",
+    "NO_FAST_ADAPTATION",
+    "CADIC_TOTAL_BYTES"
+  ],
+  "benchmark": {
+    "datasets": [
+      "MVTec AD",
+      "VisA"
+    ],
+    "seeds": [
+      0,
+      1,
+      2
+    ],
+    "primary_metrics": [
+      "macro_final_I_AUROC",
+      "macro_final_P_AP"
+    ],
+    "noninferiority_margin_pp": 2.0,
+    "paired_bootstrap_replicates": 2000,
+    "primary_CI_percentiles": [
+      1.25,
+      98.75
+    ],
+    "equal_total_bytes_baseline_K": 24576,
+    "visa_rule": "same frozen architecture/hyperparameters, fresh causal state, no test-based tuning"
+  },
+  "data": {
+    "online": "matched original prefix protocol: same validation/probe exclusions",
+    "initialization": "fresh, no learned v4 weights",
+    "calibration": "none offline; all learning causal when normals arrive",
+    "task_id_as_input": false,
+    "official_test_for_selection": false,
+    "visa_test_for_selection": false,
+    "mvtec_status": "development_exposed"
+  },
+  "reportable": false
+}
