@@ -1,0 +1,42 @@
+{
+  "status": "passed",
+  "new_v5": {
+    "tests": 26,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "seconds": 21.071398799977032
+  },
+  "frozen_regression": {
+    "tests": 58,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "seconds": 19.799464099982288
+  },
+  "runtime": {
+    "python": "3.14.4",
+    "packages": {
+      "torch": "2.12.0+cu126",
+      "torchvision": "0.27.0+cu126",
+      "numpy": "2.4.5",
+      "Pillow": "12.2.0",
+      "timm": "1.0.30",
+      "safetensors": "0.7.0",
+      "scikit-learn": "1.8.0",
+      "PyYAML": "6.0.3"
+    },
+    "device_name": "NVIDIA GeForce RTX 3050 Ti Laptop GPU",
+    "cuda": "12.6",
+    "cudnn": 91002,
+    "matmul_precision": "highest",
+    "matmul_tf32": false,
+    "cudnn_tf32": false,
+    "cudnn_benchmark": false,
+    "v5_deterministic_algorithms": true,
+    "v5_cudnn_deterministic": true,
+    "v5_cublas_workspace": ":4096:8"
+  },
+  "canonical_T4_real_normal_pilot_pending": true,
+  "reportable": false
+}

@@ -1,0 +1,13 @@
+{
+  "elapsed_seconds": 13.778799899999285,
+  "errors": [],
+  "failures": [],
+  "frozen_dependencies_verified": 119,
+  "operations_source_digest": "413eda33d9b798fa728a1e7fbbc7855ba783631a987b317c1e4781d7f3954e78",
+  "python": "3.14.4",
+  "schema": "recovery_stage1_test_verification_v1",
+  "scope": "engineering fixtures only; no AD benchmark, canonical ViT/T4 or VisA validation",
+  "skipped": [],
+  "success": true,
+  "tests_run": 40
+}

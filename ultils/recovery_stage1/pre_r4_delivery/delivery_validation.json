@@ -1,0 +1,38 @@
+{
+  "schema": "recovery_delivery_validation_v1",
+  "revision": "registry-cache-r3",
+  "success": true,
+  "source_sha256": "b6ccaa905389639059593c22b7bbecaf7adef25b0e9187dbbd0fb4c265a9ef06",
+  "packaged_files": 240,
+  "all_entry_hashes_verified": true,
+  "frozen_dependencies_verified": 119,
+  "python_files_compiled": 18,
+  "standalone_packaged_import": {
+    "frozen": 119,
+    "digest": "413eda33d9b798fa728a1e7fbbc7855ba783631a987b317c1e4781d7f3954e78",
+    "backend": "cadic_exact_pair_tile_cache_v2"
+  },
+  "packaged_registry_tests_passed": 3,
+  "recovery_tests_passed": 40,
+  "frozen_tests_passed_on_Kaggle": 130,
+  "r2_archive_sha256": "2a241ed424d31de78eb9b2a1b0e1a8c88c9ff812732908723343569f7b728fa3",
+  "r2_normal_plain_resume_exact": {
+    "M": {
+      "adapter": true,
+      "rng": true,
+      "event_cursor": true
+    },
+    "C1": {
+      "adapter": true,
+      "rng": true,
+      "event_cursor": true
+    },
+    "A1": {
+      "adapter": true,
+      "rng": true,
+      "event_cursor": true
+    }
+  },
+  "Kaggle_r3_preflight_pending": true,
+  "scientific_validation_pending": true
+}

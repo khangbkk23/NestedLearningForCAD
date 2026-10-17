@@ -1,0 +1,16 @@
+{
+  "prior_snapshot": "20261017-normal-causal-v1",
+  "worktrees": {
+    "hope_cad_v5": {
+      "previous_files": 340,
+      "missing": [],
+      "modified": []
+    },
+    "hope_cad_v2_2": {
+      "previous_files": 301,
+      "missing": [],
+      "modified": []
+    }
+  },
+  "status": "passed"
+}

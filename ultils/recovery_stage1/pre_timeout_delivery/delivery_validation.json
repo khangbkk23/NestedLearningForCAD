@@ -1,0 +1,31 @@
+{
+  "schema": "recovery_delivery_validation_v1",
+  "success": true,
+  "source_sha256": "f34574b00c8fb10fdd73adbf25d1577cda4c20decf1e06af6477a10c7be94a5d",
+  "packaged_files": 235,
+  "all_entry_hashes_verified": true,
+  "frozen_dependencies_verified": 119,
+  "python_files_compiled": 15,
+  "notebooks": [
+    {
+      "path": "notebooks/hope_cad_recovery_stage1_preflight_kaggle.ipynb",
+      "cells": 4,
+      "compiled": true
+    },
+    {
+      "path": "notebooks/hope_cad_recovery_stage1_controls_kaggle.ipynb",
+      "cells": 4,
+      "compiled": true
+    }
+  ],
+  "standalone_packaged_import": {
+    "frozen": 119,
+    "digest": "812b6bfe653a3a87adbaa3b54759f06efb554eaa88827e005002435fc31ac2f9"
+  },
+  "recovery_tests_passed": 27,
+  "frozen_tests_passed": 130,
+  "actual_W6_initializations_verified": 7,
+  "actual_M_checkpoints_verified": 15,
+  "Kaggle_preflight_pending": true,
+  "scientific_validation_pending": true
+}

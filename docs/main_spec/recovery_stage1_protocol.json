@@ -1,0 +1,31 @@
+{
+  "schema": "hope_recovery_stage1_protocol_v1",
+  "algorithm": "unchanged frozen HOPE-CAD v4 and matched CADIC",
+  "jobs": [
+    "C1_seed0",
+    "A1_seed0",
+    "CADIC10000_seed0"
+  ],
+  "cadic_execution": {
+    "backend": "cadic_exact_pair_tile_cache_v2",
+    "bank_budget": 10000,
+    "reference_kernel_and_tile_shapes_unchanged": true,
+    "auxiliary_cache_disclosed": true,
+    "reference_parity_required": true
+  },
+  "selection_or_refitting": false,
+  "official_evaluation": "final row only; no full suite claim",
+  "diagnostic": {
+    "samples_per_task": 8,
+    "salt": "recovery-normal-v1-20261016",
+    "histories": [
+      "diagonal",
+      "final"
+    ],
+    "data": "manifest.online train normals only; reused/in-sample",
+    "gradients": "discarded single-event next-view proposal; never applied",
+    "selection_feedback": false,
+    "future_category_model_reads": false
+  },
+  "claim": "development diagnosis only; no superiority, no VisA access"
+}

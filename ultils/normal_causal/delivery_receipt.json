@@ -1,0 +1,11 @@
+{
+  "schema": "normal_causal_delivery_receipt_v1",
+  "source_zip": "D:\\src\\DATN\\hope_cad_v5\\ultils\\normal_causal\\hope_cad_normal_causal_source_v1.zip",
+  "sha256": "715e9516ae63435eca7466f2a79d29dc6f69e32c67084e3b6426793cd8666862",
+  "bytes": 926302,
+  "files": 255,
+  "source_digest": "53c3caafbdf3a9294cdcb717de4f9a0adf4546869dd08e3dc63db92aca80dc90",
+  "protocol_digest": "b24d226e728cb693500b6aa81f8e26749b39816227de5d39169558d5f1310292",
+  "frozen_r4_files_unchanged": 242,
+  "gpu_experiment_pending": true
+}

@@ -1,0 +1,13 @@
+{
+  "status": "passed",
+  "original_prefix_cache_images": 85,
+  "original_cache_validated_with_current_frozen_producers": true,
+  "original_fit_step": 400,
+  "optimizer_state_groups": 39,
+  "optimizer_steps": [
+    400.0
+  ],
+  "first_400_schedule_episodes_exactly_preserved": true,
+  "original_normal_probe_reads": 0,
+  "runtime_training_not_performed": true
+}

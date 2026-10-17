@@ -1,0 +1,33 @@
+{
+  "status": "passed",
+  "tests": 49,
+  "failures": 0,
+  "errors": 0,
+  "skips": 0,
+  "elapsed_seconds": 22.15971389997867,
+  "runtime": {
+    "python": "3.14.4",
+    "packages": {
+      "torch": "2.12.0+cu126",
+      "torchvision": "0.27.0+cu126",
+      "numpy": "2.4.5",
+      "Pillow": "12.2.0",
+      "timm": "1.0.30",
+      "safetensors": "0.7.0",
+      "scikit-learn": "1.8.0",
+      "PyYAML": "6.0.3"
+    },
+    "device_name": "NVIDIA GeForce RTX 3050 Ti Laptop GPU",
+    "cuda": "12.6",
+    "cudnn": 91002,
+    "matmul_precision": "highest",
+    "matmul_tf32": false,
+    "cudnn_tf32": false,
+    "cudnn_benchmark": false
+  },
+  "scope": "new diagnostics + focused unchanged CMS/v4/normal-forensics regressions",
+  "canonical_gpu_experiment_pending": true,
+  "new_diagnostic_tests": 19,
+  "focused_frozen_regressions": 30,
+  "post_final_cache_guard_new_tests_recheck": "19 PASS, zero failures/errors/skips"
+}

@@ -1,0 +1,30 @@
+{
+  "schema": "recovery_delivery_validation_v1",
+  "revision": "cadic-cache-r2",
+  "success": true,
+  "source_sha256": "fb12bb9252622818f90cf756cd126ac24ba72e1b7f7215db5d392b3e994b954f",
+  "packaged_files": 238,
+  "all_entry_hashes_verified": true,
+  "frozen_dependencies_verified": 119,
+  "python_files_compiled": 17,
+  "notebooks": [
+    {
+      "path": "notebooks/hope_cad_recovery_stage1_preflight_kaggle.ipynb",
+      "compiled": true
+    },
+    {
+      "path": "notebooks/hope_cad_recovery_stage1_controls_kaggle.ipynb",
+      "compiled": true
+    }
+  ],
+  "standalone_packaged_import": {
+    "frozen": 119,
+    "digest": "a75f3f333fc37550bdf7812d62134224bfdfb2a732636fe9d78ec038e24932eb",
+    "backend": "cadic_exact_pair_tile_cache_v1"
+  },
+  "recovery_tests_passed": 37,
+  "frozen_tests_passed_on_Kaggle": 130,
+  "old_evidence_sha256": "ff034113ab9f846054585f6b02eb938a1b14bdbd5e0781e624fc9e39962152f5",
+  "Kaggle_r2_preflight_pending": true,
+  "scientific_validation_pending": true
+}

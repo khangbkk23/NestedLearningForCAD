@@ -1,0 +1,11 @@
+{
+  "schema": "hope_support_v5_delivery_receipt",
+  "source_zip": "D:\\src\\DATN\\hope_cad_v5\\ultils\\support_v5\\hope_cad_support_v5_source_v1.zip",
+  "sha256": "6b90605a22ce79649ebabb7ef8cbaa6bcae8a8b90273159e83f461c650718566",
+  "bytes": 949055,
+  "files": 266,
+  "source_digest": "aebddd2dd7146d661472f8b83cc080bfbec70de88263ecdd1cf543c403d2910d",
+  "design_digest": "40a51b1e58ebd3444d447c3fafa7692ee7e47aaf14a8df55aa4a766e256528e8",
+  "frozen_r4_files_unchanged": 242,
+  "real_pilot_pending": true
+}

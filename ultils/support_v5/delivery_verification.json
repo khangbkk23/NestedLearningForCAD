@@ -1,0 +1,14 @@
+{
+  "status": "passed",
+  "source_sha256": "6b90605a22ce79649ebabb7ef8cbaa6bcae8a8b90273159e83f461c650718566",
+  "source_digest": "aebddd2dd7146d661472f8b83cc080bfbec70de88263ecdd1cf543c403d2910d",
+  "files": 266,
+  "frozen_r4_files_unchanged": 242,
+  "bootstrap_formats": [
+    "zip",
+    "Kaggle-extracted-directory"
+  ],
+  "notebook_cells_compiled": true,
+  "packaged_test_suite": "passed; see packaged_tests.log",
+  "canonical_T4_real_normal_pilot_pending": true
+}

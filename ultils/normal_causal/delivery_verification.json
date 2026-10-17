@@ -1,0 +1,160 @@
+{
+  "status": "passed",
+  "source_sha256": "715e9516ae63435eca7466f2a79d29dc6f69e32c67084e3b6426793cd8666862",
+  "source_digest": "53c3caafbdf3a9294cdcb717de4f9a0adf4546869dd08e3dc63db92aca80dc90",
+  "files": 255,
+  "frozen_r4_unchanged": 242,
+  "actual_parent_checkpoint_compatibility": [
+    {
+      "task": 1,
+      "clock": 403,
+      "pending": [
+        0,
+        3
+      ],
+      "commits": [
+        403,
+        50
+      ],
+      "metadata": {
+        "design_id": "hope_cad_v4_warm_joint_cms_row_retention",
+        "component": "W4_feature_predictor",
+        "full_rgb_adapter": false,
+        "canonical": true,
+        "visual_config": {
+          "input_dim": 768,
+          "dim": 256,
+          "memory_dim": 128,
+          "head_dim": 16,
+          "height": 28,
+          "width": 28
+        },
+        "dynamics": {
+          "method": "M",
+          "periods": [
+            1,
+            8
+          ],
+          "rates": [
+            0.01,
+            0.01
+          ],
+          "hidden": [
+            512,
+            512
+          ],
+          "visual_updates": true,
+          "cms_updates": true
+        },
+        "parameter_count": 2147968,
+        "active_parameter_count": 0,
+        "cms_objective": "joint_final",
+        "row_retention": 0.9,
+        "outer_objective": "mean_query_at_0_and_16"
+      }
+    },
+    {
+      "task": 7,
+      "clock": 2022,
+      "pending": [
+        0,
+        6
+      ],
+      "commits": [
+        2022,
+        252
+      ],
+      "metadata": {
+        "design_id": "hope_cad_v4_warm_joint_cms_row_retention",
+        "component": "W4_feature_predictor",
+        "full_rgb_adapter": false,
+        "canonical": true,
+        "visual_config": {
+          "input_dim": 768,
+          "dim": 256,
+          "memory_dim": 128,
+          "head_dim": 16,
+          "height": 28,
+          "width": 28
+        },
+        "dynamics": {
+          "method": "M",
+          "periods": [
+            1,
+            8
+          ],
+          "rates": [
+            0.01,
+            0.01
+          ],
+          "hidden": [
+            512,
+            512
+          ],
+          "visual_updates": true,
+          "cms_updates": true
+        },
+        "parameter_count": 2147968,
+        "active_parameter_count": 0,
+        "cms_objective": "joint_final",
+        "row_retention": 0.9,
+        "outer_objective": "mean_query_at_0_and_16"
+      }
+    },
+    {
+      "task": 14,
+      "clock": 3599,
+      "pending": [
+        0,
+        7
+      ],
+      "commits": [
+        3599,
+        449
+      ],
+      "metadata": {
+        "design_id": "hope_cad_v4_warm_joint_cms_row_retention",
+        "component": "W4_feature_predictor",
+        "full_rgb_adapter": false,
+        "canonical": true,
+        "visual_config": {
+          "input_dim": 768,
+          "dim": 256,
+          "memory_dim": 128,
+          "head_dim": 16,
+          "height": 28,
+          "width": 28
+        },
+        "dynamics": {
+          "method": "M",
+          "periods": [
+            1,
+            8
+          ],
+          "rates": [
+            0.01,
+            0.01
+          ],
+          "hidden": [
+            512,
+            512
+          ],
+          "visual_updates": true,
+          "cms_updates": true
+        },
+        "parameter_count": 2147968,
+        "active_parameter_count": 0,
+        "cms_objective": "joint_final",
+        "row_retention": 0.9,
+        "outer_objective": "mean_query_at_0_and_16"
+      }
+    }
+  ],
+  "packaged_bootstrap_styles": [
+    "zip",
+    "kaggle_extracted_directory"
+  ],
+  "notebook_cells_compiled": true,
+  "canonical_gpu_profile_pending": true,
+  "scientific_result_pending": true
+}

@@ -1,0 +1,62 @@
+{
+  "schema": "hope_normal_causal_protocol_v1",
+  "experiment_id": "normal_causal_v1_20261017",
+  "frozen_method": "hope_cad_v4_warm_joint_cms_row_retention",
+  "checkpoint_indices": [
+    1,
+    7,
+    14
+  ],
+  "samples_per_category": 8,
+  "fit_count": 4,
+  "query_count": 4,
+  "capacity_steps": 96,
+  "capacity_checkpoints": [
+    0,
+    24,
+    96
+  ],
+  "arms": [
+    "deployed_cms",
+    "cms_adam",
+    "decoder_adam",
+    "joint_adam"
+  ],
+  "aux_adam": {
+    "lr": 0.0001,
+    "betas": [
+      0.9,
+      0.999
+    ],
+    "eps": 1e-08,
+    "weight_decay": 0,
+    "clip_norm": 1.0
+  },
+  "latent_oracle": {
+    "steps": 64,
+    "lr": 0.01,
+    "scope": "same-image masked latent fit; optimistic in-sample optimization, not a bound certificate"
+  },
+  "continuation": {
+    "method": "M",
+    "beta": 0.01,
+    "outer_lr": 0.0001,
+    "from_step": 400,
+    "to_step": 500,
+    "checkpoints": [
+      400,
+      425,
+      450,
+      475,
+      500
+    ],
+    "seed": 0,
+    "selection": false
+  },
+  "normal_only": true,
+  "official_test_access": false,
+  "visa_access": false,
+  "export_learned_initialization": false,
+  "reportable": false,
+  "interpretation": "diagnostic evidence only; no AD performance guarantee; MVTec is development-exposed"
+}
