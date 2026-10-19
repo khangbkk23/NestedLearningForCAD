@@ -1,0 +1,26 @@
+{
+  "branch": "dikhang_space",
+  "files": {
+    "agents/tasks/current_task_ecad_r1a.md": "57777e320400cf27cc7ea4f7b52e28def462e4111d6ca323a1383ffb56bf7382",
+    "exps/ad01/hope_cad_ad01_fast_coreset.py": "6c6e387f0a19485e461853b96122e33528f3a3fb04a1b97814641b8f06111d1a",
+    "exps/ad02/hope_cad_ad02_partition.py": "741ff1da6d02d36d2244bc137c73b4bf5cbbcf5dcd17218ccb54559ef72282ff",
+    "exps/ecad/r1/PROTOCOL.md": "8f08ca9510f13c7f7d15edb4ac42fa3dad2f13b540822c64103a4d3f254b337d",
+    "exps/ecad/r1/__init__.py": "556af1861e7c3de65610ce1a81ee7fbf6beb634c74369aaaaa46bb66aaaa302b",
+    "exps/ecad/r1/audit.py": "060ecc62edb2582a327227ad3263ed76788f20bf15022bfe270a3d0c8e38238d",
+    "exps/ecad/r1/contcore.py": "9b7b890c51df43df207186a48c1c25bbcbb9896e586cc73438adb7286dad3784",
+    "exps/ecad/r1/controls.py": "3db5cde7645b843212bbd1c93e6d59e3823a015db91e154e6d7a2d47291ecee0",
+    "exps/ecad/r1/distance.py": "422843b82ddcc938d21fca8000dffa96ff85154823b5b363d9a160cb697010ec",
+    "exps/ecad/r1/endpoints.py": "42968d1988349b870b726b7867de2358e2bb1978c912ce0155e7a3c403b510bd",
+    "exps/ecad/r1/forecast.py": "4a53918dac3190cc0b44eface3a533ae880f320c109f8cc62ac9be21e8706759",
+    "exps/ecad/r1/oracle.py": "8c65afa601591fcc2c8ecab751d6561946e947967e9e005bf2e44ff0ad2e8352",
+    "exps/ecad/r1/p0_matched.py": "57ec9e47fc9bf7c8ac0563e0319ffd2294cea24c0b8a879a359082a2837041c5",
+    "exps/ecad/r1/profile.py": "807900cfbeff2bd0e2928f880ac5b77310172622491e43215eac1095b9afb948",
+    "exps/ecad/r1/reference/SOURCE_PIN.json": "f86099716dfdcac99142149d152509278a7dce1b9028f1bec4e9e16b821ac42d",
+    "exps/ecad/r1/test_correctness.py": "a4b1a805ecf1245b7e49a473753e3fde9b5cfce8702e83e50f33a67508e8082c",
+    "exps/ecad/r1/test_endpoints.py": "d06cbc13a5d5b46f0683e1549db8386e04ca5e61e6ca527769258413693e144c",
+    "exps/task_p/p0_normal_support.py": "6a29f0c7ecc7855e6fc15f4fa87236a2eb961e8ab3b93f66de3ed99f0e89e24c",
+    "models/cadic_patch_coreset_v1.py": "01381d791e822ad4663c8ce8be616addbe6e158d012abbac84916d89c69a8f67"
+  },
+  "head": "f6d76f8dba61ca6c45637066dc00ff8058b62158",
+  "role": "review handoff source pin, not an evaluation execution lock"
+}

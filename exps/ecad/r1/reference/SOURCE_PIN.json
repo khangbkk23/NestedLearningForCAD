@@ -1,0 +1,34 @@
+{
+  "commit": "0579a727e2320ea93c8a657e02600080837ee2a0",
+  "files": {
+    "README.md": {
+      "bytes": 8784,
+      "git_blob_sha1": "a639d02a0d8f5c3aed704b7b84b2d9ad6276be54",
+      "sha256": "74984fe6403fa0c36b7e7ce510036110d549a940252a4a688694aa7805aa9aca"
+    },
+    "corelib/common.py": {
+      "bytes": 13577,
+      "git_blob_sha1": "e1b55b68c59fbe6a88ecf608fb0edb730354daad",
+      "sha256": "1b8edb2c004012ca951e89adb7d514d8cd03554a6908c60c27a99517026a493f"
+    },
+    "corelib/contcore.py": {
+      "bytes": 17481,
+      "git_blob_sha1": "2b694c142cc14ed89e2124e6b5469a76ae7670e1",
+      "sha256": "3a05e2dd2301192c86290bfda48c6f53c661b1ab576084795b413dd127cd23f2"
+    },
+    "corelib/sampler.py": {
+      "bytes": 22731,
+      "git_blob_sha1": "b675c81bdeb47c68ee26c3a5fbe449127dab48a9",
+      "sha256": "0e9fb09ad2151d50a7a8378f744dc6cc95aa6feb70929d7a813ea4efc9a1baba"
+    },
+    "main.py": {
+      "bytes": 8169,
+      "git_blob_sha1": "91b686409f8d2303e23b3b6ea24f6b5cdf0c510d",
+      "sha256": "8bccc62e21d5f48ceba510b3c3b6deb318c77b6a00b803c85a5a2f8f4b7c70ab"
+    }
+  },
+  "repository": "jungyg/ContCore",
+  "retrieved": "2026-10-18",
+  "transport": "connected GitHub fetch_file, base64",
+  "tree": "380ab8f807fe7d1b3f36886b7a8e662d26eb29d2"
+}
