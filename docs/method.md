@@ -14,7 +14,7 @@ Các mục 2–10 dưới đây kế thừa đầy đủ phần định nghĩa t
 
 Stream gồm các normal images thực sự đã đến, một ảnh/event. Frozen backbone F là `vit_base_patch8_224.augreg_in21k`, checkpoint SHA256 `2c4839589adbbf701573dd155e1814f8adb145cd4d235bb86a93269369e111ec`. RGB PIL resize trực tiếp 224×224 bilinear, không giữ aspect ratio; mean (.485,.456,.406), std (.229,.224,.225). Trích block 8 zero-based / layer 9 one-based, bỏ CLS: raw FP32 features [1,784,768]. Không thêm LN/L2 vào raw patches.
 
-MVTec giữ canonical 15-task order trong contract và đúng 3,599 online identities: 3,629 normals trừ 15 validation + 15 probe của Bottle theo matched protocol. Tên protocol có `prefix_cal` là lịch sử phân vùng, **không cho v5.1 offline calibration**. V5.1 không dùng các excluded roles để train/search. Các controls có cùng identities/order/checkpoint/preprocessing. VisA về sau dùng `split_csv/1cls.csv`, canonical 12-task order và cùng rule exclusions/causal learning đã khóa, fresh state.
+MVTec giữ canonical 15-task order trong contract và đúng 3,599 online identities: 3,629 normals trừ 15 validation + 15 probe của Bottle theo matched protocol. Tên protocol có `prefix_cal` là lịch sử phân vùng, **không cho v5.1 offline calibration**. V5.1 không dùng các excluded roles để train/search. Các controls có cùng identities/order/checkpoint/preprocessing. VisA chưa có runner/protocol được nghiệm thu ở repo này. Official `split_csv/1cls.csv`,12tasks và fresh state là yêu cầu hướng tới; data rights/exclusions/order/evaluator phải được freeze riêng trước confirmation, không mặc định mang partition Bottle sang dataset khác.
 
 Manifest/hash kiểm identity không cấp quyền đọc future features. Feature cache có thể dùng chung frozen producer nhưng learner chỉ nhận một ảnh theo cursor; không tính aggregate future features, normalizers hoặc sampling weights từ các ảnh chưa đến. Task/category ID chỉ thuộc evaluator, không input, reset hoặc routing của learner. Test/GT masks không vào optimizer hoặc selection.
 
@@ -102,7 +102,7 @@ Sau một completed label, recompute p và a từ **stored decision context** d�
 
 Actual fast update detach toàn state sau record để không giữ graph xuyên stream. Tính current partial derivative bằng functional fast parameters; không đưa fast template registered weights vào slow optimizer.
 
-### 5.1. Hai kết quả lý thuyết và phạm vi
+### 6.1. Hai kết quả lý thuyết và phạm vi
 
 Gọi F_t là toàn bộ causal information sau resolve label cũ tại decision t: past/current normals, banks/anchors, theta/phi, RNG, context, c/gamma/a/d; **chưa chứa next normal**. Với conditional second moments hữu hạn, trong lớp predictor không hạn chế:
 
@@ -140,7 +140,7 @@ Zero residual có cùng **sign GEOMETRIC** ngoài forced override, hoặc khi ga
 
 Initial visual content/key/value truncated normal std .01 trong [-.02,.02], eta/alpha initial maps 0; wrapper/geometry/CMS affine Xavier, biases 0, LN scale/bias 1/0. Row retention .9; fusion .25 mỗi direction theo inherited operator. Fast CMS khởi tạo như v5 nhưng readout zero, bỏ slow head bias +.05 / weights ×.01. Init dùng private seed từng job; Rademacher seed riêng 20261017. Không học initialization từ v4/v5 hoặc prior pilot.
 
-`NO_FAST_ADAPTATION` với zero readout làm p=gamma mãi; theta không có functional gradient. Nó dùng geometry admission **trên trajectory riêng ngoài learned warmup**, không là independent trainable slow baseline. Forced-PASS có thể làm bank khác GEOMETRIC từ warmup, nên không gọi hai full policies tương đương. Không fail control này vì missing slow gradients hoặc mượn nó chứng minh CMS coupling. `FAST_ONLY`, `NO_SELF_MODIFICATION`, `NO_ANCHOR_OBJECTIVE` là planned controls có ownership/data rights riêng phải được test trước dùng; không lén chuyển head sang slow để cứu ablation.
+`NO_FAST_ADAPTATION` với zero readout làm p=gamma mãi; theta không có functional gradient. Nó dùng geometry admission **trên trajectory riêng ngoài learned warmup**, không là independent trainable slow baseline. Forced-PASS có thể làm bank khác GEOMETRIC từ warmup, nên không gọi hai full policies tương đương. Không fail control này vì missing slow gradients hoặc mượn nó chứng minh CMS coupling. `FAST_ONLY`, `NO_SELF_MODIFICATION`, `NO_ANCHOR_OBJECTIVE` là controls được định nghĩa trong study/code hiện hành nhưng chưa có completed full benchmark ở bảng kết quả; không lén chuyển head sang slow để cứu ablation.
 
 ## 9. Event, numerical và checkpoint contracts
 
@@ -176,41 +176,9 @@ Fairness gồm equal K10k và measured memory/compute categories: main/alternati
 
 VisA confirmation chỉ sau method/code/scoring/data/transfer/metric freeze, fresh causal state, cùng constants, không retune từ test. QA raw/resized masks, image/mask hashes và undefined-metric policy phải khóa cho mọi method trước evaluation. Giữ image label nếu tiny defect biến mất sau resize; không drop/relabel để cải thiện AP. Thesis báo historical negatives, assumptions, trial/exposure ledger và limits. Không có guarantee ngang/hơn CADIC hoặc “tận dụng tối đa” mọi khả năng Nested Learning.
 
-## Phụ lục — Định nghĩa nghiệm thu chi tiết
 
-Các quy tắc dưới được giữ từ acceptance đã khóa; mốc pre-implementation trong bản cũ không được dùng làm tiến độ hiện tại.
+## 11. Nguồn thực thi và thay đổi chưa triển khai
 
-### A1. Khóa định nghĩa reused-normal score probe
+Các phương trình trên mô tả v5.1. Đường thực thi: [learner](../src/hope_cad/models/learner.py), [session](../src/hope_cad/models/session.py), [geometry](../src/hope_cad/models/geometry.py), [runtime manifest](../src/hope_cad/runtime/execution.py), cùng [method contract](../src/hope_cad/resources/method.json). Fast/slow counters phản ánh actual successful optimizer calls; rollback giữ nguyên counters khi fail; scoring chỉ đọc bank.
 
-Gate `score_differs > 1e-6` đã có trong contract nhưng chưa nêu rõ probe identities/count. Chốt kế thừa phép đo ở `training/hope_support_v5.py:74–77,90–94`:
-
-1. Probe là **đúng 8 online train-normal identities đầu tiên** của ordered/hash-bound `pilot_rows.json` cho trial này, tức `pilot_rows[:8]`. Không sampling, đổi category, chọn theo score hoặc thay vì một probe không cho kết quả khác biệt.
-2. Tất cả controls dùng đúng cùng 8 identities, raw feature producer và feature hashes. Ghi ordered probe manifest với relative path/image SHA256/raw feature digest; đối chiếu equality trước khi so score. Nếu thiếu hoặc thứ tự không khớp thì technical failure, không zip/truncate arrays cho qua.
-3. Đo sau khi job đã đi đủ 256 images và `finalize_stream` chỉ censor pending như spec. Score là read-only actual **final bank**. Probe không tạo label, học, chọn checkpoint hoặc thay đổi scientific state/RNG.
-4. Đọc **784 raw patch NN distances của mỗi ảnh**, trước map resize và trước Eq9 image weighting. Reduction duy nhất: `max_{i=0..7,j=0..783} abs(score_NESTED[i,j]-score_CADIC[i,j])`. Mọi tensor đúng shape và finite; maximum phải **lớn hơn** 1e-6.
-5. Đây là reused training-normal **mechanism probe**, không independent validation, retention estimate hoặc anomaly performance. Final-bank hash gate và risk last128 vẫn giữ riêng, không thay thế cho nhau.
-
-Driver/contract identity executable mới phải đưa quy tắc này và probe-manifest hash vào payload trước pilot. Không rewrite `revision_contract_v5_1.json` cũ để làm receipt thiết kế đã seal trông như đã có field; builder có thể đọc acceptance này hoặc encode quy tắc tương đương, nhưng source identity phải bao gồm nó và tests phải kiểm.
-
-### A2. Quy ước clock/optimizer theo mode
-
-`labels` đếm completed delayed labels hợp lệ. `completed_label_blocks=labels//8` chỉ là số cửa sổ hoàn tất, không tự là số optimizer updates. `fast_updates` đếm actual fast steps thành công; `slow_updates` đếm **actual successful slow Adam commits**; fail trong image transaction rollback cả các counters. Không gọi một no-op schedule là parameter learning.
-
-| Mode | fast_updates | slow_updates / Adam calls | Partial replay window |
-|---|---:|---:|---|
-| NESTED, FIRST_ORDER | labels | labels//8 | labels%8 records; clear sau successful commit |
-| FAST_ONLY (planned) | labels | 0; không slow Adam update | giữ cùng 8-label boundaries, clear khi đủ8; phi_start iff partial window |
-| NO_FAST_ADAPTATION (planned) | 0 | 0; không tạo Adam steps với zero/disconnected gradients | giữ 8-label bookkeeping, clear khi đủ8; không pretend đã meta-learn |
-| CADIC, GEOMETRIC | không learner labels/updates | không learner optimizer | không utility replay window |
-
-NO_FAST_ADAPTATION vẫn có completed-label clock để thực hiện learned-policy warmup32 và record chronology. Zero readout làm prediction=gamma trên **trajectory riêng**; forced-PASS có thể khiến bank khác GEOMETRIC. Adam state của mode này là null/absent theo schema executable mới phải khai rõ, không serialize fabricated trained optimizer. Các planned controls chưa được mở pilot hoặc claim contribution bởi bảng này. NO_SELF_MODIFICATION/NO_ANCHOR_OBJECTIVE khi triển khai về sau giữ learning counters của NESTED với active ownership/objective của ablation được khóa.
-
-### A3. Những assertion phải có trong implementation
-
-- FO/NESTED phải có initial theta, phi, projection và anchor-RNG hashes giống nhau khi cùng seed trước image đầu. Init theo private RNG và deterministic construction; không chỉ ghi cùng số seed rồi mặc định state giống nhau.
-- Shared `training/runtime.py` tắt TF32 nhưng tự nó chưa bật tất cả deterministic settings. Wrapper v5.1 phải áp dụng đầy đủ canonical deterministic/CUBLAS setup từ contract, không sửa hoặc dựa nhầm vào v5 identity.
-- `dataset/benchmark_protocol_v2.py:203–206` còn metadata `prefix_calibrated_not_strict_single_pass` của quyền v4. Successor giữ đúng partition/hash nhưng phải xuất quyền riêng: không offline calibration/search; one-image causal delivery; replay của observed projected contexts được cho phép. Không gọi pipeline strict single-pass theo nghĩa không replay, cũng không báo prefix calibration đã chạy khi nó không chạy.
-- Tái dùng `CMSLevel` và visual primitives, không tái dùng optimizer của `ContinuumMemory.event` như thể đó là update rule v5.1. Với current fast tensors là các functional state outputs đồng thời, `autograd.grad(loss,current_phi,create_graph=True)` là local fast partial; outer derivative vẫn đi qua dependency lịch sử trong unroll. Không request total gradient của slow theta rồi gọi là local fast gradient.
-- Canonical FP32/full28×28 numerical/state tests, malformed checkpoint rejection và crash/resume tests vẫn bắt buộc trong I1/I2. Synthetic FP64/reduced CPU audit không thay thế chúng. Benchmark evaluator, uncertainty, full resource fairness và VisA còn planned như bộ spec đã nêu.
-
-Không đổi learning rate, head ownership, target, c/d, warmup32, task/data rights hoặc risk gate1.10 trong clarification này. Nếu implementation phát hiện cần đổi các semantics ấy, báo thiết kế trước và tạo revision/lineage rõ; không cứu gate trong lúc chạy.
+[Pipeline spec](pipeline_alignment_spec.md) quy định successor full-train3.629; [H32](research/candidate.md) thay slow-query context và thêm history state. Cả hai chưa được runtime hiện tại triển khai, không thay phương pháp hoặc số liệu đang mô tả ở đây. [Plan](research/implementation_plan.md) ghi acceptance trước khi chạy candidate.

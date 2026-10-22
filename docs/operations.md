@@ -4,10 +4,10 @@ V7 là **workspace hợp nhất mới**, phương pháp vẫn `hope_cad_v5_1_cau
 
 ## 1. Chuẩn bị và chuyển source
 
-V7 tự đủ từ source/Git checkout; không cần `.agents`, sibling worktree hoặc old Kaggle evidence. Windows local có thể dùng `pixi install --locked`, `pixi run install`, `pixi run test`. Đóng gói:
+V7 tự đủ từ source/Git checkout; không cần sibling worktree hoặc old Kaggle evidence. Các lệnh ở đây chạy **baseline3.599**, chưa hỗ trợ full-train/H32; đọc [plan nghiên cứu](research/implementation_plan.md) nếu chuẩn bị nâng cấp. Windows local có thể dùng `pixi install --locked`, `pixi run install`, `pixi run test`. Đóng gói:
 
 ```powershell
-pixi run python -B -m hope_cad source --output dist/hope_cad_v7_source_r3.zip
+pixi run python -B -m hope_cad source --output dist/hope_cad_source.zip
 ```
 
 Copy ZIP tới máy thuê bằng SSH/SCP theo host/port thật người dùng cung cấp; so SHA256 với receipt rồi giải nén vào thư mục trống. Không chứa datasets/checkpoints/.pixi/.venv/artifacts hoặc credentials. Linux script gọi bằng `bash`, không phụ thuộc executable bit của Windows.
@@ -76,6 +76,6 @@ Export có manifest và streaming SHA verification; từ chối writer đang ch�
 
 [Kiến trúc](architecture.md) tách source/layout, runtime acceptance và scientific revision. Historical-query slow consolidation vẫn proposal riêng; không được gắn gain của cleanup/preprocessing/hardware vào Nested Learning. Bản v5.1 baseline giữ frozen recipe đã development-exposed; native-checkpoint normalization mismatch không được sửa ngầm. Khóa revision/protocol trước VisA.
 
-## Layout r3
+## Source identity khi đóng gói
 
-Source r3 thay cấu trúc package/import/producer identity; không resume source r2 hoặc checkpoint từ execution cũ. Dùng source r3 từ checkout sạch, cài editable, rồi preflight thật trước fresh jobs. Không tự thuê GPU hoặc SSH. Hãy chạy trong tmux, copy và kiểm SHA evidence về máy trước khi stop/destroy server. Source ZIP không chứa data, weights, `.pixi`, `.venv` hoặc raw evidence.
+Source layout hiện hành thay package/import/producer identity so với các executions trước refactor. Mỗi bundle mới có digest riêng; không ghi đè archive đã khóa hoặc resume checkpoint khác source bằng bỏ guard. Đóng gói từ checkout đã review, cài editable rồi preflight đúng source/runtime trước fresh jobs. Lần thay docs này chưa tạo một delivery mới đã nghiệm thu. Không tự thuê GPU hoặc SSH. Hãy chạy trong tmux, copy và kiểm SHA evidence về máy trước khi stop/destroy server. Source ZIP không chứa data, weights, `.pixi`, `.venv` hoặc raw evidence.

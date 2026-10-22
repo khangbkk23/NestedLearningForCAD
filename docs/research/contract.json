@@ -1,0 +1,581 @@
+{
+  "schema": "hope_nl_upgrade_research_program_v1",
+  "program_id": "v7_nl_upgrade_fulltrain_program_v1",
+  "recorded_on": "2026-10-22",
+  "status": "design_locked_for_experimental_implementation_not_implemented_not_run",
+  "normative_documents": [
+    "README.md",
+    "rationale.md",
+    "attribution.md",
+    "candidate.md",
+    "study.md",
+    "implementation_plan.md",
+    "../pipeline_alignment_spec.md",
+    "../pipeline_alignment_contract.json"
+  ],
+  "normative_conflict_policy": "Baseline runtime resources define current execution. These specs define future implementation only. On any prospective spec/contract contradiction stop and correct before implementation; never select a convenient reading.",
+  "current_method_id": "hope_cad_v5_1_causal_scaled_utility",
+  "base_design_digest": "6f6b2c847a815619b6ad5ed899a0859aab1d7b532d62b27ae3217d926695db99",
+  "base_method_file_sha256": "b3e5004d618ac1a39ffe3eab36b0b8056fd53d0de611c5b9f3b33f6313f3d3a1",
+  "workspace_head_at_spec": "37315030a3111b6b7f6265958fab2c41b3b35344",
+  "candidate_id": "hope_cad_hq32_fulltrain_v1",
+  "candidate_adopted": false,
+  "implementation_performed": false,
+  "GPU_run": false,
+  "performance_improvement_validated": false,
+  "implementation_authorized_by_this_spec_task": false,
+  "automatic_paid_execution_authorized": false,
+  "D0": {
+    "id": "support_utility_attribution_v2",
+    "supersedes_for_new_implementation": "support_utility_attribution_v1",
+    "archives": [
+      {
+        "arm": "NESTED_seed0",
+        "path": "hope_cad_matrix_NESTED_seed0_evidence.zip",
+        "sha256": "668f9e348561d5ec55c4cf51762c5890b19328c2a950c7ba2fb09f037b1bea0d"
+      },
+      {
+        "arm": "CADIC_seed0",
+        "path": "hope_cad_matrix_CADIC_seed0_evidence.zip",
+        "sha256": "035f88639f8faab8bf02fdfbcd5f502677620c3756af53dcf4815dd40e8cc889"
+      }
+    ],
+    "input_path_base": "user_supplied_input_root_no_private_context_dependency",
+    "canonical_event_pattern": "benchmark/runs/{arm}/events/{cursor:05d}.json",
+    "allowlisted_other_members": [
+      "artifact_manifest.json",
+      "benchmark/manifest_train.json",
+      "benchmark/runs/{arm}/train_complete.json"
+    ],
+    "excluded_namespace": "benchmark/legacy/",
+    "expected_nested_counts": {
+      "events": 3599,
+      "legacy_event_names_excluded": 376,
+      "changed_decisions": 3211,
+      "completed_labels": 3211,
+      "warmup": 32,
+      "postwarm_main_rows": 3179,
+      "rejects": 1935,
+      "terminal_censor": 0
+    },
+    "same_cursor_order": [
+      "resolve_pending_credit",
+      "score_cached_predictions",
+      "update_baselines",
+      "predict_current_changed_proposal"
+    ],
+    "model_forward_allowed": false,
+    "pickle_or_tensor_load_allowed": false,
+    "test_data_access_allowed": false,
+    "baseline_ids": [
+      "OBS-NESTED",
+      "OBS-GAMMA",
+      "OBS-MEAN",
+      "OBS-GAMMA-BIAS",
+      "OBS-AFFINE-GAMMA",
+      "OBS-AFFINE-CLOCK",
+      "OBS-NLMS-BIAS"
+    ],
+    "statistical_fallback_ids": [
+      "OBS-MEAN",
+      "OBS-GAMMA-BIAS",
+      "OBS-AFFINE-GAMMA",
+      "OBS-AFFINE-CLOCK"
+    ],
+    "statistical_fallback_observed_labels": 32,
+    "statistical_fallback_prediction": "gamma",
+    "fit_from_completed_label": 1,
+    "ridge": {
+      "lambda": 1e-06,
+      "loss_reduction": "sum",
+      "penalize_intercept": false,
+      "dtype": "float64"
+    },
+    "clock_feature": "log1p(image_cursor)/log1p(1000000)",
+    "bias": {
+      "initial": 0.0,
+      "step_size": 0.05,
+      "prediction": "gamma+b",
+      "update": "b-0.05*(cached_prediction-y)",
+      "fallback": false
+    },
+    "action": "accept_if_prediction_greater_or_equal_zero",
+    "scalar_QA": {
+      "absolute_tolerance": 1e-12,
+      "relative_tolerance": 1e-10,
+      "comparison": "abs(a-b)<=atol+rtol*max(abs(a),abs(b))"
+    },
+    "metric_zero_tolerance": 0.0,
+    "main_aggregation": "micro_over_common_completed_postwarm_identities",
+    "margin_bin_edges": [
+      0,
+      0.0001,
+      0.001,
+      0.01,
+      0.05,
+      0.1,
+      "infinity"
+    ],
+    "time_bin_width_image_cursors": 256,
+    "quantiles": "linear_interpolation",
+    "quantile_probabilities": [
+      0,
+      0.25,
+      0.5,
+      0.75,
+      1
+    ],
+    "residual_names": {
+      "prediction_error": "p-y",
+      "learned_residual": "p-gamma",
+      "credit_residual": "p-y"
+    },
+    "undefined_value": "null_with_reason",
+    "resource_caps": {
+      "CPU_threads": 2,
+      "target_RAM_GiB": 2,
+      "wall_seconds_including_hashing": 1800,
+      "export_reserve_seconds": 30,
+      "manifest_MiB": 32,
+      "event_MiB": 1,
+      "train_manifest_or_completion_MiB": 16,
+      "total_event_bytes_MiB": 256
+    },
+    "resume": "preserve_partial_then_restart_from_zero_in_new_session",
+    "max_operational_attempts_same_recipe": 2,
+    "output_run_root": "user_supplied_output_root/support_utility_attribution_offline_02"
+  },
+  "candidate": {
+    "capacity": 32,
+    "completed_labels_per_episode": 8,
+    "actual_fast_updates_per_completed_label": 1,
+    "functional_support_indices": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "startup_query_indices": [
+      4,
+      5,
+      6,
+      7
+    ],
+    "subsequent_recent_query_indices": [
+      6,
+      7
+    ],
+    "subsequent_historical_queries": 2,
+    "query_reduction": "equal_weight_mean_of_four_losses",
+    "query_sampling": "random.Random.sample_without_replacement_preserve_returned_order",
+    "snapshot_time": "first_label_of_block_before_actual_fast_update",
+    "history_eligibility": "committed_completed_label_index<=8*block_index_and_reward_observed_before_block_start",
+    "history_insertion": "all_eight_records_chronologically_after_successful_slow_commit",
+    "reservoir": {
+      "algorithm": "Algorithm_R",
+      "index": "completed_label_index_1_based",
+      "draw": "randrange(n)",
+      "replace_if": "j<32"
+    },
+    "private_RNG_seeds": {
+      "reservoir": "learning_seed+96136",
+      "query": "learning_seed+96137"
+    },
+    "fallback": "only_block_zero_recent_four; malformed_later_history_fails",
+    "target_semantics": "immutable_original_bank_pair_scaled_advantage_not_current_bank_reward",
+    "record_envelope": [
+      "completed_label_index",
+      "reward_observed_at",
+      "record",
+      "payload_sha256"
+    ],
+    "payload_hash": "contract.digest of tensor_digest(tokens,stats) plus all non_tensor_record_fields and completed_label_index/reward_observed_at; exclude payload_sha256 itself",
+    "token_shape": [
+      1,
+      784,
+      32
+    ],
+    "token_dtype": "float32",
+    "stats_dimension": 16,
+    "reservoir_token_payload_bytes": 3211264,
+    "current_episode_token_payload_bytes": 802816,
+    "selected_history_ownership": "immutable_ID_references_no_extra_token_copies",
+    "forbidden_two_selected_record_copy_bytes": 200704,
+    "memory_claim": "payload_only_not_total_or_peak_memory",
+    "schemas": [
+      "hope_hq_session_v1",
+      "hope_hq_learner_v1",
+      "completed_utility_history_v1"
+    ],
+    "old_checkpoint_import": false,
+    "deployed_fast_state": "actual_eight_updates_not_functional_four_update_state",
+    "FO_semantics": "detach_entire_normalized_fast_increment_including_denominator",
+    "DIRECT_semantics": "same_queries_at_detached_phi_start_zero_functional_support_updates_actual_fast_eight_unchanged",
+    "DIRECT_compute_matched": false,
+    "DIRECT_first_block_zero_gradient_expected": true,
+    "state_invariants": {
+      "L": "completed_labels",
+      "B": "floor(L/8)",
+      "r": "L%8",
+      "fast_count": "L",
+      "slow_count_for_Adam_variants": "B",
+      "partial_records": "r",
+      "history_seen": "8*B",
+      "history_count": "min(32,8*B)",
+      "history_labels": "unique_subset_of_1_through_8*B",
+      "partial_labels": "8*B+1_through_L"
+    },
+    "atomic_rollback": [
+      "bank",
+      "theta",
+      "phi",
+      "Adam",
+      "history",
+      "reservoir_RNG",
+      "query_RNG",
+      "clocks",
+      "partial_episode",
+      "block_snapshot",
+      "pending",
+      "anchors"
+    ],
+    "probes": {
+      "first_completed_label": 40,
+      "then_every_positive_slow_commits": 32,
+      "pre_post_theta_prediction": "same_actual_phi_and_same_queries_no_grad_no_extra_learning",
+      "without_slow_optimizer": "not_applicable_not_fabricated_zero"
+    },
+    "FAST_ONLY_history_commit": "after_eight_successful_actual_updates_with_zero_slow_steps",
+    "unchanged_components": [
+      "raw_ViT_geometry",
+      "preprocessing",
+      "CADIC_proposer",
+      "K10000",
+      "Eq9",
+      "anchors_32x8",
+      "context_stats16",
+      "whole_proposal_binary_action",
+      "four_support_steps",
+      "base_LRs",
+      "CMS_depth",
+      "warmup32",
+      "target_scale",
+      "fast_rule"
+    ]
+  },
+  "study": {
+    "id": "hq32_mvtec_fulltrain_development_v1",
+    "method_identity": "per_job_method_digest_distinct_from_common_source_runtime_producer_protocol_metric_identity",
+    "partition_seed": null,
+    "learning_seeds": [
+      0,
+      1,
+      2
+    ],
+    "online_normals": 3629,
+    "excluded_initial_bottle_normals": 0,
+    "test_images": 1725,
+    "tasks": 15,
+    "full_matrix_cells_per_job": 120,
+    "variants": [
+      "CADIC",
+      "R_EXACT",
+      "R_FO",
+      "H32_EXACT",
+      "H32_FO",
+      "H32_DIRECT",
+      "FAST_ONLY",
+      "BIAS_VETO",
+      "PILOT_RATE_RANDOM_VETO"
+    ],
+    "B_pilot_job_order": [
+      "CADIC",
+      "R_EXACT",
+      "FAST_ONLY",
+      "BIAS_VETO",
+      "PILOT_RATE_RANDOM_VETO",
+      "R_FO",
+      "H32_EXACT",
+      "H32_FO",
+      "H32_DIRECT"
+    ],
+    "B_pilot_normals_each": 256,
+    "B_preflight_normals": 24,
+    "B_preflight_resume_normals": 4,
+    "B_GPU_wall_hour_cap": 12,
+    "B_gates": {
+      "minimum_completed_labels_nonCADIC": 64,
+      "minimum_slow_commits_R_H": 8,
+      "H32_reject_fraction_postwarm_min": 0.01,
+      "H32_reject_fraction_postwarm_max": 0.99,
+      "readonly_score_effect_absolute_min": 1e-06,
+      "readonly_score_probe": {
+        "checkpoint_after_normals": 256,
+        "IDs": "first_24_allowed_train_normals",
+        "comparison": "H32_EXACT_minus_fresh_CADIC",
+        "output": "224x224_bilinear_pixel_maps_no_extra_normalization",
+        "reduction": "maximum_absolute_difference_over_all_24_maps",
+        "update_or_selection_use": false
+      },
+      "H32_over_CADIC_last128_normal_risk_max": 1.1
+    },
+    "C_full_seed0_jobs": [
+      "CADIC_seed0",
+      "R_EXACT_seed0",
+      "H32_EXACT_seed0"
+    ],
+    "C_GPU_wall_hour_cap": 24,
+    "C_continue_screen": {
+      "H32_minus_R_P_AP_greater_than": 0.0,
+      "H32_minus_R_I_AUROC_min": -0.02,
+      "H32_minus_CADIC_I_AUROC_min": -0.02,
+      "H32_minus_CADIC_P_AP_min": -0.02,
+      "interpretation": "development_spending_screen_not_confirmatory_NI_or_superiority"
+    },
+    "D_conditional_remaining_seed0_controls": [
+      "R_FO",
+      "H32_FO",
+      "H32_DIRECT",
+      "FAST_ONLY",
+      "BIAS_VETO",
+      "PILOT_RATE_RANDOM_VETO"
+    ],
+    "D_conditional_replicates": [
+      "CADIC_seed1",
+      "R_EXACT_seed1",
+      "H32_EXACT_seed1",
+      "CADIC_seed2",
+      "R_EXACT_seed2",
+      "H32_EXACT_seed2"
+    ],
+    "max_full_MVTec_jobs": 15,
+    "D_paid_budget": "separately_approve_after_measured_B_C_costs_no_automatic_run",
+    "session_soft_hours_max": 4,
+    "export_reserve_seconds": 180,
+    "budget_includes": [
+      "preflight",
+      "setup",
+      "hashing",
+      "feature_extraction",
+      "training",
+      "evaluation",
+      "IO",
+      "GPU_rented_pauses"
+    ],
+    "random_veto": {
+      "reject_probability_numerator": 145,
+      "reject_probability_denominator": 211,
+      "RNG_seed": "learning_seed+95537",
+      "warmup_force_accept": 32
+    },
+    "statistics": {
+      "bootstrap": "whole_image_paired_stratified",
+      "draws": 2000,
+      "seed": 20261020,
+      "CI_percentiles": [
+        1.25,
+        98.75
+      ],
+      "NI_margin": -0.02,
+      "superiority": "both_endpoint_lower_bounds_greater_than_zero",
+      "MVTec_status": "development_exposed_exploratory"
+    },
+    "VisA": {
+      "runner_ready": false,
+      "tasks_expected": 12,
+      "matrix_cells_expected": 78,
+      "fresh_state_required": true,
+      "separate_protocol_and_rights_freeze_required": true,
+      "tuning_allowed": false
+    },
+    "stop_rules": [
+      "technical_or_data_rights_failure",
+      "budget_exhaustion_without_completion",
+      "pilot_gate_failure",
+      "C_screen_failure"
+    ],
+    "automatic_candidate_or_hyperparameter_retry": false,
+    "partition_policy": "all_train_good_no_exclusions_no_partition_RNG",
+    "protocol_id": "mvtec_1x15_fulltrain_v7_v1",
+    "recent_contract_id": "hope_cad_v5_1_fulltrain_v1",
+    "B_pilot_composition": {
+      "bottle": 209,
+      "cable": 47
+    },
+    "B_last128_composition": {
+      "bottle": 81,
+      "cable": 47
+    }
+  },
+  "deferred": [
+    "anchor_sampler_revision",
+    "candidate_victim_context_revision",
+    "learned_learning_rate_retention_momentum",
+    "extra_CMS_levels_or_unroll",
+    "ContCore_proposer",
+    "normalization_revision",
+    "EMA_or_synchronous_claim",
+    "exact_WNR_without_per_row_provenance"
+  ],
+  "data_rights": {
+    "train_normals": "online_causal_once_with_completed_record_replay_declared",
+    "task_labels": "reporting_only_not_controller_or_sampler",
+    "future_normals": "forbidden_for_decision_or_fit",
+    "anomaly_test": "score_only_readonly_at_declared_checkpoints_no_tuning",
+    "VisA": "unopened_confirmation_until_method_and_protocol_freeze"
+  },
+  "documentation_status": "public_consolidation_of_locked_algorithm_and_pipeline_alignment_not_runtime_implementation",
+  "pipeline_alignment": {
+    "schema": "hope_pipeline_alignment_spec_v1",
+    "id": "v7_pipeline_alignment_v1",
+    "status": "specified_not_runtime_implemented_not_run",
+    "scope": "Documentation/spec alignment only; source inventory metadata included",
+    "baseline_commit": "37315030a3111b6b7f6265958fab2c41b3b35344",
+    "baseline_method_id": "hope_cad_v5_1_causal_scaled_utility",
+    "historical_online_images": 3599,
+    "historical_exclusions": 30,
+    "historical_evidence_unchanged": true,
+    "prospective": {
+      "protocol_id": "mvtec_1x15_fulltrain_v7_v1",
+      "recent_contract_id": "hope_cad_v5_1_fulltrain_v1",
+      "candidate_contract_id": "hope_cad_hq32_fulltrain_v1",
+      "study_id": "hq32_mvtec_fulltrain_development_v1",
+      "online_images": 3629,
+      "bottle_images": 209,
+      "excluded_images": 0,
+      "bank_budget": 10000,
+      "update_unit": "image",
+      "fresh_state_required": true,
+      "old_checkpoint_import_allowed": false,
+      "task_order": [
+        "bottle",
+        "cable",
+        "capsule",
+        "carpet",
+        "grid",
+        "hazelnut",
+        "leather",
+        "metal_nut",
+        "pill",
+        "screw",
+        "tile",
+        "toothbrush",
+        "transistor",
+        "wood",
+        "zipper"
+      ]
+    },
+    "preprocessing": {
+      "decision": "retain_current_recipe_no_transform_search",
+      "image_size": 224,
+      "resize": "PIL_direct_square_bilinear",
+      "crop": false,
+      "mean": [
+        0.485,
+        0.456,
+        0.406
+      ],
+      "std": [
+        0.229,
+        0.224,
+        0.225
+      ],
+      "raw_feature_normalization": "none",
+      "native_metadata_mismatch_disclosed": true,
+      "paper_recipe_verified": false,
+      "causal_performance_impact_measured": false
+    },
+    "checkpoint_sha256": "2c4839589adbbf701573dd155e1814f8adb145cd4d235bb86a93269369e111ec",
+    "external_checkpoint_parity": "actual_run_receipt_and_non_head_tensor_check_required_for_cross_run_claim_not_internal_fresh_cohort",
+    "unchanged": [
+      "ViT_block8_raw784x768_FP32",
+      "full_Eq9_b9",
+      "CPU_FP32_bilinear224_maps",
+      "nonzero_mask_nearest224",
+      "AP_and_task_macro",
+      "fixed_FP32_backend_and_precision",
+      "causal_utility_learning_equations",
+      "H32_history32_support4_recent2_history2"
+    ],
+    "pilot": {
+      "images_per_job": 256,
+      "composition": {
+        "bottle": 209,
+        "cable": 47
+      },
+      "risk_window_images": 128,
+      "risk_window_composition": {
+        "bottle": 81,
+        "cable": 47
+      },
+      "score_probe_first_allowed_train_images": 24,
+      "warmup_completed_labels": 32,
+      "minimum_completed_labels": 64,
+      "minimum_slow_steps_for_Adam_variants": 8,
+      "reject_fraction_range": [
+        0.01,
+        0.99
+      ],
+      "score_difference_min_exclusive": 1e-06,
+      "normal_risk_ratio_max": 1.1,
+      "trial_count": 1,
+      "seed": 0,
+      "GPU_wall_hour_cap": 12,
+      "interpretation": "mechanism_and_bounded_prefix_safety_not_generalization_or_AD_proof"
+    },
+    "study": {
+      "main_jobs_seed0": [
+        "CADIC",
+        "R_EXACT",
+        "H32_EXACT"
+      ],
+      "variants": [
+        "CADIC",
+        "R_EXACT",
+        "R_FO",
+        "H32_EXACT",
+        "H32_FO",
+        "H32_DIRECT",
+        "FAST_ONLY",
+        "BIAS_VETO",
+        "PILOT_RATE_RANDOM_VETO"
+      ],
+      "conditional_full_jobs_max": 15,
+      "matrix_cells_each": 120,
+      "learning_seeds": [
+        0,
+        1,
+        2
+      ],
+      "main_batch_GPU_wall_hour_cap": 24,
+      "session_soft_hour_max": 4,
+      "export_reserve_seconds": 180,
+      "retention_screen_delta_P_AP_H_minus_R_min_exclusive": 0,
+      "image_screen_H_minus_R_min": -0.02,
+      "both_primary_screen_H_minus_CADIC_min": -0.02,
+      "D_budget_requires_separate_allocation": true,
+      "task_order_studies_registered": false,
+      "same_K_is_equal_total_memory": false,
+      "measured_total_memory_matched_comparator_complete": false
+    },
+    "D0": {
+      "spec": "support_utility_attribution_v2",
+      "historical_trace_online_images": 3599,
+      "completed_labels": 3211,
+      "postwarm_rows": 3179,
+      "legacy_event_copies_excluded": 376,
+      "changed_by_fulltrain_amendment": false
+    },
+    "runtime_implementation_authorized_by_this_document_task": false,
+    "runtime_implemented": false,
+    "GPU_run": false,
+    "candidate_adopted": false,
+    "automatic_paid_execution": false,
+    "reporting": {
+      "MVTec": "development_exposed",
+      "VisA": "separate_frozen_protocol_and_exposure_review_required_not_run",
+      "timing": "fresh_matched_cohort_and_component_scope_required",
+      "new_performance_gain_measured": false
+    }
+  }
+}

@@ -16,7 +16,7 @@ src/hope_cad/
   testing/              # adapter giả cho harness tests, không phải method benchmark thật
 tests/                  # chia theo chức năng; không theo version
 scripts/remote/         # setup/run qua SSH
-docs/                   # method, architecture, benchmark, operations và paper PDFs
+docs/                   # docs hiện hành, results, research specs/plan và papers
 ```
 
 ## Một đường chạy
@@ -35,7 +35,11 @@ Matched study chính dùng `hope-cad train --job CADIC_seed0`. Compatible CADIC 
 
 Data/weights/runs ở ngoài source checkout hoặc các thư mục outputs bị ignore; không commit dữ liệu thật. Train chỉ dùng normals theo manifest; GT/masks chỉ vào evaluator; scoring không update state/RNG. Checkpoint atomic, lock identity, source hashes, feature receipts và task checkpoints được giữ.
 
-Report trường nằm trong kho chung ngoài repo; lịch sử AI/reviews/source ZIPs ở `.agents` nếu có. Chương trình không phụ thuộc `.agents`; người chỉ nhận source vẫn có đủ code/config/docs để chạy. Không nhét lịch sử delivery/profile/bridge vào docs chạy hiện hành.
+Dataset, checkpoint và raw result ZIPs nằm ngoài source; identities/provenance và giới hạn truy cập được công bố trong [results](results.md). Docs/spec/plan cần cho hiểu và phát triển nằm trong repo. Không cần một kho context hoặc sibling checkout riêng.
+
+## Nâng cấp chưa triển khai
+
+[Research specs](research/README.md) và [pipeline](pipeline_alignment_spec.md) định nghĩa successor full-train/H32, chưa thuộc đường gọi CLI hiện tại. Code/resources hiện hành giữ baseline strict; implementation mới phải thêm revision-aware factories và contracts riêng. Không gộp identity candidate với v5.1 hoặc thay frozen JSON để aggregator nhận nhầm.
 
 ## Tổ chức tham khảo
 

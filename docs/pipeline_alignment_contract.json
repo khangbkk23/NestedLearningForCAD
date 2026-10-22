@@ -1,0 +1,153 @@
+{
+  "schema": "hope_pipeline_alignment_spec_v1",
+  "id": "v7_pipeline_alignment_v1",
+  "status": "specified_not_runtime_implemented_not_run",
+  "scope": "Documentation/spec alignment only; source inventory metadata included",
+  "baseline_commit": "37315030a3111b6b7f6265958fab2c41b3b35344",
+  "baseline_method_id": "hope_cad_v5_1_causal_scaled_utility",
+  "historical_online_images": 3599,
+  "historical_exclusions": 30,
+  "historical_evidence_unchanged": true,
+  "prospective": {
+    "protocol_id": "mvtec_1x15_fulltrain_v7_v1",
+    "recent_contract_id": "hope_cad_v5_1_fulltrain_v1",
+    "candidate_contract_id": "hope_cad_hq32_fulltrain_v1",
+    "study_id": "hq32_mvtec_fulltrain_development_v1",
+    "online_images": 3629,
+    "bottle_images": 209,
+    "excluded_images": 0,
+    "bank_budget": 10000,
+    "update_unit": "image",
+    "fresh_state_required": true,
+    "old_checkpoint_import_allowed": false,
+    "task_order": [
+      "bottle",
+      "cable",
+      "capsule",
+      "carpet",
+      "grid",
+      "hazelnut",
+      "leather",
+      "metal_nut",
+      "pill",
+      "screw",
+      "tile",
+      "toothbrush",
+      "transistor",
+      "wood",
+      "zipper"
+    ]
+  },
+  "preprocessing": {
+    "decision": "retain_current_recipe_no_transform_search",
+    "image_size": 224,
+    "resize": "PIL_direct_square_bilinear",
+    "crop": false,
+    "mean": [
+      0.485,
+      0.456,
+      0.406
+    ],
+    "std": [
+      0.229,
+      0.224,
+      0.225
+    ],
+    "raw_feature_normalization": "none",
+    "native_metadata_mismatch_disclosed": true,
+    "paper_recipe_verified": false,
+    "causal_performance_impact_measured": false
+  },
+  "checkpoint_sha256": "2c4839589adbbf701573dd155e1814f8adb145cd4d235bb86a93269369e111ec",
+  "external_checkpoint_parity": "actual_run_receipt_and_non_head_tensor_check_required_for_cross_run_claim_not_internal_fresh_cohort",
+  "unchanged": [
+    "ViT_block8_raw784x768_FP32",
+    "full_Eq9_b9",
+    "CPU_FP32_bilinear224_maps",
+    "nonzero_mask_nearest224",
+    "AP_and_task_macro",
+    "fixed_FP32_backend_and_precision",
+    "causal_utility_learning_equations",
+    "H32_history32_support4_recent2_history2"
+  ],
+  "pilot": {
+    "images_per_job": 256,
+    "composition": {
+      "bottle": 209,
+      "cable": 47
+    },
+    "risk_window_images": 128,
+    "risk_window_composition": {
+      "bottle": 81,
+      "cable": 47
+    },
+    "score_probe_first_allowed_train_images": 24,
+    "warmup_completed_labels": 32,
+    "minimum_completed_labels": 64,
+    "minimum_slow_steps_for_Adam_variants": 8,
+    "reject_fraction_range": [
+      0.01,
+      0.99
+    ],
+    "score_difference_min_exclusive": 1e-06,
+    "normal_risk_ratio_max": 1.1,
+    "trial_count": 1,
+    "seed": 0,
+    "GPU_wall_hour_cap": 12,
+    "interpretation": "mechanism_and_bounded_prefix_safety_not_generalization_or_AD_proof"
+  },
+  "study": {
+    "main_jobs_seed0": [
+      "CADIC",
+      "R_EXACT",
+      "H32_EXACT"
+    ],
+    "variants": [
+      "CADIC",
+      "R_EXACT",
+      "R_FO",
+      "H32_EXACT",
+      "H32_FO",
+      "H32_DIRECT",
+      "FAST_ONLY",
+      "BIAS_VETO",
+      "PILOT_RATE_RANDOM_VETO"
+    ],
+    "conditional_full_jobs_max": 15,
+    "matrix_cells_each": 120,
+    "learning_seeds": [
+      0,
+      1,
+      2
+    ],
+    "main_batch_GPU_wall_hour_cap": 24,
+    "session_soft_hour_max": 4,
+    "export_reserve_seconds": 180,
+    "retention_screen_delta_P_AP_H_minus_R_min_exclusive": 0,
+    "image_screen_H_minus_R_min": -0.02,
+    "both_primary_screen_H_minus_CADIC_min": -0.02,
+    "D_budget_requires_separate_allocation": true,
+    "task_order_studies_registered": false,
+    "same_K_is_equal_total_memory": false,
+    "measured_total_memory_matched_comparator_complete": false
+  },
+  "D0": {
+    "spec": "support_utility_attribution_v2",
+    "historical_trace_online_images": 3599,
+    "completed_labels": 3211,
+    "postwarm_rows": 3179,
+    "legacy_event_copies_excluded": 376,
+    "changed_by_fulltrain_amendment": false
+  },
+  "runtime_implementation_authorized_by_this_document_task": false,
+  "runtime_implemented": false,
+  "GPU_run": false,
+  "candidate_adopted": false,
+  "automatic_paid_execution": false,
+  "reporting": {
+    "MVTec": "development_exposed",
+    "VisA": "separate_frozen_protocol_and_exposure_review_required_not_run",
+    "timing": "fresh_matched_cohort_and_component_scope_required",
+    "new_performance_gain_measured": false
+  }
+}
