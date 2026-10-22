@@ -1,0 +1,26 @@
+{
+  "schema": "hope_support_nn_write_migration_contract_v1",
+  "id": "hope_support_v5_1_nn_write_migration_v1",
+  "job": "NESTED_seed0",
+  "parent_contract": "docs/main_spec/throughput_v5_1_contract.json",
+  "G3_source_zip_sha256": "9e401eb432003add4025125c5c89d48d11183b8e53f157514f15bf0a2cba3800",
+  "G3_source_digest": "2dc3897f7952a50dbe1c384a3453dec3b846c49d5fd56947c938159f948a4d35",
+  "review_receipts_sha256": {
+    "G1": "4fdc505965b5bfcfd954332721dbf4db91b5744c311c1b0c1e9ab198b3615529",
+    "G2": "a00f68c3f4999619422c6487945e0055d9ff92d9ba7fc18b1146677dcaf42b5c",
+    "G2local": "5ca0b11ec537c840dd0093715f3d742b3f2843249439c68c2fbdea46c94dd4dc",
+    "G3": "2f336c9cf83cf6ef427e92ffbe89f670fee0a3afa5732b53044b50b36777030c",
+    "G3audit": "3f3b2831d97bff36dc37921067bb1cec33c9739f3392385b2d07d0367c91b7e4"
+  },
+  "start_cursor": 376,
+  "end_cursor_exclusive": 384,
+  "max_unique_arrivals": 8,
+  "max_owner_transitions": 16,
+  "budget_seconds": 3600,
+  "export_reserve_seconds": 180,
+  "retry_partial": false,
+  "method_changed": false,
+  "full_benchmark_interface_exposed": false,
+  "canonical_bridge_at_design": "not_run",
+  "delivery_revision": "r2_tar_metadata_order"
+}

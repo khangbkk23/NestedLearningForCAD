@@ -1,0 +1,89 @@
+{
+  "schema": "agents_evidence_review_v1",
+  "id": "support-v5-1-nn-write-implementation-20261021",
+  "status": "finalized",
+  "change_id": "CHG-20261021-002",
+  "recorded_on": "2026-10-21",
+  "scope": "E3/G2 local implementation and G3 handoff only; canonical candidate timing/parity/migration pending",
+  "scientific_status": "candidate_implemented_local_tested_canonical_pending_no_AD_claim",
+  "reportable": false,
+  "sources": [
+    {
+      "path": "artifacts/deliveries/hope_support_v5_1_nn_write_r1/hope_cad_support_v5_1_nn_write_source_r1.zip",
+      "sha256": "9e401eb432003add4025125c5c89d48d11183b8e53f157514f15bf0a2cba3800",
+      "verification_scope": "Final candidate source: all200payload SHA, immutable183/166, ZIP/extracted bootstrap and17packaged CPU tests"
+    },
+    {
+      "path": "artifacts/deliveries/hope_support_v5_1_throughput_profile_r1/hope_cad_support_v5_1_throughput_source_r1.zip",
+      "sha256": "8f13850afb276d5dc73d904d2c6ad048cf0af904df80b0e0da8d47686a4c2db3",
+      "verification_scope": "Immutable profiler source map preserved byte-exact"
+    },
+    {
+      "path": "artifacts/deliveries/hope_support_v5_1_benchmark_r1/hope_cad_support_v5_1_benchmark_source_r1.zip",
+      "sha256": "8330ea43375375e22407fdcdeae405e2196b067338ebb1c75a6b63ec3905a6e4",
+      "verification_scope": "Immutable scientific benchmark166 payloads preserved byte-exact"
+    },
+    {
+      "path": "artifacts/runs/support_v5_1_benchmark_NESTED_seed0/session_01/hope_cad_support_v5_1_benchmark_evidence.zip",
+      "sha256": "35f05b523b26ce65d7118fd12aa91c569e73698fcfe64e542ee700ecabc8f257",
+      "verification_scope": "Original parent376 ZIP SHA unchanged; no GPU replay in implementation review"
+    },
+    {
+      "path": "evidence/reviews/support-v5-1-throughput-profile-session1-20261021/review.json",
+      "sha256": "4fdc505965b5bfcfd954332721dbf4db91b5744c311c1b0c1e9ab198b3615529",
+      "verification_scope": "Reviewed G1 evidence supplies proposal bottleneck and endpoint identity"
+    }
+  ],
+  "files": [
+    {
+      "path": "delivery_receipt.json",
+      "sha256": "37befb6ee1c60ffba0a268225a1aced248d29829b0c829035ed94039e2bfe77a",
+      "bytes": 687
+    },
+    {
+      "path": "delivery_verification.json",
+      "sha256": "7e4bedd0791d4479ea51ab9ce75b62b0dcea54f4e0395da44180e907f8a5d7c9",
+      "bytes": 495
+    },
+    {
+      "path": "extracted_bootstrap.log",
+      "sha256": "c7c95a2e14b6d60c2aebe8e7cfbe0ea7deb41700973e6addef5957711dfaa2d5",
+      "bytes": 708
+    },
+    {
+      "path": "invariance_verification.json",
+      "sha256": "f3025d83c740190fcefca80bd546ef6b34ae7cfdd6a46715b182cbbf60e67191",
+      "bytes": 369
+    },
+    {
+      "path": "local_tests.log",
+      "sha256": "0485345c224e71bc7f6081f4dba53417d7d0f8bed6d7730b2c0bc323a91f9406",
+      "bytes": 20255
+    },
+    {
+      "path": "local_verification.json",
+      "sha256": "5ca0b11ec537c840dd0093715f3d742b3f2843249439c68c2fbdea46c94dd4dc",
+      "bytes": 381
+    },
+    {
+      "path": "packaged_candidate_tests.log",
+      "sha256": "ef393a67598f6acf740b391308037705c8b8227c937c31d3699720bb39803215",
+      "bytes": 3887
+    },
+    {
+      "path": "review.md",
+      "sha256": "359df71e686e8e03019ad91f6afcfcf3862bcbaea7cfe1b0197a385b59005ae0",
+      "bytes": 4042
+    },
+    {
+      "path": "verify_delivery.py",
+      "sha256": "acc6c3892c2468ad07b12761f5f41161f953bbc1bc8711452f0d218d36bcab44",
+      "bytes": 2759
+    },
+    {
+      "path": "zip_bootstrap.log",
+      "sha256": "c7c95a2e14b6d60c2aebe8e7cfbe0ea7deb41700973e6addef5957711dfaa2d5",
+      "bytes": 708
+    }
+  ]
+}

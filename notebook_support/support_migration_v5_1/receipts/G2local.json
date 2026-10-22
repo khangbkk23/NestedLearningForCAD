@@ -1,0 +1,15 @@
+{
+  "scope": "local Windows/Pixi CPU, CUDA_VISIBLE_DEVICES empty; no T4/candidate speedup validation",
+  "suite_counts": {
+    "hope_cad_v5_1": 29,
+    "support_benchmark_v5_1": 26,
+    "support_throughput_v5_1": 22,
+    "support_nn_write_v5_1": 17
+  },
+  "tests": 94,
+  "errors": 0,
+  "failures": 0,
+  "skips": 0,
+  "seconds": 63.98541980001028,
+  "passed": true
+}

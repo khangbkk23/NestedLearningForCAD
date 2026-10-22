@@ -1,0 +1,49 @@
+{
+  "schema": "agents_evidence_review_v1",
+  "id": "support-v5-1-throughput-profile-session1-20261021",
+  "status": "finalized",
+  "change_id": "CHG-20261021-001",
+  "recorded_on": "2026-10-21",
+  "scope": "CanonicalT4 profiler evidence review/scopedG1; nooptimization/migration orADacceptance",
+  "scientific_status": "canonical_profile_complete_reviewed_G1_scoped_pass_no_AD_claim",
+  "reportable": false,
+  "sources": [
+    {
+      "path": "artifacts/runs/support_v5_1_throughput_profile_01/session_01/hope_cad_support_v5_1_throughput_evidence.zip",
+      "sha256": "62a32fae4da27dcca2e86c2582a54c60fffc09eb6827f5d48b68480b9edddf61",
+      "verification_scope": "All126payloadhashes+events/receipts/timing/locks/stateCPUinspection"
+    },
+    {
+      "path": "artifacts/runs/support_v5_1_throughput_profile_01/session_01/hope-cad-kaggle-w2-w6-run-all.log",
+      "sha256": "deb3708caa3d7db108007816b8c3f78fc8e77c35a94c36a17e5f35ec26db0f7c",
+      "verification_scope": "Originaluserlog; exportreceipt/status/source/runtime reviewed"
+    },
+    {
+      "path": "artifacts/deliveries/hope_support_v5_1_throughput_profile_r1/hope_cad_support_v5_1_throughput_source_r1.zip",
+      "sha256": "8f13850afb276d5dc73d904d2c6ad048cf0af904df80b0e0da8d47686a4c2db3",
+      "verification_scope": "All183payloadhashes+live source matched; source pinned; noGPUexecution inreview"
+    },
+    {
+      "path": "artifacts/runs/support_v5_1_benchmark_NESTED_seed0/session_01/hope_cad_support_v5_1_benchmark_evidence.zip",
+      "sha256": "35f05b523b26ce65d7118fd12aa91c569e73698fcfe64e542ee700ecabc8f257",
+      "verification_scope": "All769parentpayloads+exact16parent events/feature receipts; archiveunchanged"
+    }
+  ],
+  "files": [
+    {
+      "path": "review.md",
+      "sha256": "66055b9dabbcd1842692a20a60a682610c222b4f0349d3dfc70876fe6c549be6",
+      "bytes": 10408
+    },
+    {
+      "path": "audit.py",
+      "sha256": "a9abb335586c138e4ce657b23887cac13872b1dad877628fcaff3a16adcf3ed4",
+      "bytes": 11498
+    },
+    {
+      "path": "audit.json",
+      "sha256": "50f2ce6bb2ba465199dba1c0d95a40a4c5439a1e02ddd1294f349d068b0c7657",
+      "bytes": 9892
+    }
+  ]
+}

@@ -1,0 +1,75 @@
+{
+  "schema": "agents_evidence_review_v1",
+  "id": "support-v5-1-cadic-cost-session1-20261021",
+  "status": "finalized",
+  "change_id": "CHG-20261021-009",
+  "recorded_on": "2026-10-21",
+  "scope": "Canonical T4 CADIC R/O16normal window engineering parity/cost/memory review; descriptive historical NESTED comparison, no AD claim",
+  "scientific_status": "canonical_T4_scoped_engineering_pass_no_AD_claim",
+  "reportable": false,
+  "sources": [
+    {
+      "path": "artifacts/runs/support_v5_1_cadic_cost_01/session_01/hope_cad_cadic_cost_evidence.zip",
+      "sha256": "939e6f3c490b7b0dfede5d11ba5f8d5ee63971bda02d9e8523f82b96b4b72dd7",
+      "verification_scope": "All526payload hashes; events/features/storedCPUstates; runtime/seals; recomputed timing gates",
+      "manifest_sha256": "15a50ce520d7a8f19160ca180b993b1545735d4acd187ef7d62e6765f2739fdd"
+    },
+    {
+      "path": "artifacts/runs/support_v5_1_cadic_cost_01/session_01/fork-of-hope-cad-kaggle-w2-w6-run-all.log",
+      "sha256": "135cf93a274f3873c630a05fa427893545ed198a8b04699aa1d4798fef6cc36b",
+      "verification_scope": "Export SHA and completion/timing log"
+    },
+    {
+      "path": "artifacts/deliveries/hope_support_v5_1_cadic_cost_r1/hope_cad_cadic_cost_source_r1.zip",
+      "sha256": "6287acbe41d9ccb5b941fa2b7f4025d0c9d5f65c1d0c9e02eca5749368340caa",
+      "verification_scope": "All208source payloads and live bytes verified; immutable200G3 entries preserved"
+    }
+  ],
+  "files": [
+    {
+      "path": "attempt_ledger.json",
+      "sha256": "a7f6a2ead3f61bfb8db3b63378a28644750d6138657ee45a67827fea1f9bcfc4",
+      "bytes": 824
+    },
+    {
+      "path": "audit.json",
+      "sha256": "2606346113e56783b2e88565cff3ec5ded81ea4855ffa2deb04f6191160d0eeb",
+      "bytes": 37285
+    },
+    {
+      "path": "audit.py",
+      "sha256": "b6f66e7162804233cbc196e2d42ef486dbc03527999fa77f7d132b15005304c1",
+      "bytes": 7993
+    },
+    {
+      "path": "execution.json",
+      "sha256": "03121d39ce7518250e959e19c2612e6274a917aac443125b22d0498fdde27430",
+      "bytes": 114
+    },
+    {
+      "path": "handoff.json",
+      "sha256": "f80aa99f3b8101fd05c4392af91898485faa7b9f114e8f792d9d674a7a929474",
+      "bytes": 119
+    },
+    {
+      "path": "parent_receipt.json",
+      "sha256": "fc6f76daea02baec64dc6283864f00ce6a02b3078db4bda6f5708534dcf2804a",
+      "bytes": 304
+    },
+    {
+      "path": "profile_lock.json",
+      "sha256": "c6f1dc2743786c241731b2d70e190f72980e4389d65d360de5f7768969eae7c6",
+      "bytes": 1013
+    },
+    {
+      "path": "review.md",
+      "sha256": "7562c5a6937de44525105cb6ce055ace9b09e8972f3f3b1ad367ea67fbb9c276",
+      "bytes": 3883
+    },
+    {
+      "path": "summary.json",
+      "sha256": "7b68e81782429e5a6ab17fff62a32f63905dde5799fe6e04d22f7a23845f7d44",
+      "bytes": 7098
+    }
+  ]
+}

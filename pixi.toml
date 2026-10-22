@@ -5,9 +5,9 @@ platforms = ["win-64", "linux-64"]
 version = "0.1.0"
 
 [tasks]
-test = "python -B -m pytest -q"
-package = "python -B -m notebook_support.support_v5.build_delivery"
-verify = "python -B -m notebook_support.support_v5.verify_delivery"
+test = "python -B -m notebook_support.support_v5_1.local_tests"
+package = "python -B -m notebook_support.support_v5_1.build_delivery"
+verify = "python -B -m notebook_support.support_v5_1.verify_delivery"
 
 [dependencies]
 nomkl = "*"

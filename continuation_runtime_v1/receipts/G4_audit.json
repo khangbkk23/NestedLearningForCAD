@@ -1,0 +1,78 @@
+{
+  "schema": "nn_write_bridge_review_v1",
+  "reviewed_on": "2026-10-21",
+  "passed": true,
+  "checks": {
+    "221source_hashes": true,
+    "live_source_matches": true,
+    "source_delivery_SHA": true,
+    "reviewed_prerequisites": true,
+    "1576payload_hashes": true,
+    "artifact_schema": true,
+    "no_failed_or_staged_publication": true,
+    "source_runtime_prerequisite_locks": true,
+    "bootstrap_no_prefetch_or_parent_write": true,
+    "exact8_and16_no_retry": true,
+    "status_complete_review_only": true,
+    "receipt_status_human_review": true,
+    "publication_marker_seal": true,
+    "all1538_immutable_payloads": true,
+    "all_inherited_payloads_parent_exact": true,
+    "original_raw_manifest_SHA": true,
+    "376events_and_features_preserved": true,
+    "active384_wrapper_finite": true,
+    "active384_stored_bytes_match_bridge": true,
+    "pending376_original_bits": true,
+    "8pair_events_features_and384chain_verified": true,
+    "final384_scientific_bit_digest": true,
+    "384clocks_pending_partial_no_censor": true,
+    "Adam_clock46": true,
+    "receipt_ledger_and_elapsed_accounting": true,
+    "no_existing_scientific_payload_modified": true,
+    "no_test_GT_or_completed_benchmark_outputs": true,
+    "60min_budget_preexport": true,
+    "actual_Execution_loader_accepts_verified_publication": true,
+    "old_task_owner_and_new_owner_distinct": true,
+    "source_map_exact_to_shipped_bundle": true,
+    "original_parent_archive_unchanged": true,
+    "embedded_worker_log_all8_complete": true
+  },
+  "scope": "Full1576payload hashes/221source/live source/769parent, inherited759payloads,376+8event/feature receipts,8pair seals, CPU checkpoint384 and actual Execution identity loader; no model forward/backward or CUDA",
+  "artifact": {
+    "sha256": "8d173d666f82fd03ab7c2a10cef6d63a1243a9b9c5a8ca117c08b94297e0b3ad",
+    "bytes": 180752324,
+    "payloads": 1576,
+    "manifest_sha256": "05350f6f35cc2cbfa4e79f3fd906889229898f9d451e792564621569fa7a0993"
+  },
+  "source": {
+    "sha256": "244e49b892fa8bc691290b7f97fbc4cfcb8ad370fc62ed312ca20c7e39b3cb59",
+    "source_digest": "07b2b53d2927332feac56c6b86ddea2f69f1cbdeb23a5d0153896684450a06ee"
+  },
+  "metrics": {
+    "cursor": 384,
+    "total": 3599,
+    "remaining": 3215,
+    "labels": 370,
+    "slow_updates": 46,
+    "partial_records": 2,
+    "pending_cursor": 383,
+    "elapsed_before_export_seconds": 482.778292996,
+    "shadow_elapsed_seconds": 301.756052305,
+    "shadow_component_seconds": {
+      "candidate": 101.84566209100001,
+      "comparison": 5.3848020220001445,
+      "provider": 15.60434066300013,
+      "reference": 178.41265542500003
+    },
+    "execution_digest": "3538438ba058c3abb6c10522b6bb22d2af1ae958be0c99a84978e5dc09b01b03",
+    "job_digest": "a4b186a230fac6b1719bd18a6a540e9a457b11f68ceaddbe912c85e2313c165f",
+    "state_digest": "3caad95253b72e3375f448006eebfac66238a04365dc060538df658c79899d28",
+    "checkpoint_sha256": "337aaf57025cf74f60a8f669053e24ced6d47125dcad614eb3b2678a608221df"
+  },
+  "limitations": [
+    "No separate Kaggle log supplied; embedded worker log reviewed, actual exportseconds/final platform wall unknown",
+    "Intermediate full shadow states and separate reference384 tensor not retained; runtime exact assertions per8pairs under hash-bound code, reviewer independently verifies stored candidate384/pair digests and source identity",
+    "CPU artifact inspection does not recompute T4 pending p/d; original strict-loader runtime assertion bound to source plus parent stored values verified",
+    "G4 exact-parent/source/runtime compatibility only; no full benchmark/AD superiority/VisA; shadow timings not a new paired speed experiment"
+  ]
+}
