@@ -12,8 +12,10 @@ fi
 "$PYTHON_BIN" -m venv .venv
 .venv/bin/python -m pip install torch==2.11.0 torchvision==0.26.0 --index-url https://download.pytorch.org/whl/cu128
 .venv/bin/python -m pip install -r requirements/remote-cu128.txt
+.venv/bin/python -m pip install 'setuptools>=68,<82' wheel
+.venv/bin/python -m pip install -e . --no-deps --no-build-isolation
 .venv/bin/python -m pip check
 mkdir -p logs
 .venv/bin/python -m pip freeze --all > logs/installed-packages.txt
 .venv/bin/python -m torch.utils.collect_env > logs/torch-environment.txt
-echo 'Setup finished. Read docs/remote_gpu.md, run tests, then explicit preflight on the actual GPU.'
+echo 'Setup finished. Read docs/operations.md, run tests, then explicit preflight on the actual GPU.'

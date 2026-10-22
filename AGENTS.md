@@ -1,12 +1,11 @@
-# Nested Learning for CAD — worktree v7
+# Nested Learning for CAD — source hợp nhất v7
 
-Branch/worktree `hope_cad_v7`; method **v5.1 causal scaled utility**. Read README.md and docs/main_spec/workspace_v7.md. V7 is a workspace name, not a frozen scientific revision.
+Đọc README, docs/architecture.md, docs/method.md, docs/benchmark.md và docs/operations.md theo nhiệm vụ. Một package tại src/hope_cad; không tạo lại namespace phiên bản v2/v5/v5_1 hoặc launcher riêng cho mỗi delivery.
 
-- Full architecture/instruction/planning/revision_contract_v5_1 and acceptance retain exact scientific bytes. V5 geometry and models/hope_cad_v2 are real dependencies, not removable legacy by name.
-- Optional shared AI context: `D:\src\DATN\.agents\AGENTS.md`. It is not a program dependency. Read current state/roles when available; otherwise use repo specs/runbook and state the context limitation.
-- User decides. Codex remains primary research/design/engineering collaborator; Claude/other models are task-scoped senior reviewers, read-only by default. No automatic API calls, rentals, paid services or GPU jobs.
-- V6 and original evidence stay preserved. V5.1 pilot and paired MVTec seed0 final/matrices are development evidence; no multi-seed/VisA superiority or maximal-NL claim.
-- CLI: `python -m hope_cad --help`; docs/remote_gpu.md. Own source/runtime/preflight/data locks are required. No hidden Kaggle/.agents dependency or implicit T4 checkpoint migration.
-- No changes to preprocessing/K/anchors/replay/clocks/precision/scoring based on anomaly tests. Official test evaluation stays read-only. Current study does not support VisA.
-- Historical-query consolidation in docs/research is proposal only, not active policy. New method needs spec/contract/acceptance and exposure accounting.
-- Local tests differ from real5090 acceptance. Keep own runtime, full tracked/untracked preservation and source/state/resume/scoring checks. No sibling edits/Git push without user authorization.
+- Method hiện hành là hope_cad_v5_1_causal_scaled_utility. Tên workspace/package release không là scientific revision. resources/method.json và study.json giữ contract; lịch sử design identity ở lineage.json, source identity hiện hành bao gồm docs/code/tests.
+- Giữ nguyên operations/precision/causality/clock/bank/Eq9 trong cleanup. Thay khoa học cần contract/method revision và acceptance riêng; không tune từ anomaly test. MVTec đã development-exposed; chưa VisA confirmation.
+- User quyết định. Codex cộng tác viên chính; Claude/model khác cố vấn task-scoped read-only mặc định. Không tự API/rental/SSH/GPU/push. Không sửa sibling worktrees.
+- Shared context tùy chọn D:\src\DATN\.agents\AGENTS.md; chương trình không phụ thuộc nó. Không đọc chatlog tự động. Không coi report cũ là current spec hoặc nghiệm thu.
+- Editable install trước test; kiểm clean source installation, gradients, parity, source/runtime/data locks, atomic rollback và resume. Local tests không thay real5090 preflight hoặc AD benchmark.
+- Production entrypoint hope-cad / python -m hope_cad. Optional baselines ở integrations; fixture adapters ở testing, không dùng làm comparator thật. Output ngoài source hoặc runs/results/logs; data/checkpoints không commit.
+- Historical-query slow consolidation chưa implement. Không tự bổ sung proposal vào method khi chỉ được giao tổ chức code.

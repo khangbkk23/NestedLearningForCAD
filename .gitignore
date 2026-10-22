@@ -29,3 +29,8 @@ build/
 kaggle.json
 .DS_Store
 Thumbs.db
+# Local generated outputs
+*.egg-info/
+build/
+dist/
+.venv/

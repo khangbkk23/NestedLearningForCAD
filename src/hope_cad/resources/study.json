@@ -1,0 +1,101 @@
+{
+  "study_id": "hope_support_v5_1_mvtec_development_benchmark_v1",
+  "method_design_digest": "6f6b2c847a815619b6ad5ed899a0859aab1d7b532d62b27ae3217d926695db99",
+  "pilot_source_digest": "676bd45e46e0bf94d61fc2bcafe4357475e02deb71d175f861fc3eedd157670f",
+  "accepted_pilot_archive_sha256": "e92136bfb2a5062bf1c802a622d2f18fb507603902001f3df941007deb13357c",
+  "methods": [
+    "NESTED",
+    "CADIC",
+    "FIRST_ORDER",
+    "GEOMETRIC",
+    "FAST_ONLY",
+    "NO_SELF_MODIFICATION",
+    "NO_ANCHOR_OBJECTIVE",
+    "NO_FAST_ADAPTATION",
+    "CADIC_TOTAL_BYTES"
+  ],
+  "seeds": [
+    0,
+    1,
+    2
+  ],
+  "phases": [
+    "preflight",
+    "7.1",
+    "7.2",
+    "7.3"
+  ],
+  "dataset": "MVTec AD",
+  "task_order": [
+    "bottle",
+    "cable",
+    "capsule",
+    "carpet",
+    "grid",
+    "hazelnut",
+    "leather",
+    "metal_nut",
+    "pill",
+    "screw",
+    "tile",
+    "toothbrush",
+    "transistor",
+    "wood",
+    "zipper"
+  ],
+  "online_images": 3599,
+  "test_images": 1725,
+  "normal_prefix_excluded_images": 30,
+  "partition_seed": "job seed; deterministic lexicographic rows, no shuffled training",
+  "fresh_initialization": true,
+  "pilot_weights_reused": false,
+  "offline_selection": false,
+  "phase_7_1": "one selected seed0 job; fresh complete online training and 15 final cells; default NESTED_seed0; run CADIC_seed0/FIRST_ORDER_seed0 separately for matched quick comparison",
+  "phase_7_2": "same selected seed0 job: 105 missing cells from saved states, no training; preserve final15 cells",
+  "phase_7_3": "one registered job per invocation; fresh remaining methods/seeds or resume; complete120-cell matrix; never retrain an already completed job",
+  "output_scope": "one selected job plus common preflight/study locks per evidence ZIP; other jobs remain separate outputs",
+  "primary_metrics": [
+    "macro_final_i_auroc",
+    "macro_final_p_ap"
+  ],
+  "p_ap_definition": "sklearn.average_precision_score on all224x224 pixels per category, then arithmetic macro across all15 categories; p_aupr is an explicit historical alias",
+  "image_score": "full CADIC Eq9, b9; greater means more anomalous",
+  "map": "raw28x28 patch distances ->224x224 CPU FP32 bilinear align_corners=false; no smoothing/normalization",
+  "mask": "raw nonzero, direct224 nearest; retain anomalous image label if tiny mask erases; raw empty/mismatched masks fail",
+  "undefined_metrics": "fail and preserve evidence; never silently drop a category",
+  "secondary_metrics": [
+    "i_ap",
+    "p_auroc",
+    "prior_peak_minus_final_F",
+    "final_minus_diagonal_BWT",
+    "wall_time",
+    "persistent_memory",
+    "peak_resources"
+  ],
+  "checkpoint": "every8images, each task boundary, pause and true stream end; no task flush or reset; finalize once only after all3599images",
+  "evaluation": "read-only scientific state, only learned-history triangular cells; raw patches/scores/labels/masks saved per8images for independent recomputation",
+  "bootstrap": {
+    "replicates": 2000,
+    "seed": 20261020,
+    "unit": "whole image",
+    "strata": "category and image label",
+    "paired": "same image multiplicities for methods and finite seeds",
+    "ci_percentiles": [
+      1.25,
+      98.75
+    ],
+    "noninferiority_margin_pp": 2.0,
+    "superiority": "both primary paired lower CI bounds >0",
+    "seed_uncertainty": "finite3seed average, not population-seed inference",
+    "degenerate_pixel_draw": "AP=0 if resampled positive pixel mass is zero; never redraw/drop",
+    "generator": "NumPy SeedSequence([20261020,task_id])",
+    "noninferiority": "both paired lower CI bounds strictly greater than -0.02"
+  },
+  "payload_control_K": 24576,
+  "equal_total_memory_claim": false,
+  "failure_policy": "technical/nonfinite failures stop and export; no auto-retune, early stopping or score changes after test",
+  "anomaly_metrics_status": "development_exposed_MVTec; full data/seed/method coverage needed before complete-study claims",
+  "visa": "not runnable in this delivery; fresh confirmation protocol/source freeze required",
+  "replaycad": "not integrated into this study without matched independent artifacts",
+  "order_studies": "not registered in v5.1 study; future separately frozen experiment"
+}
