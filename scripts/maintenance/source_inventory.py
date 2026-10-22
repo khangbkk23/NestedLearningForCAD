@@ -25,7 +25,7 @@ def main():
     p=argparse.ArgumentParser();p.add_argument('--write',action='store_true');a=p.parse_args()
     target=ROOT/'conf/runtime/source_inventory_v7.json'
     value=dict(schema='hope_cad_portable_source_v1',files=paths(),scope='Explicit self-contained source/config/spec/test/papers; no environment/data/artifacts')
-    if a.write:target.parent.mkdir(parents=True,exist_ok=True);target.write_text(json.dumps(value,indent=2)+'\n',encoding='utf-8')
+    if a.write:target.parent.mkdir(parents=True,exist_ok=True);target.write_text(json.dumps(value,indent=2)+'\n',encoding='utf-8',newline='\n')
     elif json.loads(target.read_text(encoding='utf-8'))!=value:raise ValueError('Source inventory differs; review then use --write')
     print(json.dumps(dict(files=len(value['files']),written=a.write)))
 
