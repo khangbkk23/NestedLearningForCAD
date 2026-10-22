@@ -13,9 +13,7 @@ from models.hope_cad_v5_1.contract import canonical
 from training.hope_support_v5_1 import run_job, compare_jobs, lock, PilotPause
 from training.runtime import atomic_json
 from training.benchmark_engine_v1 import _state_equal
-from notebook_support.support_v5_1.bootstrap import prepare, resume_source, normal_members
-from notebook_support.support_v5_1.common import SCHEMA
-from notebook_support.common.evidence import export_archive
+from hope_cad.evidence import export_archive
 
 
 class Provider:
@@ -84,18 +82,7 @@ class PipelineContracts(unittest.TestCase):
             path=Path(t)/'state.pt';path.write_bytes(path.read_bytes()+b'tamper')
             with self.assertRaises(ValueError):run_job(rs,provider,'CADIC',t,{},session_factory=session)
 
-    def test_cpu_rejected_before_asset_loading(self):
-        with patch('torch.cuda.is_available',return_value=False):
-            with self.assertRaisesRegex(RuntimeError,'Enable GPU'):prepare({})
 
-    def test_predecessor_resume_rejected_and_same_manifest_duplicates_allowed(self):
-        with tempfile.TemporaryDirectory() as t:
-            root=Path(t);(root/'payload').mkdir();atomic_json({'status':'paused'},root/'payload/handoff.json')
-            export_archive(root/'payload',root/'old.zip',schema='hope_support_v5_normal_pilot_evidence_v1')
-            with self.assertRaises(ValueError):resume_source(root,root/'old.zip')
-            self.assertIsNone(resume_source(root))
-            export_archive(root/'payload',root/'new.zip',schema=SCHEMA)
-            self.assertEqual(resume_source(root),root/'new.zip')
 
     def test_json_lock_canonicalizes_tuple_without_ignoring_real_changes(self):
         with tempfile.TemporaryDirectory() as t:
@@ -138,17 +125,6 @@ class PipelineContracts(unittest.TestCase):
         with self.assertRaises(ValueError):adapter.fit_task(0,'ignored',[bad])
         adapter.finalize_stream();self.assertTrue(adapter.session.finalized)
 
-    def test_bootstrap_failure_exports_evidence_before_raising(self):
-        from notebook_support.support_v5_1.entry import run_notebook
-        import zipfile
-        with tempfile.TemporaryDirectory() as t:
-            root=Path(t);config=dict(work=str(root/'work'),output=str(root/'failure.zip'),
-                                    started=time.monotonic(),phase='pilot',session_hours=3.)
-            with patch('notebook_support.support_v5_1.entry.prepare',side_effect=ValueError('missing fixture input')):
-                with self.assertRaises(RuntimeError):run_notebook(config)
-            with zipfile.ZipFile(root/'failure.zip') as z:
-                self.assertEqual(json.loads(z.read('handoff.json'))['status'],'failed_preserve_evidence')
-                self.assertEqual(json.loads(z.read('artifact_manifest.json'))['schema'],SCHEMA)
 
 
 if __name__=='__main__':unittest.main()

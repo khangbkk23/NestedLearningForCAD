@@ -1,48 +1,57 @@
 # Nested Learning for CAD
 
-Active checkout: **hope_cad_v6**. This tree integrates Khang's `dikhang_space@b985944` with our `hope_cad_v5@9e86478`, then retains only the current method, baseline infrastructure, tests, notebook and essential specs/papers.
+**Workspace v7, phương pháp v5.1.** HOPE/CMS học utility để quản lý normal-support bank, giữ raw ViT geometry và CADIC Eq9. V7 bảo toàn source v6 rồi gom vận hành để chạy từ checkout sạch trên Linux/GPU thuê; chưa phải revision khoa học mới.
 
-**Research status:** historical v5 completed its four-job normal T4 pilot and failed the registered risk gate (NESTED/CADIC=1.128397>1.10). No v5 anomaly benchmark is available. The successor **v5.1 causal scaled utility** has a separate implementation and local contract tests; **real-normal T4 preflight/pilot and AD validation are pending**. Frozen [architecture](docs/main_spec/architecture_decision_v5_1.md), [instruction](docs/main_spec/instruction_CAD_v5_1.md), [planning](docs/main_spec/planning_CAD_v5_1.md) and [contract](docs/main_spec/revision_contract_v5_1.json) retain their design-time status; the new [implementation record](docs/main_spec/v5_1_implementation.md) records what was actually built and tested.
+Evidence v5.1 MVTec seed0: NESTED I-AUROC86,9561% /P-AP47,4331%; matched CADIC86,9983% /44,9012%. Hai120cell matrices có pixel-retention benefit quan sát được. Single-seed development chưa chứng minh superiority tổng quát; cleanup không sinh benchmark mới. Full controls/seeds và VisA chưa hoàn tất.
 
-## Setup
+## Bắt đầu
 
 ```powershell
 pixi install --locked
 pixi run test
+pixi run python -B -m hope_cad --help
 ```
 
-Pixi owns the local Python environment and test feature; do not borrow `.pixi` from another checkout. Local PyTorch/CUDA and Kaggle T4 environments are separate identities. Pillow uses a self-contained wheel at the same version12.2.0 to avoid Windows Conda DLL collisions; pixel preprocessing parity is checked against the original environment. Canonical Kaggle versions remain pinned in `notebook_support/support_v5/runtime_lock.json`.
+Pixi cho local Windows/Python3.14; remote có Linux/Python3.13/cu128 candidate riêng. [Runbook5090](docs/remote_gpu.md). Local tests không nghiệm thu máy thuê. Không cần copy .pixi/.agents/old Kaggle outputs hoặc sibling checkout để chương trình chạy.
 
-## Pilot evidence and next implementation
+```text
+python -m hope_cad preflight   # discarded gates; local-smoke không mở benchmark
+python -m hope_cad train       # fresh/resume normal stream, không official test
+python -m hope_cad evaluate    # final metrics, completed own training required
+python -m hope_cad matrix      # saved task states, no training
+python -m hope_cad aggregate   # registered metrics/CI khi đủ seeds
+python -m hope_cad export      # verified ZIP ngoài payload tree
+python -m hope_cad source      # portable source ZIP, không runtime/data/artifacts
+```
 
-The completed v5 delivery and original evidence live outside Git in `../.agents/artifacts/`; the current result is recorded in `../.agents/evidence/status.json`. The [existing notebook](notebooks/hope_cad_support_v5_kaggle.ipynb) runs **v5**, not v5.1. Do not rerun it to evaluate the new design, resume its learned state into the successor, or overwrite the archived `hope_support_v5_v6_r4` delivery.
+Real runs cần explicit data-root/checkpoint/run-dir/job/device và passed remote preflight đúng source/runtime/data. Không có default program path trỏ vào shared .agents. Xem command examples, pause/stop/download rules trong runbook.
 
-Read the [implementation record and Kaggle steps](docs/main_spec/v5_1_implementation.md) and [acceptance addendum](docs/main_spec/implementation_acceptance_v5_1.md). The new [v5.1 notebook](notebooks/hope_cad_support_v5_1_kaggle.ipynb) uses its own source inventory/bundle/evidence schemas. It integrates discarded preflight24 followed by four fresh256-normal pilot jobs. Do not attach old learned evidence. Scientific gate failure stops for review; local tests do not authorize an automatic anomaly benchmark. Historical W6/W7/recovery/v5 source and evidence remain unchanged.
+## Cấu trúc
 
-## Code layout
+| Thư mục | Vai trò |
+|---|---|
+| hope_cad | CLI/runtime/source locks, reviewed NN backend, discarded preflight, evidence/shipping |
+| models/hope_cad_v5_1 | Current fast/slow learner và causal admission |
+| models/hope_cad_v5 | Geometry dependency và predecessor đối chiếu |
+| models/hope_cad_v2 | Visual/CMS, scan/state và independent oracle |
+| models/cadic_paperfaithful, feature_extractors | CADIC bank/proposal/cache/Eq9, frozen ViT |
+| training/support_benchmark_v5_1 | Frozen study, atomic stream engine, evaluation/statistics |
+| training, dataset | Runtime/data rights/manifest/mask QA và baseline infrastructure |
+| conf | Method/protocol/study, shipping inventory, runtime candidate, preserved scientific hashes |
+| scripts/remote | Explicit setup/logging; không tự thuê/SSH |
+| tests | Numerical/meta/causal/atomic/resume/scoring/metrics/portable contracts |
+| docs | Papers, full specs/dependencies, workspace/runbook và research proposal |
+| refs | External baseline provenance; không claim ReplayCAD đã reproduced |
 
-- `models/hope_cad_v5_1`: current candidate learner, transactional causal session and RGB adapter.
-- `models/hope_cad_v5`: preserved predecessor; its raw geometry helpers are immutable dependencies.
-- `models/hope_cad_v2`: actively reused visual/CMS primitives and independent oracle; names retained for traceability.
-- `models/cadic_paperfaithful`: reference coreset, exact tile cache and full Eq9 adapter.
-- `dataset`: download, byte-bound manifests/protocols and mask QA.
-- `training`: causal pilot, baseline engine/metrics, shared runtime.
-- `notebook_support`: current bootstrap/evidence/heartbeat; no old recovery workflows.
-- `scripts/benchmarks`: CADIC/ReplayCAD baseline orchestration and comparison.
-- `conf`: protocols, baseline settings, delivery inventory and invariance provenance.
-- `tests`: current numerical, state, baseline and shipping contracts.
-- `docs`: papers and current full specs only.
+K10k patch vectors/raw784×768, frozen ViT-B/8 ImageNet21k, FP32/noTF32 và inherited FP64 scalars. Proposal/anchors/alternative bank/delayed labels/exact4support4query vẫn nguyên; không cắt để tăng tốc.
 
-## Baselines and data
+## Specs và reproducibility
 
-Khang's latest MVTec downloader is kept at `dataset/download_mvtec.py` (use `--help`). Data stays ignored or is supplied through mount/env paths. Matched CADIC entry: `python -m scripts.hope_cad_v2.run_matched_cadic --help`; baseline scaffold and ReplayCAD commands are documented in [scripts](scripts/README.md).
+- [Architecture](docs/main_spec/architecture_decision_v5_1.md), [instruction](docs/main_spec/instruction_CAD_v5_1.md), [planning](docs/main_spec/planning_CAD_v5_1.md), [contract](docs/main_spec/revision_contract_v5_1.json), [acceptance](docs/main_spec/implementation_acceptance_v5_1.md).
+- [Benchmark](docs/main_spec/benchmark_v5_1.md), [workspace gates](docs/main_spec/workspace_v7.md), [remote runbook](docs/remote_gpu.md).
+- conf/provenance/workspace_v7.json giữ scientific hashes và lineage full269files. V6 có149untracked khi snapshot; HEAD một mình không đủ.
+- [Historical-query proposal](docs/research/historical_query_consolidation.md) chưa approve/freeze/implement.
 
-ReplayCAD requires an explicit external checkout, separate detector/LDM Python environments and large assets. [Reference provenance](refs/replaycad.json) preserves Khang's gitlink and observed official HEAD without silently substituting one for the other. The native scaffold is retained; full continual-boundary reproduction is not claimed.
+Full v6 source và old operational wrappers còn ở commit410ac6a của branch này; byte-exact archive/patches/run history ngoài repo được user quản lý. Chúng không cần mount cho fresh run. Existing T4 owner/migration không auto import vào portable cohort.
 
-## Reproducibility and remaining work
-
-The v5 equations/contract, frozen ViT producer and visual numerical kernels are retained; [invariance](conf/provenance/algorithm_invariance.json) tracks unchanged definitions/bytes. Cleanup does not improve or invalidate historical benchmark numbers.
-
-After implementation, test and review of a fresh successor pilot: complete its matched benchmark orchestration, controls, seeds/task matrices/uncertainty and resource accounting, then freeze transfer before VisA. Those milestones are not completed by a clean repository, a mathematical design check or passing software tests. No CADIC superiority is claimed.
-
-Shared context: `../.agents/AGENTS.md`. Historical source snapshots, run ZIPs/logs, migration mapping and backups are external to this repository. Do not delete the primary repository's `.git`: linked worktrees share it. No old checkout is removed as part of this integration.
+V5.1 giữ matched-local preprocessing; native-checkpoint normalization mismatch/author recipe chưa giải quyết causal impact. Không exact paper parity. MVTec development-exposed; freeze method/protocol trước VisA, study runner này chưa hỗ trợ VisA.

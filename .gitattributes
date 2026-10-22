@@ -4,26 +4,4 @@
 pixi.lock merge=binary linguist-language=YAML linguist-generated=true -diff
 
 # Preserve exact historical/spec/receipt bytes across clean checkouts.
-conf/benchmarks/support_v5_1_pilot_source.json -text
 conf/benchmarks/support_v5_1_study.json -text
-conf/delivery/support_v5_1_benchmark_source.json -text
-continuation_runtime_v1/receipts/G4_audit.json -text
-docs/main_spec/migration_nn_write_v5_1_contract.json -text
-docs/main_spec/throughput_nn_write_v5_1_contract.json -text
-docs/main_spec/throughput_v5_1_contract.json -text
-notebook_support/cadic_cost_nested_reference.json -text
-notebook_support/matched_cadic_v5_1/receipts/cadic_cost_review.json -text
-notebook_support/support_migration_v5_1/receipts/G2local.json -text
-notebook_support/support_migration_v5_1/receipts/G3audit.json -text
-notebooks/hope_cad_v5_1_benchmark_7_1_kaggle.ipynb -text
-notebooks/hope_cad_v5_1_benchmark_7_2_kaggle.ipynb -text
-notebooks/hope_cad_v5_1_benchmark_7_3_kaggle.ipynb -text
-notebooks/hope_cad_v5_1_benchmark_preflight_kaggle.ipynb -text
-notebooks/hope_cad_v5_1_cadic_cost_kaggle.ipynb -text
-notebooks/hope_cad_v5_1_continuation_7_1_kaggle.ipynb -text
-notebooks/hope_cad_v5_1_matched_cadic_seed0_kaggle.ipynb -text
-notebooks/hope_cad_v5_1_matrix_CADIC_seed0_kaggle.ipynb -text
-notebooks/hope_cad_v5_1_matrix_NESTED_seed0_kaggle.ipynb -text
-notebooks/hope_cad_v5_1_nn_write_bridge_kaggle.ipynb -text
-notebooks/hope_cad_v5_1_nn_write_validation_kaggle.ipynb -text
-notebooks/hope_cad_v5_1_throughput_profile_kaggle.ipynb -text

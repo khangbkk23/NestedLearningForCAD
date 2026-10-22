@@ -33,16 +33,8 @@ def session_for(name,device='cpu'):
 def lock(path,value):return lock_json(path,canonical(value))
 
 def source_files():
-    files=json.loads((ROOT/'conf/delivery/support_v5_1_benchmark_source.json').read_text())['files']
-    if files!=sorted(set(files)):raise ValueError('Noncanonical source inventory')
-    result={}
-    for n in files:
-        p=ROOT/n
-        if not p.is_file() or p.is_symlink() or not p.resolve().is_relative_to(ROOT):raise ValueError('Unsafe source entry')
-        result[n]=file_sha(p)
-    return result
+    from hope_cad.runtime import source_files as portable_files
+    return portable_files()
 
 def source_digest():
-    files=source_files();manifest=ROOT/'bundle_manifest.json'
-    if manifest.exists() and json.loads(manifest.read_text()).get('files')!=files:raise ValueError('Benchmark source drift')
-    return digest(files)
+    return digest(source_files())

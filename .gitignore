@@ -9,6 +9,7 @@ data/
 datasets/
 results/
 logs/
+runs/
 checkpoints/
 dist/
 build/

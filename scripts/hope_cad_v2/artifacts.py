@@ -12,7 +12,7 @@ ROOT = Path(__file__).resolve().parents[2]
 
 
 def provenance():
-    from notebook_support.support_v5.common import source_files
+    from hope_cad.runtime import source_files
     hashes=source_files();manifest_path=ROOT/'bundle_manifest.json'
     if manifest_path.exists():
         manifest=json.loads(manifest_path.read_text(encoding='utf-8'))

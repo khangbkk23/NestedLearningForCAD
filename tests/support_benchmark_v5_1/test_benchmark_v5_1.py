@@ -174,26 +174,8 @@ class BenchmarkContracts(unittest.TestCase):
             p=NormalFeatures(t,None,t,'cpu')
             with self.assertRaises(ValueError):p.get(dict(relative_path='bottle/test/good/a.png',split='test'))
 
-    def test_CPU_runtime_fails_before_dataset_extraction(self):
-        from notebook_support.support_benchmark_v5_1.bootstrap import prepare
-        with patch('torch.cuda.is_available',return_value=False):
-            with self.assertRaises(ValueError):prepare({})
 
-    def test_different_job_restore_excludes_learned_parent(self):
-        from notebook_support.support_benchmark_v5_1.bootstrap import selected_payload
-        self.assertTrue(selected_payload('preflight.json','CADIC_seed0'))
-        self.assertTrue(selected_payload('runs/CADIC_seed0/active.pt','CADIC_seed0'))
-        self.assertFalse(selected_payload('runs/NESTED_seed0/active.pt','CADIC_seed0'))
-        self.assertFalse(selected_payload('jobs/NESTED/state.pt','NESTED_seed0'))
 
-    def test_failure_entry_exports_zip_and_never_calls_it_passed(self):
-        import time,zipfile
-        from notebook_support.support_benchmark_v5_1.entry import run_notebook
-        with tempfile.TemporaryDirectory() as t:
-            t=Path(t);c=dict(phase='preflight',job='NESTED_seed0',session_hours=3.,started=time.monotonic(),work=str(t/'work'),output=str(t/'failed.zip'))
-            with patch('notebook_support.support_benchmark_v5_1.entry.prepare',side_effect=ValueError('synthetic missing asset')):
-                with self.assertRaises(RuntimeError):run_notebook(c)
-            with zipfile.ZipFile(t/'failed.zip') as z:self.assertEqual(json.loads(z.read('handoff.json'))['status'],'failed_preserve_evidence')
 
     def test_official_mask_QA_rejects_geometry_mismatch(self):
         from PIL import Image
@@ -217,7 +199,7 @@ class BenchmarkContracts(unittest.TestCase):
     def test_aggregate_missing_seeds_cannot_produce_CI(self):
         from training.support_benchmark_v5_1.contract import EVIDENCE_SCHEMA,study_digest
         from training.support_benchmark_v5_1.contract import digest as d
-        from notebook_support.common.evidence import export_archive
+        from hope_cad.evidence import export_archive
         with tempfile.TemporaryDirectory() as t:
             t=Path(t);work=t/'work';work.mkdir();identity=dict(study_digest=study_digest())
             (work/'suite_lock.json').write_text(json.dumps(dict(identity=identity,digest=d(identity))))
