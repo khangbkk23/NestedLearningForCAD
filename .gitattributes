@@ -4,4 +4,4 @@
 pixi.lock merge=binary linguist-language=YAML linguist-generated=true -diff
 
 # Preserve exact historical/spec/receipt bytes across clean checkouts.
-conf/benchmarks/support_v5_1_study.json -text
+src/hope_cad/resources/study.json -text
