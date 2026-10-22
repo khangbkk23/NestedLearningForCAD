@@ -57,7 +57,7 @@ Không task ID, future counts hoặc learned prediction. No-op không draw. Gi�
 
 D0 theo [attribution v2](attribution.md), không GPU. Output hoàn thành phải được review trước khi quyết định thời điểm chạy candidate. Không dùng D0 để đổi capacity, query ratio, optimizer hoặc stat 12. Kết quả bias/clock hỗ trợ diễn giải và quyết định **chi tiếp hay dừng**, không tạo candidate thứ hai dưới cùng ID.
 
-Implementation local đáp ứng [candidate acceptance](candidate.md) và regressions cũ. Kiểm clean installation, source inventory và Git bytes. HEAD 3731503 đã sửa thiếu source; whole-source identity vẫn khác r3 do ignore/attributes. Khi ship candidate code, tạo **delivery mới**; không overwrite r3 hoặc gọi current checkout byte-exact r3.
+Implementation local đáp ứng [candidate acceptance](candidate.md) và regressions cũ. Kiểm clean installation, source inventory và Git bytes. Baseline chính thức `89df9a21658b265731f98a7c2014afb1876f1924` đã chứa source và bộ docs/spec/plan công khai; whole-source identity khác archive r3. Khi ship candidate code, tạo **delivery mới**; không overwrite r3 hoặc gọi current checkout byte-exact r3.
 
 D0 inconclusive được báo đúng như vậy; không bắt buộc tìm root cause tuyệt đối mới code candidate có phép bác bỏ. Nếu người dùng giao implementation bundle, có thể code/test local theo spec; benchmark vẫn khóa đến khi có quyền chạy và đạt gates. Spec hiện chưa là lệnh implementation/execution.
 

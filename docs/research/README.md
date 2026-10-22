@@ -23,4 +23,4 @@ Contract tổng hợp đã áp dụng quyết định full-train 3.629 vào bả
 - **Kết quả đã có:** [results](../results.md), thuộc matched seed0 v5.1 cũ, không phải full-train/H32/v7 GPU benchmark.
 - **Báo cáo trao đổi:** [QUICK_UPDATE](../../QUICK_UPDATE.md) là tổng quan và giải thích cho nhóm; khi triển khai dùng spec/contract, không tự suy thuật toán từ đoạn tóm tắt.
 
-Nếu phát hiện mâu thuẫn giữa các spec prospective, dừng và ghi correction trước implementation. Không coi JSON nghiên cứu đã tồn tại là chương trình đã hỗ trợ nó; không sửa frozen resources hoặc archived evidence để làm khớp lời kể. Bản chính thức trước nâng cấp là commit `37315030a3111b6b7f6265958fab2c41b3b35344`.
+Nếu phát hiện mâu thuẫn giữa các spec prospective, dừng và ghi correction trước implementation. Không coi JSON nghiên cứu đã tồn tại là chương trình đã hỗ trợ nó; không sửa frozen resources hoặc archived evidence để làm khớp lời kể. Bản chính thức trước nâng cấp là commit `89df9a21658b265731f98a7c2014afb1876f1924`.

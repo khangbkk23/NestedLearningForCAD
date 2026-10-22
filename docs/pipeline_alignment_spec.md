@@ -8,7 +8,7 @@ File Markdown này giải thích quyết định về dữ liệu/recipe/fairnes
 
 ## 1. Nguồn chuẩn và ranh giới phiên bản
 
-Baseline source chính thức vẫn là commit `37315030a3111b6b7f6265958fab2c41b3b35344`, method `hope_cad_v5_1_causal_scaled_utility`, design digest `6f6b2c847a815619b6ad5ed899a0859aab1d7b532d62b27ae3217d926695db99`. Các benchmark accepted cũ dùng 3.599 online normals; số liệu/provenance giữ nguyên.
+Baseline source chính thức được người dùng chốt lại là commit `89df9a21658b265731f98a7c2014afb1876f1924`, method `hope_cad_v5_1_causal_scaled_utility`, design digest `6f6b2c847a815619b6ad5ed899a0859aab1d7b532d62b27ae3217d926695db99`. Các benchmark accepted cũ dùng 3.599 online normals; số liệu/provenance giữ nguyên.
 
 Amendment này có ưu tiên cho **cohort nghiên cứu tiếp theo** đối với partition, pilot composition, identity và các yêu cầu so sánh. Định nghĩa equations/precision/ownership hiện hành trong [method](method.md) tiếp tục kế thừa. Candidate historical-query giữ thuật toán history32/4support/2recent+2historical đầy đủ tại [candidate](research/candidate.md); dữ liệu của candidate mới theo full-train amendment này.
 
@@ -93,4 +93,4 @@ Khi được giao implementation:
 6. New source bundle +local installation/inventory/CLI checks; real GPU preflight/pilot theo budget, raw artifacts/logs đầy đủ. Không launch paid GPU từ spec.
 7. Full-train pilot/main benchmark review chỉ là new cohort results; historical numbers giữ provenance. Adoption/VisA cần empirical gates riêng, không vì docs hoặc tests PASS.
 
-**Bản chính thức để rollback vẫn là commit 3731503.** Working tree có docs mới và source inventory mới nhưng chưa implement prospective pipeline; không coi current HEAD hoặc dirty source bằng shipped r3. Không automatic Git reset/merge/push.
+**Bản chính thức để rollback vẫn là commit 89df9a2.** Commit89df9a2 đã chứa bộ docs/spec/plan công khai; bản chỉnh tham chiếu baseline này chưa thêm implementation prospective pipeline; không coi current HEAD hoặc dirty source bằng shipped r3. Không automatic Git reset/merge/push.

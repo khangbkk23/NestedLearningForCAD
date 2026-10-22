@@ -4,6 +4,8 @@ HOPE/CMS học utility để chấp nhận hoặc từ chối proposal cập nh�
 
 **Code hiện tại:** `hope_cad_v5_1_causal_scaled_utility`, package0.7.0. Tên workspace **v7** là tổ chức mã nguồn, không phải một thuật toán mới. Runtime hiện hành dùng matched MVTec3.599normals. **Full-train3.629 và historical-query H32 đã có spec, chưa được triển khai.**
 
+**Mốc source chính thức trước nâng cấp:** `89df9a21658b265731f98a7c2014afb1876f1924`, gồm code và bộ docs/spec/plan công khai. Dùng mốc này làm gốc phát triển/rollback; benchmark cũ vẫn giữ provenance của run thực tế.
+
 ## Kết quả đang có
 
 | Matched MVTec seed0 | CADIC | NESTED v5.1 |

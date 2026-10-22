@@ -6,7 +6,7 @@
 
 Tài liệu này tóm tắt phần phát triển của nhánh HOPE-CAD, kết quả đã đo và công việc tiếp theo để trao đổi trong nhóm.
 
-**Mốc đối chiếu code:** `dikhang_space@794d7e498ea093f99ae861e9f43f4ab59d887772` và baseline `hope_cad_v7@37315030a3111b6b7f6265958fab2c41b3b35344`. Với nhánh dikhang_space, phần so sánh CADIC dưới đây lần theo script `scripts/benchmarks/run_cadic_paperfaithful.sh` → config/protocol → adapter/engine thực sự được gọi. Các experiments ECAD/NPIM/CSG là những đường chạy riêng, không gộp thành một “protocol của Khang”. Cấu hình mặc định và code không chứng minh mọi run thực tế đã dùng đúng các giá trị đó; overrides phải đối chiếu từ từng run.
+**Mốc đối chiếu code:** `dikhang_space@794d7e498ea093f99ae861e9f43f4ab59d887772` và baseline `hope_cad_v7@89df9a21658b265731f98a7c2014afb1876f1924`. Với nhánh dikhang_space, phần so sánh CADIC dưới đây lần theo script `scripts/benchmarks/run_cadic_paperfaithful.sh` → config/protocol → adapter/engine thực sự được gọi. Các experiments ECAD/NPIM/CSG là những đường chạy riêng, không gộp thành một “protocol của Khang”. Cấu hình mặc định và code không chứng minh mọi run thực tế đã dùng đúng các giá trị đó; overrides phải đối chiếu từ từng run.
 
 **Amendment đã chốt trong branch:** [spec/plan](docs/pipeline_alignment_spec.md) và [contract máy đọc](docs/pipeline_alignment_contract.json) là nguồn prospective pipeline. Full-train3.629 đã được chọn; preprocessing **giữ recipe hiện hành** để matched với CADIC Khang và cô lập history effect. Native-metadata mismatch vẫn công bố; không gọi nó đã được sửa. Runtime/resources cũ chưa implementation amendment hoặc H32. Quyết định docs này không thay kết quả benchmark đã báo.
 
@@ -78,7 +78,7 @@ Hai nhánh không có quan hệ “v7 là HEAD mới nhất của Khang cộng t
 
 #### Git diff đang thể hiện điều gì?
 
-Đối chiếu tree `dikhang_space@794d7e4` với `hope_cad_v7@3731503` có **508 paths thay đổi, khoảng 6.398 dòng thêm và 75.705 dòng xóa** theo `git diff --shortstat`. Phần lớn là đổi tổ chức và loại code/experiments ngoài runtime hiện hành, không phải xóa thuật toán baseline rồi tạo gain. Rename detection cũng ảnh hưởng cách Git đếm thêm/xóa; số dòng không là thước đo contribution hoặc chất lượng model.
+Đối chiếu tree `dikhang_space@794d7e4` với `hope_cad_v7@89df9a2` có **520 paths thay đổi, khoảng 8.462 dòng thêm và 75.703 dòng xóa** theo `git diff --shortstat`. Phần lớn là đổi tổ chức và loại code/experiments ngoài runtime hiện hành, không phải xóa thuật toán baseline rồi tạo gain. Rename detection cũng ảnh hưởng cách Git đếm thêm/xóa; số dòng không là thước đo contribution hoặc chất lượng model.
 
 | Ở nhánh nền/Khang                                                          | Trong v7                                                                                | Ý nghĩa                                                                                                  |
 | -------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
@@ -127,10 +127,10 @@ Các tối ưu execution này nhằm giảm chi phí tính toán, không đổi 
 
 **V7 không phải một model mới đã tăng benchmark.** Kết quả trong bảng là evidence của phương pháp v5.1 đã chạy trước refactor. Chưa chạy lại full benchmark trên v7/RTX 5090; các kiểm tra engineering hỗ trợ bảo toàn logic nhưng không thay thế lượt chạy thực trên runtime mới.
 
-Baseline source chính thức trước nâng cấp tiếp theo là commit:
+Theo quyết định mới nhất của người thực hiện, baseline source chính thức để phát triển và rollback trước nâng cấp tiếp theo là commit (đã gồm docs/spec/plan công khai):
 
 ```text
-37315030a3111b6b7f6265958fab2c41b3b35344
+89df9a21658b265731f98a7c2014afb1876f1924
 ```
 
 ## 3. Protocol của nhánh hope_cad_v7 khác nhánh dikhang_space ở đâu?
@@ -584,7 +584,7 @@ Review refactor ghi:
 
 ### D4. Baseline chính thức và mốc quay lại
 
-`hope_cad_v7@37315030a3111b6b7f6265958fab2c41b3b35344` là source baseline chính thức trước candidate nâng cấp. Các sửa sau đó phải giữ lineage và tách method/execution identity rõ. Nếu candidate chưa được chấp nhận, giữ baseline v5.1; rollback source không xóa logs/artifacts hoặc kết quả âm, không hứa khôi phục môi trường chỉ bằng Git checkout.
+`hope_cad_v7@89df9a21658b265731f98a7c2014afb1876f1924` là source baseline chính thức trước candidate nâng cấp. Các sửa sau đó phải giữ lineage và tách method/execution identity rõ. Nếu candidate chưa được chấp nhận, giữ baseline v5.1; rollback source không xóa logs/artifacts hoặc kết quả âm, không hứa khôi phục môi trường chỉ bằng Git checkout.
 
 File này là báo cáo bàn giao thêm vào root repo, không scientific module hoặc raw artifact. Commit baseline được chỉ theo hash bất biến; commit chứa chính báo cáo này về sau có thể có hash khác. Không nhầm branch tip mới với baseline đã chọn. Nội dung thuật toán/spec trong report phải được đối chiếu với normative contracts code nếu implementation thay đổi sau ngày này.
 

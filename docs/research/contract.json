@@ -17,7 +17,7 @@
   "current_method_id": "hope_cad_v5_1_causal_scaled_utility",
   "base_design_digest": "6f6b2c847a815619b6ad5ed899a0859aab1d7b532d62b27ae3217d926695db99",
   "base_method_file_sha256": "b3e5004d618ac1a39ffe3eab36b0b8056fd53d0de611c5b9f3b33f6313f3d3a1",
-  "workspace_head_at_spec": "37315030a3111b6b7f6265958fab2c41b3b35344",
+  "workspace_head_at_spec": "89df9a21658b265731f98a7c2014afb1876f1924",
   "candidate_id": "hope_cad_hq32_fulltrain_v1",
   "candidate_adopted": false,
   "implementation_performed": false,
@@ -430,7 +430,7 @@
     "id": "v7_pipeline_alignment_v1",
     "status": "specified_not_runtime_implemented_not_run",
     "scope": "Documentation/spec alignment only; source inventory metadata included",
-    "baseline_commit": "37315030a3111b6b7f6265958fab2c41b3b35344",
+    "baseline_commit": "89df9a21658b265731f98a7c2014afb1876f1924",
     "baseline_method_id": "hope_cad_v5_1_causal_scaled_utility",
     "historical_online_images": 3599,
     "historical_exclusions": 30,
@@ -577,5 +577,7 @@
       "timing": "fresh_matched_cohort_and_component_scope_required",
       "new_performance_gain_measured": false
     }
-  }
+  },
+  "initial_spec_source_commit": "37315030a3111b6b7f6265958fab2c41b3b35344",
+  "official_baseline_commit": "89df9a21658b265731f98a7c2014afb1876f1924"
 }
