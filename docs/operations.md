@@ -2,6 +2,33 @@
 
 Pixi là package/environment manager duy nhất. Method accepted vẫn v5.1; H32/full-train là candidate đã implement/local-tested, chưa remote/GPU/AD acceptance. Không tự thuê/SSH/chạy GPU. Lượt đầu chỉ chạy research preflight rồi gửi evidence để review.
 
+## Bootstrap qua SCP
+
+BOOTSTRAP.sh là helper local, bị ignore và không nằm trong Git hoặc source inventory. File được cấp riêng qua SCP, không download từ branch. Ví dụ PowerShell (thay SSH_ALIAS bằng alias SSH của máy thuê):
+
+```powershell
+scp "D:\src\DATN\hope_cad_v7\BOOTSTRAP.sh" SSH_ALIAS:/workspace/BOOTSTRAP.sh
+```
+
+Trên máy thuê Debian/Ubuntu x86_64 có NVIDIA driver và root/sudo:
+
+```bash
+cd /workspace
+bash BOOTSTRAP.sh
+```
+
+Script hỏi giá thuê USD/hour và capUSD Stage B (preflight+pilot) trước khi setup. Không tự chọn số tiền. Có thể truyền HOPE_USD_PER_HOUR/HOPE_STAGE_B_USD_CAP để chạy không tương tác. Base mặc định/workspace phải có sẵn; bash BOOTSTRAP.sh /absolute/base là override. Repo sinh ra tại <base>/NestedLearningForCAD.
+
+Script kiểm máy, apt update/install git,curl,ca-certificates,tmux,unzip, rồi chạy phần dài trong session hope-cad-setup (hoặc tmux hiện có). Giữ SSH tới khi session được tạo. Tách Ctrl+B,D; vào lại bằng tmux attach -t hope-cad-setup. Session đã tồn tại thì attach kiểm thay vì tự kill hoặc chạy setup song song.
+
+Worker cài Pixi nếu thiếu, clone latest hope_cad_v7, ghi exact HEAD vào log/receipt, kiểm origin/source sạch rồi install locked → check-install → env-check --gpu → tests → assets → tạo workspace/records/B_allocation.json theo số tiền đã nhập. SHA không phải điền tay; nếu muốn khóa trước, cấp EXPECTED_COMMIT=full40hex. Existing checkout không được tự pull/reset/checkout: nếu cần version khác phải preserve/review thủ công. Source không được đổi giữa setup/cohort. Helper có SHA riêng, không giả làm source file đã commit; bản sao helper/SHA và log được lưu cùng receipts.
+
+Allocation có sẵn chỉ được tái dùng khi nội dung khớp; khác thì fail, không overwrite. Cap B còn chịu giới hạn tối đa12GPUh của runner; đây không là auto-stop/billing guard của Vast. Không tạo ledger hoặc charge run trong bootstrap. Setup/idle billed time chưa ghi phải cấp một lần qua --external-billed-seconds khi preflight.
+
+Logs tạm /tmp/hope-cad-system.*.log và /tmp/hope-cad-setup.*.log; khi đúng checkout thì lưu complete log/exit receipt/helper copy dưới workspace/records/bootstrap/. Dispatch thành công chưa nghĩa worker hoàn tất: kiểm SETUP COMPLETE và receipt exit0. Fail trước clone/sai origin chỉ giữ log tạm.
+
+Bootstrap dừng sau allocation, **không chạy preflight/training hoặc tự Stop máy**. Chưa actual Linux/5090 acceptance. Sau setup review logs/receipts rồi dùng [research handoff](research/implementation.md). Không cần commit helper, nhưng code/docs/lock muốn dùng vẫn phải được user publish lên branch trước clone.
+
 ## 1. Cài Pixi, clone và pin source
 
 Trên Linux, cài Pixi theo [hướng dẫn chính thức](https://pixi.prefix.dev/latest/installation/):

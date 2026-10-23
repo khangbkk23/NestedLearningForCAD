@@ -33,3 +33,6 @@ kaggle.json
 Thumbs.db
 # Local generated outputs
 /workspace/
+
+# Standalone SCP bootstrap, not source
+/BOOTSTRAP.sh

@@ -18,6 +18,8 @@ Một seed/order,15categories,120matrix cells/method;3.599train/1.725test. Đây
 
 ## Bắt đầu với code hiện tại
 
+Máy thuê Debian/Ubuntu có thể dùng [bootstrap qua SCP](docs/operations.md#bootstrap-qua-scp): file local BOOTSTRAP.sh không phát hành trong Git; setup đến allocation Stage B rồi dừng trước preflight/training. Các lệnh thủ công tương đương:
+
 ```bash
 pixi install --locked
 pixi run --locked env-check
