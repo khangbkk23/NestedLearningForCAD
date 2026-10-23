@@ -29,14 +29,15 @@ D0 đã được exercise trên đúng historical archives trong quá trình loc
 
 ## Bước người chạy thực hiện trên Vast.ai
 
-Luồng bàn giao đã chốt là **người dùng review, commit và push branch `hope_cad_v7`, rồi Git clone trên máy thuê**. Repository: `https://github.com/khangbkk23/NestedLearningForCAD`; không dùng URL `/tree/hope_cad_v7` làm clone URL. Candidate đang ở working tree cho tới khi người dùng commit/push; không coi HEAD cũ hoặc remote branch chưa cập nhật là đã chứa candidate.
+Luồng bàn giao đã chốt là **người dùng commit/push branch `hope_cad_v7`, rồi Git clone trên máy thuê**. Candidate H32/full-train đã được người dùng commit tại **`720b3cdd9df4aae3a63c1777b1961af30d1a1543`** ngày23/10/2026. Repository: `https://github.com/khangbkk23/NestedLearningForCAD`; không dùng URL `/tree/hope_cad_v7` làm clone URL. Đã xác nhận commit local; chưa kiểm chứng push trên server. Baseline khoa học trước nâng cấp vẫn `89df9a2`.
 
-Sau khi người dùng đã push, ghi lại full commit SHA đã công bố. Trên máy thuê, clone vào thư mục mới và đối chiếu `git rev-parse HEAD` với SHA đó; `git status --short` phải không có thay đổi source. Giữ cùng source identity qua preflight/pilot/main, không pull hoặc đổi checkout giữa cohort.
+Sau khi người dùng đã push commit trên, clone vào thư mục mới và pin đúng source commit bên dưới; `git rev-parse HEAD` phải trả về SHA đó, `git status --short` phải không có thay đổi source. Nếu chọn commit mới hơn có sửa docs/source, ghi rõ SHA mới và source digest trước preflight; không đổi checkout giữa cohort. Bản cập nhật tài liệu ghi SHA này là amendment sau commit, không tự nằm trong commit được dẫn.
 
 ```bash
 git clone --branch hope_cad_v7 --single-branch \
   https://github.com/khangbkk23/NestedLearningForCAD.git /workspace/hope_cad_v7
 cd /workspace/hope_cad_v7
+git checkout --detach 720b3cdd9df4aae3a63c1777b1961af30d1a1543
 git rev-parse HEAD
 git status --short
 ```

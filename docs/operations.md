@@ -6,17 +6,18 @@ V7 là **workspace hợp nhất mới**, phương pháp vẫn `hope_cad_v5_1_cau
 
 V7 tự đủ từ Git checkout; không cần sibling worktree hoặc old Kaggle evidence. Các lệnh ở đây chạy **baseline3.599**, không chọn full-train/H32; dùng [research SSH handoff](research/implementation.md) cho CLI research đã implement. Cả hai cần actual remote acceptance. Windows local có thể dùng `pixi install --locked`, `pixi run install`, `pixi run test`.
 
-Luồng mặc định đã chốt: người dùng review/commit/push toàn bộ source candidate lên branch `hope_cad_v7`, ghi lại full commit SHA, rồi trên máy thuê:
+Candidate H32/full-train đã commit tại **`720b3cdd9df4aae3a63c1777b1961af30d1a1543`** ngày23/10/2026; push lên server chưa được kiểm chứng. Người dùng push branch `hope_cad_v7` chứa commit này, rồi trên máy thuê:
 
 ```bash
 git clone --branch hope_cad_v7 --single-branch \
   https://github.com/khangbkk23/NestedLearningForCAD.git /workspace/hope_cad_v7
 cd /workspace/hope_cad_v7
+git checkout --detach 720b3cdd9df4aae3a63c1777b1961af30d1a1543
 git rev-parse HEAD
 git status --short
 ```
 
-Đối chiếu HEAD với commit vừa được người dùng push; source phải sạch trước setup/preflight. Chưa commit/push thì clone remote chưa đủ candidate. Data, weights và runs đặt ngoài source. Không pull/đổi source giữa cohort. Source bundles đã lưu chỉ giữ provenance local tests, không cần SCP hoặc build ZIP mới để bàn giao; ZIP evidence của remote run vẫn phải giữ. Linux script gọi bằng `bash`, không phụ thuộc executable bit của Windows.
+Đối chiếu HEAD với SHA trên; source phải sạch trước setup/preflight. Nếu branch remote chưa có commit này thì người dùng cần push trước. Bản docs ghi SHA là amendment sau commit; nếu chọn source commit mới hơn, ghi rõ SHA và source digest mới trước preflight. Data, weights và runs đặt ngoài source. Không pull/đổi source giữa cohort. Source bundles đã lưu chỉ giữ provenance local tests, không cần SCP hoặc build ZIP mới để bàn giao; ZIP evidence của remote run vẫn phải giữ. Linux script gọi bằng `bash`, không phụ thuộc executable bit của Windows.
 
 ## 2. Runtime riêng
 
