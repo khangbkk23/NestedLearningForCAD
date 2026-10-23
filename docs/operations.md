@@ -1,88 +1,114 @@
-# Chạy v7 trên Linux/RTX5090 qua SSH
+# Chạy v7 với Pixi trên Linux/RTX5090 hoặc Windows local
 
-V7 là **workspace hợp nhất mới**, phương pháp vẫn `hope_cad_v5_1_causal_scaled_utility`. Local engineering checks không chứng minh đã chạy5090. Không thuê máy, đăng nhập hoặc chạy benchmark tự động. Không dùng old T4 checkpoint để resume bằng execution mới; existing seed0 endpoints/matrices được giữ nguyên ở archive.
+Pixi là package/environment manager duy nhất. Method accepted vẫn v5.1; H32/full-train là candidate đã implement/local-tested, chưa remote/GPU/AD acceptance. Không tự thuê/SSH/chạy GPU. Lượt đầu chỉ chạy research preflight rồi gửi evidence để review.
 
-## 1. Chuẩn bị và chuyển source
+## 1. Cài Pixi, clone và pin source
 
-V7 tự đủ từ Git checkout; không cần sibling worktree hoặc old Kaggle evidence. Các lệnh ở đây chạy **baseline3.599**, không chọn full-train/H32; dùng [research SSH handoff](research/implementation.md) cho CLI research đã implement. Cả hai cần actual remote acceptance. Windows local có thể dùng `pixi install --locked`, `pixi run install`, `pixi run test`.
+Trên Linux, cài Pixi theo [hướng dẫn chính thức](https://pixi.prefix.dev/latest/installation/):
 
-Candidate H32/full-train đã commit tại **`720b3cdd9df4aae3a63c1777b1961af30d1a1543`** ngày23/10/2026; push lên server chưa được kiểm chứng. Người dùng push branch `hope_cad_v7` chứa commit này, rồi trên máy thuê:
+```bash
+curl -fsSL https://pixi.sh/install.sh | bash
+export PATH="$HOME/.pixi/bin:$PATH"
+pixi --version
+```
+
+Lock được tạo/kiểm với Pixi0.66.0. Cần bản hỗ trợ lockschema6/per-package indexes; giữ phiên bản Pixi đã dùng trong records. Script installer cài Pixi, không cài NVIDIA driver.
+
+User review/commit/push changes mới trước khi thuê; commit672abd1/720b3cd là predecessor chưa chứa Pixi/provisioning mới. Sau khi đã push:
 
 ```bash
 git clone --branch hope_cad_v7 --single-branch \
-  https://github.com/khangbkk23/NestedLearningForCAD.git /workspace/hope_cad_v7
-cd /workspace/hope_cad_v7
-git checkout --detach 720b3cdd9df4aae3a63c1777b1961af30d1a1543
+  https://github.com/khangbkk23/NestedLearningForCAD.git hope_cad_v7
+cd hope_cad_v7
+# Pin full SHA user đã chọn/đã push, kiểm git status sạch trước cohort.
 git rev-parse HEAD
 git status --short
+pixi install --locked
 ```
 
-Đối chiếu HEAD với SHA trên; source phải sạch trước setup/preflight. Nếu branch remote chưa có commit này thì người dùng cần push trước. Bản docs ghi SHA là amendment sau commit; nếu chọn source commit mới hơn, ghi rõ SHA và source digest mới trước preflight. Data, weights và runs đặt ngoài source. Không pull/đổi source giữa cohort. Source bundles đã lưu chỉ giữ provenance local tests, không cần SCP hoặc build ZIP mới để bàn giao; ZIP evidence của remote run vẫn phải giữ. Linux script gọi bằng `bash`, không phụ thuộc executable bit của Windows.
+`pixi install --locked` cài Python, dependencyclosure từ lock và project editable. Không cần Python hệ thống, uv, pip install thủ công hoặc .venv. Không bỏ `--locked` khi chạy remote để Pixi tự resolve khác source đã chốt. Bare `pixi install` dùng cùng default environment nhưng có thể cập nhật lock nếu manifest lệch; ưu tiên locked.
 
-## 2. Runtime riêng
+`pixi.toml` là nguồn khai báo dependency; `pixi.lock` khóa cả Linux/Windows. Linux Python3.13/torch2.11+cu128/vision0.26 và scientific pins khớp runtime.json; Windows giữ Python3.14/torch2.12+cu126. Hai platform không được gọi là cùng execution cohort. Linux lock solve không là actual Linux installation/5090kernel acceptance. Không tự thay runtime.json để lách gate.
 
-Cần Linux x86_64, NVIDIA driver tương thích CUDA12.8, Python3.13 và `nvidia-smi`. Candidate direct pins ở requirements/remote-cu128.txt và src/hope_cad/resources/runtime.json; không là transitive lock hoặc runtime đã nghiệm thu. Setup giữ `pip freeze --all`/collect_env để ghi toàn bộ môi trường cài thật. Không đổi package để lách gate; khác candidate phải review runtime mới.
+## 2. Layout tự chứa trong checkout
+
+```text
+hope_cad_v7/
+  pixi.toml / pixi.lock
+  .pixi/                  # Python và packages, ignore
+  src/ docs/ tests/        # tracked source
+  data/
+    archives/             # archive tải dở/đã kiểm
+    mvtec/                # bottle/train/good/... đủ15categories
+    mvtec.asset.json      # archive/tree integrity receipt
+  weights/                # đúng ViT safetensors + receipt
+  runs/hq32_01/           # model states/events/metrics/telemetry
+  runs/hq32_01.zip
+  runs/hq32_01.accounting.json
+  records/                # environment, allocation, billing notes
+  logs/                   # stdout/stderr theo invocation
+  results/                # local checks/CPU summaries
+```
+
+Data/weights/runs/records/logs/results đều bị ignore và không thuộc source inventory/hash; không commit vàiGB artifacts. Chúng là dữ liệu của checkout trên máy chạy, không tự đi theo Git clone. Thư mục repo có thể đặt ở bất cứ đâu; defaultpaths neo vào repo root, không parent/worktree khác. Có thể override assets/runtime paths để gắn persistent volume; outputs không được chứa source, đè source hoặc overlap inputs.
+
+## 3. Provision data và backbone bằng task
+
+```bash
+pixi run --locked assets
+```
+
+Lệnh này tải cả MVTec AD và ViT bằng CPU/network, không train/GPU. Có thể chạy riêng:
+
+```bash
+pixi run --locked download-mvtec
+pixi run --locked download-vit
+```
+
+MVTec mirror HuggingFace `micguida1/mvtech_anomaly_detection` revision `eb692b36147a3b3f12c561b879a062104c1f20b8`, archive5264982680bytes SHA `cf4313b13603bec67abb49ca959488f7eedce2a9f7795ec54446c649ac98cd3d`. Đây là mirror bên thứ ba có pinnedbytes, không tự chứng minh tác giả xác nhận mirror. [Dataset gốc/terms](https://www.mvtec.com/research-teaching/datasets/mvtec-ad).
+
+ViT từ upstream timm revision4747ebd, file410434646bytes, SHA `2c4839589adbbf701573dd155e1814f8adb145cd4d235bb86a93269369e111ec`; giữ nguyên safetensors, không convert .pth. Same lockedSHA với method.json.
+
+Downloader giữ `.part`, kiểm Range response, size/SHA trước publish; lỗi không nhận partial là completed. Dataset giải nén vào staging, từ chối traversal/links/devices, kiểm15categories/3629train/209Bottle/1725test và lưu filehashmanifest. Rerun kiểm lại tree và tái dùng; existingdata không receipt/corrupt bị từ chối, không xóa/ghi đè tự động. Quy trình này chưa tải/archiveextract thật trong localtests; chỉ metadata công khai và syntheticfixtures được kiểm.
+
+Nếu dùng archive chính bạn đã chạy trước đây, lấy SHA trên Windows bằng Get-FileHash rồi:
+
+```bash
+pixi run --locked assets --archive /absolute/path/mvtec_anomaly_detection.tar.xz \
+  --archive-sha256 SHA256_BAN_DA_KIEM
+```
+
+Archive chủ động phải có operatorSHA; việc ghi hash không tự chứng minh authorprovenance. Để tiết kiệm billedGPUtime, có thể chuẩn bị/upload assets trước, nhưng không bắt buộc chép từ Windows nếu link server hoạt động. `pixi install` không tự tải5GB dataset.
+
+## 4. Kiểm môi trường và chạy research preflight
 
 ```bash
 nvidia-smi
-bash scripts/remote/setup.sh /absolute/path/to/python3.13
-.venv/bin/python -B -m hope_cad.local_tests
+pixi run --locked env-check --gpu
+pixi run --locked test
 ```
 
-Setup tạo venv mới, không cài vào system Python hoặc đổi driver; từ chối overwrite venv có sẵn. Nếu chưa có Python3.13, chuẩn bị bằng environment manager/image đã chọn rồi đưa path chính xác; script không tự thay host. PyTorch cung cấp [2.11.0/torchvision0.26.0 CUDA12.8 wheels](https://pytorch.org/get-started/previous-versions/); [Blackwell support bắt đầu với CUDA12.8 builds](https://pytorch.org/blog/pytorch-2-7/). Điều đó không thay actual kernel/numerical gate trên GPU thuê.
+`env-check` kiểm scientificpackagepins Linux, lưu installedmetadata/lockSHA vào records/environment/; `--gpu` chỉ đọc GPUinfo, không chạy kernels. Preflight riêng kiểm nativeBlackwell architecture, actualruntime/numerics. Nếu lỗi cài/test, giữ logs, không ngẫu nhiên upgrade.
 
-## 3. Inputs và remote preflight — bước người dùng chạy trước
+Trong tmux, chạy [research handoff](research/implementation.md): tạo records/B_allocation.json từ giá/cap thật, rồi `bash scripts/remote/run.sh research --phase preflight --run-dir runs/hq32_01 --allocation records/B_allocation.json --external-billed-seconds ...`. CLI mặc định đọc data/mvtec và weights/ trong repo. Wrapper dùng `pixi run --locked cad`, thêm tee log/timestamp/unbuffered; không cài packages ngoài Pixi. `bash scripts/remote/setup.sh` chỉ là convenience wrapper cho install+envcheck, không nhận Pythonpath nữa.
 
-Giải nén MVTec AD riêng, layout `<data-root>/bottle/train/good/...`; cung cấp ViT checkpoint đúng SHA trong src/hope_cad/resources/method.json. Không attach old weights/evidence. Chỉ train normals được discovery ở preflight/train; test/GT chỉ vào evaluator sau train completion.
+Giữ ZIP+accountingsidecar+log sau mỗi invocation; ZIP ledger là snapshot trước reconciliation, sidecar gắn archiveSHA. Chưa remoteacceptance trước actualpreflightreview; không tự bật pilot/main. Baseline3.599 chạy bằng `pixi run cad preflight/train/evaluate/matrix ...`; không dùng baselinecommand thay research3.629.
+
+## 5. Baseline, resume và CPU tools
 
 ```bash
-bash scripts/remote/run.sh preflight \
-  --run-dir /workspace/runs/preflight_v7_01 --device cuda:0 \
-  --expected-gpu 'NVIDIA GeForce RTX 5090' \
-  --data-root /workspace/data/mvtec \
-  --checkpoint /workspace/weights/vit_base_patch8_224.augreg_in21k.safetensors
+pixi run --locked preflight-local
+# Baseline GPU (sau review đúng cohort), luôn explicit job/preflight/run-dir:
+bash scripts/remote/run.sh train --run-dir runs/baseline_01 --job NESTED_seed0 \
+  --preflight runs/baseline_preflight --device cuda:0 --session-hours 4
+pixi run --locked cad export --run-dir runs/baseline_01 --output results/baseline_01.zip
+pixi run --locked cad aggregate --inputs results/baseline_01.zip --output results/summary.json
 ```
 
-Preflight cố định: synthetic full-grid exact/FO meta-backward, reference/optimized NN, discarded24normals mỗi NESTED/CADIC +resume4 và state/score/full-budget parity. Không giữ learned pilot weights làm initialization, không anomaly test, không tune để PASS. Source/runtime/data/checkpoint binding phải khớp mọi lệnh sau; đo thời gian thật rồi mới dự trù full run. `remote_preflight_passed_pending_review` cần gửi ZIP/log cho review trước full training; `local_synthetic_smoke_passed` không mở benchmark.
+Evaluate/matrix chỉ sau completedtrain theo CLI, readonly; chỉ thêm missingcells. Baseline/research cần riêng source/runtime/data/review; không resume oldT4checkpoint hay trộn source. `--statistics` chỉ khi đủ registeredseeds/pairedinputs. D0 inputs riêng theo SHA; VisA chưa runner/protocolđượcaccept.
 
-Nếu đã có venv Windows, chỉ local CPU smoke:
+## 6. Backup và source identity
 
-```powershell
-pixi run python -B -m hope_cad preflight --local-smoke --device cpu --run-dir results/local-smoke-01
-```
+Cất artifacts trong checkout giúp dễ tìm, không bảo vệ khi Destroy instance. Trước Stop/Destroy: copy ZIP/accounting/log/records về máy khác và đối chiếu archiveSHA; live directory cần giữ để resume. Git clone không backup data/run. Hardkill có thể ngăn export; lastatomiccheckpoint phải lấy từ disk. Không tự reset ledger/folder để vượt cap.
 
-## 4. Fresh matched jobs sau khi preflight được review
-
-Chạy trong `tmux`/process manager của máy thuê để SSH disconnect không giết process. Công cụ đó cần có trên host; repo không khẳng định đã cài hay thiết lập monitoring.
-
-```bash
-bash scripts/remote/run.sh train \
-  --run-dir /workspace/runs/cohort_v7_01 --job NESTED_seed0 \
-  --preflight /workspace/runs/preflight_v7_01 --device cuda:0 --session-hours 8 \
-  --data-root /workspace/data/mvtec --checkpoint /workspace/weights/vit_base_patch8_224.augreg_in21k.safetensors
-```
-
-`train` chỉ học stream3.599normals, lưu mỗi8ảnh/task/end; không tự eval. Pause thì cùng lệnh/run-dir/source/runtime/data để tiếp đúng cursor. Giữ log+ZIP, xem handoff; technical/scientific failure không tự retry/retune. Hard kill có thể để stale `.writer.lock`: xác minh **PID trên đúng host không còn chạy và checkpoint/evidence hợp lệ** trước khi gỡ lock thủ công; không tự xóa lock để cướp writer.
-
-Sau `train_complete_pending_review`, dùng cùng arguments thay `train` bằng `evaluate` để final15cells; rồi `matrix` thêm105cells. Không training trong hai lệnh đó. Matched CADIC dùng `--job CADIC_seed0` cùng cohort/run-dir và recipe/runtime; giữ mỗi latest export nếu nhiều phiên. Full27jobs không tự hoàn thành chỉ từ hai seed0 jobs.
-
-```bash
-bash scripts/remote/run.sh export --run-dir /workspace/runs/cohort_v7_01 --output /workspace/backup/cohort_v7_01.zip
-bash scripts/remote/run.sh aggregate --inputs /workspace/backup/cohort_v7_01.zip --output /workspace/backup/summary.json
-```
-
-`--statistics` chỉ khi đủ3seeds cho NESTED và comparator theo frozen study. Source/runtime cohorts khác bị từ chối; không ghép v6T4 với v7fresh để suy paired claims. VisA chưa có runner/protocol trong study này; không đổi dataset path rồi gọi prospective confirmation.
-
-## 5. Lưu trữ và giới hạn
-
-`run.sh` ghi log theo timestamp/PID, stdout unbuffered; train tiến độ mỗi8ảnh và evaluator mỗicell. Soft budget có180giây reserve, không ETA và không hard cloud-session limit. Checkpoint/evidence nằm **trên server** cho tới khi copy về máy người dùng hoặc storage bền đã cấu hình. Kiểm download/SHA trước stop/destroy; disk server không phải offsite backup.
-
-Export có manifest và streaming SHA verification; từ chối writer đang chạy, ZIP trong payload tree hoặc symlink. Giữ failure/pause và mọi old source archives. SIGKILL/powerloss có thể ngăn export; last good atomic checkpoint vẫn cần được lấy từ disk. Không có remote agent/auto uploader/W&B mặc định.
-
-## 6. Bước khoa học tiếp theo
-
-[Kiến trúc](architecture.md) tách source/layout, runtime acceptance và scientific revision. Historical-query slow consolidation là candidate đã implement local, chưa remote acceptance hoặc adopt; không được gắn gain của cleanup/preprocessing/hardware vào Nested Learning. Bản v5.1 baseline giữ frozen recipe đã development-exposed; native-checkpoint normalization mismatch không được sửa ngầm. Khóa revision/protocol trước VisA.
-
-## Source identity khi đóng gói
-
-Source layout hiện hành thay package/import/producer identity so với các executions trước refactor. Commit SHA định danh Git checkout; source digest còn kiểm toàn bộ inventory bytes, không chỉ HEAD. Sau khi người dùng commit/push, clone đúng commit đã công bố, cài editable rồi preflight đúng source/runtime trước fresh jobs. Không ghi đè archive đã khóa hoặc resume checkpoint khác source bằng bỏ guard. Không cần tạo source ZIP mới cho luồng Git; các bundles cũ là provenance bất biến. Không tự thuê GPU hoặc SSH. Hãy chạy trong tmux, copy và kiểm SHA evidence về máy trước khi stop/destroy server.
+Source identity gồm code/docs/tests/pixi manifest/lock, không outputs. Thay provisioning/source phải commit/push hoặc ghi exactdirtyinventory trước freshcohort; không pull/sửa source giữa run. Localtests/locksolve không là ADgain, speedup hay scientificacceptance. Giữ baseline89df9a2 và oldarchives bất biến; không cần tạo sourceZIP mới cho luồng Git.

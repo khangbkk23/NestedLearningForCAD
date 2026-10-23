@@ -23,7 +23,7 @@ docs/                   # docs hiện hành, results, research specs/plan và pa
 
 `cli → runtime.execution → benchmark.engine → models.session → geometry/CADIC bank + utility learner`. Frozen ViT tạo raw patch features; utility learner không chạy trên anomaly test. `model.session` sở hữu clock, pending credit, replay, RNG và transaction; exact pair-cache/fixed-shape NN chỉ thay execution, không thay bank update/score.
 
-Package cài bằng `pip install -e . --no-deps --no-build-isolation`. `src/` tránh import nhầm các thư mục cạnh repo. Wheel chứa model APIs và normative resource JSON/YAML; CLI `--help` và model imports dùng được ngoài repo. Các lệnh execution, source shipping và local tests cần **verified source checkout** vì identity bao gồm source/config/docs/tests; chúng từ chối nếu chỉ có wheel, thay vì tìm checkout lân cận. Remote workflow dùng editable install từ source ZIP.
+Package cài editable tự động bằng `pixi install --locked`. `src/` tránh import nhầm các thư mục cạnh repo. Wheel chứa model APIs và normative resource JSON/YAML; CLI `--help` và model imports dùng được ngoài repo. Các lệnh execution, source shipping và local tests cần **verified source checkout** vì identity bao gồm source/config/docs/tests; chúng từ chối nếu chỉ có wheel, thay vì tìm checkout lân cận. Remote workflow dùng Git checkout đã pin, Pixi lock và editable install.
 
 Không giữ `models/hope_cad_v2`, `models/hope_cad_v5` hay `training/support_*` trong workspace này. Primitive còn dùng được chuyển vào tên chức năng; common geometry và validation được hợp nhất. Serialized class/config/schema names hoặc method ID có version được giữ khi thuộc contract lịch sử, không phải code version song song.
 
@@ -33,9 +33,9 @@ Matched study chính dùng `hope-cad train --job CADIC_seed0`. Compatible CADIC 
 
 ## Ranh giới dữ liệu và artifact
 
-Data/weights/runs ở ngoài source checkout hoặc các thư mục outputs bị ignore; không commit dữ liệu thật. Train chỉ dùng normals theo manifest; GT/masks chỉ vào evaluator; scoring không update state/RNG. Checkpoint atomic, lock identity, source hashes, feature receipts và task checkpoints được giữ.
+Mặc định data/weights/runs/records ở các thư mục cùng tên ngay trong checkout, được Git ignore và loại khỏi source inventory; có thể cấp đường dẫn ngoài repo. Không commit dữ liệu thật. Train chỉ dùng normals theo manifest; GT/masks chỉ vào evaluator; scoring không update state/RNG. Checkpoint atomic, lock identity, source hashes, feature receipts và task checkpoints được giữ.
 
-Dataset, checkpoint và raw result ZIPs nằm ngoài source; identities/provenance và giới hạn truy cập được công bố trong [results](results.md). Docs/spec/plan cần cho hiểu và phát triển nằm trong repo. Không cần một kho context hoặc sibling checkout riêng.
+Dataset, checkpoint và raw result ZIPs không là tracked source; identities/provenance và giới hạn truy cập được công bố trong [results](results.md). Docs/spec/plan cần cho hiểu và phát triển nằm trong repo. Không cần một kho context hoặc sibling checkout riêng.
 
 ## Research successor đã thêm
 

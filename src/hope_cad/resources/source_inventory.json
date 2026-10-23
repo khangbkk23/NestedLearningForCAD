@@ -35,7 +35,7 @@
     "pyproject.toml",
     "refs/README.md",
     "refs/replaycad.json",
-    "requirements/remote-cu128.txt",
+    "scripts/check_environment.py",
     "scripts/install_local.py",
     "scripts/remote/run.sh",
     "scripts/remote/setup.sh",
@@ -77,6 +77,8 @@
     "src/hope_cad/data/masks.py",
     "src/hope_cad/data/prefix.py",
     "src/hope_cad/data/protocol.py",
+    "src/hope_cad/data/provision.py",
+    "src/hope_cad/data/transfer.py",
     "src/hope_cad/integrations/__init__.py",
     "src/hope_cad/integrations/cadic/__init__.py",
     "src/hope_cad/integrations/cadic/run.py",
@@ -166,6 +168,7 @@
     "tests/runtime/test_execution.py",
     "tests/runtime/test_measurement.py",
     "tests/runtime/test_portable.py",
+    "tests/runtime/test_provisioning.py",
     "tests/runtime/test_research.py"
   ],
   "scope": "Complete functional package, configuration, docs, tests and scripts; no environments, data or artifacts"

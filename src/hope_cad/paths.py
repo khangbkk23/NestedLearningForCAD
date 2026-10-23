@@ -12,5 +12,5 @@ ROOT = PACKAGE_ROOT.parents[1]
 
 def require_checkout():
     if not (ROOT / 'pyproject.toml').is_file() or not (ROOT / 'src/hope_cad').samefile(PACKAGE_ROOT):
-        raise RuntimeError('This command needs the verified source checkout. Install it with pip install -e . --no-deps; model APIs also work from a wheel.')
+        raise RuntimeError('This command needs the verified source checkout. Run pixi install --locked; model APIs also work from a wheel.')
     return ROOT

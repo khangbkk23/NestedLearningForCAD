@@ -19,12 +19,14 @@ Một seed/order,15categories,120matrix cells/method;3.599train/1.725test. Đây
 ## Bắt đầu với code hiện tại
 
 ```bash
-python -m pip install -e . --no-deps --no-build-isolation
-hope-cad --help
-python -m hope_cad.local_tests
+pixi install --locked
+pixi run --locked env-check
+pixi run --locked cad --help
+pixi run --locked test
+pixi run --locked assets
 ```
 
-Cài dependencies trước: Windows local dùng `pixi install --locked` rồi `pixi run install`; Linux/RTX5090 dùng `bash scripts/remote/setup.sh /absolute/path/to/python3.13`. Các pins chuẩn bị không thay actual remote preflight. [Runbook](docs/operations.md) mô tả inputs, lệnh, resume và export; source không tự thuê máy/chạy GPU.
+Pixi là package/environment manager duy nhất; `pixi install --locked` cài Python, dependencies và project editable, không cần pip/uv/venv thủ công. Cùng `pixi.lock` khóa Linux (Python3.13/PyTorch2.11+cu128) và Windows local (Python3.14/PyTorch2.12+cu126). Linux lock đã solve, cài/kernel5090 cần preflight thật. `assets` là bước tải dữ liệu/ViT riêng, chỉ chạy khi được yêu cầu; không tự tải5GB khi install. [Runbook](docs/operations.md), [research handoff](docs/research/implementation.md).
 
 Bàn giao máy thuê qua Git: người dùng review, commit và push branch `hope_cad_v7`, rồi clone branch và kiểm full commit SHA trước setup/preflight. Source ZIP cũ giữ provenance local verification, không là yêu cầu chuyển source. ZIP outputs của remote run vẫn cần giữ cùng accounting sidecar và log theo research handoff.
 
@@ -40,10 +42,9 @@ src/hope_cad/    package duy nhất, chia theo chức năng
 tests/          gradient, causal, state/resume và benchmark regressions
 scripts/        source inventory và remote setup/run
 docs/           code hiện tại, kết quả, research specs/plan và papers
-requirements/   runtime GPU đã định danh
 refs/           provenance upstream integrations
 pyproject.toml  metadata, editable install, CLI và pytest
-pixi.toml/lock  môi trường local có khóa
+pixi.toml/lock  môi trường Linux/Windows và editable install có khóa
 ```
 
-Repo tự chứa các tài liệu cần để hiểu và phát triển phương pháp. Không chứa dataset/checkpoint/raw output archives/API keys/chat history. Muốn chạy phải cung cấp data/weights đúng identity; muốn tự tính lại kết quả lịch sử phải nhận các archives ghi trong results. Mọi spec/link cần đọc nằm trong repo hoặc nguồn khoa học công khai.
+Repo Git tự chứa tài liệu/code, không phát hành dataset/checkpoint/raw outputs/API keys/chat history. Trên máy chạy, `data/`, `weights/`, `runs/`, `records/` nằm ngay trong checkout và được ignore; source inventory không gồm chúng. Muốn chạy phải cung cấp data/weights đúng identity; muốn tự tính lại kết quả lịch sử phải nhận các archives ghi trong results. Mọi spec/link cần đọc nằm trong repo hoặc nguồn khoa học công khai.

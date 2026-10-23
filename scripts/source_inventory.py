@@ -5,7 +5,7 @@ import os
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-AREAS = ('src', 'scripts', 'tests', 'docs', 'refs', 'requirements')
+AREAS = ('src', 'scripts', 'tests', 'docs', 'refs')
 ROOT_FILES = ('.gitattributes', '.gitignore', 'AGENTS.md', 'README.md', 'QUICK_UPDATE.md', 'LICENSE',
               'pyproject.toml', 'pixi.toml', 'pixi.lock')
 SKIP = {'.git', '.pixi', '.venv', '__pycache__', '.pytest_cache', '.cache',

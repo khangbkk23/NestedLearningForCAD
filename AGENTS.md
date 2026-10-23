@@ -6,8 +6,8 @@
 - Giữ nguyên operations/precision/causality/clock/bank/Eq9 trong cleanup. Thay khoa học cần contract/method revision và acceptance riêng; không tune từ anomaly test. MVTec đã development-exposed; chưa VisA confirmation.
 - User quyết định. Codex cộng tác viên chính; Claude/model khác cố vấn task-scoped read-only mặc định. Không tự API/rental/SSH/GPU/push. Không sửa sibling worktrees.
 - Tài liệu tự đủ trong repo: docs/README.md định tuyến current docs/results và docs/research/ chứa full spec/plan prospective. Không cần context ngoài repo hoặc chatlog để hiểu/implement; raw artifacts cần cấp riêng theo hashes trong docs/results.md.
-- Editable install trước test; kiểm clean source installation, gradients, parity, source/runtime/data locks, atomic rollback và resume. Local tests không thay real5090 preflight hoặc AD benchmark.
-- Production entrypoint hope-cad / python -m hope_cad. Optional baselines ở integrations; fixture adapters ở testing, không dùng làm comparator thật. Output ngoài source hoặc runs/results/logs; data/checkpoints không commit.
+- Dùng Pixi duy nhất; pixi install --locked tự cài editable trước test; kiểm clean source installation, gradients, parity, source/runtime/data locks, atomic rollback và resume. Local tests không thay real5090 preflight hoặc AD benchmark.
+- Production entrypoint hope-cad / python -m hope_cad. Optional baselines ở integrations; fixture adapters ở testing, không dùng làm comparator thật. Mặc định data/weights/runs/records/logs/results trong repo và bị ignore, không thuộc source hashes; không commit assets/outputs.
 - H32/full-train đã implement và local-tested; scientific candidate chưa adopt, remote preflight/pilot/AD pending. Entry `research` riêng, baseline entrypoints giữ nguyên. Không tự SSH/GPU vì task implementation.
 
 - Cohort tiếp theo theo `docs/pipeline_alignment_spec.md` và JSON cạnh nó: full-train 3.629, giữ recipe hiện hành, H32 là candidate riêng; baseline runtime 3.599 giữ; research runtime 3.629 đã thêm, chưa remote acceptance. Đọc docs/research/README.md và pipeline trước implementation, không overwrite frozen resources hoặc old evidence.

@@ -1,5 +1,9 @@
 """One SSH-friendly interface; no automatic rentals, experiments or external services."""
 import argparse,json,sys
+from hope_cad.paths import ROOT
+
+DATA_ROOT=str(ROOT/'data/mvtec')
+CHECKPOINT=str(ROOT/'weights/vit_base_patch8_224.augreg_in21k.safetensors')
 
 def parser():
     p=argparse.ArgumentParser(prog='python -m hope_cad')
@@ -8,11 +12,11 @@ def parser():
     pf.add_argument('--run-dir',required=True);pf.add_argument('--device',default='cuda:0')
     pf.add_argument('--local-smoke',action='store_true')
     pf.add_argument('--expected-gpu',default='NVIDIA GeForce RTX 5090')
-    pf.add_argument('--data-root');pf.add_argument('--checkpoint')
+    pf.add_argument('--data-root',default=DATA_ROOT);pf.add_argument('--checkpoint',default=CHECKPOINT)
     for name in ('train','evaluate','matrix'):
         q=sub.add_parser(name)
         q.add_argument('--run-dir',required=True);q.add_argument('--job',required=True)
-        q.add_argument('--data-root',required=True);q.add_argument('--checkpoint',required=True)
+        q.add_argument('--data-root',default=DATA_ROOT);q.add_argument('--checkpoint',default=CHECKPOINT)
         q.add_argument('--preflight',required=True,help='Passed remote preflight directory')
         q.add_argument('--device',default='cuda:0');q.add_argument('--session-hours',type=float,default=8.)
     q=sub.add_parser('aggregate');q.add_argument('--inputs',nargs='+',required=True)
@@ -26,7 +30,7 @@ def parser():
     q.add_argument('--nested-archive');q.add_argument('--cadic-archive')
     q=sub.add_parser('research',help='Fresh full-train/H32 study on an explicitly provisioned remote CUDA machine')
     q.add_argument('--phase',choices=('preflight','pilot','main','extension'),required=True)
-    q.add_argument('--run-dir',required=True);q.add_argument('--data-root',required=True);q.add_argument('--checkpoint',required=True)
+    q.add_argument('--run-dir',required=True);q.add_argument('--data-root',default=DATA_ROOT);q.add_argument('--checkpoint',default=CHECKPOINT)
     q.add_argument('--job',default='H32_EXACT_seed0');q.add_argument('--device',default='cuda:0')
     q.add_argument('--expected-gpu',default='NVIDIA GeForce RTX 5090');q.add_argument('--session-hours',type=float,default=4.)
     q.add_argument('--external-billed-seconds',type=float,default=0.,help='Unrecorded setup/idle billed time, counted once in stage ledger')

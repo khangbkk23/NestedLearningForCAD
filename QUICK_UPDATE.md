@@ -603,3 +603,8 @@ Tài liệu này không đoán ý định hoặc phân công từ tên experimen
 ### D6. Disposition các điểm pipeline đã audit
 
 Bỏ30ảnh là nợprotocol cần loại trong cohort mới, không lỗi/leakage làm vô hiệu matchedresults cũ. Recipe ảnh được giữ có lý do, chưa đo native impact. Route image-vs-batch và actual checkpoint là yêu cầu provenance/fixture. SameK không equalmemory; seed/order/timing/numericparity là các giới hạn phải báo và đo, không tự tăngcomponent/rate/K để gọi đã fix. Thứ tự là fulltrainbaseline+route/checkpoint locks → candidate và controls trên cùng cohort → review memory/timing/seeds → riêng VisAfreeze. Không gộp paperparity với fulltrainparity.
+
+
+## Vận hành Pixi và assets trong checkout
+
+Luồng mới dùng duy nhất `pixi install --locked` để cài Python/dependencies/projecteditable theo platformlock. `pixi run assets` tải/kiểm MVTec và ViT; data/weights/runs/records/logs/results nằm trong repo và ignore, không vào sourcehash/Git. Linux vẫn giữ scientificpinsPython3.13/torch2.11+cu128; Windows localgiữstackkhác. Đây là thay đổi provisioning/đónggói, không thuật toán/gate/ADgain. Chưa actualLinux/5090acceptance; usercommit/pushsource mới trước freshpreflight, không pin predecessor720b3cd/672abd1 rồi mong cótasks mới. Đọc [runbook](docs/operations.md) và [research handoff](docs/research/implementation.md).

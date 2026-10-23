@@ -29,73 +29,49 @@ D0 đã được exercise trên đúng historical archives trong quá trình loc
 
 ## Bước người chạy thực hiện trên Vast.ai
 
-Luồng bàn giao đã chốt là **người dùng commit/push branch `hope_cad_v7`, rồi Git clone trên máy thuê**. Candidate H32/full-train đã được người dùng commit tại **`720b3cdd9df4aae3a63c1777b1961af30d1a1543`** ngày23/10/2026. Repository: `https://github.com/khangbkk23/NestedLearningForCAD`; không dùng URL `/tree/hope_cad_v7` làm clone URL. Đã xác nhận commit local; chưa kiểm chứng push trên server. Baseline khoa học trước nâng cấp vẫn `89df9a2`.
-
-Sau khi người dùng đã push commit trên, clone vào thư mục mới và pin đúng source commit bên dưới; `git rev-parse HEAD` phải trả về SHA đó, `git status --short` phải không có thay đổi source. Nếu chọn commit mới hơn có sửa docs/source, ghi rõ SHA mới và source digest trước preflight; không đổi checkout giữa cohort. Bản cập nhật tài liệu ghi SHA này là amendment sau commit, không tự nằm trong commit được dẫn.
+Đọc [runbook Pixi và assets](../operations.md) trước. Source mới gồm thay đổi provisioning/Pixi chưa được commit ở thời điểm viết; user review/commit/push rồi clone branch và pin **full SHA của chính lượt thay đổi này**. Commit672abd1/720b3cd là predecessor, không chứa luồng Pixi mới. Không tự suy currentHEAD là bản đã push. Không tạo sourceZIP mới chỉ để bàn giao Git.
 
 ```bash
-git clone --branch hope_cad_v7 --single-branch \
-  https://github.com/khangbkk23/NestedLearningForCAD.git /workspace/hope_cad_v7
-cd /workspace/hope_cad_v7
-git checkout --detach 720b3cdd9df4aae3a63c1777b1961af30d1a1543
-git rev-parse HEAD
-git status --short
-```
+# Sau khi clone/pin đúng commit mới, chạy từ repo root trong tmux.
+pixi install --locked
+pixi run --locked env-check --gpu
+pixi run --locked test
+pixi run --locked assets
 
-Đặt data/weights/run-directory ngoài source; dùng máy/SSH credentials do bạn đã thuê. Source ZIP r1/r2 trong kho evidence chỉ giữ provenance của local verification, không là bước chuyển source bắt buộc và không cần tạo ZIP mới cho mỗi lần bàn giao. ZIP outputs cùng accounting sidecar/log của remote run vẫn là bằng chứng cần giữ. Agent không tự commit/push, thuê máy hoặc kết nối SSH.
-
-```bash
-cd /workspace/hope_cad_v7
-nvidia-smi
-bash scripts/remote/setup.sh /absolute/path/to/python3.13
-.venv/bin/python -B -m hope_cad.local_tests
-
-# Chỉ preflight trước. Sửa data/checkpoint paths theo máy thật.
+# Tạo records/B_allocation.json theo mục budget trong runbook.
+read -r -p "So giay billed chua ghi ledger: " HQ_EXTERNAL_SECONDS
 bash scripts/remote/run.sh research --phase preflight \
-  --run-dir /workspace/runs/hq32_01 --device cuda:0 \
+  --run-dir runs/hq32_01 --device cuda:0 \
   --expected-gpu 'NVIDIA GeForce RTX 5090' --session-hours 4 \
-  --data-root /workspace/data/mvtec \
-  --checkpoint /workspace/weights/vit_base_patch8_224.augreg_in21k.safetensors \
-  --external-billed-seconds 0
+  --allocation records/B_allocation.json \
+  --external-billed-seconds "$HQ_EXTERNAL_SECONDS"
 ```
 
-`--external-billed-seconds` phải ghi **thời gian GPU đã bị tính tiền nhưng ledger chưa ghi**, gồm setup/idle trước invocation; số0 chỉ đúng nếu không có khoản chưa ghi. Ghi mỗi khoản một lần. Ledger giữ full reservation qua cả compress/verify/hash ZIP; chỉ đóng sau export thành công. Charge gồm elapsed thực đến sau export, external time và180s dự trù publication cuối; không phải hóa đơn chính xác. Export lâu hơn180s vẫn được tính đủ. Soft deadline chừa180s trước export, không bảo đảm hard stop đúng giờ khi atomic work/export dài.
+CLI mặc định dùng `<repo>/data/mvtec` và `<repo>/weights/vit_base_patch8_224.augreg_in21k.safetensors`, không phụ thuộc tên thư mục cha. Có thể override `--data-root`/`--checkpoint`; không đổi data/source/runtime identity giữa cohort. `pixi run cad` và wrapper `run.sh` dùng cùng Pixi environment; wrapper thêm log timestamp/PID, unbuffered và CUBLAS config.
 
-ZIP chứa snapshot ledger `export_incomplete`; bản chốt sau export ở **`<run-dir>.accounting.json` cạnh ZIP**, ràng buộc bằng archive SHA và attempt ID. Live `budget_<stage>.json` được cập nhật sau sidecar. Giữ cả ZIP, accounting sidecar và log mỗi phiên. Resume bình thường dùng cùng live run-directory; ZIP đơn lẻ giữ reservation bảo thủ, không tự giảm charge từ snapshot. Nếu phục hồi sang host khác, review SHA/attempt/billing và reconciliation trước, không tự copy vài field hoặc xóa ledger. Crash/export failure giữ full reservation; không có sidecar hợp lệ nghĩa là chưa chốt export. `handoff.elapsed_seconds_before_export` không là tổng thời gian tính tiền.
+**Chỉ dừng ở preflight và review trước pilot.** Giữ `runs/hq32_01.zip`, `runs/hq32_01.accounting.json`, `logs/` cùng `records/` và live run-directory; tải về máy khác/knowledge trước Stop/Destroy. Cất trong repo không thay thế backup ngoài máy thuê.
 
-Cost cap thấp hơn được cấu hình bằng `--allocation /path/B_allocation.json` với `stage:"B",authorized:true,USD_cap,USD_per_hour`; dùng cùng record cho mọi invocation stage đó. Không reset ledger/chuyển folder để lách cap; hết cap phải giữ outputs và xin phân bổ có record.
-
-Trong SSH dùng tmux/process manager đã cài trên host. Chỉ dùng1GPU cho một job; không tự dùng GPU thứ2. Máy không phải5090 phải có runtime review riêng, không chỉ sửa expected name rồi gọi đã canonical acceptance.
-
-Kết thúc preflight: giữ `/workspace/runs/hq32_01.zip`, `/workspace/runs/hq32_01.accounting.json`, log do run.sh tạo và run-directory. Download/copy và kiểm SHA trước Stop/Destroy máy. Gửi ZIP/accounting/log để review; trạng thái `research_preflight_passed_pending_review` chưa là chấp thuận pilot.
-
-Sau khi preflight đã được review, ghi chấp thuận rõ và chạy pilot:
+StageB preflight+pilot cap12GPUh, mỗi invocation≤4h mềm; StageC main cap24GPUh; D cần allocation riêng. Đây là caps, không ETA. File allocation phải cố định theo stage, ví dụ tạo một lần với giá thật/cap user chọn:
 
 ```bash
-bash scripts/remote/run.sh research-review --run-dir /workspace/runs/hq32_01 \
-  --phase preflight --accept --note 'Preflight artifacts da duoc review va chap thuan'
-
-# Cùng data/checkpoint/source/runtime. Không dùng state pilot cũ.
-bash scripts/remote/run.sh research --phase pilot \
-  --run-dir /workspace/runs/hq32_01 --session-hours 4 --device cuda:0 \
-  --expected-gpu 'NVIDIA GeForce RTX 5090' \
-  --data-root /workspace/data/mvtec \
-  --checkpoint /workspace/weights/vit_base_patch8_224.augreg_in21k.safetensors
+pixi run python -c 'import json; from pathlib import Path; p=Path("records/B_allocation.json"); p.parent.mkdir(parents=True,exist_ok=True); rate=float(input("USD/hour: ")); cap=float(input("USD cap Stage B: ")); assert rate>0 and cap>0; f=p.open("x"); json.dump(dict(stage="B",authorized=True,USD_per_hour=rate,USD_cap=cap),f,indent=2); f.close()'
 ```
 
-Pilot tự đi theo thứ tự9fresh arms×256normals; pool209Bottle+47Cable, riskwindow81+47. Có pause thì chạy lại **cùng lệnh/cùng run-dir**, không reset clocks hoặc đổi source. Từng completed job được skip learning; không nhập learned pilot state vào main. `pilot_complete_scientific_gate_failed` là negative result phải giữ, không tăng thời gian/đổi thresholds để cứu gate. Budget exhaustion không là completion.
+`--external-billed-seconds` là setup/download/tests/idle chưa ghi, tính một lần; không là hóa đơn chính xác. Ledger giữ full reservation qua compress/verify/hash ZIP, sau export tạo accounting sidecar gắn archive SHA/attempt rồi cập nhật live budget. ZIP chứa `export_incomplete`; sidecar chốt elapsed thực +external+180s publication reserve. Crash giữ full reservation; chuyển host cần review reconciliation, không tự xóa ledger hoặc trộn checkpoint/source để cứu budget. Runner không tự Stop instance.
 
-Pilot được nghiệm thu thì `research-review --phase pilot --accept --note ...`; sau đó `research --phase main --job CADIC_seed0`, rồi `R_EXACT_seed0`, rồi `H32_EXACT_seed0` với cùng arguments. Mỗi job train3629 →final15cells→matrix120cells; pause giữ task states và tự tiếp phần thiếu, không học lại để thêm matrix. Main batch24GPUh cộng dồn. Khi đủ3jobs, `development_screen.json` chỉ quyết định chi tiếp, không superiority/NI claim. Extension cần explicit stageD allocation và screen đạt; không tự mở15jobs hoặc VisA.
-
-CPU summary sau completed outputs:
+Sau review đạt, ghi acceptance và chạy pilot cùng inputs/run-dir/allocation; thay external time đúng invocation:
 
 ```bash
-.venv/bin/python -B -m hope_cad research-aggregate \
-  --inputs /workspace/runs/hq32_01.zip --output /workspace/summary.json
-# --statistics chỉ khi đủ3seeds cho cảH32 và comparator.
+pixi run --locked cad research-review --run-dir runs/hq32_01 \
+  --phase preflight --accept --note 'Artifacts reviewed and accepted'
+bash scripts/remote/run.sh research --phase pilot --run-dir runs/hq32_01 \
+  --session-hours 4 --allocation records/B_allocation.json \
+  --external-billed-seconds "$HQ_EXTERNAL_SECONDS"
 ```
 
-D0 chạy CPU riêng bằng `hope-cad attribution --input-root /path/two-archives --output /path/new-session`; có `--nested-archive`/`--cadic-archive` khi hai ZIP ở khác thư mục. Không cần máy thuê để chạy D0. Output không overwrite session cũ, không true-resume; các operational attempts/trial limits theo spec.
+Pilot9fresharms×256normals209Bottle+47Cable; không import learned preflight/pilot vào main. Pause: resume cùng lệnh/run-dir/source/lock; gatefail giữ negative và review, không retune. Pilot được nghiệm thu mới reviewaccept rồi mở main từng job `CADIC_seed0`, `R_EXACT_seed0`, `H32_EXACT_seed0`, với stageCallocation riêng. Mỗi job3629→final15→matrix120; extension có screen/budget điều kiện. Chưa tự mở VisA.
+
+CPU summary: `pixi run --locked cad research-aggregate --inputs runs/hq32_01.zip --output results/summary.json`; paired statistics chỉ khi đủ3seeds cho H32 và comparator. D0 `pixi run --locked cad attribution ...` giữ inputs/SHA lịch sử, không cần GPU. Cài đặt không tự chạy asset download, tests, preflight hoặc benchmark.
 
 ## Các ranh giới còn nguyên
 
