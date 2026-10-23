@@ -1,6 +1,6 @@
 # D0 — Đặc tả attribution offline, bản 2
 
-ID: `support_utility_attribution_v2`. Thuộc [bundle v7](README.md). Thay bản D0 v1 cho implementation mới, giữ v1 làm lịch sử. **Analyzer chưa được triển khai hoặc chạy trong repo hiện tại.** D0 không gọi model, GPU hoặc bộ đánh giá anomaly chính thức.
+ID: `support_utility_attribution_v2`. Thuộc [bundle v7](README.md). Thay bản D0 v1 cho implementation mới, giữ v1 làm lịch sử. **Analyzer đã implement và exercise trên historical normal events trong local verification; xem [implementation](implementation.md).** D0 không gọi model, GPU hoặc bộ đánh giá anomaly chính thức.
 
 ## 1. Input binding và allowlist
 

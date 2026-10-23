@@ -1,12 +1,12 @@
 # H32 — Candidate học hợp nhất chậm bằng historical queries
 
-Method ID đề xuất: **`hope_cad_hq32_fulltrain_v1`**. Trạng thái: `specified_experimental_candidate_not_implemented_not_adopted`.
+Method ID đề xuất: **`hope_cad_hq32_fulltrain_v1`**. Trạng thái: `implemented_local_verified_not_remote_accepted_not_adopted`.
 
 Đây là một adaptation của Nested Learning cho CAD, chưa phải phương pháp chính đã được chấp nhận. Spec xác định đủ thuật toán để triển khai thí nghiệm có giới hạn; nó không tái lập đầy đủ HOPE và không bảo đảm thắng CADIC. Các lựa chọn bên dưới được khóa trước thí nghiệm. Phương pháp v5.1, contracts và toàn bộ evidence đã có giữ nguyên.
 
 ## Phạm vi dữ liệu của bản công khai
 
-Candidate này dùng fresh full-train **3.629 normals, Bottle 209, không exclusions**, cùng CADIC và recent-only controls; xem [pipeline contract](../pipeline_alignment_contract.json) và [study](study.md). Không nhập checkpoint 3.599 cũ. Đây là tích hợp quyết định full-train đã chốt, không thêm một thay đổi thuật toán H32 mới. Contract nghiên cứu [contract.json](contract.json) chưa được runtime CLI nạp; chỉ các contracts hiện hành trong `src/hope_cad/resources` đang chạy.
+Candidate này dùng fresh full-train **3.629 normals, Bottle 209, không exclusions**, cùng CADIC và recent-only controls; xem [pipeline contract](../pipeline_alignment_contract.json) và [study](study.md). Không nhập checkpoint 3.599 cũ. Đây là tích hợp quyết định full-train đã chốt, không thêm một thay đổi thuật toán H32 mới. Runtime research dùng resource riêng `src/hope_cad/resources/research.json`; baseline contracts vẫn giữ nguyên. Xem [implementation](implementation.md).
 
 ## 1. Những thành phần được kế thừa nguyên vẹn
 

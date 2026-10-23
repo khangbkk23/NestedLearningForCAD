@@ -9,6 +9,7 @@ from hope_cad.models.geometry import (ForkableCoreset, AnchorReservoir, FixedCon
                        risk, anchor_risk, context_statistics, causal_scale)
 from hope_cad.models.learner import UtilityModel, NestedUtilityLearner
 from hope_cad.models.validation import keys, integer, scalar, tensor, tree_finite
+from hope_cad.runtime.measurement import timed
 
 MODES = ('CADIC', 'GEOMETRIC', 'FIRST_ORDER', 'NESTED', 'FAST_ONLY',
          'NO_FAST_ADAPTATION', 'NO_SELF_MODIFICATION', 'NO_ANCHOR_OBJECTIVE')
@@ -19,11 +20,14 @@ PENDING_KEYS = ('decision_cursor', 'identity', 'accepted', 'other', 'main_sha256
                 'tokens', 'stats', 'prediction', 'decision_d', 'learner_sha256', 'warmup')
 
 
+@timed('bank_hash')
 def bank_digest(features):
     return tensor_digest(({'features': features},))
 
 
 class SupportSession:
+    state_schema = 'hope_support_session_v5_1'
+
     def __init__(self, mode='NESTED', *, device='cpu', seed=0, bank_config=None, model_config=None):
         if mode not in MODES:
             raise ValueError('unregistered support policy')
@@ -65,6 +69,7 @@ class SupportSession:
         bank.features = features
         return bank
 
+    @timed('learner_hash')
     def learner_hash(self):
         return tensor_digest(({k: v for k, v in self.learner.model.state_dict().items() if torch.is_tensor(v)},
                               self.learner.phi)) if self.learner else None
@@ -75,6 +80,22 @@ class SupportSession:
                     projection=tensor_digest(({'P': self.projection.matrix},)) if self.projection else None,
                     anchor_rng=digest(self.anchors.rng.getstate()))
 
+    def context_tokens(self, features):
+        return self.projection(features)
+
+    def pending_token_shape(self):
+        return (1, self.image_tokens, self.model_config.get('context_dim', 32))
+
+    def admission(self, prediction, warmup):
+        return warmup or prediction >= 0.
+
+    def valid_admission(self, pending, prediction):
+        return pending['accepted'] == (pending['warmup'] or prediction >= 0.)
+
+    def replay_records(self):
+        return self.learner.records + (self.learner.saved_meta_episode['records'] if self.learner.saved_meta_episode else [])
+
+    @timed('delayed_credit')
     def _resolve(self, features):
         pending = self.pending
         if pending is None:
@@ -100,6 +121,7 @@ class SupportSession:
             decision_d=pending['decision_d'], prediction=pending['prediction'],
             residual=pending['prediction'] - target, accepted=pending['accepted'], learning=details)
 
+    @timed('observe_transaction')
     def observe(self, features, identity):
         if self.finalized:
             raise ValueError('true stream end cannot resume')
@@ -141,12 +163,12 @@ class SupportSession:
                                                        self.cursor, a0, a1, self.anchor_weight)
                     c, gamma = causal_scale(known['current0'], known['current1'], a0, a1, self.anchor_weight)
                     if self.learned:
-                        tokens = self.projection(x)
+                        tokens = self.context_tokens(x)
                         pred, decision_d = self.learner.predict(tokens, stats, c, gamma)
                         scalar(pred, 'admission prediction')
                         scalar(decision_d, 'admission denominator', 1.)
                         warm = self.learner.labels < 32
-                        accepted = warm or pred >= 0.
+                        accepted = self.admission(pred, warm)
                         if not warm:
                             self.counters['learned_decisions'] += 1
                             self.counters['rejected_learned'] += int(not accepted)
@@ -187,6 +209,7 @@ class SupportSession:
             raise
 
     @torch.no_grad()
+    @timed('score_NN_Eq9')
     def score(self, features):
         if not self.bank.count or features.dtype != torch.float32 or features.requires_grad:
             raise ValueError('nonempty bank and raw FP32 scoring input required')
@@ -206,15 +229,16 @@ class SupportSession:
         return canonical(dict(design_digest=design_digest(), mode=self.mode, seed=self.seed,
                               bank_config=asdict(self.bank_config), model_config=self.model_config))
 
+    @timed('session_snapshot')
     def state_dict(self):
-        return NestedUtilityLearner._cpu(dict(schema='hope_support_session_v5_1', identity=self.identity(),
+        return NestedUtilityLearner._cpu(dict(schema=self.state_schema, identity=self.identity(),
             cursor=self.cursor, finalized=self.finalized, seen_ids=self.seen_ids, counters=self.counters,
             bank=self.bank.state_dict(), bank_sha256=bank_digest(self.bank.features), anchors=self.anchors.state_dict(),
             pending=self.pending, learner=self.learner.state_dict() if self.learner else None))
 
     def _load_validated(self, payload):
         keys(payload, self.state_dict(), 'session')
-        if payload['schema'] != 'hope_support_session_v5_1' or payload['identity'] != self.identity():
+        if payload['schema'] != self.state_schema or payload['identity'] != self.identity():
             raise ValueError('session identity changed or predecessor checkpoint')
         tree_finite(payload)
         cursor = integer(payload['cursor'], 'image cursor')
@@ -251,7 +275,7 @@ class SupportSession:
             self.learner.load_state_dict(payload['learner'])
             if self.learner.labels != counters['labels_completed'] or self.learner.labels > max(0, cursor - 1):
                 raise ValueError('label accounting inconsistent')
-            replay=self.learner.records+(self.learner.saved_meta_episode['records'] if self.learner.saved_meta_episode else [])
+            replay=self.replay_records()
             for r in replay:
                 if r['decision_cursor'] >= cursor - 1 or ids[r['decision_cursor']] != r['decision_identity']:
                     raise ValueError('future/unobserved replay identity')
@@ -275,10 +299,10 @@ class SupportSession:
                 raise ValueError('stored causal coefficients changed')
             scalar(pending['prediction'], 'pending prediction')
             scalar(pending['decision_d'], 'pending denominator', 1.)
-            tensor(pending['tokens'], (1, self.image_tokens, self.model_config.get('context_dim', 32)), torch.float32, 'pending tokens')
+            tensor(pending['tokens'], self.pending_token_shape(), torch.float32, 'pending tokens')
             tensor(pending['stats'], (16,), torch.float32, 'pending stats')
             p, d = self.learner.predict(pending['tokens'].to(self.device), pending['stats'].to(self.device), pending['c'], pending['gamma'])
-            if p != pending['prediction'] or d != pending['decision_d'] or pending['warmup'] != (self.learner.labels < 32) or pending['accepted'] != (pending['warmup'] or p >= 0.):
+            if p != pending['prediction'] or d != pending['decision_d'] or pending['warmup'] != (self.learner.labels < 32) or not self.valid_admission(pending, p):
                 raise ValueError('pending prediction/admission inconsistent')
             pending['other'] = pending['other'].to(self.device)
         if self.learned and counters['labels_completed'] + counters['censored'] + int(pending is not None) != counters['proposals']:

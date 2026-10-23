@@ -2,7 +2,7 @@
 
 Study ID: **hq32_mvtec_fulltrain_development_v1**.
 
-**Trạng thái: đã đặc tả thiết kế, chưa có runner hoặc kết quả; chưa được cấp quyền chạy.** Study này không sửa study lịch sử gồm 9 methods × 3 seeds. Nó khóa candidate, các đối chứng, thứ tự thực hiện và quy tắc quyết định chi tiếp. Quyền sử dụng GPU, tài khoản, SSH và ngân sách tiền thực tế vẫn cần người dùng giao trong nhiệm vụ vận hành sau.
+**Trạng thái: runner/controls đã implement và test local; chưa remote preflight/pilot hoặc AD results, chưa tự được cấp quyền chạy GPU.** Study này không sửa study lịch sử gồm 9 methods × 3 seeds. Nó khóa candidate, các đối chứng, thứ tự thực hiện và quy tắc quyết định chi tiếp. Quyền sử dụng GPU, tài khoản, SSH và ngân sách tiền thực tế vẫn cần người dùng giao trong nhiệm vụ vận hành sau.
 
 ## 1. Cohort chung và các lớp identity
 

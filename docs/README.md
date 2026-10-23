@@ -12,9 +12,9 @@ Repo tự chứa code, cấu hình, phương pháp, kết quả tổng hợp và
 | [Operations](operations.md) | Các lệnh đang tồn tại: setup/preflight/train/evaluate/matrix/resume/export |
 | [Results](results.md) | Benchmark đã có, provenance/hashes, chi phí và giới hạn |
 
-Nguồn thực thi máy đọc nằm tại [resources](../src/hope_cad/resources). Runtime vẫn dùng3599normals; workspace tênv7 không đổi algorithm thànhH32.
+Nguồn thực thi máy đọc nằm tại [resources](../src/hope_cad/resources). Baseline CLI dùng3599normals; CLI research mới dùng3629 và new method identities. Workspace tênv7 không tự gán benchmark cũ choH32.
 
-## Kế hoạch nâng cấp — chưa implement
+## Nâng cấp — đã implement local, chưa remote acceptance
 
 | Tài liệu | Trách nhiệm |
 |---|---|
@@ -22,6 +22,6 @@ Nguồn thực thi máy đọc nằm tại [resources](../src/hope_cad/resources
 | [Research specs](research/README.md) | Đầy đủD0/H32/controls/study/acceptance và contract tổng hợp đã áp dụng full-train |
 | [Implementation plan](research/implementation_plan.md) | Thứ tự làm, nghiệm thu từng bước, stop rules và phần cần remote GPU |
 
-Hai file pipeline không mô tả một tính năng đã chạy: chúng là design decision cho cohort tiếp theo. Spec nghiên cứu không được runtime hiện tại tự động nạp. Khi triển khai xong phải đồng bộ docs/resources/status theo code và evidence thật.
+Hai file pipeline không mô tả một tính năng đã chạy: chúng là design decision cho cohort tiếp theo. Runtime research dùng resource riêng `resources/research.json`; baseline không tự nạp candidate. Xem [implementation/SSH handoff](research/implementation.md); chưa có GPU/pilot/AD result cho revision mới.
 
 [QUICK_UPDATE](../QUICK_UPDATE.md) là báo cáo trao đổi với nhóm, có Overview và milestone/per-category details. Nó dẫn tới specs trong repo; không thay contract thuật toán. Papers ở thư mục `papers/` và provenance upstream ở `refs/`.

@@ -37,9 +37,9 @@ Data/weights/runs ở ngoài source checkout hoặc các thư mục outputs bị
 
 Dataset, checkpoint và raw result ZIPs nằm ngoài source; identities/provenance và giới hạn truy cập được công bố trong [results](results.md). Docs/spec/plan cần cho hiểu và phát triển nằm trong repo. Không cần một kho context hoặc sibling checkout riêng.
 
-## Nâng cấp chưa triển khai
+## Research successor đã thêm
 
-[Research specs](research/README.md) và [pipeline](pipeline_alignment_spec.md) định nghĩa successor full-train/H32, chưa thuộc đường gọi CLI hiện tại. Code/resources hiện hành giữ baseline strict; implementation mới phải thêm revision-aware factories và contracts riêng. Không gộp identity candidate với v5.1 hoặc thay frozen JSON để aggregator nhận nhầm.
+[Research specs](research/README.md) và [pipeline](pipeline_alignment_spec.md) định nghĩa successor full-train/H32, đã có CLI research và revision-aware factories/resources riêng; chưa remote acceptance. Code/resources baseline giữ strict. Xem [implementation](research/implementation.md). Không gộp identity candidate với v5.1 hoặc thay frozen JSON để aggregator nhận nhầm.
 
 ## Tổ chức tham khảo
 

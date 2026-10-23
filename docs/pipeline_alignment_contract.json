@@ -1,8 +1,8 @@
 {
   "schema": "hope_pipeline_alignment_spec_v1",
   "id": "v7_pipeline_alignment_v1",
-  "status": "specified_not_runtime_implemented_not_run",
-  "scope": "Documentation/spec alignment only; source inventory metadata included",
+  "status": "implemented_local_verified_remote_pending",
+  "scope": "Full-train/H32 runtime implemented and local tested; remote/GPU/AD acceptance pending",
   "baseline_commit": "89df9a21658b265731f98a7c2014afb1876f1924",
   "baseline_method_id": "hope_cad_v5_1_causal_scaled_utility",
   "historical_online_images": 3599,
@@ -140,7 +140,7 @@
     "changed_by_fulltrain_amendment": false
   },
   "runtime_implementation_authorized_by_this_document_task": false,
-  "runtime_implemented": false,
+  "runtime_implemented": true,
   "GPU_run": false,
   "candidate_adopted": false,
   "automatic_paid_execution": false,
@@ -149,5 +149,6 @@
     "VisA": "separate_frozen_protocol_and_exposure_review_required_not_run",
     "timing": "fresh_matched_cohort_and_component_scope_required",
     "new_performance_gain_measured": false
-  }
+  },
+  "implementation_status_document": "research/implementation.md"
 }

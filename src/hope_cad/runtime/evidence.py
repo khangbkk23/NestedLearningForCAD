@@ -105,4 +105,6 @@ def export_run(root,output):
     if not (root/'handoff.json').is_file():raise ValueError('Export requires a recorded run/preflight status')
     if (root/'.writer.lock').exists():raise ValueError('Active writer; do not export a changing run')
     schema=EVIDENCE_SCHEMA if (root/'suite_lock.json').exists() else 'hope_cad_portable_preflight_v1'
+    if (root/'suite_lock.json').exists() and 'research_study_digest' in json.loads((root/'suite_lock.json').read_text())['identity']:
+        schema='hope_hq_fulltrain_evidence_v1'
     return export_archive(root,output,schema=schema)

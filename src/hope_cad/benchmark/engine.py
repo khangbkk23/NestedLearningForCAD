@@ -10,11 +10,14 @@ from hope_cad.benchmark.stream import _state_equal
 from hope_cad.benchmark.metrics import compute_metrics,macro_task_metrics,forgetting_matrix
 from hope_cad.runtime.system import atomic_json,atomic_torch_save
 from hope_cad.benchmark.study import lock
+from hope_cad.runtime.measurement import timed
 
 class Pause(Exception):pass
 def boundary(deadline):
     if deadline is not None and time.monotonic()>=deadline:raise Pause('saved atomic boundary; resume latest benchmark output')
+@timed('receipt_read')
 def read(path):return json.loads(Path(path).read_text(encoding='utf-8'))
+@timed('receipt_publication')
 def save_or_verify(path,value):
     if Path(path).exists():
         if read(path)!=canonical(value):raise ValueError('Immutable record changed: '+str(path))
@@ -43,12 +46,14 @@ def train(folder,rows,tasks,identity,provider,factory,deadline=None,checkpoint_e
             chain=digest([chain,event])
         if chain!=state['trace_digest']:raise ValueError('Checkpoint event chain changed')
         if actor.cursor and event['bank_sha256']!=actor.state_dict()['bank_sha256']:raise ValueError('Checkpoint bank differs from last event')
+    @timed('checkpoint_publication')
     def save():
         state=dict(schema='support_benchmark_active_v1',job_digest=locked['digest'],cursor=actor.cursor,session=actor.state_dict(),trace_digest=chain,peak_persistent_tensor_bytes=peak,elapsed_seconds=elapsed+time.monotonic()-start)
         atomic_torch_save(state,active);atomic_json(dict(cursor=actor.cursor,sha256=file_sha(active)),receipt)
     if not active.exists():save()
     # Recover the task-state publication if killed after active save at a task boundary.
     endpoints={sum(r['task_id']<=i for r in rows):i for i in range(len(tasks))}
+    @timed('task_checkpoint_publication')
     def task_save(i):
         path=folder/'states'/f'task_{i:02d}.pt';meta=path.with_suffix('.json')
         if path.exists():
@@ -80,6 +85,7 @@ def train(folder,rows,tasks,identity,provider,factory,deadline=None,checkpoint_e
     if not (folder/'train_complete.json').exists():atomic_json(out,folder/'train_complete.json')
     return actor
 
+@timed('task_restore')
 def task_state(folder,i,actor,job_digest):
     path=Path(folder)/'states'/f'task_{i:02d}.pt';meta=read(path.with_suffix('.json'))
     if file_sha(path)!=meta['sha256'] or meta['task_id']!=i or meta['job_digest']!=job_digest:raise ValueError('Task checkpoint identity/hash changed')

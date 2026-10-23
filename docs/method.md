@@ -177,8 +177,8 @@ Fairness gồm equal K10k và measured memory/compute categories: main/alternati
 VisA confirmation chỉ sau method/code/scoring/data/transfer/metric freeze, fresh causal state, cùng constants, không retune từ test. QA raw/resized masks, image/mask hashes và undefined-metric policy phải khóa cho mọi method trước evaluation. Giữ image label nếu tiny defect biến mất sau resize; không drop/relabel để cải thiện AP. Thesis báo historical negatives, assumptions, trial/exposure ledger và limits. Không có guarantee ngang/hơn CADIC hoặc “tận dụng tối đa” mọi khả năng Nested Learning.
 
 
-## 11. Nguồn thực thi và thay đổi chưa triển khai
+## 11. Nguồn thực thi và successor research
 
 Các phương trình trên mô tả v5.1. Đường thực thi: [learner](../src/hope_cad/models/learner.py), [session](../src/hope_cad/models/session.py), [geometry](../src/hope_cad/models/geometry.py), [runtime manifest](../src/hope_cad/runtime/execution.py), cùng [method contract](../src/hope_cad/resources/method.json). Fast/slow counters phản ánh actual successful optimizer calls; rollback giữ nguyên counters khi fail; scoring chỉ đọc bank.
 
-[Pipeline spec](pipeline_alignment_spec.md) quy định successor full-train3.629; [H32](research/candidate.md) thay slow-query context và thêm history state. Cả hai chưa được runtime hiện tại triển khai, không thay phương pháp hoặc số liệu đang mô tả ở đây. [Plan](research/implementation_plan.md) ghi acceptance trước khi chạy candidate.
+[Pipeline spec](pipeline_alignment_spec.md) quy định successor full-train3.629; [H32](research/candidate.md) thay slow-query context và thêm history state. Cả hai đã có successor runtime riêng qua CLI research, chưa remote acceptance; không thay phương pháp hoặc số liệu baseline đang mô tả ở đây. [Plan](research/implementation_plan.md) ghi acceptance trước khi chạy candidate.

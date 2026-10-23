@@ -1,6 +1,6 @@
 # Kế hoạch implementation và nghiệm thu
 
-**Trạng thái: chưa thực hiện các bước dưới đây.** Đây là kế hoạch có acceptance, không phải danh sách lệnh candidate chạy được. Dùng [contract](contract.json), [candidate](candidate.md), [study](study.md) và [pipeline](../pipeline_alignment_spec.md) cùng nhau.
+**Trạng thái: phần implementation/local verification bước1–6 đã thực hiện; remote bước7–10 còn pending.** Đây là kế hoạch acceptance; [implementation và runbook](implementation.md) ghi lệnh hiện có và bằng chứng local. Dùng [contract](contract.json), [candidate](candidate.md), [study](study.md) và [pipeline](../pipeline_alignment_spec.md) cùng nhau.
 
 | Bước | Phần cần làm | Điều kiện hoàn thành |
 |---|---|---|
@@ -19,4 +19,4 @@
 
 Không tăng width/unroll/K/anchors, đổi utility target/LR, sửa preprocessing, thay proposer ContCore hoặc thêm component để cứu H32 trong vòng này. Lỗi đã chứng minh phải được sửa có version/provenance và nghiệm thu lại đúng phạm vi; kết quả âm không được tự gán là bug. Chi phí/caps không phải ETA hay quyền tự thuê máy.
 
-Trong lần tổ chức docs này chỉ công bố/đồng bộ đặc tả: model/runtime code và frozen resources chưa đổi. Cần task implementation riêng để thực hiện kế hoạch; các lệnh hiện có chỉ được mô tả trong [operations](../operations.md).
+User đã giao implementation; candidate/runtime resources mới được thêm riêng, frozen baseline resources giữ nguyên. Local tests không hoàn thành remote gates hoặc benchmark; lệnh nghiên cứu tại [handoff](implementation.md), baseline tại [operations](../operations.md).

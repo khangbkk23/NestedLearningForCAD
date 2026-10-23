@@ -37,8 +37,8 @@ CADIC fresh3599 train≈7.918,867giây (2giờ12phút), final evaluation≈464,0
 
 ## Phần chưa có kết quả
 
-- Full-train3629 successor cohort/H32 chưa implementation hoặc run; số liệu cũ không được relabel.
-- R_EXACT/H32 và controls prospective chưa có attribution results; D0 analyzer chưa viết.
+- Full-train3629/H32 đã implementation/local verified, chưa remote run; số liệu cũ không được relabel.
+- R_EXACT/H32 và controls prospective chưa có attribution results; D0 analyzer đã viết/exercise normal trace, chưa AD intervention hoặc attribution causal proof.
 - Controls/other seeds của full baseline study chưa hoàn tất; không nhận120cells là120independent replicates.
 - VisA protocol/runner/freeze và exposure review còn riêng; ReplayCAD/ContCore integrations không tự là accepted baselines.
 - Same K không equal total memory. Chưa có measured-total-memory-matched control hoặc full fresh same-runtime NESTED/CADIC timing ratio.

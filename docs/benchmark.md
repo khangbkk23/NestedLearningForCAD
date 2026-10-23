@@ -58,4 +58,4 @@ MVTecbenchmark là development evidence. VisA/order studies chưa là study đư
 
 ## 7. Study kế tiếp khác baseline
 
-Full-train3.629/excluded0 và H32 dùng [study nghiên cứu riêng](research/study.md), [contract](research/contract.json), [pipeline](pipeline_alignment_spec.md). Pilot9variants, tối đa15fulljobs có điều kiện không thay study27jobs hiện hành. Chưa có runtime factories/runner cho study mới; không đổi số ảnh trong báo cáo hoặc YAML để giả đã chạy full-train. Các results3.599 cũ giữ nguyên provenance.
+Full-train3.629/excluded0 và H32 dùng [study nghiên cứu riêng](research/study.md), [contract](research/contract.json), [pipeline](pipeline_alignment_spec.md). Pilot9variants, tối đa15fulljobs có điều kiện không thay study27jobs hiện hành. Đã có runtime factories/runner riêng, local-tested, remote pending; xem [handoff](research/implementation.md); không đổi số ảnh trong báo cáo hoặc YAML để giả đã chạy full-train. Các results3.599 cũ giữ nguyên provenance.

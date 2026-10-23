@@ -8,11 +8,13 @@ from hope_cad.data.prefix import HashedNormalDataset,NonzeroMaskDataset,safe_pat
 from hope_cad.contract import CONTRACT,digest,ROOT
 from hope_cad.models.primitives.state import tensor_digest,finite_tensors
 from hope_cad.runtime.system import atomic_json
+from hope_cad.runtime.measurement import timed
 
 class NormalFeatures:
     """No unbounded raw cache; regenerate and verify receipts on interrupted replay."""
     def __init__(self,root,extractor,receipts,device):
         self.root,self.extractor,self.receipts,self.device=Path(root),extractor,Path(receipts),device
+    @timed('normal_input_and_features')
     def get(self,row):
         if row.get('split')!='train' or '/train/good/' not in row['relative_path']:raise ValueError('Only permitted train/good rows enter learning')
         g=CONTRACT['geometry']
@@ -47,6 +49,7 @@ def test_manifest(root,tasks):
 
 class EvaluationFeatures:
     def __init__(self,root,extractor,device):self.root,self.extractor,self.device=Path(root),extractor,device
+    @timed('evaluation_input_and_features')
     def get(self,row):
         if '/test/' not in row['relative_path']:raise ValueError('Official evaluation row required')
         if file_hash(safe_path(self.root,row['relative_path']))!=row['image_sha256']:raise ValueError('Test image bytes changed')

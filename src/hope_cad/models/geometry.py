@@ -5,8 +5,14 @@ from dataclasses import asdict
 from hope_cad.baselines.cadic.cache import CachedPairCoreset
 from hope_cad.baselines.cadic.bank import CADICPatchCoresetConfig
 from hope_cad.models.primitives.state import finite_tensors
+from hope_cad.runtime.measurement import timed
 
 class ForkableCoreset(CachedPairCoreset):
+    @timed('proposal_update')
+    def update(self,features):
+        return super().update(features)
+
+    @timed('proposal_fork')
     def fork(self):
         """Clone scientific state and valid tile minima without a quadratic rebuild."""
         other=type(self)(self.config,device=self.device)
@@ -23,6 +29,7 @@ class ForkableCoreset(CachedPairCoreset):
         return other
 
 @torch.no_grad()
+@timed('normal_risk_NN')
 def risk(features,bank):
     if features.ndim==3:
         if features.shape[0]!=1:raise ValueError('one image per coverage event')
@@ -34,6 +41,7 @@ def risk(features,bank):
     return float(value)
 
 @torch.no_grad()
+@timed('anchor_risk')
 def anchor_risk(anchors,bank):
     return sum(risk(a,bank) for a in anchors)/len(anchors) if anchors else 0.
 

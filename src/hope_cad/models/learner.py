@@ -11,6 +11,7 @@ from hope_cad.models.primitives.static_readout import encode as static_encode
 from hope_cad.models.primitives.state import finite_tensors
 from hope_cad.contract import CONTRACT, design_digest
 from hope_cad.models.validation import keys, integer, scalar, tensor, tree_finite, topology
+from hope_cad.runtime.measurement import timed
 
 RECORD_KEYS = ('tokens', 'stats', 'c', 'gamma', 'target', 'decision_d',
                'decision_identity', 'decision_cursor', 'Jminus', 'Jplus')
@@ -38,6 +39,7 @@ class UtilityModel(nn.Module):
             for name in ('initial_key', 'initial_value', 'initial_eta', 'initial_alpha'):
                 getattr(self.visual.memory, name).requires_grad_(False)
 
+    @timed('utility_encode')
     def encode(self, tokens, stats):
         cfg = self.config
         if tokens.shape != (1, cfg['height'] * cfg['width'], cfg['context_dim']) or stats.shape != (cfg['stats_dim'],):
@@ -77,7 +79,13 @@ def prediction(model, phi, record):
 
 def fast_step(model, phi, record, lr=.05, *, exact):
     pred, denom = prediction(model, phi, record)
-    loss = .5 * (pred - record['target']).square()
+    return fast_step_from_prediction(phi,record['target'],pred,denom,lr,exact=exact)
+
+
+@timed('fast_gradient_and_step')
+def fast_step_from_prediction(phi,target,pred,denom,lr=.05,*,exact):
+    """Consume the same forward used by factual validation, retaining its graph."""
+    loss = .5 * (pred - target).square()
     grads = torch.autograd.grad(loss, tuple(phi.values()), create_graph=exact)
     finite_tensors((loss, *grads), 'utility fast gradients')
     increments = [g.double() / denom for g in grads]

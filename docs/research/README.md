@@ -1,6 +1,6 @@
 # Đặc tả nghiên cứu tiếp theo
 
-**Đã đặc tả; chưa triển khai analyzer D0, successor full-train hoặc H32; chưa có kết quả mới.** Phương pháp đang chạy trong repo vẫn là v5.1, mô tả ở [method](../method.md). Tài liệu này không là chỉ dẫn chạy CLI của candidate.
+**Đã triển khai D0, full-train và H32/controls; local verification đạt, remote preflight/pilot/AD còn pending.** Phương pháp đã có accepted benchmark vẫn v5.1. [Implementation và SSH handoff](implementation.md) ghi code/kiểm chứng/lệnh thực tế; spec tại đây tiếp tục khóa scientific semantics.
 
 Đây là bộ spec công khai, tự đủ cho implementation và phản biện. Người clone repo không cần chat, worktree khác hoặc kho context riêng. Các archives thực nghiệm là inputs bên ngoài phải xin riêng nếu muốn tái tính số liệu.
 
@@ -18,8 +18,8 @@ Contract tổng hợp đã áp dụng quyết định full-train 3.629 vào bả
 
 ## Ranh giới nguồn chuẩn
 
-- **Code hiện tại:** [method.json](../../src/hope_cad/resources/method.json), [study.json](../../src/hope_cad/resources/study.json), CLI và source hiện hành; cohort 3.599. Chúng chưa nạp research contract này.
-- **Implementation sắp làm:** toàn bộ bộ spec tại đây và hai file pipeline. Candidate `hope_cad_hq32_fulltrain_v1`, recent contract `hope_cad_v5_1_fulltrain_v1`, protocol `mvtec_1x15_fulltrain_v7_v1`, study `hq32_mvtec_fulltrain_development_v1` là IDs dành trước, chưa có runtime factories.
+- **Code hiện tại:** [method.json](../../src/hope_cad/resources/method.json), [study.json](../../src/hope_cad/resources/study.json), CLI và source hiện hành; cohort 3.599. Chúng không nạp candidate; research CLI dùng `resources/research.json` được hash-lock riêng.
+- **Candidate đã implement, chưa adopt/nghiệm thu remote:** toàn bộ bộ spec tại đây và hai file pipeline. Candidate `hope_cad_hq32_fulltrain_v1`, recent contract `hope_cad_v5_1_fulltrain_v1`, protocol `mvtec_1x15_fulltrain_v7_v1`, study `hq32_mvtec_fulltrain_development_v1` đã có runtime factories riêng qua `hope-cad research`.
 - **Kết quả đã có:** [results](../results.md), thuộc matched seed0 v5.1 cũ, không phải full-train/H32/v7 GPU benchmark.
 - **Báo cáo trao đổi:** [QUICK_UPDATE](../../QUICK_UPDATE.md) là tổng quan và giải thích cho nhóm; khi triển khai dùng spec/contract, không tự suy thuật toán từ đoạn tóm tắt.
 

@@ -15,7 +15,9 @@ def package(output):
         origin['git_dirty']=bool(subprocess.check_output(['git','-C',str(ROOT),'status','--porcelain'],stderr=subprocess.DEVNULL))
     except (OSError,subprocess.SubprocessError):origin['source_commit']=None
     manifest=dict(schema='hope_cad_portable_source_bundle_v1',files=files,origin=origin,
-        identity_basis='all packaged file SHA256s; no commit-only claim',method='hope_cad_v5_1_causal_scaled_utility')
+        identity_basis='all packaged file SHA256s; no commit-only claim',method='hope_cad_v5_1_causal_scaled_utility',
+        experimental_methods=['hope_cad_v5_1_fulltrain_v1','hope_cad_hq32_fulltrain_v1'],
+        candidate_adopted=False,remote_validated=False)
     tmp=output.with_name(output.name+'.tmp')
     try:
         with zipfile.ZipFile(tmp,'w',compression=zipfile.ZIP_DEFLATED) as z:
@@ -27,4 +29,5 @@ def package(output):
         tmp.replace(output)
     finally:tmp.unlink(missing_ok=True)
     with output.open('rb') as f:checksum=hashlib.file_digest(f,'sha256').hexdigest()
-    return dict(path=str(output),files=len(files),sha256=checksum,method_changed=False,remote_validated=False)
+    return dict(path=str(output),files=len(files),sha256=checksum,baseline_method_changed=False,
+                experimental_candidate_added=True,remote_validated=False)

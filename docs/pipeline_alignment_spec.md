@@ -1,6 +1,6 @@
 # Chuẩn hóa pipeline v7 trước candidate H32 — amendment 1
 
-Ngày: 22/10/2026. ID: `v7_pipeline_alignment_v1`. Trạng thái: **đã đặc tả, chưa implementation runtime hoặc benchmark mới**. [Contract máy đọc](pipeline_alignment_contract.json), [báo cáo nhóm](../QUICK_UPDATE.md).
+Ngày: 22/10/2026. ID: `v7_pipeline_alignment_v1`. Trạng thái: **đã implementation/local verification, chưa remote acceptance hoặc benchmark mới**. [Contract máy đọc](pipeline_alignment_contract.json), [báo cáo nhóm](../QUICK_UPDATE.md).
 
 ## Vai trò hai file pipeline
 
@@ -12,7 +12,7 @@ Baseline source chính thức được người dùng chốt lại là commit `8
 
 Amendment này có ưu tiên cho **cohort nghiên cứu tiếp theo** đối với partition, pilot composition, identity và các yêu cầu so sánh. Định nghĩa equations/precision/ownership hiện hành trong [method](method.md) tiếp tục kế thừa. Candidate historical-query giữ thuật toán history32/4support/2recent+2historical đầy đủ tại [candidate](research/candidate.md); dữ liệu của candidate mới theo full-train amendment này.
 
-`resources/method.json`, `study.json`, `protocols/mvtec_matched.yaml` và runtime hiện tại **vẫn là baseline cũ**, không được sửa đè để làm biến mất lịch sử. Lệnh CLI hiện chưa cung cấp full-train/H32 cohort mới; không dùng lệnh cũ rồi báo đã chạy amendment. Khi implementation, thêm successor resources/factory với guards riêng, giữ predecessor strict. Source và delivery identity mới phải công bố cả khi chỉ đổi docs.
+`resources/method.json`, `study.json`, `protocols/mvtec_matched.yaml` và baseline runtime **giữ nguyên contract cũ**, không được sửa đè để làm biến mất lịch sử. CLI research hiện đã cung cấp full-train/H32 cohort mới (local verified, chưa remote acceptance); không dùng lệnh cũ rồi báo đã chạy amendment. Khi implementation, thêm successor resources/factory với guards riêng, giữ predecessor strict. Source và delivery identity mới phải công bố cả khi chỉ đổi docs.
 
 ## 2. Quyết định partition và data rights
 
@@ -22,7 +22,7 @@ Amendment này có ưu tiên cho **cohort nghiên cứu tiếp theo** đối v�
 
 Trong từng category sort canonical relative path; không shuffle/drop_last, task reset hoặc grouping bank updates theo loader batch. Hash từng ảnh và toàn manifest; path/bytes/role rights phải bind vào source/runtime/cohort. Chỉ normals đã đến được đưa vào learner. Discovery/hash inventory không cho phép dùng future feature statistics. Test/GT chỉ evaluator, không optimizer/sampler/selection. Full train không là offline pretraining hoặc calibration thêm.
 
-Protocol ID mới dự kiến `mvtec_1x15_fulltrain_v7_v1`; cùng full-training semantics với route `mvtec_1x15_v1` của Khang nhưng không giả hai manifests/digests khác nguồn là cùng identity. Future recent-only contract ID `hope_cad_v5_1_fulltrain_v1`; H32 contract ID `hope_cad_hq32_fulltrain_v1`; study `hq32_mvtec_fulltrain_development_v1`. Đây là IDs đã dành trước, chưa implemented. Recent-only giữ learning equations v5.1, nhưng data contract khác; candidate phải kế thừa đúng cohort đó.
+Protocol ID mới dự kiến `mvtec_1x15_fulltrain_v7_v1`; cùng full-training semantics với route `mvtec_1x15_v1` của Khang nhưng không giả hai manifests/digests khác nguồn là cùng identity. Future recent-only contract ID `hope_cad_v5_1_fulltrain_v1`; H32 contract ID `hope_cad_hq32_fulltrain_v1`; study `hq32_mvtec_fulltrain_development_v1`. Các IDs này đã có successor factories/resources qua CLI research; chưa remote acceptance. Recent-only giữ learning equations v5.1, nhưng data contract khác; candidate phải kế thừa đúng cohort đó.
 
 CADIC, recent-only, H32 và các controls dùng **cùng 3.629 IDs/order**, fresh learner/bank/optimizer/RNG. Không resume checkpoint 3.599 rồi chèn 30 ảnh, không carry learned pilot state, không so pipeline cũ và candidate mới rồi gán toàn chênh lệch cho H32. Dataset test giữ cùng official 15 category/1725 images nếu bytes xác minh khớp; source masks/hash QA vẫn bắt buộc.
 
@@ -81,7 +81,7 @@ MVTec development-exposed; paired whole-image bootstrap/finite 3-seed/CI/multipl
 
 ## 8. Implementation plan và Definition of Done
 
-**Task tài liệu này không implement runtime, model, tools đo checkpoint, GPU hoặc source delivery mới.** Source metadata/inventory cập nhật để docs đi cùng package; hash cũ không được dùng cho working tree mới.
+**Phần code successor đã được triển khai theo task implementation tiếp theo; xem [implementation/SSH handoff](research/implementation.md).** Chưa chạy GPU/benchmark mới; hash cũ không được dùng cho working tree mới.
 
 Khi được giao implementation:
 
@@ -93,4 +93,4 @@ Khi được giao implementation:
 6. New source bundle +local installation/inventory/CLI checks; real GPU preflight/pilot theo budget, raw artifacts/logs đầy đủ. Không launch paid GPU từ spec.
 7. Full-train pilot/main benchmark review chỉ là new cohort results; historical numbers giữ provenance. Adoption/VisA cần empirical gates riêng, không vì docs hoặc tests PASS.
 
-**Bản chính thức để rollback vẫn là commit 89df9a2.** Commit89df9a2 đã chứa bộ docs/spec/plan công khai; bản chỉnh tham chiếu baseline này chưa thêm implementation prospective pipeline; không coi current HEAD hoặc dirty source bằng shipped r3. Không automatic Git reset/merge/push.
+**Bản chính thức để rollback vẫn là commit 89df9a2.** Commit89df9a2 đã chứa bộ docs/spec/plan công khai; implementation prospective pipeline đã có ở source sau mốc baseline, chưa remote acceptance; không coi current HEAD hoặc dirty source bằng shipped r3. Không automatic Git reset/merge/push.

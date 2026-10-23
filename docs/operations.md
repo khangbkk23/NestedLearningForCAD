@@ -4,13 +4,19 @@ V7 là **workspace hợp nhất mới**, phương pháp vẫn `hope_cad_v5_1_cau
 
 ## 1. Chuẩn bị và chuyển source
 
-V7 tự đủ từ source/Git checkout; không cần sibling worktree hoặc old Kaggle evidence. Các lệnh ở đây chạy **baseline3.599**, chưa hỗ trợ full-train/H32; đọc [plan nghiên cứu](research/implementation_plan.md) nếu chuẩn bị nâng cấp. Windows local có thể dùng `pixi install --locked`, `pixi run install`, `pixi run test`. Đóng gói:
+V7 tự đủ từ Git checkout; không cần sibling worktree hoặc old Kaggle evidence. Các lệnh ở đây chạy **baseline3.599**, không chọn full-train/H32; dùng [research SSH handoff](research/implementation.md) cho CLI research đã implement. Cả hai cần actual remote acceptance. Windows local có thể dùng `pixi install --locked`, `pixi run install`, `pixi run test`.
 
-```powershell
-pixi run python -B -m hope_cad source --output dist/hope_cad_source.zip
+Luồng mặc định đã chốt: người dùng review/commit/push toàn bộ source candidate lên branch `hope_cad_v7`, ghi lại full commit SHA, rồi trên máy thuê:
+
+```bash
+git clone --branch hope_cad_v7 --single-branch \
+  https://github.com/khangbkk23/NestedLearningForCAD.git /workspace/hope_cad_v7
+cd /workspace/hope_cad_v7
+git rev-parse HEAD
+git status --short
 ```
 
-Copy ZIP tới máy thuê bằng SSH/SCP theo host/port thật người dùng cung cấp; so SHA256 với receipt rồi giải nén vào thư mục trống. Không chứa datasets/checkpoints/.pixi/.venv/artifacts hoặc credentials. Linux script gọi bằng `bash`, không phụ thuộc executable bit của Windows.
+Đối chiếu HEAD với commit vừa được người dùng push; source phải sạch trước setup/preflight. Chưa commit/push thì clone remote chưa đủ candidate. Data, weights và runs đặt ngoài source. Không pull/đổi source giữa cohort. Source bundles đã lưu chỉ giữ provenance local tests, không cần SCP hoặc build ZIP mới để bàn giao; ZIP evidence của remote run vẫn phải giữ. Linux script gọi bằng `bash`, không phụ thuộc executable bit của Windows.
 
 ## 2. Runtime riêng
 
@@ -74,8 +80,8 @@ Export có manifest và streaming SHA verification; từ chối writer đang ch�
 
 ## 6. Bước khoa học tiếp theo
 
-[Kiến trúc](architecture.md) tách source/layout, runtime acceptance và scientific revision. Historical-query slow consolidation vẫn proposal riêng; không được gắn gain của cleanup/preprocessing/hardware vào Nested Learning. Bản v5.1 baseline giữ frozen recipe đã development-exposed; native-checkpoint normalization mismatch không được sửa ngầm. Khóa revision/protocol trước VisA.
+[Kiến trúc](architecture.md) tách source/layout, runtime acceptance và scientific revision. Historical-query slow consolidation là candidate đã implement local, chưa remote acceptance hoặc adopt; không được gắn gain của cleanup/preprocessing/hardware vào Nested Learning. Bản v5.1 baseline giữ frozen recipe đã development-exposed; native-checkpoint normalization mismatch không được sửa ngầm. Khóa revision/protocol trước VisA.
 
 ## Source identity khi đóng gói
 
-Source layout hiện hành thay package/import/producer identity so với các executions trước refactor. Mỗi bundle mới có digest riêng; không ghi đè archive đã khóa hoặc resume checkpoint khác source bằng bỏ guard. Đóng gói từ checkout đã review, cài editable rồi preflight đúng source/runtime trước fresh jobs. Lần thay docs này chưa tạo một delivery mới đã nghiệm thu. Không tự thuê GPU hoặc SSH. Hãy chạy trong tmux, copy và kiểm SHA evidence về máy trước khi stop/destroy server. Source ZIP không chứa data, weights, `.pixi`, `.venv` hoặc raw evidence.
+Source layout hiện hành thay package/import/producer identity so với các executions trước refactor. Commit SHA định danh Git checkout; source digest còn kiểm toàn bộ inventory bytes, không chỉ HEAD. Sau khi người dùng commit/push, clone đúng commit đã công bố, cài editable rồi preflight đúng source/runtime trước fresh jobs. Không ghi đè archive đã khóa hoặc resume checkpoint khác source bằng bỏ guard. Không cần tạo source ZIP mới cho luồng Git; các bundles cũ là provenance bất biến. Không tự thuê GPU hoặc SSH. Hãy chạy trong tmux, copy và kiểm SHA evidence về máy trước khi stop/destroy server.

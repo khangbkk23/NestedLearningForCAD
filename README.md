@@ -2,7 +2,7 @@
 
 HOPE/CMS học utility để chấp nhận hoặc từ chối proposal cập nhật normal-support bank của CADIC. Frozen ViT tạo raw patch features; bank thật được controller chọn quyết định anomaly map và image score bằng full CADIC Eq9.
 
-**Code hiện tại:** `hope_cad_v5_1_causal_scaled_utility`, package0.7.0. Tên workspace **v7** là tổ chức mã nguồn, không phải một thuật toán mới. Runtime hiện hành dùng matched MVTec3.599normals. **Full-train3.629 và historical-query H32 đã có spec, chưa được triển khai.**
+**Code hiện tại:** `hope_cad_v5_1_causal_scaled_utility`, package0.7.0. Tên workspace **v7** là tổ chức mã nguồn, không phải một thuật toán mới. Runtime hiện hành dùng matched MVTec3.599normals. **Full-train3.629 và historical-query H32 đã implement/test local qua CLI `research`; chưa remote preflight/pilot hoặc AD benchmark.**
 
 **Mốc source chính thức trước nâng cấp:** `89df9a21658b265731f98a7c2014afb1876f1924`, gồm code và bộ docs/spec/plan công khai. Dùng mốc này làm gốc phát triển/rollback; benchmark cũ vẫn giữ provenance của run thực tế.
 
@@ -26,11 +26,13 @@ python -m hope_cad.local_tests
 
 Cài dependencies trước: Windows local dùng `pixi install --locked` rồi `pixi run install`; Linux/RTX5090 dùng `bash scripts/remote/setup.sh /absolute/path/to/python3.13`. Các pins chuẩn bị không thay actual remote preflight. [Runbook](docs/operations.md) mô tả inputs, lệnh, resume và export; source không tự thuê máy/chạy GPU.
 
+Bàn giao máy thuê qua Git: người dùng review, commit và push branch `hope_cad_v7`, rồi clone branch và kiểm full commit SHA trước setup/preflight. Source ZIP cũ giữ provenance local verification, không là yêu cầu chuyển source. ZIP outputs của remote run vẫn cần giữ cùng accounting sidecar và log theo research handoff.
+
 ## Đọc và phát triển
 
-- [Bản đồ tài liệu](docs/README.md): phân biệt code hiện tại, kết quả và nâng cấp chưa triển khai.
+- [Bản đồ tài liệu](docs/README.md): phân biệt code hiện tại, kết quả và candidate đã implement nhưng chưa nghiệm thu remote.
 - [Architecture](docs/architecture.md), [method](docs/method.md), [benchmark](docs/benchmark.md): repo hiện hoạt động như thế nào.
-- [Research spec/plan](docs/research/README.md): D0, H32 đầy đủ, controls, gates/budgets và implementation plan; [pipeline](docs/pipeline_alignment_spec.md) chốt full-train và recipe.
+- [Research spec/plan](docs/research/README.md): D0, H32 đầy đủ, controls, gates/budgets; [implementation và SSH handoff](docs/research/implementation.md); [pipeline](docs/pipeline_alignment_spec.md) chốt full-train và recipe.
 - [QUICK_UPDATE](QUICK_UPDATE.md): Overview, milestones từ nền chung, protocol và chi tiết để trao đổi với nhóm.
 
 ```text

@@ -8,13 +8,17 @@ Tài liệu này tóm tắt phần phát triển của nhánh HOPE-CAD, kết qu
 
 **Mốc đối chiếu code:** `dikhang_space@794d7e498ea093f99ae861e9f43f4ab59d887772` và baseline `hope_cad_v7@89df9a21658b265731f98a7c2014afb1876f1924`. Với nhánh dikhang_space, phần so sánh CADIC dưới đây lần theo script `scripts/benchmarks/run_cadic_paperfaithful.sh` → config/protocol → adapter/engine thực sự được gọi. Các experiments ECAD/NPIM/CSG là những đường chạy riêng, không gộp thành một “protocol của Khang”. Cấu hình mặc định và code không chứng minh mọi run thực tế đã dùng đúng các giá trị đó; overrides phải đối chiếu từ từng run.
 
-**Amendment đã chốt trong branch:** [spec/plan](docs/pipeline_alignment_spec.md) và [contract máy đọc](docs/pipeline_alignment_contract.json) là nguồn prospective pipeline. Full-train3.629 đã được chọn; preprocessing **giữ recipe hiện hành** để matched với CADIC Khang và cô lập history effect. Native-metadata mismatch vẫn công bố; không gọi nó đã được sửa. Runtime/resources cũ chưa implementation amendment hoặc H32. Quyết định docs này không thay kết quả benchmark đã báo.
+**Amendment đã chốt trong branch:** [spec/plan](docs/pipeline_alignment_spec.md) và [contract máy đọc](docs/pipeline_alignment_contract.json) là nguồn prospective pipeline. Full-train3.629 đã được chọn; preprocessing **giữ recipe hiện hành** để matched với CADIC Khang và cô lập history effect. Native-metadata mismatch vẫn công bố; không gọi nó đã được sửa. Runtime/resources baseline cũ giữ nguyên; successor full-train/H32 đã implement và test local, chưa remote acceptance. Quyết định docs này không thay kết quả benchmark đã báo.
 
 ## Tài liệu đi cùng branch
 
 Người nhận chỉ cần branch này để đọc đầy đủ thiết kế: [bản đồ docs](docs/README.md), [method đang chạy](docs/method.md), [benchmark và provenance](docs/results.md), cùng [spec/plan nghiên cứu đầy đủ](docs/research/README.md). H32 có [thuật toán/gradient/RNG/state](docs/research/candidate.md), [D0](docs/research/attribution.md), [controls/gates/budget](docs/research/study.md), [contract tổng hợp](docs/research/contract.json) và [kế hoạch implementation](docs/research/implementation_plan.md). Không có nguồn bắt buộc nào là một đường dẫn context riêng ngoài branch.
 
 Hai file `pipeline_alignment_spec.md` và `pipeline_alignment_contract.json` chốt thay đổi dữ liệu/recipe/identity cho cohort tiếp theo; chúng chưa được CLI hiện tại thực thi. QUICK_UPDATE là báo cáo trao đổi, không là nơi duy nhất cất thuật toán. Spec/contract chuyên biệt là nguồn triển khai; các phụ lục bên dưới giữ vai trò giải thích. Raw artifacts chưa public trong Git; cần xin riêng nếu tự tính lại metrics.
+
+## Implementation mới trong branch
+
+D0 offline, successor full-train3629 và H32/controls đã có code cùng CLI riêng `research`, ledger ngân sách, review gates, atomic resume và aggregation. Frozen baseline contracts/evidence giữ nguyên; chưa chạy GPU thuê, pilot hay AD benchmark mới. [Implementation, kiểm chứng và lệnh SSH](docs/research/implementation.md).
 
 ## Overview
 
@@ -25,7 +29,7 @@ Hai file `pipeline_alignment_spec.md` và `pipeline_alignment_contract.json` ch�
 3. **Protocol khác route CADIC chuẩn ở `dikhang_space`:** bên này loại Bottle `070–099`, còn **3.599** normal images thay vì **3.629**. Cả CADIC đối chứng và NESTED bên này cùng bị loại 30 ảnh, nên bảng nội bộ matched; chưa dùng bảng đó để kết luận hơn run riêng của Khang. **Cohort mới sẽ trở lại full-train 3.629 normals theo route chuẩn của Khang**, áp dụng đồng thời cho mọi comparator; kết quả cũ giữ nguyên.
 4. **Source đã dọn thành v7:** một package `src/hope_cad`, CLI cho train/evaluate/matrix/resume/export và workflow SSH. Method vẫn v5.1; cleanup không được tính thành gain benchmark. V7 chưa có full benchmark mới trên RTX 5090.
 5. **Điểm cần thống nhất trong nhóm:** exact train IDs, K, checkpoint tensors, evaluator và trạng thái CADIC/ReplayCAD/VisA; ContCore là baseline bổ sung hay nhánh nghiên cứu riêng.
-6. **Việc sắp làm:** phân tích utility bằng evidence có sẵn, rồi một candidate dùng historical queries cho slow learning. **Đã chốt thiết kế thí nghiệm, chưa code candidate hoặc có kết quả mới.** Giữ baseline hiện tại để đối chiếu/quay lại.
+6. **Việc sắp làm:** phân tích utility bằng evidence có sẵn, rồi một candidate dùng historical queries cho slow learning. **Đã implement candidate/controls và runner SSH, test local đạt; chưa có remote pilot/AD results mới.** Giữ baseline hiện tại để đối chiếu/quay lại.
 
 Phần dưới tự đủ để đọc cùng branch v7. Không cần kho knowledge trên local. Các giá trị benchmark là bản tổng hợp từ evidence đã được review; raw artifacts không được commit nên người nhận cần chúng nếu muốn tự tính lại số liệu từ đầu.
 
@@ -190,7 +194,7 @@ Tập test của benchmark ta đã nghiệm thu có 1.725 ảnh và 15 category.
 
 **Quyết định cho cohort tiếp theo: trở lại full-train 3.629 normals theo route CADIC chuẩn của Khang (`mvtec_1x15_v1`), không tiếp tục loại 30 Bottle normals.** Bottle có đủ 209 ảnh, các category khác giữ nguyên; ảnh được đưa vào đúng thứ tự causal, không tạo offline pretraining/calibration mới. CADIC, phương pháp recent-only hiện hành và candidate phải chạy fresh trên cùng tập đầy đủ này.
 
-Đây là **thay đổi protocol dự kiến đã được chọn, chưa triển khai trong code/contracts**. Amendment spec/study đã có trong branch; trước run mới còn cần implementation protocol/manifests, guards và source identity; không resume bank/checkpoint 3.599 ảnh rồi thêm bù 30 ảnh. Prefix pilot cũng đổi thành 209 Bottle + 47 Cable nếu vẫn dùng 256 ảnh đầu; gates/bindings phụ thuộc partition phải được rà lại trước execution, không tự coi spec cũ đã đồng bộ.
+Đây là **thay đổi protocol đã implement trong successor research route**, local verified và chưa remote acceptance. Manifest/guards/resources mới tách baseline; trước run mới cần source/runtime preflight thật; không resume bank/checkpoint 3.599 ảnh rồi thêm bù 30 ảnh. Prefix pilot cũng đổi thành 209 Bottle + 47 Cable nếu vẫn dùng 256 ảnh đầu; gates/bindings phụ thuộc partition phải được rà lại trước execution, không tự coi spec cũ đã đồng bộ.
 
 “Protocol chuẩn” ở đây là full-normal training của route Khang, **không có nghĩa đã khớp toàn bộ paper CADIC**. Checkpoint tensors, K, transforms, numeric route, masks/metrics và scope evaluation vẫn cần đối chiếu. Không đổi số liệu/provenance của benchmark 3.599 ảnh đã hoàn tất; cohort full-train mới không được dùng để quy toàn bộ chênh lệch so với kết quả cũ cho H32.
 
@@ -212,7 +216,7 @@ Ma trận hiện có gồm 120 ô/phương pháp: đánh giá từng category ng
 
 ### A. Phân tích offline từ evidence đã có
 
-Đã có spec cho đối chiếu prequential predictions với geometry prior, mean/bias và các đối chứng đơn giản có clock. Mục tiêu là xem learned utility có cung cấp tín hiệu vượt các lời giải thích đơn giản hay không. Chỉ dùng normal-event records; không cần thêm lượt training GPU. **Analyzer theo spec mới chưa triển khai/chạy.** Phân tích logged bank pairs không thay được benchmark của một policy mới.
+Đã có spec cho đối chiếu prequential predictions với geometry prior, mean/bias và các đối chứng đơn giản có clock. Mục tiêu là xem learned utility có cung cấp tín hiệu vượt các lời giải thích đơn giản hay không. Chỉ dùng normal-event records; không cần thêm lượt training GPU. **Analyzer đã triển khai và exercise normal trace trong local verification; không là policy intervention/AD benchmark mới.** Phân tích logged bank pairs không thay được benchmark của một policy mới.
 
 ### B. Một candidate nâng cấp historical-query đã đặc tả
 
@@ -453,7 +457,7 @@ Không lấy 4h35/2h12 để báo một hệ số fresh-training chính xác vì
 
 Raw main bank K=10k FP32 là 10.000×768×4 = **30.720.000 bytes**, khoảng **29,30 MiB**. Đó không phải tổng memory CADIC hoặc NESTED. NESTED có additional learner/optimizer, anchor records, replay và alternative full bank; backend có caches/temporary buffers; task checkpoints là disk artifacts. Một memory-matched comparator lớn hơn đã được đăng ký trong study hiện hành nhưng chưa có completed result ở đây.
 
-## Phụ lục C — Thiết kế tiếp theo, không cần tài liệu riêng để hiểu
+## Phụ lục C — Thiết kế candidate đã implement local, chưa nghiệm thu remote
 
 ### C1. Tại sao chọn historical-query consolidation?
 
@@ -473,7 +477,7 @@ Chỉ đọc canonical 3.599 events, 3.211 completed credits và 3.179 post-warm
 
 ### C3. Candidate H32: thuật toán đã xác định
 
-Candidate contract ID sau amendment full-train **`hope_cad_hq32_fulltrain_v1`** (tiền thân đặc tả `hope_cad_hq32_v1`), chưa implementation/adoption. Các constants kế thừa: K=10k, anchors 32×8, stats 16, warmup 32, fast LR .05, slow Adam 1e−4, precision và Eq9. Chỉ slow query mixture thay đổi.
+Candidate contract ID sau amendment full-train **`hope_cad_hq32_fulltrain_v1`** (tiền thân đặc tả `hope_cad_hq32_v1`), đã implementation/local verification, chưa remote acceptance/adoption. Các constants kế thừa: K=10k, anchors 32×8, stats 16, warmup 32, fast LR .05, slow Adam 1e−4, precision và Eq9. Chỉ slow query mixture thay đổi.
 
 | Thành phần             | Định nghĩa                                                                                                                   |
 | ---------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
@@ -511,7 +515,7 @@ Không import learned state của lượt MVTec trước để làm initializati
 | BIAS_VETO              | Gamma+scalar bias với fast update đơn giản, không CMS                                           |
 | PILOT_RATE_RANDOM_VETO | Admission ngẫu nhiên có rate cố định lấy từ normal pilot trước, không theo future task          |
 
-Đây là **study mới đã đặc tả, chưa triển khai**, không phải cả chín variants đã được triển khai hoặc chạy xong. Không nhầm chúng với danh sách controls hiện hành trong `resources/study.json`. Recent exact/FO sẽ giữ history 32 bookkeeping để đối chiếu storage/sampler tốt hơn, nhưng loss chỉ recent. DIRECT vẫn có actual fast learning và ít functional compute hơn exact; zero head làm first-block slow gradient zero là đúng dự kiến. FIRST_ORDER detach toàn g/d.
+Đây là **study mới đã implement/test local**, cả chín variants có code; chưa có remote pilot hoặc full benchmark hoàn tất. Không nhầm chúng với danh sách controls hiện hành trong `resources/study.json`. Recent exact/FO sẽ giữ history 32 bookkeeping để đối chiếu storage/sampler tốt hơn, nhưng loss chỉ recent. DIRECT vẫn có actual fast learning và ít functional compute hơn exact; zero head làm first-block slow gradient zero là đúng dự kiến. FIRST_ORDER detach toàn g/d.
 
 Random veto khóa reject probability 145/211, accept 66/211, private RNG seed+95537 và warmup 32 force accept; không lấy full-stream rejection rate theo task nhìn trước. Bias dùng p thật tại decision khi delayed target đến. Các control đơn giản giúp kiểm khả năng gain chỉ do giảm ghi hoặc bias, không gán mọi hiệu ứng cho NL.
 
@@ -550,8 +554,8 @@ Những hướng hoãn không bị coi là vô ích, chỉ không được ghép
 | Statistical superiority/multi-seed | Chưa xác nhận; không suy từ một seed                                        |
 | Refactor/package/CLI v7            | Đã implementation và local/clean-source checks                              |
 | Fresh full benchmark v7/RTX 5090   | Chưa chạy/nghiệm thu                                                        |
-| Analysis offline theo recipes mới  | Đã đặc tả, chưa implementation/results                                      |
-| H32 candidate/controls study       | Đã khóa thiết kế thí nghiệm, chưa code/run/adopt                            |
+| Analysis offline theo recipes mới  | Đã implement/exercise normal events; chưa AD intervention                                      |
+| H32 candidate/controls study       | Đã code/local verified; chưa remote run/adopt                            |
 | ReplayCAD matched đối chiếu NESTED | Chưa có accepted artifacts phía này                                         |
 | VisA matched suite                 | Chưa có completed benchmark; cần protocol/exposure freeze                   |
 | ContCore/NPIM/CSG của Khang        | Tham khảo source, không tự gán acceptance/status từ phía ta                 |

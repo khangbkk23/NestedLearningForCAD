@@ -17,6 +17,7 @@ from typing import Any, Dict, Optional
 
 import torch
 import torch.nn as nn
+from hope_cad.runtime.measurement import timed
 
 
 @dataclass(frozen=True)
@@ -134,6 +135,7 @@ class CADICViTFeatureExtractor(nn.Module):
         return self.extract_patch_features(images)
 
     @torch.no_grad()
+    @timed('ViT_extraction')
     def extract_patch_features(self, images: torch.Tensor) -> torch.Tensor:
         images = images.to(self.device)
         if images.ndim != 4 or images.shape[1] != 3 or tuple(images.shape[-2:]) != (224, 224):
