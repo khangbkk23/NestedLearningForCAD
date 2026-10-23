@@ -1,7 +1,7 @@
-"""Provision pinned MVTec AD into ignored repo data/, or an explicit directory."""
+"""Provision pinned MVTec AD into ignored repo workspace/data/, or an explicit directory."""
 import argparse,json,stat,tarfile,tempfile,zipfile
 from pathlib import Path,PurePosixPath
-from hope_cad.paths import ROOT
+from hope_cad.paths import ROOT, DATA
 from hope_cad.data.transfer import download,checked_file,sha256,write_json,writer_lock
 
 REVISION='eb692b36147a3b3f12c561b879a062104c1f20b8'
@@ -15,8 +15,10 @@ def asset_destination(path):
     if path.is_symlink():raise ValueError('Asset destination cannot be a symlink')
     resolved=path.resolve()
     if ROOT.is_relative_to(resolved):raise ValueError('Assets cannot contain source checkout')
-    if resolved.is_relative_to(ROOT) and resolved.relative_to(ROOT).parts[0] not in ('data','weights'):
-        raise ValueError('Use ignored data/weights or an external asset directory')
+    if resolved.is_relative_to(ROOT):
+        parts=resolved.relative_to(ROOT).parts
+        if len(parts)<3 or parts[:2] not in (('workspace','data'),('workspace','weights')):
+            raise ValueError('Use workspace/data, workspace/weights or an external asset directory')
     return resolved
 
 def validate_tree(root):
@@ -57,7 +59,7 @@ def unpack(archive,stage):
                 if not (item.isfile() or item.isdir()):raise ValueError('Archive links/devices forbidden')
             tf.extractall(stage,members=members,filter='data')
 
-def prepare(output=ROOT/'data/mvtec',*,archive=None,archive_sha256=None):
+def prepare(output=DATA/'mvtec',*,archive=None,archive_sha256=None):
     output=asset_destination(output);output.parent.mkdir(parents=True,exist_ok=True)
     receipt_path=output.parent/(output.name+'.asset.json')
     with writer_lock(output.parent/(output.name+'.prepare.lock')):
@@ -88,7 +90,7 @@ def prepare(output=ROOT/'data/mvtec',*,archive=None,archive_sha256=None):
 
 def main(argv=None):
     p=argparse.ArgumentParser(description=__doc__)
-    p.add_argument('--output',type=Path,default=ROOT/'data/mvtec')
+    p.add_argument('--output',type=Path,default=DATA/'mvtec')
     p.add_argument('--archive',type=Path);p.add_argument('--archive-sha256')
     a=p.parse_args(argv);result=prepare(a.output,archive=a.archive,archive_sha256=a.archive_sha256)
     print(json.dumps(dict(output=str(a.output),train=result['tree']['train_normals'],test=result['tree']['test_images']),indent=2))

@@ -40,7 +40,7 @@ class Budget:
         self.entry.update(status='export_incomplete',before_export_seconds=time.monotonic()-self.started)
         atomic_json(self.value,self.path)
 
-    def finish(self,evidence):
+    def finish(self,evidence,*,accounting_path=None):
         if self.entry['status']!='export_incomplete':raise ValueError('Cannot close a reservation before verified export')
         elapsed=time.monotonic()-self.started
         # ZIP contains the open reservation. This hash-bound sidecar closes it
@@ -50,7 +50,7 @@ class Budget:
             publication_reserve_seconds=180,charged_seconds=elapsed+180+self.entry['external_billed_seconds'])
         reconciliation=dict(schema='hope_research_accounting_v1',archive=evidence,
             binding=self.binding,attempt=dict(self.entry),scope='Includes verified export; final publication reserve180s, not an invoice')
-        atomic_json(reconciliation,Path(evidence['path']).with_suffix('.accounting.json'))
+        atomic_json(reconciliation,Path(accounting_path) if accounting_path else Path(evidence['path']).with_suffix('.accounting.json'))
         atomic_json(self.value,self.path)
         return reconciliation
 

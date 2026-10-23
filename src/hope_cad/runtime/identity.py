@@ -8,8 +8,13 @@ def output_directory(path,*,data_root=None,checkpoint=None):
     require_checkout()
     work=Path(path).resolve()
     if ROOT.is_relative_to(work):raise ValueError('Run directory cannot contain the source checkout')
-    if work.is_relative_to(ROOT) and work.relative_to(ROOT).parts[0] not in ('runs','results','logs'):
-        raise ValueError('Use runs/results/logs or an external run directory, not source folders')
+    if work.is_relative_to(ROOT):
+        parts=work.relative_to(ROOT).parts
+        local=(len(parts)>=3 and parts[:2]==('workspace','checks')) or (
+            len(parts)==4 and parts[:2]==('workspace','experiments') and parts[3]=='run')
+        # Legacy explicit output paths remain available for baseline tooling.
+        if not local and parts[0] not in ('runs','results','logs'):
+            raise ValueError('Use workspace/experiments/<id>/run, workspace/checks/<id>, or an external output')
     if data_root:
         data=Path(data_root).resolve()
         if work.is_relative_to(data) or data.is_relative_to(work):raise ValueError('Run directory must be separate from dataset')

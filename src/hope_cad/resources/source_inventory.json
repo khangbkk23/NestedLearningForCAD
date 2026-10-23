@@ -36,7 +36,6 @@
     "refs/README.md",
     "refs/replaycad.json",
     "scripts/check_environment.py",
-    "scripts/install_local.py",
     "scripts/remote/run.sh",
     "scripts/remote/setup.sh",
     "scripts/source_inventory.py",
@@ -169,7 +168,8 @@
     "tests/runtime/test_measurement.py",
     "tests/runtime/test_portable.py",
     "tests/runtime/test_provisioning.py",
-    "tests/runtime/test_research.py"
+    "tests/runtime/test_research.py",
+    "tests/runtime/test_workspace.py"
   ],
   "scope": "Complete functional package, configuration, docs, tests and scripts; no environments, data or artifacts"
 }

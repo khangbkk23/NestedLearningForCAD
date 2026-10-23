@@ -14,7 +14,7 @@ pixi --version
 
 Lock được tạo/kiểm với Pixi0.66.0. Cần bản hỗ trợ lockschema6/per-package indexes; giữ phiên bản Pixi đã dùng trong records. Script installer cài Pixi, không cài NVIDIA driver.
 
-User review/commit/push changes mới trước khi thuê; commit672abd1/720b3cd là predecessor chưa chứa Pixi/provisioning mới. Sau khi đã push:
+User review/commit/push layout mới trước khi thuê; commit32b4e5c chứa Pixi/provisioning nhưng chưa có layout workspace mới. Sau khi đã push:
 
 ```bash
 git clone --branch hope_cad_v7 --single-branch \
@@ -34,23 +34,33 @@ pixi install --locked
 
 ```text
 hope_cad_v7/
-  pixi.toml / pixi.lock
-  .pixi/                  # Python và packages, ignore
-  src/ docs/ tests/        # tracked source
-  data/
-    archives/             # archive tải dở/đã kiểm
-    mvtec/                # bottle/train/good/... đủ15categories
-    mvtec.asset.json      # archive/tree integrity receipt
-  weights/                # đúng ViT safetensors + receipt
-  runs/hq32_01/           # model states/events/metrics/telemetry
-  runs/hq32_01.zip
-  runs/hq32_01.accounting.json
-  records/                # environment, allocation, billing notes
-  logs/                   # stdout/stderr theo invocation
-  results/                # local checks/CPU summaries
+  src/ tests/ scripts/ docs/ refs/    # tracked source
+  pyproject.toml / pixi.toml / pixi.lock
+  .pixi/                            # Pixi tự quản lý, ignore
+  workspace/                        # inputs và outputs local, ignore
+    data/
+      archives/
+      mvtec/
+      mvtec.asset.json
+    weights/                        # pretrained ViT + asset receipt
+    records/                        # máy, environment, allocation/billing
+    checks/                         # CPU checks/summaries; không là AD run
+    experiments/
+      hq32_01/
+        run/                        # checkpoints/events/metrics/telemetry/ledger
+        logs/                       # stdout/stderr theo invocation
+        exports/
+          session_01/
+            evidence.zip
+            accounting.json
+          session_02/               # slot mới; không ghi đè session trước
 ```
 
-Data/weights/runs/records/logs/results đều bị ignore và không thuộc source inventory/hash; không commit vàiGB artifacts. Chúng là dữ liệu của checkout trên máy chạy, không tự đi theo Git clone. Thư mục repo có thể đặt ở bất cứ đâu; defaultpaths neo vào repo root, không parent/worktree khác. Có thể override assets/runtime paths để gắn persistent volume; outputs không được chứa source, đè source hoặc overlap inputs.
+workspace/ bị Git ignore và không thuộc source inventory/hash. Defaults neo repo root. .pixi/, Python caches và editable-install metadata vẫn do công cụ quản lý. Pretrained inputs dùng chung; learned checkpoints chỉ ở experiment/run. Không commit placeholder datasets/outputs.
+
+Có thể override input/run paths ra ngoài repo cho disk/volume khác. Trong repo, assets chỉ dưới workspace/data hoặc workspace/weights; outputs mới dưới workspace/experiments/<id>/run hoặc workspace/checks/<id>. Legacy explicit runs/results/logs vẫn được chấp nhận cho baseline tools, không là default mới. Không overlap inputs/source. Không migrate checkpoint scientific cohort cũ qua bỏ source guard.
+
+Machine/environment/allocation ở workspace/records; ledger khóa đúng allocation nội dung. Cap hiện thực thi theo study/run/stage, không là global multi-experiment account: không tạo experiment mới để reset ngân sách. Split cohort/host cần review phần đã chi và allocation còn lại.
 
 ## 3. Provision data và backbone bằng task
 
@@ -88,9 +98,9 @@ pixi run --locked env-check --gpu
 pixi run --locked test
 ```
 
-`env-check` kiểm scientificpackagepins Linux, lưu installedmetadata/lockSHA vào records/environment/; `--gpu` chỉ đọc GPUinfo, không chạy kernels. Preflight riêng kiểm nativeBlackwell architecture, actualruntime/numerics. Nếu lỗi cài/test, giữ logs, không ngẫu nhiên upgrade.
+`env-check` kiểm scientificpackagepins Linux, lưu installedmetadata/lockSHA vào workspace/records/environment/; `--gpu` chỉ đọc GPUinfo, không chạy kernels. Preflight riêng kiểm nativeBlackwell architecture, actualruntime/numerics. Nếu lỗi cài/test, giữ logs, không ngẫu nhiên upgrade.
 
-Trong tmux, chạy [research handoff](research/implementation.md): tạo records/B_allocation.json từ giá/cap thật, rồi `bash scripts/remote/run.sh research --phase preflight --run-dir runs/hq32_01 --allocation records/B_allocation.json --external-billed-seconds ...`. CLI mặc định đọc data/mvtec và weights/ trong repo. Wrapper dùng `pixi run --locked cad`, thêm tee log/timestamp/unbuffered; không cài packages ngoài Pixi. `bash scripts/remote/setup.sh` chỉ là convenience wrapper cho install+envcheck, không nhận Pythonpath nữa.
+Trong tmux, chạy [research handoff](research/implementation.md): tạo workspace/records/B_allocation.json từ giá/cap thật, rồi `bash scripts/remote/run.sh research --phase preflight --run-dir workspace/experiments/hq32_01/run --allocation workspace/records/B_allocation.json --external-billed-seconds ...`. CLI mặc định đọc workspace/data/mvtec và workspace/weights trong repo. Wrapper dùng `pixi run --locked cad`, thêm tee log/timestamp/unbuffered; không cài packages ngoài Pixi. `bash scripts/remote/setup.sh` chỉ là convenience wrapper cho install+envcheck, không nhận Pythonpath nữa.
 
 Giữ ZIP+accountingsidecar+log sau mỗi invocation; ZIP ledger là snapshot trước reconciliation, sidecar gắn archiveSHA. Chưa remoteacceptance trước actualpreflightreview; không tự bật pilot/main. Baseline3.599 chạy bằng `pixi run cad preflight/train/evaluate/matrix ...`; không dùng baselinecommand thay research3.629.
 
@@ -99,10 +109,10 @@ Giữ ZIP+accountingsidecar+log sau mỗi invocation; ZIP ledger là snapshot tr
 ```bash
 pixi run --locked preflight-local
 # Baseline GPU (sau review đúng cohort), luôn explicit job/preflight/run-dir:
-bash scripts/remote/run.sh train --run-dir runs/baseline_01 --job NESTED_seed0 \
-  --preflight runs/baseline_preflight --device cuda:0 --session-hours 4
-pixi run --locked cad export --run-dir runs/baseline_01 --output results/baseline_01.zip
-pixi run --locked cad aggregate --inputs results/baseline_01.zip --output results/summary.json
+bash scripts/remote/run.sh train --run-dir workspace/experiments/baseline_01/run --job NESTED_seed0 \
+  --preflight workspace/checks/baseline_preflight --device cuda:0 --session-hours 4
+pixi run --locked cad export --run-dir workspace/experiments/baseline_01/run --output workspace/checks/baseline_01.zip
+pixi run --locked cad aggregate --inputs workspace/checks/baseline_01.zip --output workspace/checks/summary.json
 ```
 
 Evaluate/matrix chỉ sau completedtrain theo CLI, readonly; chỉ thêm missingcells. Baseline/research cần riêng source/runtime/data/review; không resume oldT4checkpoint hay trộn source. `--statistics` chỉ khi đủ registeredseeds/pairedinputs. D0 inputs riêng theo SHA; VisA chưa runner/protocolđượcaccept.
@@ -112,3 +122,11 @@ Evaluate/matrix chỉ sau completedtrain theo CLI, readonly; chỉ thêm missing
 Cất artifacts trong checkout giúp dễ tìm, không bảo vệ khi Destroy instance. Trước Stop/Destroy: copy ZIP/accounting/log/records về máy khác và đối chiếu archiveSHA; live directory cần giữ để resume. Git clone không backup data/run. Hardkill có thể ngăn export; lastatomiccheckpoint phải lấy từ disk. Không tự reset ledger/folder để vượt cap.
 
 Source identity gồm code/docs/tests/pixi manifest/lock, không outputs. Thay provisioning/source phải commit/push hoặc ghi exactdirtyinventory trước freshcohort; không pull/sửa source giữa run. Localtests/locksolve không là ADgain, speedup hay scientificacceptance. Giữ baseline89df9a2 và oldarchives bất biến; không cần tạo sourceZIP mới cho luồng Git.
+
+## Export sessions và logs
+
+Research runner giữ writer lock, cấp một slot session tăng dần rồi export evidence.zip, verify/hash, sau đó ghi accounting.json và chốt live ledger. Slot lỗi/partial giữ nguyên; lần sau cấp slot mới. Export ở ngoài payload run/; budget chưa giải phóng khi export thất bại. ZIP vẫn chứa reservation mở, sidecar gắn archive SHA/attempt. Không tự import sidecar để giảm charge khi restore sang host khác.
+
+Wrapper đặt logs canonical experiment cạnh run/ tại logs/. Tools không có canonical run dùng workspace/checks/invocations/logs. Log timestamp/PID theo invocation; telemetry attempt ID ở run/ để đối chiếu. Baseline export vẫn nhận --output explicit; auto export theo session là research runner.
+
+Backup latest live run để resume và từng export session/log/records ra khỏi máy thuê. session_01 trong ví dụ chỉ minh họa: dùng session mới nhất của invocation vừa chạy. Không ghi đè session cũ.

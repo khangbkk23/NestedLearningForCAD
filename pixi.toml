@@ -5,9 +5,9 @@ platforms = ["win-64", "linux-64"]
 version = "0.1.0"
 
 [tasks]
-install = "python -c \"import hope_cad; print(hope_cad.__file__)\""
+check-install = "python -c \"import hope_cad; print(hope_cad.__file__)\""
 test = "python -B -m hope_cad.local_tests"
-preflight-local = "python -B -m hope_cad preflight --local-smoke --device cpu --run-dir results/local-preflight"
+preflight-local = "python -B -m hope_cad preflight --local-smoke --device cpu --run-dir workspace/checks/local-preflight"
 cad = "python -B -m hope_cad"
 assets = "python -B -m hope_cad.data.provision"
 download-mvtec = "python -B -m hope_cad.data.download"

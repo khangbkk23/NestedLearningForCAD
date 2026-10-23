@@ -1,6 +1,6 @@
 # Tài liệu dự án
 
-Repo tự chứa code, cấu hình, phương pháp, kết quả tổng hợp và spec/plan nghiên cứu. Không cần truy cập context/chat/worktree riêng để hiểu hoặc implement. Dataset/checkpoint/raw outputs có thể nằm trong các thư mục ignore ngay trong checkout; định danh bằng receipts/SHA và không phát hành trong Git.
+Repo tự chứa code, cấu hình, phương pháp, kết quả tổng hợp và spec/plan nghiên cứu. Không cần truy cập context/chat/worktree riêng để hiểu hoặc implement. Dataset/checkpoint/raw outputs mặc định nằm trong workspace/ được ignore ngay trong checkout; định danh bằng receipts/SHA và không phát hành trong Git.
 
 ## Code hiện tại — đọc trước
 

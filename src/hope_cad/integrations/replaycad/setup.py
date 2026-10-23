@@ -2,7 +2,7 @@
 from __future__ import annotations
 import argparse, json, sys
 from pathlib import Path
-from hope_cad.paths import ROOT
+from hope_cad.paths import ROOT, EXPERIMENTS
 from hope_cad.integrations.common.config import load_protocol, load_method
 from hope_cad.integrations.common.cli import safe_run_name, tasks_arg
 from hope_cad.integrations.common.artifacts import ensure_run_dir, atomic_json, command_file
@@ -10,7 +10,7 @@ from hope_cad.integrations.common.environment import write_environment, git_info
 from hope_cad.integrations.replaycad.pipeline import preflight, command_plan
 
 def main(argv=None):
-    p=argparse.ArgumentParser(); p.add_argument("--protocol",required=True); p.add_argument("--method",required=True); p.add_argument("--seed",type=int,required=True); p.add_argument("--run-name"); p.add_argument("--output-root",default=str(ROOT/"results/benchmarks")); p.add_argument("--tasks"); p.add_argument("--smoke",action="store_true"); p.add_argument("--dry-run",action="store_true"); a=p.parse_args(argv)
+    p=argparse.ArgumentParser(); p.add_argument("--protocol",required=True); p.add_argument("--method",required=True); p.add_argument("--seed",type=int,required=True); p.add_argument("--run-name"); p.add_argument("--output-root",default=str(EXPERIMENTS/"optional-baselines")); p.add_argument("--tasks"); p.add_argument("--smoke",action="store_true"); p.add_argument("--dry-run",action="store_true"); a=p.parse_args(argv)
     protocol=load_protocol(a.protocol); method=load_method(a.method); selected=tasks_arg(a.tasks); name=safe_run_name(a.run_name or f"setup_seed{a.seed}")
     run=Path(a.output_root)/protocol["id"]/"replaycad"/name; ensure_run_dir(run)
     reportable=not (a.smoke or protocol.get("id")=="mvtec_smoke_v1")

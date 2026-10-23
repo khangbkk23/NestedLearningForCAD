@@ -33,7 +33,7 @@ Matched study chính dùng `hope-cad train --job CADIC_seed0`. Compatible CADIC 
 
 ## Ranh giới dữ liệu và artifact
 
-Mặc định data/weights/runs/records ở các thư mục cùng tên ngay trong checkout, được Git ignore và loại khỏi source inventory; có thể cấp đường dẫn ngoài repo. Không commit dữ liệu thật. Train chỉ dùng normals theo manifest; GT/masks chỉ vào evaluator; scoring không update state/RNG. Checkpoint atomic, lock identity, source hashes, feature receipts và task checkpoints được giữ.
+Mặc định workspace/{data,weights,records,checks,experiments} trong checkout, được Git ignore và loại khỏi source inventory; có thể cấp đường dẫn ngoài repo. Không commit dữ liệu thật. Train chỉ dùng normals theo manifest; GT/masks chỉ vào evaluator; scoring không update state/RNG. Checkpoint atomic, lock identity, source hashes, feature receipts và task checkpoints được giữ.
 
 Dataset, checkpoint và raw result ZIPs không là tracked source; identities/provenance và giới hạn truy cập được công bố trong [results](results.md). Docs/spec/plan cần cho hiểu và phát triển nằm trong repo. Không cần một kho context hoặc sibling checkout riêng.
 

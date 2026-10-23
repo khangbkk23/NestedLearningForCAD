@@ -47,4 +47,4 @@ pyproject.toml  metadata, editable install, CLI và pytest
 pixi.toml/lock  môi trường Linux/Windows và editable install có khóa
 ```
 
-Repo Git tự chứa tài liệu/code, không phát hành dataset/checkpoint/raw outputs/API keys/chat history. Trên máy chạy, `data/`, `weights/`, `runs/`, `records/` nằm ngay trong checkout và được ignore; source inventory không gồm chúng. Muốn chạy phải cung cấp data/weights đúng identity; muốn tự tính lại kết quả lịch sử phải nhận các archives ghi trong results. Mọi spec/link cần đọc nằm trong repo hoặc nguồn khoa học công khai.
+Repo Git tự chứa tài liệu/code, không phát hành dataset/checkpoint/raw outputs/API keys/chat history. Trên máy chạy, `workspace/` gom data, pretrained weights, records, checks và experiments; được ignore và loại khỏi source inventory. Mỗi experiment có run/logs và exports theo session bất biến. Muốn chạy phải cung cấp data/weights đúng identity; muốn tự tính lại kết quả lịch sử phải nhận các archives ghi trong results. Mọi spec/link cần đọc nằm trong repo hoặc nguồn khoa học công khai.

@@ -9,7 +9,7 @@ import time
 import hashlib
 import re
 from pathlib import Path
-from hope_cad.paths import ROOT
+from hope_cad.paths import ROOT, EXPERIMENTS
 from hope_cad.benchmark.artifacts import BenchmarkArtifacts, git_metadata
 from hope_cad.data.manifest import build_training_manifest
 from hope_cad.benchmark.baseline_config import load_configs, validate_configs
@@ -20,7 +20,7 @@ def args():
     p.add_argument("--method", required=True)
     p.add_argument("--seed", type=int, required=True)
     p.add_argument("--set", dest="overrides", action="append", default=[])
-    p.add_argument("--output-root", default=str(ROOT/"runs/baselines"))
+    p.add_argument("--output-root", default=str(EXPERIMENTS/"baselines"))
     p.add_argument("--run-name")
     p.add_argument("--require-clean-git", action="store_true")
     p.add_argument("--smoke", action="store_true")

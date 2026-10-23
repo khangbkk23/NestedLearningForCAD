@@ -9,7 +9,7 @@ AREAS = ('src', 'scripts', 'tests', 'docs', 'refs')
 ROOT_FILES = ('.gitattributes', '.gitignore', 'AGENTS.md', 'README.md', 'QUICK_UPDATE.md', 'LICENSE',
               'pyproject.toml', 'pixi.toml', 'pixi.lock')
 SKIP = {'.git', '.pixi', '.venv', '__pycache__', '.pytest_cache', '.cache',
-        'results', 'logs', 'runs', 'dist', 'build'}
+        'workspace', 'results', 'logs', 'runs', 'dist', 'build'}
 SUFFIXES = {'.py', '.yaml', '.yml', '.json', '.md', '.toml', '.txt', '.sh', '.pdf'}
 
 

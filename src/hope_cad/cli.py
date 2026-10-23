@@ -1,9 +1,9 @@
 """One SSH-friendly interface; no automatic rentals, experiments or external services."""
 import argparse,json,sys
-from hope_cad.paths import ROOT
+from hope_cad.paths import ROOT, DATA, WEIGHTS
 
-DATA_ROOT=str(ROOT/'data/mvtec')
-CHECKPOINT=str(ROOT/'weights/vit_base_patch8_224.augreg_in21k.safetensors')
+DATA_ROOT=str(DATA/'mvtec')
+CHECKPOINT=str(WEIGHTS/'vit_base_patch8_224.augreg_in21k.safetensors')
 
 def parser():
     p=argparse.ArgumentParser(prog='python -m hope_cad')

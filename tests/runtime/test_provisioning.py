@@ -85,14 +85,14 @@ class ProvisioningContracts(unittest.TestCase):
     def test_repo_layout_is_ignored_and_not_scientific_source(self):
         for path in (ROOT,ROOT/'src/hope_cad',ROOT/'tests'):
             with self.assertRaises(ValueError):asset_destination(path)
-        self.assertEqual(asset_destination(ROOT/'data/mvtec'),ROOT/'data/mvtec')
-        self.assertEqual(asset_destination(ROOT/'weights/model.safetensors'),ROOT/'weights/model.safetensors')
+        self.assertEqual(asset_destination(ROOT/'workspace/data/mvtec'),ROOT/'workspace/data/mvtec')
+        self.assertEqual(asset_destination(ROOT/'workspace/weights/model.safetensors'),ROOT/'workspace/weights/model.safetensors')
         from hope_cad.runtime.identity import output_directory,source_files
-        self.assertEqual(output_directory(ROOT/'runs/one',data_root=ROOT/'data/mvtec',checkpoint=ROOT/'weights/vit.safetensors'),ROOT/'runs/one')
-        self.assertFalse(any(n.startswith(('data/','weights/','runs/','records/')) for n in source_files()))
+        self.assertEqual(output_directory(ROOT/'runs/one',data_root=ROOT/'workspace/data/mvtec',checkpoint=ROOT/'workspace/weights/vit.safetensors'),ROOT/'runs/one')
+        self.assertFalse(any(n.startswith(('workspace/','data/','weights/','runs/','records/')) for n in source_files()))
         args=parser().parse_args(['research','--phase','preflight','--run-dir','runs/one'])
-        self.assertEqual(Path(args.data_root),ROOT/'data/mvtec')
-        self.assertEqual(Path(args.checkpoint).parent,ROOT/'weights')
+        self.assertEqual(Path(args.data_root),ROOT/'workspace/data/mvtec')
+        self.assertEqual(Path(args.checkpoint).parent,ROOT/'workspace/weights')
 
     def test_pixi_lock_linux_pins_and_editable_install(self):
         manifest=tomllib.loads((ROOT/'pixi.toml').read_text());lock=yaml.safe_load((ROOT/'pixi.lock').read_text())

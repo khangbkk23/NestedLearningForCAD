@@ -29,7 +29,7 @@ D0 đã được exercise trên đúng historical archives trong quá trình loc
 
 ## Bước người chạy thực hiện trên Vast.ai
 
-Đọc [runbook Pixi và assets](../operations.md) trước. Source mới gồm thay đổi provisioning/Pixi chưa được commit ở thời điểm viết; user review/commit/push rồi clone branch và pin **full SHA của chính lượt thay đổi này**. Commit672abd1/720b3cd là predecessor, không chứa luồng Pixi mới. Không tự suy currentHEAD là bản đã push. Không tạo sourceZIP mới chỉ để bàn giao Git.
+Đọc [runbook Pixi và assets](../operations.md) trước. Layout workspace mới cần user review/commit/push rồi clone branch và pin **full SHA chứa thay đổi layout này**. Commit32b4e5c chứa Pixi/provisioning nhưng chưa có layout workspace mới. Không tự suy currentHEAD là bản đã push. Không tạo sourceZIP mới chỉ để bàn giao Git.
 
 ```bash
 # Sau khi clone/pin đúng commit mới, chạy từ repo root trong tmux.
@@ -38,23 +38,23 @@ pixi run --locked env-check --gpu
 pixi run --locked test
 pixi run --locked assets
 
-# Tạo records/B_allocation.json theo mục budget trong runbook.
+# Tạo workspace/records/B_allocation.json theo mục budget trong runbook.
 read -r -p "So giay billed chua ghi ledger: " HQ_EXTERNAL_SECONDS
 bash scripts/remote/run.sh research --phase preflight \
-  --run-dir runs/hq32_01 --device cuda:0 \
+  --run-dir workspace/experiments/hq32_01/run --device cuda:0 \
   --expected-gpu 'NVIDIA GeForce RTX 5090' --session-hours 4 \
-  --allocation records/B_allocation.json \
+  --allocation workspace/records/B_allocation.json \
   --external-billed-seconds "$HQ_EXTERNAL_SECONDS"
 ```
 
-CLI mặc định dùng `<repo>/data/mvtec` và `<repo>/weights/vit_base_patch8_224.augreg_in21k.safetensors`, không phụ thuộc tên thư mục cha. Có thể override `--data-root`/`--checkpoint`; không đổi data/source/runtime identity giữa cohort. `pixi run cad` và wrapper `run.sh` dùng cùng Pixi environment; wrapper thêm log timestamp/PID, unbuffered và CUBLAS config.
+CLI mặc định dùng `<repo>/workspace/data/mvtec` và `<repo>/workspace/weights/vit_base_patch8_224.augreg_in21k.safetensors`, không phụ thuộc tên thư mục cha. Có thể override `--data-root`/`--checkpoint`; không đổi data/source/runtime identity giữa cohort. `pixi run cad` và wrapper `run.sh` dùng cùng Pixi environment; wrapper thêm log timestamp/PID, unbuffered và CUBLAS config.
 
-**Chỉ dừng ở preflight và review trước pilot.** Giữ `runs/hq32_01.zip`, `runs/hq32_01.accounting.json`, `logs/` cùng `records/` và live run-directory; tải về máy khác/knowledge trước Stop/Destroy. Cất trong repo không thay thế backup ngoài máy thuê.
+**Chỉ dừng ở preflight và review trước pilot.** Giữ `workspace/experiments/hq32_01/exports/session_01/evidence.zip`, `workspace/experiments/hq32_01/exports/session_01/accounting.json`, `workspace/experiments/hq32_01/logs/` cùng `workspace/records/` và live run-directory; tải về máy khác/knowledge trước Stop/Destroy. Cất trong repo không thay thế backup ngoài máy thuê.
 
 StageB preflight+pilot cap12GPUh, mỗi invocation≤4h mềm; StageC main cap24GPUh; D cần allocation riêng. Đây là caps, không ETA. File allocation phải cố định theo stage, ví dụ tạo một lần với giá thật/cap user chọn:
 
 ```bash
-pixi run python -c 'import json; from pathlib import Path; p=Path("records/B_allocation.json"); p.parent.mkdir(parents=True,exist_ok=True); rate=float(input("USD/hour: ")); cap=float(input("USD cap Stage B: ")); assert rate>0 and cap>0; f=p.open("x"); json.dump(dict(stage="B",authorized=True,USD_per_hour=rate,USD_cap=cap),f,indent=2); f.close()'
+pixi run python -c 'import json; from pathlib import Path; p=Path("workspace/records/B_allocation.json"); p.parent.mkdir(parents=True,exist_ok=True); rate=float(input("USD/hour: ")); cap=float(input("USD cap Stage B: ")); assert rate>0 and cap>0; f=p.open("x"); json.dump(dict(stage="B",authorized=True,USD_per_hour=rate,USD_cap=cap),f,indent=2); f.close()'
 ```
 
 `--external-billed-seconds` là setup/download/tests/idle chưa ghi, tính một lần; không là hóa đơn chính xác. Ledger giữ full reservation qua compress/verify/hash ZIP, sau export tạo accounting sidecar gắn archive SHA/attempt rồi cập nhật live budget. ZIP chứa `export_incomplete`; sidecar chốt elapsed thực +external+180s publication reserve. Crash giữ full reservation; chuyển host cần review reconciliation, không tự xóa ledger hoặc trộn checkpoint/source để cứu budget. Runner không tự Stop instance.
@@ -62,16 +62,16 @@ pixi run python -c 'import json; from pathlib import Path; p=Path("records/B_all
 Sau review đạt, ghi acceptance và chạy pilot cùng inputs/run-dir/allocation; thay external time đúng invocation:
 
 ```bash
-pixi run --locked cad research-review --run-dir runs/hq32_01 \
+pixi run --locked cad research-review --run-dir workspace/experiments/hq32_01/run \
   --phase preflight --accept --note 'Artifacts reviewed and accepted'
-bash scripts/remote/run.sh research --phase pilot --run-dir runs/hq32_01 \
-  --session-hours 4 --allocation records/B_allocation.json \
+bash scripts/remote/run.sh research --phase pilot --run-dir workspace/experiments/hq32_01/run \
+  --session-hours 4 --allocation workspace/records/B_allocation.json \
   --external-billed-seconds "$HQ_EXTERNAL_SECONDS"
 ```
 
 Pilot9fresharms×256normals209Bottle+47Cable; không import learned preflight/pilot vào main. Pause: resume cùng lệnh/run-dir/source/lock; gatefail giữ negative và review, không retune. Pilot được nghiệm thu mới reviewaccept rồi mở main từng job `CADIC_seed0`, `R_EXACT_seed0`, `H32_EXACT_seed0`, với stageCallocation riêng. Mỗi job3629→final15→matrix120; extension có screen/budget điều kiện. Chưa tự mở VisA.
 
-CPU summary: `pixi run --locked cad research-aggregate --inputs runs/hq32_01.zip --output results/summary.json`; paired statistics chỉ khi đủ3seeds cho H32 và comparator. D0 `pixi run --locked cad attribution ...` giữ inputs/SHA lịch sử, không cần GPU. Cài đặt không tự chạy asset download, tests, preflight hoặc benchmark.
+CPU summary: `pixi run --locked cad research-aggregate --inputs workspace/experiments/hq32_01/exports/session_01/evidence.zip --output workspace/checks/summary.json`; paired statistics chỉ khi đủ3seeds cho H32 và comparator. D0 `pixi run --locked cad attribution ...` giữ inputs/SHA lịch sử, không cần GPU. Cài đặt không tự chạy asset download, tests, preflight hoặc benchmark.
 
 ## Các ranh giới còn nguyên
 

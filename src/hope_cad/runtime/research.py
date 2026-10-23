@@ -3,6 +3,7 @@ import gc
 import json
 import time
 from pathlib import Path
+from hope_cad.paths import session_export_directory
 import torch
 from hope_cad.contract import digest,canonical,file_sha
 from hope_cad.research import contract,method_identity,study_digest,job,session_for
@@ -214,7 +215,8 @@ def run(c):
                 accounting_status='reserved_until_verified_export',candidate_adopted=False),work/'handoff.json')
         if budget:budget.begin_export()
         # Hold the writer lock through export and ledger reconciliation.
-        receipt=export_archive(work,work.parent/(work.name+'.zip'),schema=EVIDENCE_SCHEMA)
-        accounting=budget.finish(receipt) if budget else None
+        slot=session_export_directory(work)
+        receipt=export_archive(work,slot/'evidence.zip',schema=EVIDENCE_SCHEMA)
+        accounting=budget.finish(receipt,accounting_path=slot/'accounting.json') if budget else None
     if failure:raise RuntimeError('Research run failed; evidence exported '+receipt['path']) from failure
     return dict(status=status,evidence=receipt,accounting=accounting)

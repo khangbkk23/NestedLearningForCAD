@@ -86,12 +86,12 @@ class ResearchContracts(unittest.TestCase):
                  patch('hope_cad.runtime.research.check_remote_runtime',side_effect=ValueError('fixture runtime mismatch')),\
                  patch('hope_cad.runtime.research.resource_usage',side_effect=RuntimeError('fixture resource failure')):
                 with self.assertRaises(RuntimeError):run(c)
-            with zipfile.ZipFile(Path(t)/'run.zip') as z:
+            with zipfile.ZipFile(Path(t)/'exports/session_01/evidence.zip') as z:
                 self.assertEqual(json.loads(z.read('handoff.json'))['status'],'failed_preserve_evidence')
                 self.assertFalse(any('/test/' in n for n in z.namelist()))
                 self.assertEqual(json.loads(z.read('budget_B.json'))['attempts'][-1]['status'],'export_incomplete')
-            accounting=json.loads((Path(t)/'run.accounting.json').read_text())
-            self.assertEqual(accounting['archive']['sha256'],__import__('hope_cad.contract',fromlist=['file_sha']).file_sha(Path(t)/'run.zip'))
+            accounting=json.loads((Path(t)/'exports/session_01/accounting.json').read_text())
+            self.assertEqual(accounting['archive']['sha256'],__import__('hope_cad.contract',fromlist=['file_sha']).file_sha(Path(t)/'exports/session_01/evidence.zip'))
             self.assertEqual(accounting['attempt']['status'],'closed_after_verified_export')
 
     def test_real_successor_engine_hard_crash_replays_same_history_and_bank(self):
