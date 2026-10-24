@@ -98,3 +98,13 @@ not establish anomaly quality, paper reproduction, or H32 benefit.
 Select only one fixed budget with `--budgets 2500` if needed; default comparisons
 use both. Selected budgets are part of the lock and cannot be changed on resume.
 Use fresh run IDs for repeated measurements; retain slow/failed results too.
+
+## Observed engineering result
+
+The RTX3090 run on 24 October 2026 completed both selected trainings and recorded
+QA passes: K2500 pipeline592.23s, K5000 pipeline1664.09s; combined invocation
+including export2272.10s. [Results and artifact identity](results.md)
+separate verified CPU artifact checks from recorded GPU QA. No anomaly metrics or
+research preflight/pilot acceptance were produced by this diagnostic. Its source
+and runtime locks remain the original ones; this documentation update does not
+authorize resuming that run with a changed source/runtime.

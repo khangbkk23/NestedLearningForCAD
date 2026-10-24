@@ -51,4 +51,21 @@ Source đã publish `54d9049653178d8bc7ee29386444753db449542d`, remote source di
 
 Archive `hq32_5090_01/exports/session_01/evidence.zip` SHA256 `8603599c6823b18a40d16488b4b055d30b8b6fa45539d8ab28be033affbce7e3`, cần cấp riêng cùng accounting/log để tự kiểm. Host57385505 sau đó đã bị người chạy Destroy khi pilot còn dang dở; chưa có completed pilot được nhận/review trong repo. Không gộp thông tin tiến độ từ terminal thành accepted result.
 
-[CADIC K2500/K5000 diagnostic](cadic_diagnostic.md) mới được triển khai để đo trực tiếp trên cấu hình tiếp theo. CPU fixtures/local tests của nó không là kết quả chạy K2500/K5000 thật; chưa có GPU timing hoặc final AD metrics từ công cụ này.
+## CADIC diagnostic trên RTX3090 — 24/10/2026
+
+Run `cadic_check_01`, instance57535903, RTX3090/driver570.153.02, Ryzen Threadripper PRO3955WX, PyTorch2.11.0+cu128/Python3.13.17, source commit `bd78bda9bf2d5a18e87d2e1885f2fb4e5b290de9`; source digest Linux `1a3f729d651b5c4b3da16d5a08f42c4687a67189e4c698f99cfebf022db6b528` đối chiếu đúng178Gitblobs. Mỗi K xử lý đủ3629normals. Hai bank train xong; chưa có anomaly evaluation.
+
+| Phạm vi timing | K2500 | K5000 |
+|---|---:|---:|
+| Đọc/hash/transform ảnh | 101,70s | 102,73s |
+| ViT features | 48,71s | 48,99s |
+| Cập nhật coreset | 441,82s | 1512,37s |
+| Tổng pipeline, không checkpoint/QA/export | 592,23s | 1664,09s |
+| Checkpoint và hash checkpoint | 1,64s | 3,13s |
+| Số vector được thay | 28102 | 52335 |
+
+Invocation gồm cả hai K và export2272,10s, khoảng37phút52giây. Update chiếm74,6%/90,9% pipeline; hai category đầu chiếm56,8%/55,7% tổng update. Không suy whole-stream ETA từ prefix hoặc quy bottleneck chi tiết cho NN/pair-cache/CPU-GPU khi chưa có profiler. Đây là một host/run, chưa là so sánh3090–4090 hoặc speedup so với paper vì phạm vi timer/implementation khác chưa được cô lập.
+
+Export `cadic_check_01/exports/session_02/evidence.zip`,43420007bytes,SHA256 `7995561273f72f18b7cbb7ee97cafc457931a4b5313a77b4c0eb13a16ba818b7`; session01 là lượt lỗi thiếu dữ liệu, SHA256 `3985c325d6b84b9918bd50d7548413f69b2b7d2c1500486423b9e07ddb1ef04d`. Raw archives/timing/checkpoints cần cấp riêng. Bản tải local được đối chiếu CRC và18/18payload hashes, records/counters/order/timing và bank finite/unique shape2500×768/5000×768 bằng CPU; các QA GPU trong receipts ghiPASS nhưng chưa replay độc lập trênGPU.
+
+Diagnostic không cấp research acceptance. User báo research preflight `hq32_3090_01` thất bại sau đó; chưa nhận raw handoff/error/export của research, nên chưa xác định nguyên nhân hoặc kết luận thiếu allocation. Bootstrap tại commit `bd78bda` có hai CPU transport fixtures lỗi khi CUDA hiện diện, dừng trước assets/allocation. Assets sau đó đã được user chuẩn bị riêng để chạy diagnostic thành công. Bản sửa sau đó cô lập GPU discovery của hai CPU fixtures, thêm regression CUDA-present/absent, fail-fast message và ready shell sau log-save; phạm vi local/mocked verification không tự thay nghiệm thu Linux GPU-visible suite hoặc research preflight mới. Host được user báo đã Stop và chưa thuê lại được cùng máy; availability chưa kiểm trực tiếp. Xem [runbook](operations.md) để kiểm setup trước fresh run.

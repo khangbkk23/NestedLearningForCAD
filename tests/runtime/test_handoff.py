@@ -299,7 +299,8 @@ def make_pack_fixture(tmp_path):
     return ws,run,manifest,identity
 
 
-def test_pack_to_restore_real_zip_preserves_origin_and_does_not_start_training(tmp_path):
+@pytest.mark.parametrize('cuda_available',[False,True])
+def test_pack_to_restore_real_zip_preserves_origin_and_does_not_start_training(tmp_path,cuda_available):
     ws,run,manifest,identity=make_pack_fixture(tmp_path)
     with patch.object(h,'WORKSPACE',ws),patch.object(h.subprocess if hasattr(h,'subprocess') else subprocess,'check_output',return_value='a'*40):
         # Explicitly emulate a committed checkout: never change real Git state.
@@ -312,6 +313,8 @@ def test_pack_to_restore_real_zip_preserves_origin_and_does_not_start_training(t
     origin={p.relative_to(run).as_posix():p.read_bytes() for p in run.rglob('*') if p.is_file()}
     target=tmp_path/'target'
     with (patch.object(h,'WORKSPACE',target),
+          patch('torch.cuda.is_available',return_value=cuda_available),
+          patch('torch.cuda.get_device_name',return_value='fixture-gpu') as gpu_name,
           patch('hope_cad.runtime.identity.check_remote_runtime',return_value=identity['runtime']),
           patch('hope_cad.data.fulltrain.build_manifest',return_value=(manifest,digest(manifest['online']))),
           patch('hope_cad.runtime.execution.verify_checkpoint',return_value='fixture_backbone'),
@@ -325,15 +328,22 @@ def test_pack_to_restore_real_zip_preserves_origin_and_does_not_start_training(t
         assert not (dest/'preflight_review.json').exists()
         repeated=h.check(packed['path'],restore=True,device='cpu',rate=.2,cap=2.)
         assert repeated['allowed'] is False and 'already exists' in repeated['reason']
+        # Runtime is mocked, so its GPU discovery must be isolated as well.
+        # Exercise both CPU-only and CUDA-present hosts without calling CUDA.
+        assert gpu_name.call_count==(2 if cuda_available else 0)
+        if cuda_available:gpu_name.assert_called_with('cpu')
 
 
-def test_gate_blocks_new_driver_before_probe_or_restore(tmp_path):
+@pytest.mark.parametrize('cuda_available',[False,True])
+def test_gate_blocks_new_driver_before_probe_or_restore(tmp_path,cuda_available):
     ws,run,manifest,identity=make_pack_fixture(tmp_path)
     def git(args,**kwargs):return '' if 'status' in args else 'a'*40
     with patch.object(h,'WORKSPACE',ws),patch('subprocess.check_output',side_effect=git):
         packed=h.pack(run)
     target=tmp_path/'newhost'
     with (patch.object(h,'WORKSPACE',target),
+          patch('torch.cuda.is_available',return_value=cuda_available),
+          patch('torch.cuda.get_device_name',return_value='fixture-gpu') as gpu_name,
           patch('hope_cad.runtime.identity.check_remote_runtime',return_value={'fixture':'different_driver'}),
           patch('hope_cad.data.fulltrain.build_manifest',return_value=(manifest,digest(manifest['online']))),
           patch('hope_cad.runtime.execution.verify_checkpoint',return_value='fixture_backbone'),
@@ -341,6 +351,8 @@ def test_gate_blocks_new_driver_before_probe_or_restore(tmp_path):
         result=h.check(packed['path'],restore=True,device='cpu',rate=.2,cap=2.)
     assert result['status']=='blocked_identity' and result['different_fields']==['runtime']
     assert not (target/'experiments').exists()
+    assert gpu_name.call_count==int(cuda_available)
+    if cuda_available:gpu_name.assert_called_once_with('cpu')
 
 
 def test_pack_refuses_dirty_source_and_active_writer(tmp_path):

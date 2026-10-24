@@ -48,7 +48,13 @@ Allocation có sẵn chỉ được tái dùng khi nội dung khớp; khác thì
 
 Logs tạm /tmp/hope-cad-system.*.log và /tmp/hope-cad-setup.*.log; khi đúng checkout thì lưu complete log/exit receipt/helper copy dưới workspace/records/bootstrap/. Dispatch thành công chưa nghĩa worker hoàn tất: kiểm SETUP COMPLETE và receipt exit0. Fail trước clone/sai origin chỉ giữ log tạm.
 
-Bootstrap dừng sau allocation, **không chạy preflight/training hoặc tự Stop máy**. Bản helper thêm Codex chỉ được kiểm offline/mocked; setup Linux bản trước đã chạy, không tự xác nhận bản sửa mới. Sau setup review logs/receipts rồi dùng [CADIC diagnostic](cadic_diagnostic.md) trước research, hoặc [research handoff](research/implementation.md). Không cần commit helper, nhưng code/docs/lock muốn dùng vẫn phải được user publish lên branch trước clone.
+Nếu tests thất bại, bootstrap dừng với exitcode khác0 và thông báo rõ assets/allocation chưa chạy trong invocation này; giữ log, chưa chạy diagnostic/preflight. Không bỏ tests, thêm `|| true` hoặc coi install thành công là setup hoàn tất. Khi assets được provision/kiểm thành công, có marker `[ASSETS READY]`; sau đó còn allocation/handoff gate. Asset receipts được kiểm khi tái dùng dataset/weights, không cần tải lại nếu đã đúng.
+
+Sau setup thành công **và sau khi lưu log/receipt**, worker trong tmux mở `bash -i` tại `<base>/NestedLearningForCAD` với `$HOME/.pixi/bin` trên PATH. Không cần nhập lại cd/export trong pane đó. Non-interactive caller không mở shell để tránh treo automation; reconnect bằng SSH tạo terminal khác vẫn cần cd/export hoặc attach pane sẵn. Lệnh `bash BOOTSTRAP.sh` không đổi cwd/PATH của parent shell. Setup lỗi không mở ready shell; dispatch bên ngoài không mở shell thứ hai.
+
+Bootstrap hoàn tất allocation/gate rồi giữ terminal để user thao tác, **không chạy preflight/training hoặc tự Stop máy**. Helper sửa fixtures/readiness được kiểm local/mocked; Linux GPU-visible suite và ready terminal thật của bản mới phải được kiểm trên host trước research. Sau setup review logs/receipts rồi dùng [CADIC diagnostic](cadic_diagnostic.md) trước research, hoặc [research handoff](research/implementation.md). Không cần commit helper, nhưng code/docs/lock muốn dùng vẫn phải được user publish lên branch trước clone. Phải gửi lại BOOTSTRAP.sh mới qua SCP; existing checkout không tự pull về commit mới.
+
+Lỗi research `hq32_3090_01` trước đây chưa có raw `handoff.json/error/export` để chốt nguyên nhân. Trước lần chạy fresh kế tiếp, phải có SETUP COMPLETE, receipt exit0, assets đã verified và đúng `workspace/records/B_allocation.json`. Không tự ghi allocation vào một run đã mở ledger hoặc sửa identity để tiếp tục. Nếu research lỗi, giữ export và đọc ngay `run/handoff.json`; thiếu allocation của lần cũ vẫn là giả thuyết, không là nguyên nhân đã xác nhận.
 
 ## 1. Cài Pixi, clone và pin source
 
