@@ -10,7 +10,7 @@ ROOT_FILES = ('.gitattributes', '.gitignore', 'AGENTS.md', 'README.md', 'QUICK_U
               'pyproject.toml', 'pixi.toml', 'pixi.lock')
 SKIP = {'.git', '.pixi', '.venv', '__pycache__', '.pytest_cache', '.cache',
         'workspace', 'results', 'logs', 'runs', 'dist', 'build'}
-SUFFIXES = {'.py', '.yaml', '.yml', '.json', '.md', '.toml', '.txt', '.sh', '.pdf'}
+SUFFIXES = {'.py', '.yaml', '.yml', '.json', '.md', '.toml', '.txt', '.sh', '.ps1', '.pdf'}
 
 
 def paths():

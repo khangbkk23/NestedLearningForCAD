@@ -37,10 +37,18 @@ CADIC fresh3599 train≈7.918,867giây (2giờ12phút), final evaluation≈464,0
 
 ## Phần chưa có kết quả
 
-- Full-train3629/H32 đã implementation/local verified, chưa remote run; số liệu cũ không được relabel.
+- Full-train3629/H32 đã implementation/local verified và có technical preflight theo phạm vi bên dưới; chưa completed/accepted pilot hoặc AD benchmark, số liệu cũ không được relabel.
 - R_EXACT/H32 và controls prospective chưa có attribution results; D0 analyzer đã viết/exercise normal trace, chưa AD intervention hoặc attribution causal proof.
 - Controls/other seeds của full baseline study chưa hoàn tất; không nhận120cells là120independent replicates.
 - VisA protocol/runner/freeze và exposure review còn riêng; ReplayCAD/ContCore integrations không tự là accepted baselines.
 - Same K không equal total memory. Chưa có measured-total-memory-matched control hoặc full fresh same-runtime NESTED/CADIC timing ratio.
 
 Xem [method hiện hành](method.md), [benchmark contract](benchmark.md), [thiết kế nghiên cứu](research/README.md) và [pipeline quyết định](pipeline_alignment_spec.md).
+
+## Technical preflight trên máy thuê
+
+Source đã publish `54d9049653178d8bc7ee29386444753db449542d`, remote source digest `4d7fe48a6d8ca487e8485fab9f022e7f261d524b65189eaa8b1ea46fe6ac409c` (169 files) có preflight RTX5090 instance57380117/driver580.173.02 đã review ngày23/10/2026: numerical, NN/Eq9 và resume checks đạt; 62 payload hashes,28 feature records và169 source blobs được đối chiếu. Invocation khoảng522giây, **không phải full train/pilot timing hoặc AD quality**. Source/runtime sau đó không tự kế thừa acceptance này.
+
+Archive `hq32_5090_01/exports/session_01/evidence.zip` SHA256 `8603599c6823b18a40d16488b4b055d30b8b6fa45539d8ab28be033affbce7e3`, cần cấp riêng cùng accounting/log để tự kiểm. Host57385505 sau đó đã bị người chạy Destroy khi pilot còn dang dở; chưa có completed pilot được nhận/review trong repo. Không gộp thông tin tiến độ từ terminal thành accepted result.
+
+[CADIC K2500/K5000 diagnostic](cadic_diagnostic.md) mới được triển khai để đo trực tiếp trên cấu hình tiếp theo. CPU fixtures/local tests của nó không là kết quả chạy K2500/K5000 thật; chưa có GPU timing hoặc final AD metrics từ công cụ này.

@@ -2,7 +2,7 @@
 
 HOPE/CMS học utility để chấp nhận hoặc từ chối proposal cập nhật normal-support bank của CADIC. Frozen ViT tạo raw patch features; bank thật được controller chọn quyết định anomaly map và image score bằng full CADIC Eq9.
 
-**Code hiện tại:** `hope_cad_v5_1_causal_scaled_utility`, package0.7.0. Tên workspace **v7** là tổ chức mã nguồn, không phải một thuật toán mới. Runtime hiện hành dùng matched MVTec3.599normals. **Full-train3.629 và historical-query H32 đã implement/test local qua CLI `research`; chưa remote preflight/pilot hoặc AD benchmark.**
+**Code hiện tại:** `hope_cad_v5_1_causal_scaled_utility`, package0.7.0. Tên workspace **v7** là tổ chức mã nguồn, không phải một thuật toán mới. Runtime baseline dùng matched MVTec3.599normals; `research` dùng full-train3.629 và historical-query H32. **Source đã publish trước đây có technical preflight RTX5090 đã review; chưa có completed/accepted pilot hoặc AD benchmark H32. Source có thay đổi sau đó phải được kiểm riêng.**
 
 **Mốc source chính thức trước nâng cấp:** `89df9a21658b265731f98a7c2014afb1876f1924`, gồm code và bộ docs/spec/plan công khai. Dùng mốc này làm gốc phát triển/rollback; benchmark cũ vẫn giữ provenance của run thực tế.
 
@@ -31,6 +31,8 @@ pixi run --locked assets
 Pixi là package/environment manager duy nhất; `pixi install --locked` cài Python, dependencies và project editable, không cần pip/uv/venv thủ công. Cùng `pixi.lock` khóa Linux (Python3.13/PyTorch2.11+cu128) và Windows local (Python3.14/PyTorch2.12+cu126). Linux lock đã solve, cài/kernel5090 cần preflight thật. `assets` là bước tải dữ liệu/ViT riêng, chỉ chạy khi được yêu cầu; không tự tải5GB khi install. [Runbook](docs/operations.md), [research handoff](docs/research/implementation.md).
 
 Bàn giao máy thuê qua Git: người dùng review, commit và push branch `hope_cad_v7`, rồi clone branch và kiểm full commit SHA trước setup/preflight. Source ZIP cũ giữ provenance local verification, không là yêu cầu chuyển source. ZIP outputs của remote run vẫn cần giữ cùng accounting sidecar và log theo research handoff.
+
+Trước research preflight, có thể chạy [CADIC diagnostic K2500/K5000](docs/cadic_diagnostic.md) để đo riêng full-stream feature extraction và bank update trên từng cấu hình máy. Đây là phép kiểm engineering độc lập, không mở pilot hoặc chứng minh paper parity. [Helper PowerShell](scripts/local/Prepare-Vast.ps1) cập nhật alias `vast1` và gửi bootstrap. [Handoff v1](docs/research/stage_handoff_v1.md) thêm CLI `handoff-pack/check` và bootstrap gate, chỉ exact source/runtime/data identity; đã có implementation/local fixtures, real cross-host acceptance pending. Changed-runtime/source mapping trong [proposal rộng hơn](docs/research/stage_handoff_spec.md) chưa implement.
 
 ## Đọc và phát triển
 

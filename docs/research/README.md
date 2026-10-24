@@ -1,6 +1,6 @@
 # Đặc tả nghiên cứu tiếp theo
 
-**Đã triển khai D0, full-train và H32/controls; local verification đạt, remote preflight/pilot/AD còn pending.** Phương pháp đã có accepted benchmark vẫn v5.1. [Implementation và SSH handoff](implementation.md) ghi code/kiểm chứng/lệnh thực tế; spec tại đây tiếp tục khóa scientific semantics.
+**Đã triển khai D0, full-train và H32/controls; local verification đạt. Technical preflight RTX5090 đã được review cho source/runtime đã lưu; chưa có completed/accepted pilot hoặc AD benchmark H32.** Phương pháp đã có accepted benchmark vẫn v5.1. [Implementation và SSH handoff](implementation.md) ghi code/kiểm chứng/lệnh thực tế; spec tại đây tiếp tục khóa scientific semantics.
 
 Đây là bộ spec công khai, tự đủ cho implementation và phản biện. Người clone repo không cần chat, worktree khác hoặc kho context riêng. Các archives thực nghiệm là inputs bên ngoài phải xin riêng nếu muốn tái tính số liệu.
 
@@ -13,6 +13,7 @@
 | Controls, pilot, metrics, ngân sách, stop rules? | [Study](study.md) |
 | Làm theo thứ tự nào và nghiệm thu từng phần thế nào? | [Implementation plan](implementation_plan.md) |
 | Hằng số và IDs tổng hợp máy đọc? | [Research contract](contract.json) |
+| Giữ stage đã hoàn thành khi đổi máy thế nào? | [Handoff v1](stage_handoff_v1.md), exact-identity CLI/local fixtures; [changed-runtime proposal](stage_handoff_spec.md) chưa implement |
 
 Contract tổng hợp đã áp dụng quyết định full-train 3.629 vào bản thiết kế H32: không cần người đọc tự ghép một bản study 3.599 với amendment ngoài repo. D0 vẫn phân tích trace lịch sử 3.599. H32 history32/support4/recent2+history2, optimizer, RNG, causal order và gates không đổi so với thiết kế đã chốt.
 

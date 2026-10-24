@@ -20,3 +20,5 @@
 Không tăng width/unroll/K/anchors, đổi utility target/LR, sửa preprocessing, thay proposer ContCore hoặc thêm component để cứu H32 trong vòng này. Lỗi đã chứng minh phải được sửa có version/provenance và nghiệm thu lại đúng phạm vi; kết quả âm không được tự gán là bug. Chi phí/caps không phải ETA hay quyền tự thuê máy.
 
 User đã giao implementation; candidate/runtime resources mới được thêm riêng, frozen baseline resources giữ nguyên. Local tests không hoàn thành remote gates hoặc benchmark; lệnh nghiên cứu tại [handoff](implementation.md), baseline tại [operations](../operations.md).
+
+Operational follow-up: [CADIC diagnostic K2500/K5000](../cadic_diagnostic.md) là phép đo độc lập trước bước7, không thay numerical preflight hoặc nine-arm pilot. User đã giao [stage handoff v1](stage_handoff_v1.md): pack/check/restore exact source/runtime/data, truthful phase status, source-pin bootstrap và ngân sách không reset; code/local fixtures đã thêm, real GPU transport pending. [Proposal rộng hơn](stage_handoff_spec.md) về changed-runtime/source compatibility chưa triển khai; không thay same-cohort guards.

@@ -55,6 +55,8 @@ class ExecutionContracts(unittest.TestCase):
             ('hope_cad.runtime.execution.verify_checkpoint',lambda _: 'fixture'),
             ('hope_cad.runtime.execution.runtime_identity',lambda _:runtime),
             ('torch.cuda.is_available',lambda:True),('torch.cuda.empty_cache',lambda:None),
+            # Actor is CPU-only despite the orchestration CUDA availability mock.
+            ('torch.cuda.is_current_stream_capturing',lambda:False),
             ('hope_cad.runtime.system.resource_usage',lambda _:dict(fixture=True)),
             ('hope_cad.models.features.CADICViTFeatureExtractor',Extractor),
             ('hope_cad.benchmark.data.NormalFeatures',Normal),

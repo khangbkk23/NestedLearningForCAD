@@ -1,6 +1,6 @@
 # Cập nhật Nested Learning for Continual Anomaly Detection
 
-**Ngày cập nhật: 22/10/2026**  
+**Ngày cập nhật: 24/10/2026**
 **Code đang dùng:** branch/worktree `hope_cad_v7`  
 **Phương pháp đã triển khai:** `hope_cad_v5_1_causal_scaled_utility`
 
@@ -14,11 +14,13 @@ Tài liệu này tóm tắt phần phát triển của nhánh HOPE-CAD, kết qu
 
 Người nhận chỉ cần branch này để đọc đầy đủ thiết kế: [bản đồ docs](docs/README.md), [method đang chạy](docs/method.md), [benchmark và provenance](docs/results.md), cùng [spec/plan nghiên cứu đầy đủ](docs/research/README.md). H32 có [thuật toán/gradient/RNG/state](docs/research/candidate.md), [D0](docs/research/attribution.md), [controls/gates/budget](docs/research/study.md), [contract tổng hợp](docs/research/contract.json) và [kế hoạch implementation](docs/research/implementation_plan.md). Không có nguồn bắt buộc nào là một đường dẫn context riêng ngoài branch.
 
-Hai file `pipeline_alignment_spec.md` và `pipeline_alignment_contract.json` chốt thay đổi dữ liệu/recipe/identity cho cohort tiếp theo; chúng chưa được CLI hiện tại thực thi. QUICK_UPDATE là báo cáo trao đổi, không là nơi duy nhất cất thuật toán. Spec/contract chuyên biệt là nguồn triển khai; các phụ lục bên dưới giữ vai trò giải thích. Raw artifacts chưa public trong Git; cần xin riêng nếu tự tính lại metrics.
+Hai file `pipeline_alignment_spec.md` và `pipeline_alignment_contract.json` chốt dữ liệu/recipe/identity cho cohort mới và đã được CLI `research` thực thi; baseline CLI vẫn3599. QUICK_UPDATE là báo cáo trao đổi, không là nơi duy nhất cất thuật toán. Spec/contract chuyên biệt là nguồn triển khai; các phụ lục bên dưới giữ vai trò giải thích. Raw artifacts chưa public trong Git; cần xin riêng nếu tự tính lại metrics.
 
 ## Implementation mới trong branch
 
-D0 offline, successor full-train3629 và H32/controls đã có code cùng CLI riêng `research`, ledger ngân sách, review gates, atomic resume và aggregation. Frozen baseline contracts/evidence giữ nguyên; chưa chạy GPU thuê, pilot hay AD benchmark mới. [Implementation, kiểm chứng và lệnh SSH](docs/research/implementation.md).
+D0 offline, successor full-train3629 và H32/controls đã có code cùng CLI riêng `research`, ledger ngân sách, review gates, atomic resume và aggregation. Frozen baseline contracts/evidence giữ nguyên. Source/runtime trước đây có [technical preflight RTX5090 đã review](docs/results.md#technical-preflight-tren-may-thue); chưa có completed/accepted pilot hoặc AD benchmark H32. [Implementation, kiểm chứng và lệnh SSH](docs/research/implementation.md).
+
+Thêm [CADIC diagnostic K2500/K5000](docs/cadic_diagnostic.md) để đo full train thuần và kiểm bank trước research preflight; [helper Windows](scripts/local/Prepare-Vast.ps1) để đổi endpoint SSH/gửi bootstrap. Đây là cải tiến vận hành đã implement/local-tested, **chưa có timing GPU hoặc gain AD mới**. [Handoff v1](docs/research/stage_handoff_v1.md) thêm một ZIP bàn giao đầy đủ, kiểm actual state/coverage/budget và exact runtime, restore atomic rồi in phase/job tiếp theo. Bootstrap pin source từ ZIP, không tự train. Changed-driver/runtime và source mapping vẫn chưa hỗ trợ, real transport acceptance pending. Không sửa locks cũ hoặc tự reset ngân sách.
 
 ## Overview
 

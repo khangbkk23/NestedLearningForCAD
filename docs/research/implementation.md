@@ -1,6 +1,6 @@
 # Implementation H32/full-train và bàn giao SSH
 
-**Trạng thái:** đã implement và kiểm tra local; **chưa nghiệm thu trên máy thuê RTX5090, chưa có pilot hoặc anomaly benchmark của candidate**. Baseline chính thức vẫn `89df9a21658b265731f98a7c2014afb1876f1924`; method được thực nghiệm trước đây vẫn v5.1. H32 là candidate, không tự được adopt khi tests đạt.
+**Trạng thái:** đã implement và kiểm tra local; source đã publish trước đây có **technical preflight RTX5090 đã review, chưa có completed/accepted pilot hoặc anomaly benchmark của candidate**. Phạm vi artifact/source tại [results](../results.md#technical-preflight-tren-may-thue); không tái dùng acceptance cho dirty source mới. Baseline chính thức vẫn `89df9a21658b265731f98a7c2014afb1876f1924`; method được thực nghiệm trước đây vẫn v5.1. H32 là candidate, không tự được adopt khi tests đạt.
 
 ## Code đã có
 
@@ -29,7 +29,7 @@ D0 đã được exercise trên đúng historical archives trong quá trình loc
 
 ## Bước người chạy thực hiện trên Vast.ai
 
-Đọc [runbook Pixi và assets](../operations.md) trước. Layout workspace mới cần user review/commit/push rồi clone branch và pin **full SHA chứa thay đổi layout này**. Commit32b4e5c chứa Pixi/provisioning nhưng chưa có layout workspace mới. Không tự suy currentHEAD là bản đã push. Không tạo sourceZIP mới chỉ để bàn giao Git.
+Đọc [runbook Pixi và assets](../operations.md) trước. Mọi thay đổi mới cần user review/commit/push rồi clone branch và pin **full SHA chứa thay đổi muốn chạy**. Không tự suy currentHEAD là bản đã push. Có thể chạy [CADIC diagnostic](../cadic_diagnostic.md) trước research preflight; nó không ghi acceptance. [Handoff v1](stage_handoff_v1.md) có one-ZIP/qualification/restore exact-identity; không hỗ trợ đổi runtime hoặc source mapping. Bootstrap pin source từ ZIP, không relabel acceptance cũ. Không tạo sourceZIP mới chỉ để bàn giao Git.
 
 ```bash
 # Sau khi clone/pin đúng commit mới, chạy từ repo root trong tmux.
@@ -79,7 +79,7 @@ CPU summary: `pixi run --locked cad research-aggregate --inputs workspace/experi
 - `telemetry/<attempt>.json` tách train/final/matrix, pilot probes nhiều actors và discarded preflight. GPU peak theo phase bao gồm backbone, allocator/cache và trạng thái thực; host peak là process lifetime, không phải peak riêng mỗi job. Summed phase wall qua **mọi** invocation gồm cả resume/restore; `train_complete.elapsed_seconds` chỉ là một phạm vi phụ. Setup/idle/export ở ledger/sidecar riêng.
 - Component times là host inclusive/exclusive; CUDA dispatch có thể bất đồng bộ. Chỉ phase boundaries synchronize. Không cộng inclusive timings với nhau, không dùng chúng như CUDA kernel attribution hay bảo đảm speedup. Persistent tensor accounting khác allocator peak và tổng RAM. Phép đo tự có overhead; không thêm forwards/updates hoặc thay scientific trace để đo.
 
-- Chưa chạy SSH/GPU thuê, chưa xác nhận kernel/runtime hay ETA5090. Local Windows/Python3.14/PyTorch2.12 khác remote pins3.13/2.11+cu128.
+- Technical preflight RTX5090 đã có cho source/runtime cũ; chưa xác nhận source sửa sau đó hoặc whole-study ETA5090. Local Windows/Python3.14/PyTorch2.12 khác remote pins3.13/2.11+cu128.
 - Chưa có H32 AD gain, không bảo đảm bằng/hơn CADIC. Historical labels chỉ thuộc original bank pair; sameK không same total memory.
 - History gradient được probe ở block sau startup và các diagnostic checkpoints (label40/mỗi32slowcommits); không chạy backward riêng cho history ở mọi block để làm instrumentation thành chi phí thuật toán. Outer exact update vẫn dùng đủ4querylosses ở **mọi** scheduled block.
 - Baseline CLI train/evaluate/matrix vẫn là3599; research CLI mới fulltrain3629. Giữ loader/resource/old evidence strict; checkpoint cohorts cũ không import vào study mới.

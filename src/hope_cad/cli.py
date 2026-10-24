@@ -41,12 +41,36 @@ def parser():
     q=sub.add_parser('research-review',help='Explicit operator acceptance AFTER reviewing a complete preflight/pilot')
     q.add_argument('--run-dir',required=True);q.add_argument('--phase',choices=('preflight','pilot'),required=True)
     q.add_argument('--accept',action='store_true',required=True);q.add_argument('--note',required=True)
+    q=sub.add_parser('cadic-diagnostic',help='Standalone full-train CADIC K2500/K5000 host timing/QA before study preflight')
+    q.add_argument('--phase',choices=('train','evaluate'),default='train')
+    q.add_argument('--run-dir',required=True)
+    q.add_argument('--data-root',default=DATA_ROOT);q.add_argument('--checkpoint',default=CHECKPOINT)
+    q.add_argument('--budgets',nargs='+',type=int,choices=(2500,5000),default=[2500,5000])
+    q.add_argument('--device',default='cuda:0');q.add_argument('--expected-gpu')
+    q.add_argument('--max-hours',type=float,default=1.)
+    q=sub.add_parser('handoff-pack',help='One verified research experiment ZIP for download; no training')
+    q.add_argument('--run-dir',required=True);q.add_argument('--output')
+    q=sub.add_parser('handoff-check',help='Exact-identity gate/optional restore; never launches a stage')
+    q.add_argument('--archive');q.add_argument('--restore',action='store_true')
+    q.add_argument('--device',default='cuda:0');q.add_argument('--expected-gpu')
+    q.add_argument('--data-root',default=DATA_ROOT);q.add_argument('--checkpoint',default=CHECKPOINT)
+    q.add_argument('--rate',type=float);q.add_argument('--cap',type=float)
     return p
 
 def main(argv=None):
     args=parser().parse_args(argv)
     try:
-        if args.command=='attribution':
+        if args.command=='handoff-pack':
+            from hope_cad.runtime.handoff import pack
+            result=pack(args.run_dir,args.output)
+        elif args.command=='handoff-check':
+            from hope_cad.runtime.handoff import check
+            result=check(args.archive,restore=args.restore,device=args.device,expected_gpu=args.expected_gpu,
+                data_root=args.data_root,checkpoint=args.checkpoint,rate=args.rate,cap=args.cap)
+        elif args.command=='cadic-diagnostic':
+            from hope_cad.runtime.cadic_diagnostic import run
+            result=run(vars(args))
+        elif args.command=='attribution':
             import os
             os.environ['OMP_NUM_THREADS']='2';os.environ['OPENBLAS_NUM_THREADS']='2';os.environ['MKL_NUM_THREADS']='2'
             from hope_cad.benchmark.attribution import run
