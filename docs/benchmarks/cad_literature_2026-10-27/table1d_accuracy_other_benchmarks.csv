@@ -1,0 +1,25 @@
+Benchmark_or_paper,Method,Dataset,Protocol,Image_metric,Image_value,Pixel_metric,Pixel_value,FM_or_forgetting,Source,Notes
+CADIC Tab. VIII,CADIC (10k),MVTec+VisA,27 tasks sequential,I-AUROC,0.921,P-AUPR,0.492,I 0.023 / P 0.011,self-reported,long horizon
+ContCore Tab. 5,ContCore,Real-IAD,1x30,I-AUROC (%),90.2,P-AUROC (%),97.5,I 1.7 / P 0.6,self-reported,
+ContCore Tab. 3,ContCore,MVTec->VisA,cross-dataset,I-AUROC (%),94.3,P-AUROC (%),96.6,I 0.6 / P 0.3,self-reported,
+CDAD Tab. 4,CDAD,MVTec->VisA,cross-dataset,I-AUROC (%),90.0,P-AUROC (%),94.9,I 4.71 / P 1.78,self-reported,
+CDAD Tab. 4,IUF,MVTec->VisA,cross-dataset,I-AUROC (%),82.4,P-AUROC (%),92.5,I 11.09 / P 4.88,reproduced by CDAD,
+DINOSaur bench (2605.24251),DINOSaur,MVTec AD,"own discrete-task protocol, unsupervised",I-AUROC,0.968,P-AUROC,0.947,0.000,self-reported,"training-free, DINOv3 ViT-S/16"
+DINOSaur bench (2605.24251),PatchCore + replay,MVTec AD,same,I-AUROC,0.925,P-AUROC,0.945,0.023,reproduced by DINOSaur bench,
+DINOSaur bench (2605.24251),UCAD,MVTec AD,same,I-AUROC,0.798,P-AUROC,0.822,0.000,reproduced by DINOSaur bench,
+DINOSaur bench (2605.24251),IUF,MVTec AD,same,I-AUROC,0.508,P-AUROC,0.525,-0.066,reproduced by DINOSaur bench,near chance
+DINOSaur bench (2605.24251),DNE,MVTec AD,same,I-AUROC,0.5,P-AUROC,-,0.012,reproduced by DINOSaur bench,near chance
+DINOSaur bench (2605.24251),EfficientAD + replay,MVTec AD,same,I-AUROC,0.529,P-AUROC,0.402,0.051,reproduced by DINOSaur bench,
+DINOSaur bench (2605.24251),DINOSaur,MVTec LOCO,same,I-AUROC,0.768,P-AUROC,0.81,0.000,self-reported,logical anomalies
+Pixel-CL bench (2403.15463),PatchCore-CL,MVTec (10 object tasks),CL bank 10-30k,I-AUROC,0.97,P-AUPR (PR-AUC),0.55,0.72%,reported by benchmark,"P-AUROC 0.98, AU-PRO 0.89, pixel F1 0.58"
+Pixel-CL bench (2403.15463),CFA,MVTec (10 object tasks),CL,I-AUROC,0.92,P-AUPR (PR-AUC),0.49,-4.70%,reported by benchmark,
+Pixel-CL bench (2403.15463),STFPM + replay,MVTec (10 object tasks),replay,I-AUROC,0.87,P-AUPR (PR-AUC),0.43,14.78%,reported by benchmark,
+Pixel-CL bench (2403.15463),EfficientAD + replay,MVTec (10 object tasks),replay,I-AUROC,0.81,P-AUPR (PR-AUC),0.43,19.11%,reported by benchmark,
+Pixel-CL bench (2403.15463),FastFlow + replay,MVTec (10 object tasks),replay,I-AUROC,0.84,P-AUPR (PR-AUC),0.35,17.39%,reported by benchmark,
+Pixel-CL bench (2403.15463),DRAEM + replay,MVTec (10 object tasks),replay,I-AUROC,0.75,P-AUPR (PR-AUC),0.11,27.08%,reported by benchmark,
+Pixel-CL bench (2403.15463),PaDiM-CL,MVTec (10 object tasks),CL,I-AUROC,0.56,P-AUPR (PR-AUC),0.29,19.12%,reported by benchmark,
+SCALE (2212.11192),Inpaint + SCALE compressed replay,MVTec,"10 tasks, matched replay bytes",-,-,pixel F1,0.35,10.28%,self-reported,Replay-40 images: F1 0.34 (13.27%)
+Edge CL bench (2604.06435),Tiny-Dinomaly (DeiT-Tiny) + replay 40,MVTec,replay 40,image F1,0.88,pixel F1,0.44,-,self-reported,
+Edge CL bench (2604.06435),Dinomaly (ViT-B) + replay 40,MVTec,replay 40,image F1,0.9,pixel F1,0.42,-,self-reported,
+Edge CL bench (2604.06435),PatchCore-CL++ 30k (PhiNet),MVTec,CL bank,image F1,0.96,pixel F1,0.41,-,self-reported,
+Edge CL bench (2604.06435),PaSTe + replay 100 (MobileNet),MVTec,replay 100,image F1,0.92,pixel F1,0.45,-,self-reported,

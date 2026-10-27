@@ -1,0 +1,35 @@
+Method,Venue,Dataset,Gradient_based,Epochs_per_task,Learnable_params_M,Train_time_reported,Train_time_s,Hardware,Source,Notes
+CADIC (2.5k),arXiv 2511.08634,MVTec,no,-,0,63 s,63,RTX 4070,self-reported Tab. VII,
+CADIC (5k),arXiv 2511.08634,MVTec,no,-,0,379 s,379,RTX 4070,self-reported Tab. VII,
+CADIC (10k),arXiv 2511.08634,MVTec,no,-,0,"2,503 s",2503,RTX 4070,self-reported Tab. VII,
+CADIC (20k),arXiv 2511.08634,MVTec,no,-,0,"17,038 s",17038,RTX 4070,self-reported Tab. VII,
+CADIC (2.5k),arXiv 2511.08634,VisA,no,-,0,79 s,79,RTX 4070,self-reported Tab. VII,
+CADIC (5k),arXiv 2511.08634,VisA,no,-,0,474 s,474,RTX 4070,self-reported Tab. VII,
+CADIC (10k),arXiv 2511.08634,VisA,no,-,0,"3,165 s",3165,RTX 4070,self-reported Tab. VII,
+CADIC (20k),arXiv 2511.08634,VisA,no,-,0,"22,254 s",22254,RTX 4070,self-reported Tab. VII,
+ContCore,arXiv 2608.15277,MVTec,no,-,0,754 s,754,RTX 3090,self-reported Tab. 4,"Real-IAD: ~65,000 s"
+GCR,arXiv 2601.01856,MVTec/VisA,no,-,0,one greedy k-center pass per category (time not reported),-,RTX 3090,self-reported,
+DINOSaur,arXiv 2605.24251,MVTec,no,-,0,< 30 s per task on device,< 30 per task,Jetson Orin Nano,self-reported,
+ONER,arXiv 2412.03907,MVTec,yes,5,0.019,-,-,-,self-reported Tab. 3,
+UCAD,AAAI 2024,MVTec,yes,25,0.021,786 s (ContCore),786,RTX 3090,self-reported epochs; time by ContCore,SAM used during training
+DNE,ACM MM 2022,MVTec,yes,50,85.21,"1,233 s (ContCore)",1233,RTX 3090,epochs/params by ONER Tab. 3,
+IUF,ECCV 2024,MVTec,yes,200,9.11,"39,192 s (ContCore)",39192,RTX 3090,epochs/params by ONER Tab. 3,
+CDAD,CVPR 2025,MVTec,yes,500 (first) / 100 (each next),-,"281,434 s (ContCore)",281434,RTX 3090,self-reported epochs,DDIM 10 steps at inference
+DeCoFlow,arXiv 2606.26687,MVTec,yes,60,2.27 per task,3.0 GPU-h,10800,not stated,self-reported,
+DeCoFlow,arXiv 2606.26687,VisA,yes,100,2.27 per task,4.1-4.4 GPU-h,14760-15840,not stated,self-reported,
+CMPMB,ACM MM 2025,MVTec/VisA,yes,50,-,-,-,-,self-reported,
+ReplayCAD,IJCAI 2025,MVTec/VisA,yes,-,-,not reported,-,-,self-reported (qualitative only),"per class: optimize embedding in SD/LDM, generate 800 images, train InvAD"
+DRAEM (+replay),ICCV 2021,MVTec,yes,300,97.42,-,-,-,ONER Tab. 3,
+BGAD (+replay),CVPR 2023,MVTec,yes,100,3.39,-,-,-,ONER Tab. 3,
+ADCT (Continual-MEGA),arXiv 2506.00956,Continual-MEGA,yes,50 (base) / 20 (each phase),-,-,-,-,self-reported,
+PatchCore-CL,InCLAD (2610.15032),MVTec,no,-,0,4 min 17 s,257,H100/L40,reported by benchmark,task-incremental protocol
+PaSTe + replay,InCLAD (2610.15032),MVTec,yes,-,-,27 min 13 s,1633,H100/L40,reported by benchmark,
+RD4AD + replay,InCLAD (2610.15032),MVTec,yes,-,-,79 min 58 s,4798,H100/L40,reported by benchmark,
+FastFlow + replay,InCLAD (2610.15032),MVTec,yes,-,-,122 min 35 s,7355,H100/L40,reported by benchmark,
+PatchCore-CL,2403.15463 bench,MVTec 10 tasks,no,-,0,8 min,480,-,reported by benchmark,
+PaDiM-CL,2403.15463 bench,MVTec 10 tasks,no,-,0,6 min,360,-,reported by benchmark,
+STFPM + replay,2403.15463 bench,MVTec 10 tasks,yes,-,-,27 min,1620,-,reported by benchmark,
+CFA,2403.15463 bench,MVTec 10 tasks,yes,-,-,2 h 16 min,8160,-,reported by benchmark,
+FastFlow + replay,2403.15463 bench,MVTec 10 tasks,yes,-,-,2 h 19 min,8340,-,reported by benchmark,
+EfficientAD + replay,2403.15463 bench,MVTec 10 tasks,yes,-,-,5 h 26 min,19560,-,reported by benchmark,
+DRAEM + replay,2403.15463 bench,MVTec 10 tasks,yes,-,-,11 h 46 min,42360,-,reported by benchmark,

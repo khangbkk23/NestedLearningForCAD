@@ -1,0 +1,6 @@
+Method,Venue,Train_time_s,Train_time_h,Test_time_ms_per_img,GFLOPs,Params,Hardware,Source
+ContCore,arXiv 2608.15277,754,0.21,39.1,9.24,45.3M,RTX 3090,ContCore Tab. 4 (self-reported)
+UCAD,AAAI 2024,786,0.22,15.3,33.8,68.9M,RTX 3090,ContCore Tab. 4
+DNE,ACM MM 2022,1233,0.34,21.3,70.3,85.8M,RTX 3090,ContCore Tab. 4
+IUF,ECCV 2024,39192,10.89,80.8,185.5,28.5M,RTX 3090,ContCore Tab. 4
+CDAD,CVPR 2025,281434,78.18,2694.0,5628.0,11.0G (as printed),RTX 3090,ContCore Tab. 4

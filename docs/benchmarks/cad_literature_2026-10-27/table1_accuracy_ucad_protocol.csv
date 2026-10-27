@@ -1,0 +1,24 @@
+Method,Venue,Paradigm,MVTec_I-AUROC,MVTec_I-FM,MVTec_P-AUPR,MVTec_P-FM,VisA_I-AUROC,VisA_I-FM,VisA_P-AUPR,VisA_P-FM,Source,Notes
+Joint PatchCore,CVPR 2022,Upper bound (joint),0.978,-,0.594,-,0.916,-,0.440,-,reproduced by CADIC (Tab. I-IV),"offline joint training, not continual"
+Joint CADIC,arXiv 2511.08634,Upper bound (joint),0.978,-,0.591,-,0.910,-,0.439,-,self-reported,offline joint training
+Dinomaly-B (multi-class joint),CVPR 2025,Upper bound (joint),0.996,-,0.693,-,-,-,0.532,-,Dinomaly paper via project report OPP-01 (not re-read),"448->392 input, different resolution from CADIC (224)"
+Fine-tune PatchCore,CVPR 2022,Lower bound (fine-tune),0.602,0.383,0.190,0.371,0.589,0.361,0.090,0.311,reproduced by CADIC,
+Fine-tune CFA,IEEE Access 2022,Lower bound (fine-tune),0.623,0.361,0.177,0.083,0.593,0.327,0.087,0.184,reproduced by CADIC,
+Fine-tune SimpleNet,CVPR 2023,Lower bound (fine-tune),0.708,0.211,0.060,0.069,0.616,0.283,0.014,0.016,reproduced by CADIC,
+Fine-tune RD4AD,CVPR 2022,Lower bound (fine-tune),0.596,0.393,0.143,0.425,0.525,0.423,0.069,0.201,reproduced by CADIC,
+DNE,ACM MM 2022,Feature distribution,0.870,0.116,-,-,0.610,0.179,-,-,reproduced by CADIC,"no localization; other repros MVTec 0.876 (ReplayCAD), 0.873 (ContCore), 0.500 (DINOSaur bench)"
+UCAD,AAAI 2024,Prompt + key memory,0.930,0.010,0.456,0.013,0.874,0.039,0.300,0.015,self-reported,ReplayCAD disputes UCAD FM; ONER repro MVTec 0.907 / P-AUPR 0.214
+MTRMB,arXiv 2502.06194,Prompt + multimodal memory,0.941,0.016,0.468,0.017,0.900,0.010,-,-,self-reported,not independently reproduced
+ONER,arXiv 2412.03907,Prompt + prototypes,0.934,0.006,0.497,0.013,0.831,0.039,0.279,0.018,self-reported,also reports I-AUPR 0.973 / P-AUROC 0.945 (MVTec)
+CMPMB,ACM MM 2025,Multimodal prompt memory,0.974,0.009,0.604,0.040,0.901,0.042,0.365,0.041,self-reported,not independently reproduced
+IUF,ECCV 2024,Regularization (SVD),0.762,0.067,0.171,0.059,0.681,0.085,0.034,0.003,reproduced by CADIC / ReplayCAD,own paper uses IUF protocol only
+CDAD (One-for-More),CVPR 2025,Diffusion + gradient projection,0.743,0.201,0.280,0.261,0.628,0.222,0.083,0.217,reproduced by ReplayCAD,own paper uses IUF protocol only
+ReplayCAD,IJCAI 2025,Generative replay (diffusion),0.948,0.045,0.537,0.055,0.903,0.055,0.415,0.050,self-reported,class-order std (4 orders): I 94.1-95.5 / P 52.1-53.7
+DFM,CVPR 2025,Feature matching,0.969,0.015,0.511,0.013,-,-,-,-,reproduced by CADIC,"CADIC per-class mean for P-AUPR = 0.499, printed avg 0.511 (inconsistent)"
+CFRDC,Neural Networks 2025,Feature reconstruction,0.945,-,0.461,-,-,-,-,-,reproduced by CADIC,
+CADIC (2.5k coreset),arXiv 2511.08634,Incremental coreset,0.955,-,0.559,-,0.828,-,0.415,-,self-reported (Tab. VII),
+"CADIC (10k coreset, default)",arXiv 2511.08634,Incremental coreset,0.972,0.011,0.584,0.015,0.891,0.043,0.438,0.014,self-reported,
+CADIC (20k coreset),arXiv 2511.08634,Incremental coreset,0.978,-,0.593,-,0.916,-,0.439,-,self-reported (Tab. VII),
+GCR,arXiv 2601.01856,Per-category banks + routing,0.978,0.000,0.513,0.000,0.893,0.000,0.302,0.000,self-reported,FM measures routing errors only (banks never updated); single run
+DeCoFlow,arXiv 2606.26687,NF + per-task LoRA (isolation),0.984,0.000,0.582,0.000,0.930,0.000,0.370,0.000,self-reported,mean of 3 seeds (std <=0.003); FM=0 by construction under correct routing
+MECAD,arXiv 2512.15323,Multi-expert + replay,0.826,-,-,-,-,-,-,-,self-reported,5 experts; replay buffer

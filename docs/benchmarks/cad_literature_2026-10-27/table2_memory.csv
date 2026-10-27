@@ -1,0 +1,24 @@
+Method,Venue,Persisted_CL_state,Persistent_MB_MVTec15,Persistent_MB_VisA12,Growth_with_tasks,Frozen_or_auxiliary_models,Frozen_models_approx_MB,Learnable_params_M,Total_params_M,Peak_or_transient_memory,Source,Notes
+ReplayCAD,IJCAI 2025,per-class semantic embedding (K=20 tokens) + MLP + 1-10 masks,3.0,1.9,linear (~0.2 MB/class),LDM (MVTec) / Stable Diffusion 1.5 (VisA); SAM (train); InvAD detector,"~4300 (SD1.5 ~1.07B params FP32, inferred)",-,-,generates 800 images/class to train detector,"self-reported (Tab. 2, Tab. 6)",paper does not count the frozen generator
+CADIC (2.5k),arXiv 2511.08634,"patch coreset 2,500 x 768",7.68,7.68,constant,ViT-B/8 IN-21k,~344,0,~86,O(M^2 d) closest-pair search on update,inferred from paper count x dim (FP32),
+"CADIC (10k, default)",arXiv 2511.08634,"patch coreset 10,000 x 768",30.72,30.72,constant,ViT-B/8 IN-21k,~344,0,~86,O(M^2 d) closest-pair search on update,inferred (FP32),
+CADIC (20k),arXiv 2511.08634,"patch coreset 20,000 x 768",61.44,61.44,constant,ViT-B/8 IN-21k,~344,0,~86,-,inferred (FP32),
+GCR,arXiv 2601.01856,196 prototypes x 768 per category,9.03,7.23,linear (0.60 MB/category),OpenCLIP ViT-B/16,~344,0,~86,-,inferred from K=196 and ViT-B/16 dim (FP32),
+ONER,arXiv 2412.03907,pixel prototypes 196 x 768/task + image prototypes + decomposed prompts,~9.1,~7.3,linear,ViT-B/16,~344,0.019,-,-,"inferred (prototype count from paper, FP32); params self-reported",
+DNE,ACM MM 2022,per-task Gaussian (mean + 768x768 covariance),~35.4,~28.3,linear (2.3-2.4 MB/task),ViT-B/16 (fine-tuned),-,85.21,85.8 (ContCore) / 86.6 (DINOSaur bench),-,inferred; 2.3 MB/task measured by DINOSaur bench; params by ONER,
+UCAD,AAAI 2024,"key (15,196,1024) + knowledge (15,196,1024) + prompt (15,7,768)","24.4 (printed 23.28 ""MB"" = MiB)",18.6,preallocated for 15 tasks,ViT-B/16; SAM (training only),-,0.021,68.9 (ContCore) / 36.0 (DINOSaur bench),-,self-reported; VisA from ReplayCAD Tab. 2,1.2 MB/task on-device (DINOSaur bench)
+CMPMB,ACM MM 2025,"K (15,196,1024) + F (15,196,1024) + text/visual prompts",24.5,-,preallocated for 15 tasks,CLIP,-,-,-,-,inferred from shapes in paper (FP32),
+MTRMB,arXiv 2502.06194,key-prompt-multimodal knowledge,-,-,-,ViT + BERT + Grounding DINO + SAM,-,-,-,-,not reported,
+ContCore,arXiv 2608.15277,PatchCore coreset m=20k (MVTec) / 40k (VisA),81.9-122.9,163.8-245.8,constant,WideResNet50-2,~275,0,45.3,-,inferred (feature dim 1024 or 1536 not stated); params by ContCore,
+DINOSaur,arXiv 2605.24251,spatially-indexed coreset per task,~106.5 (7.1/task),-,linear,DINOv3 ViT-S/16,~86,0,21.6,-,self-reported per task; total inferred,
+DeCoFlow,arXiv 2606.26687,per-task LoRA + TSA/ACL params (2.27M/task),~136 (FP32),~109 (FP32),linear (2.5%/task),WRN50-2 (MVTec) / ViT-B/16 (VisA) + NF base,-,2.27 per task,-,989 MB peak at inference,self-reported params/peak; bytes inferred,
+IUF,ECCV 2024,single shared model (no memory bank),-,-,constant,-,-,9.11 (ONER),28.5 (ContCore) / 631.1 (DINOSaur bench),OOM on Jetson Orin Nano,reported by others,params inconsistent across sources
+CDAD,CVPR 2025,gradient projection bases,3500,2700,grows with tasks,Stable Diffusion based,-,-,11.0 G as printed by ContCore (likely incl. diffusion),iSVD 16.7 GB for 10 images (full SVD 157.3 GB),self-reported (CDAD Tab. 1); storage by ReplayCAD Tab. 2,
+PatchCore-CL,2403.15463 bench,memory bank 10-30k patches,184.3,-,constant,WRN50-2 (275.6 MB),275.6,0,-,-,reported by benchmark,MVTec 10 object tasks
+PaDiM-CL,2403.15463 bench,per-position Gaussians,1541.0,-,constant,WRN50-2,275.6,0,-,-,reported by benchmark,
+STFPM + replay,2403.15463 bench,replay images,59.0,-,constant,-,93.6,-,-,-,reported by benchmark,
+EfficientAD + replay,2403.15463 bench,replay images,59.0,-,constant,-,82.8,-,-,-,reported by benchmark,
+Tiny-Dinomaly + replay 40,arXiv 2604.06435,replay 40 images,42.25 total incl. model,42.25 total,constant,DeiT-Tiny,incl.,-,-,3.39 GFLOPs,self-reported,
+Dinomaly ViT-B + replay 40,arXiv 2604.06435,replay 40 images,567.04 total incl. model,-,constant,ViT-B,incl.,-,-,68.56 GFLOPs,self-reported,
+PatchCore-CL++ 10k (MobileNet),arXiv 2604.06435,memory bank 10k,12.11 total incl. model,12.11 total,constant,MobileNet,incl.,0,-,2.06 GFLOPs,self-reported,
+[Project] Dinomaly-B + Replay-24,this repo (DRF-02),decoder weights + 24-image PNG buffer,258.5-274.7 (decoder 245.7 + buffer 12.8-29.0),-,constant,DINOv2 ViT-B encoder (frozen),346.3,~61.4 (decoder),~148,optimizer state 737 MB (transient),project measured,dev cohort only; not comparable to official test

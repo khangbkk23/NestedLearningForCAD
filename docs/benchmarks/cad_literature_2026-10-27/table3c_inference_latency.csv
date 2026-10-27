@@ -1,0 +1,30 @@
+Method,Hardware,Latency_ms_per_img,FPS,Source,Notes
+GCR,RTX 3090,2.54,-,self-reported Tab. 2(d),224x224
+PaDiM,RTX 3090,1.09,-,GCR Tab. 2(d),
+PatchCore (accumulated banks),RTX 3090,14.22,-,GCR Tab. 2(d),
+UniAD,RTX 3090,27.31,-,GCR Tab. 2(d),
+CFA,RTX 3090,42.58,-,GCR Tab. 2(d),
+SimpleNet,RTX 3090,114.82,-,GCR Tab. 2(d),
+UCAD,RTX 3090,400.21,-,GCR Tab. 2(d),ContCore reports 15.3 ms on the same GPU type (26x discrepancy)
+UCAD,RTX 3090,15.3,-,ContCore Tab. 4,
+DNE,RTX 3090,21.3,-,ContCore Tab. 4,
+ContCore,RTX 3090,39.1,-,ContCore Tab. 4,
+IUF,RTX 3090,80.8,-,ContCore Tab. 4,
+CDAD,RTX 3090,2694.0,-,ContCore Tab. 4,DDIM 10 steps
+DeCoFlow,not stated,90.2,11.1,self-reported,989 MB peak memory
+CADIC (2.5k),RTX 4070,~126.6,7.9,self-reported Tab. VII,MVTec
+CADIC (10k),RTX 4070,~151.5,6.6,self-reported Tab. VII,MVTec
+CADIC (20k),RTX 4070,~156.3,6.4,self-reported Tab. VII,MVTec
+DNE,Jetson Orin Nano,60.7,16.5,DINOSaur bench Tab. 4,
+IUF,Jetson Orin Nano,OOM,-,DINOSaur bench Tab. 4,
+UCAD,Jetson Orin Nano,956.5,1.0,DINOSaur bench Tab. 4,
+PatchCore + replay,Jetson Orin Nano,119.0,8.4,DINOSaur bench Tab. 4,
+EfficientAD + replay,Jetson Orin Nano,34.7,28.8,DINOSaur bench Tab. 4,
+DINOSaur,Jetson Orin Nano,91.6,10.9,DINOSaur bench Tab. 4,
+DNE,Raspberry Pi 5,560.0,1.8,DINOSaur bench Tab. 4,
+IUF,Raspberry Pi 5,3668.6,0.3,DINOSaur bench Tab. 4,
+UCAD,Raspberry Pi 5,1058.0,0.9,DINOSaur bench Tab. 4,
+PatchCore + replay,Raspberry Pi 5,1074.5,0.9,DINOSaur bench Tab. 4,
+EfficientAD + replay,Raspberry Pi 5,1318.2,0.8,DINOSaur bench Tab. 4,
+DINOSaur,Raspberry Pi 5,630.6,1.6,DINOSaur bench Tab. 4,
+[Project] Dinomaly-B,project GPU,52.0,-,project measured (LATENCY.json),"FP32, batch 1, incl. upsample to 900x900"

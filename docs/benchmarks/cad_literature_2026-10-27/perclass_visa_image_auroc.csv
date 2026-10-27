@@ -1,0 +1,13 @@
+Method,candle,capsules,cashew,chewinggum,fryum,macaroni1,macaroni2,pcb1,pcb2,pcb3,pcb4,pipe_fryum,Average,FM,Recomputed_mean,Source
+Joint PatchCore,0.952,0.878,0.940,0.983,0.950,0.902,0.667,0.963,0.892,0.894,0.983,0.995,0.916,-,0.917,CADIC arXiv 2511.08634 Tables I-IV (values as printed)
+Joint PatchCore (random coreset),0.870,0.750,0.895,0.964,0.883,0.768,0.677,0.949,0.855,0.779,0.921,0.971,0.857,-,0.857,CADIC arXiv 2511.08634 Tables I-IV (values as printed)
+Joint CADIC,0.945,0.825,0.941,0.980,0.954,0.904,0.694,0.967,0.881,0.865,0.972,0.989,0.910,-,0.910,CADIC arXiv 2511.08634 Tables I-IV (values as printed)
+FT PatchCore,0.401,0.605,0.624,0.907,0.334,0.538,0.437,0.527,0.597,0.507,0.588,0.998,0.589,0.361,0.589,CADIC arXiv 2511.08634 Tables I-IV (values as printed)
+FT CFA,0.512,0.672,0.873,0.753,0.304,0.557,0.422,0.698,0.472,0.449,0.407,0.998,0.593,0.327,0.593,CADIC arXiv 2511.08634 Tables I-IV (values as printed)
+FT SimpleNet,0.504,0.474,0.794,0.721,0.684,0.567,0.447,0.598,0.629,0.538,0.493,0.945,0.616,0.283,0.616,CADIC arXiv 2511.08634 Tables I-IV (values as printed)
+FT RD4AD,0.380,0.385,0.737,0.539,0.533,0.607,0.487,0.437,0.672,0.343,0.187,0.999,0.525,0.423,0.525,CADIC arXiv 2511.08634 Tables I-IV (values as printed)
+IUF,0.994,0.692,0.758,0.548,0.677,0.795,0.606,0.563,0.766,0.651,0.512,0.614,0.681,0.085,0.681,CADIC arXiv 2511.08634 Tables I-IV (values as printed)
+ReplayCAD,0.924,0.843,0.937,0.961,0.915,0.889,0.805,0.911,0.849,0.831,0.978,0.991,0.903,0.055,0.903,CADIC arXiv 2511.08634 Tables I-IV (values as printed)
+DNE,0.486,0.413,0.735,0.585,0.691,0.584,0.546,0.633,0.693,0.642,0.562,0.747,0.610,0.179,0.610,CADIC arXiv 2511.08634 Tables I-IV (values as printed)
+UCAD,0.778,0.877,0.960,0.958,0.945,0.823,0.667,0.905,0.871,0.813,0.901,0.988,0.874,0.039,0.874,CADIC arXiv 2511.08634 Tables I-IV (values as printed)
+CADIC,0.859,0.817,0.926,0.972,0.910,0.839,0.733,0.946,0.878,0.869,0.952,0.993,0.891,0.043,0.891,CADIC arXiv 2511.08634 Tables I-IV (values as printed)
