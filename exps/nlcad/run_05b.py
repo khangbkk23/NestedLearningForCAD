@@ -218,7 +218,7 @@ def retrec_credit(evs):
         nrm = [phi(rec[s][e["iter"]]["groups"]["normal"]["dJ_da"]) for e in es]
         q3r = [phi(rec[s][e["iter"]]["groups"]["Q3_replay"]["dJ_da"]) for e in es]
         cos = lambda u, v: float(u @ v / (np.linalg.norm(u) * np.linalg.norm(v) + 1e-300))
-        out[s] = {"median_phi_norm": float(np.median(np.linalg.norm(g, axis=1))),
+        out[str(s)] = {"median_phi_norm": float(np.median(np.linalg.norm(g, axis=1))),
                   "sign_consistency_vs_stage_mean": float(np.mean(np.sign(g) == np.sign(g.mean(0)))),
                   "mean_over_std_norm": float(np.linalg.norm(g.mean(0)) / (np.linalg.norm(g.std(0)) + 1e-300)),
                   "median_cos_to_normal": float(np.median([cos(x, y) for x, y in zip(g, nrm)])),
@@ -231,7 +231,7 @@ def retrec_credit(evs):
                   "J_ret_Q2_mean": float(np.nanmean([e["diag_loss"] for e in evs[s]])),
                   "categories_mean": float(np.mean([e["train"]["categories"] for e in evs[s]])),
                   "cross_host_pair_fraction_mean": float(np.mean([e["train"]["cross_host_pair_fraction"] for e in evs[s]]))}
-    dirs = [np.array(out[s]["stage_mean_direction"]) for s in (7, 8, 9)]
+    dirs = [np.array(out[str(s)]["stage_mean_direction"]) for s in (7, 8, 9)]
     out["stage_mean_direction_cosines"] = {"7~8": float(dirs[0] @ dirs[1]), "7~9": float(dirs[0] @ dirs[2]),
                                            "8~9": float(dirs[1] @ dirs[2])}
     return out
