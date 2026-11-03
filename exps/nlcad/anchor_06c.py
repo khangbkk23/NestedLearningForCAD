@@ -316,12 +316,52 @@ def amend_engineering(reason, seen):
     print("amendment", path.name, sha(path))
 
 
+def budget():
+    """(cap, cumulative-time stop) in GPU-h from the latest amendment that sets a budget, else the preregistered values.
+    None means no cap / no cumulative-time stop (integrity, numerical and resource-safety stops are unaffected)."""
+    b = [am["budget"] for am in amendments() if "budget" in am]
+    return (b[-1]["cap_gpu_h"], b[-1]["stop_h"]) if b else (BUDGET_H, STOP_H)
+
+
+def amend_budget(authorization):
+    """Budget-only amendment (owner authorization), written before any training: removes the GPU-hour cap and the
+    cumulative-time stop. The HOLD_BUDGET preflight is archived (renamed, never deleted) so that a fresh preflight can
+    be recorded under the amended gate."""
+    require(not list(OUT.glob("runs/CL06C_*")), "06C run output already exists")
+    pf = D.read(PREFLIGHT)
+    require(pf["prereg_sha256"] == sha(PREREG) and pf["integrity_pass"] and pf["status"] == "HOLD_BUDGET",
+            "only for an integrity-passing budget HOLD")
+    k = len(amendments()) + 1
+    path, archive = OUT / f"PREREG_06C_AMENDMENT_{k}.json", OUT / "PREFLIGHT_06C.hold_budget_1.json"
+    require(not path.exists() and not archive.exists(), "amendment or archive exists")
+    changed = {s: {"locked_sha256": v, "amended_sha256": sha(D.ROOT / s)}
+               for s, v in expected_sources().items() if sha(D.ROOT / s) != v}
+    require(set(changed) <= {SRC}, f"unexpected source changes: {sorted(changed)}")
+    D.write_json(path, {
+        "prereg_sha256": sha(PREREG), "previous_amendments": {p.name: sha(p) for p in
+                                                              sorted(OUT.glob("PREREG_06C_AMENDMENT_*.json"))},
+        "kind": "budget (owner authorization)", "authorization": authorization,
+        "budget": {"cap_gpu_h": None, "stop_h": None, "previous": {"cap_gpu_h": BUDGET_H, "stop_h": STOP_H}},
+        "archived_preflight": {"from": PREFLIGHT.name, "to": archive.name, "sha256": sha(PREFLIGHT),
+                               "status": pf["status"], "projected_gpu_h": pf["projected_gpu_h"]},
+        "sources": changed,
+        "code_change": "budget() reads the latest budget amendment; gate, preflight and train honour it (None = no cap, "
+                       "no cumulative-time stop); amend-budget command",
+        "unchanged": "arms, lambda, seeds, stages, steps, objectives, data, sampling, checkpoint lineage, O6' cohort, "
+                     "measurements, rules, decision code, tolerances; integrity / numerical / resource-safety stops",
+        "results_seen_before_amendment": "preflight only (integrity and timing); no 06C training or evaluation exists",
+        "utc": DR.now()})
+    PREFLIGHT.rename(archive)
+    print("amendment", path.name, sha(path), "| archived", archive.name, sha(archive))
+
+
 def gate():
     verify_prereg()
     pf = D.read(PREFLIGHT)
-    ok = pf["prereg_sha256"] == sha(PREREG) and pf["integrity_pass"] and pf["projected_gpu_h"] <= BUDGET_H
-    require(ok, f"gate closed: integrity {pf['integrity_pass']}, projected {pf['projected_gpu_h']:.2f} h, cap {BUDGET_H}")
-    print("gate open", pf["projected_gpu_h"])
+    cap, _ = budget()
+    ok = pf["prereg_sha256"] == sha(PREREG) and pf["integrity_pass"] and (cap is None or pf["projected_gpu_h"] <= cap)
+    require(ok, f"gate closed: integrity {pf['integrity_pass']}, projected {pf['projected_gpu_h']:.2f} h, cap {cap}")
+    print("gate open", pf["projected_gpu_h"], "cap", cap)
     return pf
 
 
@@ -432,7 +472,9 @@ def preflight():
                  and res["REP-05"]["operator_ok"] and res["REP-05"]["finite"] and res["ANCHOR"]["finite"]
                  and res["ANCHOR"]["anchor_finite"])
     res["integrity_pass"] = bool(integrity)
-    res["budget_pass"] = bool(res["projected_gpu_h"] <= BUDGET_H)
+    cap, _ = budget()
+    res["budget_cap_gpu_h"] = cap
+    res["budget_pass"] = bool(cap is None or res["projected_gpu_h"] <= cap)
     res["status"] = "PASS" if integrity and res["budget_pass"] else ("HOLD_BUDGET" if integrity else "FAIL_INTEGRITY")
     D.write_json(PREFLIGHT, res)
     print(res["status"], "projected GPU-h", round(res["projected_gpu_h"], 3),
@@ -521,7 +563,8 @@ def train(arm, seed):
             dec.load_state_dict(torch.load(path, weights_only=True)["state"])
             print(arm, seed, s, "resumed", flush=True)
             continue
-        require(spent <= STOP_H, f"resource stop: cumulative GPU time {spent:.2f} h > {STOP_H} h")
+        stop = budget()[1]
+        require(stop is None or spent <= stop, f"resource stop: cumulative GPU time {spent:.2f} h > {stop} h")
         st = st7 if s == 7 else stage_sets(seed, s, n, sub, held)
         torch.cuda.synchronize()
         t_stage = time.perf_counter()
@@ -697,7 +740,9 @@ def analyze():
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("cmd", choices=["prereg", "preflight", "gate", "eval-id", "train", "analyze", "amend-eng"])
+    ap.add_argument("cmd", choices=["prereg", "preflight", "gate", "eval-id", "train", "analyze", "amend-eng",
+                                    "amend-budget"])
+    ap.add_argument("--authorization")
     ap.add_argument("--arm")
     ap.add_argument("--seed", type=int)
     ap.add_argument("--reason")
@@ -715,6 +760,8 @@ def main():
         train(a.arm, a.seed)
     elif a.cmd == "analyze":
         analyze()
+    elif a.cmd == "amend-budget":
+        amend_budget(a.authorization)
     else:
         amend_engineering(a.reason, a.seen)
 
