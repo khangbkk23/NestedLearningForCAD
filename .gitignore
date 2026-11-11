@@ -1,61 +1,19 @@
-# Virtual environments
-venv/
-env/
-ENV/
-.venv/
+# Local project and environment files
+.local/
+.pixi/
+.env
+.env.*
 
-# Python cache and build artifacts
+# Python cache and test artifacts
 __pycache__/
 *.py[cod]
-*$py.class
-*.so
-*.pyd
 .pytest_cache/
-.mypy_cache/
-.ruff_cache/
-tmp/
-# Dataset archives and local data
-data/
-datasets/
-*.tar.gz
-*.zip
-# Generated experiment artifacts
-checkpoints/
-logs/
-results/
-wandb/
-*.pth
-*.pt
-*.ckpt
 
-# Notebook checkpoints
-.ipynb_checkpoints/
-
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-tempCodeRunnerFile.py
-agents/
-
-# OS
-.DS_Store
-Thumbs.db
-
-# Distribution / packaging
-dist/
-build/
+# Python packaging artifacts
 *.egg-info/
-.eggs/
 
-# Secrets and local configs
+# Credentials and sensitive files
 kaggle.json
-.env
-.env.local
-*.log
 
-# pixi environments
-.pixi/*
-!.pixi/config.toml
+# Log files
+*.log

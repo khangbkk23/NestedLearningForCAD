@@ -1,0 +1,29 @@
+{
+  "method": "B319",
+  "seed": 0,
+  "full_manifest_path": "configs/train_manifest.json",
+  "full_manifest_sha256": "2f32963da127980929e92d715615d413eeeeb962c9a9c99e19c3a93005485f60",
+  "encoder": {
+    "path": ".local/inputs/weights/dinov2_vitb14_reg4_pretrain.pth",
+    "url": "https://dl.fbaipublicfiles.com/dinov2/dinov2_vitb14/dinov2_vitb14_reg4_pretrain.pth",
+    "sha256": "73182a088cf94833c94b1666d1c99e02fe87e2007bff57b564fb6206e25dba71",
+    "parity_rtol": 0.0001,
+    "parity_atol": 0.0001,
+    "parity_relative_L2": 1e-05
+  },
+  "hard_mining_final": 0.9,
+  "hard_mining_ramp_arrivals": 26,
+  "caps": {
+    "whole_seconds": 36000,
+    "worker_seconds": 34200,
+    "per_arm_seconds": 10800,
+    "group_RSS_bytes": 8589934592,
+    "payload_bytes": 19327352832
+  },
+  "arms": [
+    "er_uniform",
+    "a0_tail",
+    "a0_tail_ctx"
+  ],
+  "primary": "a0_tail_ctx"
+}

@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=77,<82"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nested-learning-cad"
+version = "0.1.0"
+description = "Foundation learned replay for continual anomaly detection"
+requires-python = ">=3.14,<3.15"
+license = "MIT AND Apache-2.0"
+license-files = ["LICENSE"]
+# Scientific dependencies are selected exclusively by root Pixi environments.
+# Installing this distribution alone does not provision a scientific runtime.
+dependencies = []
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["nested_replay_cad*"]
+exclude = ["*.__pycache__", "*.tests", "*.tests.*"]
+namespaces = true

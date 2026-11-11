@@ -1,11 +1,8 @@
-# SCM syntax highlighting & preventing 3-way merges
 .gitattributes text eol=lf
-pixi.lock merge=binary linguist-language=YAML linguist-generated=true -diff
-
-# Keep cross-platform scripts and project text files stable.
-*.sh text eol=lf
 *.py text eol=lf
-*.yaml text eol=lf
-*.yml text eol=lf
-*.md text eol=lf
-*.ipynb text eol=lf
+*.sh text eol=lf
+*.toml text eol=lf
+*.json -text
+*.bat -text
+LICENSE -text
+pixi.lock -text merge=binary

@@ -1,0 +1,40 @@
+{
+  "schema": "experiment_publication_record_v1",
+  "experiment": "B319",
+  "run_id": "b319-s0-20261110-kaggle-v4",
+  "execution": {
+    "kernel": "qoctrn/b319-standalone-three-arm-reproduction-20261110/4",
+    "status": "KernelWorkerStatus.CANCEL_ACKNOWLEDGED",
+    "failure_message": ""
+  },
+  "provider_status": {
+    "kernel": "qoctrn/b319-standalone-three-arm-reproduction-20261110/4",
+    "status": "KernelWorkerStatus.CANCEL_ACKNOWLEDGED",
+    "failure_message": ""
+  },
+  "provider": "qoctrn/b319-standalone-three-arm-reproduction-20261110/4",
+  "files": {
+    "receipts/v4/provider-status.json": "729bd6a954973dc6de0cee88007f19190faf6ef4ce592af83bd71906c66aaac9"
+  },
+  "retained_source_and_archives": {
+    "package/dataset/source.zip": {
+      "sha256": "47d41588c488dd9668c5ac5747f8ffbddd80df5f7d9b0a016ce709062f71e4b1",
+      "bytes": 415459
+    }
+  },
+  "arm_sources": [],
+  "matrix_complete": false,
+  "analysis_error": null,
+  "scientific_acceptance": false,
+  "analysis_source_sha256": "5303edf1d5d3ab68c032d78d9c919ee364905503a28a1239fe4099dc96641d96",
+  "publication": {
+    "source_fidelity": "semantic_derivative",
+    "original_receipt_sha256": "65b7dafbaf72124f08b5e0e74ebf6b7aa55a83376b1f31ecf46e92a35bd48cf3",
+    "original_receipt_public": false,
+    "omitted_fields": [
+      "private local path",
+      "unrelated maintenance archive"
+    ],
+    "scope": "Disclosure derivative; original terminal receipt retained unchanged"
+  }
+}
