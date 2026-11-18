@@ -9,14 +9,37 @@ Setting:
 
 All numbers are exploratory: one seed, one order, and the MVTec test set was already exposed in earlier work.
 
-## 1. Main finding
+## 0. Status update after HOPE-S-02 — read this first
 
-The NL slow level in HOPE-S adds a measurable gain on top of the strongest non-NL model. The comparison is with the
-exact ablation of that slow level:
+The fixed-γ control **matches HOPE-S**:
+
+| arm | Pixel AP | Image AUROC | Pixel FM |
+|---|---:|---:|---:|
+| F: γ = 2.1 fixed, λ = 0, no slow-level learning | 0.6013 | 0.9783 | 0.0031 |
+| HOPE-S | 0.6006 | 0.9761 | 0.0052 |
+
+HOPE-S − F = **−0.0007, CI [−0.0100, +0.0083]**.
+
+What this means:
+- The gain over C comes from the **surprise-weighted (hard-patch) objective**, not from nested learning of γ and λ.
+- **The nested-learning contribution is therefore NOT supported by the current evidence.** This is a diagnostic
+  result: γ = 2.1 was chosen post hoc, and only one seed was run.
+- Engineering default from here: the fixed hard-patch objective, which must not be described as NL.
+- Report: `agents/reports/hope_s_02.md`.
+- The next NL candidate is in §4.
+
+Sections 1–3 describe HOPE-S as it was evaluated against C. They remain accurate as statements about C.
+
+## 1. Finding against C (superseded as an NL claim by §0)
+
+The HOPE-S slow level adds a measurable gain over the exact ablation that switches it off:
 
 > **HOPE-S vs C (identical system with the slow level switched off): Pixel AP +0.0108, 95% category-bootstrap CI
 > [+0.0017, +0.0198], Image AUROC +0.011, lower forgetting. Preregistered `NL_GATE` (Δ ≥ +0.010, CI lower > 0,
 > AUROC / acquisition / FM tolerance) passed.**
+>
+> HOPE-S-02 then showed that a fixed γ achieves the same result, so this gain is not attributable to the nested
+> learning.
 
 **Why C is the exact ablation.** HOPE-S with the slow-level learning rates set to 0 reproduces C exactly. Before the
 first slow update, the first 10 training losses of task 1 are bitwise equal to C (`TASK1_PRE_SLOW_PARITY_PASS`).
@@ -35,7 +58,7 @@ difference is that the nested slow level is learning.
    confounded.
 3. **Robustness.** One seed and one order on exposed MVTec. The point estimate is only just above the +0.010 margin.
 
-## 2. System (current working model = HOPE-S)
+## 2. System (HOPE-S; the fixed-γ variant is identical except for the slow level)
 
 ```
 image ──► DINOv2-reg ViT-B/14, 392 px full-view resize, blocks 0-9 only (bf16)
@@ -79,7 +102,8 @@ image ──► DINOv2-reg ViT-B/14, 392 px full-view resize, blocks 0-9 only (b
 | + DINOv2 B/14 front end | 0.5665 | +0.0364 | 0.960 | no |
 | + bf16 lite deployment | 0.5668 | +0.0003 | 0.961 | no |
 | + A1 readout = **C** | 0.5898 | +0.0230 | 0.965 | no |
-| **+ HOPE-S slow level** | **0.6006** | **+0.0108** | **0.976** | **yes** |
+| **+ HOPE-S slow level** | **0.6006** | **+0.0108** | **0.976** | yes, but matched by fixed γ (§0) |
+| + fixed hard-patch γ = 2.1 (HOPE-S-02, post hoc) | 0.6013 | +0.0115 vs C | 0.978 | no |
 
 ### Per category, C → HOPE-S (final AP)
 
@@ -116,18 +140,33 @@ image ──► DINOv2-reg ViT-B/14, 392 px full-view resize, blocks 0-9 only (b
 
 The baseline B/14 fp32 deployment used 646 MB; the lite deployment halved this with ΔAP +0.0002.
 
-## 4. HOPE-S-02 (fixed-γ attribution control) — pending
+## 4. HOPE-S-02 (fixed-γ attribution control) — done
 
 - **Arm:** γ = 2.1 fixed, λ = 0, identical code path. The CREDIT and γ-direction gradients are computed and
-  discarded, so compute is matched.
+  discarded, so compute is matched (513 s vs 513 s of updates).
 - **γ = 2.1** is a post-hoc, trajectory-informed diagnostic comparator; it is not preregistered.
-- **Diagnostic threshold:** HOPE-S − F, ΔAP ≥ +0.010, CI lower > 0.
-- **Interpretation:**
-  - If F ≥ HOPE-S, the NL contribution is unsupported beyond a hard-patch objective.
-  - If HOPE-S > F, the learned slow level adds value, but γ and λ remain confounded. The minimal next control would be
-    learned γ with λ = 0.
-- Results will be at `results/hope_cad/hope_s_02/RESULT.json` and `agents/reports/hope_s_02.md`. This section must be
-  updated before HOPE-S is described as an NL contribution in any write-up.
+
+| | C | F: fixed γ | HOPE-S |
+|---|---:|---:|---:|
+| final Pixel AP | 0.5898 | **0.6013** | 0.6006 |
+| final Image AUROC | 0.9649 | **0.9783** | 0.9761 |
+| acquisition Pixel AP | 0.5814 | **0.5934** | 0.5928 |
+| Pixel / Image FM | 0.0057 / 0.0020 | **0.0031 / 0.0004** | 0.0052 / 0.0008 |
+
+- **HOPE-S − F:** −0.0007, CI [−0.0100, +0.0083]. The diagnostic threshold is **not passed**, so
+  `LEARNED_SLOW_LEVEL_ADDED_VALUE` = not supported.
+- **F − C:** +0.0115, CI [−0.0018, +0.0261].
+
+Per category:
+- HOPE-S is better on late and texture tasks: toothbrush +.029, zipper +.019, tile +.017, wood +.011.
+- F is better on small-defect objects: screw +.047, leather +.027, capsule / pill / transistor about +.008.
+- The differences mostly follow the learned schedule (γ below 2.1 early, above it late), not consistent adaptivity.
+
+**Next NL candidate.** A slow level must do something no single constant can. The data hint at category-dependent γ
+preferences. That hint was generated from the exposed test set, so it must be tested on a fresh seed/order or a dev
+split. The candidate is a **task-conditional γ** set from normal-only signals at task start, compared against the best
+constant chosen without this test set. The minimal control on the way is learned γ with λ = 0, plus a second seed of
+F.
 
 ## 5. Reproduce
 
