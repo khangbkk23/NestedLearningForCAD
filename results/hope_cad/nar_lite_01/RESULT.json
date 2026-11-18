@@ -1,0 +1,1213 @@
+{
+  "arms": {
+    "lite_raw": {
+      "per_category": {
+        "bottle": {
+          "acquisition": {
+            "stage": 1,
+            "category": "bottle",
+            "pixel_ap": 0.8207522170544107,
+            "image_auroc": 1.0
+          },
+          "final": {
+            "stage": 15,
+            "category": "bottle",
+            "pixel_ap": 0.8276582675348584,
+            "image_auroc": 1.0
+          }
+        },
+        "cable": {
+          "acquisition": {
+            "stage": 2,
+            "category": "cable",
+            "pixel_ap": 0.5172919729311023,
+            "image_auroc": 0.9166041979010494
+          },
+          "final": {
+            "stage": 15,
+            "category": "cable",
+            "pixel_ap": 0.5198783638412874,
+            "image_auroc": 0.918103448275862
+          }
+        },
+        "capsule": {
+          "acquisition": {
+            "stage": 3,
+            "category": "capsule",
+            "pixel_ap": 0.523427205334956,
+            "image_auroc": 0.8384523334662943
+          },
+          "final": {
+            "stage": 15,
+            "category": "capsule",
+            "pixel_ap": 0.5248330603656164,
+            "image_auroc": 0.8085360989230156
+          }
+        },
+        "carpet": {
+          "acquisition": {
+            "stage": 4,
+            "category": "carpet",
+            "pixel_ap": 0.7227272410379195,
+            "image_auroc": 1.0
+          },
+          "final": {
+            "stage": 15,
+            "category": "carpet",
+            "pixel_ap": 0.7622318050954555,
+            "image_auroc": 0.9987961476725522
+          }
+        },
+        "grid": {
+          "acquisition": {
+            "stage": 5,
+            "category": "grid",
+            "pixel_ap": 0.4550211496011199,
+            "image_auroc": 1.0
+          },
+          "final": {
+            "stage": 15,
+            "category": "grid",
+            "pixel_ap": 0.4455084136027615,
+            "image_auroc": 1.0
+          }
+        },
+        "hazelnut": {
+          "acquisition": {
+            "stage": 6,
+            "category": "hazelnut",
+            "pixel_ap": 0.7145315180349102,
+            "image_auroc": 0.9910714285714286
+          },
+          "final": {
+            "stage": 15,
+            "category": "hazelnut",
+            "pixel_ap": 0.7401434692700866,
+            "image_auroc": 0.9889285714285715
+          }
+        },
+        "leather": {
+          "acquisition": {
+            "stage": 7,
+            "category": "leather",
+            "pixel_ap": 0.32252199586379005,
+            "image_auroc": 1.0
+          },
+          "final": {
+            "stage": 15,
+            "category": "leather",
+            "pixel_ap": 0.33957725676260253,
+            "image_auroc": 1.0
+          }
+        },
+        "metal_nut": {
+          "acquisition": {
+            "stage": 8,
+            "category": "metal_nut",
+            "pixel_ap": 0.6254877493773465,
+            "image_auroc": 1.0
+          },
+          "final": {
+            "stage": 15,
+            "category": "metal_nut",
+            "pixel_ap": 0.6267031189999906,
+            "image_auroc": 1.0
+          }
+        },
+        "pill": {
+          "acquisition": {
+            "stage": 9,
+            "category": "pill",
+            "pixel_ap": 0.5175684767491642,
+            "image_auroc": 0.9549918166939444
+          },
+          "final": {
+            "stage": 15,
+            "category": "pill",
+            "pixel_ap": 0.5147710429718705,
+            "image_auroc": 0.9560829241680305
+          }
+        },
+        "screw": {
+          "acquisition": {
+            "stage": 10,
+            "category": "screw",
+            "pixel_ap": 0.32735831568297014,
+            "image_auroc": 0.8093871695019471
+          },
+          "final": {
+            "stage": 15,
+            "category": "screw",
+            "pixel_ap": 0.2886298354445831,
+            "image_auroc": 0.7966796474687436
+          }
+        },
+        "tile": {
+          "acquisition": {
+            "stage": 11,
+            "category": "tile",
+            "pixel_ap": 0.6231889757196714,
+            "image_auroc": 1.0
+          },
+          "final": {
+            "stage": 15,
+            "category": "tile",
+            "pixel_ap": 0.6801085187314913,
+            "image_auroc": 1.0
+          }
+        },
+        "toothbrush": {
+          "acquisition": {
+            "stage": 12,
+            "category": "toothbrush",
+            "pixel_ap": 0.6046395115474296,
+            "image_auroc": 1.0
+          },
+          "final": {
+            "stage": 15,
+            "category": "toothbrush",
+            "pixel_ap": 0.6029951191202494,
+            "image_auroc": 1.0
+          }
+        },
+        "transistor": {
+          "acquisition": {
+            "stage": 13,
+            "category": "transistor",
+            "pixel_ap": 0.4307036279009216,
+            "image_auroc": 0.9424999999999999
+          },
+          "final": {
+            "stage": 15,
+            "category": "transistor",
+            "pixel_ap": 0.43058301137536337,
+            "image_auroc": 0.9470833333333333
+          }
+        },
+        "wood": {
+          "acquisition": {
+            "stage": 14,
+            "category": "wood",
+            "pixel_ap": 0.6606638113304913,
+            "image_auroc": 0.9982456140350878
+          },
+          "final": {
+            "stage": 15,
+            "category": "wood",
+            "pixel_ap": 0.6606993581766876,
+            "image_auroc": 0.9982456140350878
+          }
+        },
+        "zipper": {
+          "acquisition": {
+            "stage": 15,
+            "category": "zipper",
+            "pixel_ap": 0.5369784491222145,
+            "image_auroc": 0.9960609243697479
+          },
+          "final": {
+            "stage": 15,
+            "category": "zipper",
+            "pixel_ap": 0.5369784491222145,
+            "image_auroc": 0.9960609243697479
+          }
+        }
+      },
+      "final_pixel_ap": 0.5667532726943413,
+      "final_image_auroc": 0.9605677806449964,
+      "acquisition_pixel_ap": 0.5601908144858946,
+      "pixel_fm_eq8": {
+        "per_category": {
+          "bottle": 0.0034776232549772468,
+          "cable": -1.1998345744723693e-06,
+          "capsule": 0.0,
+          "carpet": 0.00601936579390161,
+          "grid": 0.023854638569525743,
+          "hazelnut": 0.00010335433463526389,
+          "leather": 0.014117967707818924,
+          "metal_nut": 0.0010357742187565577,
+          "pill": 0.00427015708370071,
+          "screw": 0.038820352875141684,
+          "tile": -0.0005787257191817163,
+          "toothbrush": 0.0016443924271801746,
+          "transistor": 0.00012061652555822588,
+          "wood": -3.5546846196221615e-05
+        },
+        "macro": 0.006632055027945981,
+        "positive_part_macro": 0.006676017342228295
+      },
+      "image_fm_eq8": {
+        "per_category": {
+          "bottle": 0.0,
+          "cable": 0.00037481259370319986,
+          "capsule": 0.02991623454327874,
+          "carpet": 0.0012038523274477964,
+          "grid": 0.0,
+          "hazelnut": 0.0024999999999999467,
+          "leather": 0.0,
+          "metal_nut": 0.0,
+          "pill": 0.0002727768685215626,
+          "screw": 0.012707522033203467,
+          "tile": 0.0,
+          "toothbrush": 0.0,
+          "transistor": 0.0,
+          "wood": 0.0
+        },
+        "macro": 0.003355371311868194,
+        "positive_part_macro": 0.003355371311868194
+      }
+    },
+    "lite_a1": {
+      "per_category": {
+        "bottle": {
+          "acquisition": {
+            "stage": 1,
+            "category": "bottle",
+            "pixel_ap": 0.8349049661384628,
+            "image_auroc": 1.0
+          },
+          "final": {
+            "stage": 15,
+            "category": "bottle",
+            "pixel_ap": 0.8453320963880737,
+            "image_auroc": 1.0
+          }
+        },
+        "cable": {
+          "acquisition": {
+            "stage": 2,
+            "category": "cable",
+            "pixel_ap": 0.5332439065751966,
+            "image_auroc": 0.9523988005997001
+          },
+          "final": {
+            "stage": 15,
+            "category": "cable",
+            "pixel_ap": 0.5350997030850243,
+            "image_auroc": 0.9523988005997001
+          }
+        },
+        "capsule": {
+          "acquisition": {
+            "stage": 3,
+            "category": "capsule",
+            "pixel_ap": 0.542199126023849,
+            "image_auroc": 0.8512165935380933
+          },
+          "final": {
+            "stage": 15,
+            "category": "capsule",
+            "pixel_ap": 0.544411630302083,
+            "image_auroc": 0.8340646190666136
+          }
+        },
+        "carpet": {
+          "acquisition": {
+            "stage": 4,
+            "category": "carpet",
+            "pixel_ap": 0.7432494164904221,
+            "image_auroc": 1.0
+          },
+          "final": {
+            "stage": 15,
+            "category": "carpet",
+            "pixel_ap": 0.7846676822680982,
+            "image_auroc": 1.0
+          }
+        },
+        "grid": {
+          "acquisition": {
+            "stage": 5,
+            "category": "grid",
+            "pixel_ap": 0.46534400697862277,
+            "image_auroc": 1.0
+          },
+          "final": {
+            "stage": 15,
+            "category": "grid",
+            "pixel_ap": 0.4639927336777807,
+            "image_auroc": 1.0
+          }
+        },
+        "hazelnut": {
+          "acquisition": {
+            "stage": 6,
+            "category": "hazelnut",
+            "pixel_ap": 0.7426316465578836,
+            "image_auroc": 1.0
+          },
+          "final": {
+            "stage": 15,
+            "category": "hazelnut",
+            "pixel_ap": 0.7679808031606032,
+            "image_auroc": 1.0
+          }
+        },
+        "leather": {
+          "acquisition": {
+            "stage": 7,
+            "category": "leather",
+            "pixel_ap": 0.337474038570486,
+            "image_auroc": 1.0
+          },
+          "final": {
+            "stage": 15,
+            "category": "leather",
+            "pixel_ap": 0.3565877921800884,
+            "image_auroc": 1.0
+          }
+        },
+        "metal_nut": {
+          "acquisition": {
+            "stage": 8,
+            "category": "metal_nut",
+            "pixel_ap": 0.6402571456974928,
+            "image_auroc": 1.0
+          },
+          "final": {
+            "stage": 15,
+            "category": "metal_nut",
+            "pixel_ap": 0.642496228854974,
+            "image_auroc": 1.0
+          }
+        },
+        "pill": {
+          "acquisition": {
+            "stage": 9,
+            "category": "pill",
+            "pixel_ap": 0.5427201026693886,
+            "image_auroc": 0.9710856519367158
+          },
+          "final": {
+            "stage": 15,
+            "category": "pill",
+            "pixel_ap": 0.5403410247647757,
+            "image_auroc": 0.9743589743589743
+          }
+        },
+        "screw": {
+          "acquisition": {
+            "stage": 10,
+            "category": "screw",
+            "pixel_ap": 0.36611358959165163,
+            "image_auroc": 0.7474892395982785
+          },
+          "final": {
+            "stage": 15,
+            "category": "screw",
+            "pixel_ap": 0.33358864033304253,
+            "image_auroc": 0.7370362779258045
+          }
+        },
+        "tile": {
+          "acquisition": {
+            "stage": 11,
+            "category": "tile",
+            "pixel_ap": 0.6328237860274405,
+            "image_auroc": 1.0
+          },
+          "final": {
+            "stage": 15,
+            "category": "tile",
+            "pixel_ap": 0.693119280369043,
+            "image_auroc": 1.0
+          }
+        },
+        "toothbrush": {
+          "acquisition": {
+            "stage": 12,
+            "category": "toothbrush",
+            "pixel_ap": 0.6394843399785186,
+            "image_auroc": 1.0
+          },
+          "final": {
+            "stage": 15,
+            "category": "toothbrush",
+            "pixel_ap": 0.6378454656138032,
+            "image_auroc": 1.0
+          }
+        },
+        "transistor": {
+          "acquisition": {
+            "stage": 13,
+            "category": "transistor",
+            "pixel_ap": 0.46935834015024397,
+            "image_auroc": 0.9808333333333333
+          },
+          "final": {
+            "stage": 15,
+            "category": "transistor",
+            "pixel_ap": 0.46922336240029233,
+            "image_auroc": 0.9808333333333333
+          }
+        },
+        "wood": {
+          "acquisition": {
+            "stage": 14,
+            "category": "wood",
+            "pixel_ap": 0.6784158243880569,
+            "image_auroc": 0.9964912280701755
+          },
+          "final": {
+            "stage": 15,
+            "category": "wood",
+            "pixel_ap": 0.6784365206108776,
+            "image_auroc": 0.9964912280701755
+          }
+        },
+        "zipper": {
+          "acquisition": {
+            "stage": 15,
+            "category": "zipper",
+            "pixel_ap": 0.5535296862618806,
+            "image_auroc": 0.9981617647058824
+          },
+          "final": {
+            "stage": 15,
+            "category": "zipper",
+            "pixel_ap": 0.5535296862618806,
+            "image_auroc": 0.9981617647058824
+          }
+        }
+      },
+      "final_pixel_ap": 0.5897768433513627,
+      "final_image_auroc": 0.9648896665373655,
+      "acquisition_pixel_ap": 0.5814499948066397,
+      "pixel_fm_eq8": {
+        "per_category": {
+          "bottle": 0.0017110699913114313,
+          "cable": -6.272518588978926e-07,
+          "capsule": 0.0,
+          "carpet": 0.005419967467129139,
+          "grid": 0.01944681104055679,
+          "hazelnut": 0.0001012696739438601,
+          "leather": 0.014079894823150252,
+          "metal_nut": 0.0008766859987574538,
+          "pill": 0.003954952648513532,
+          "screw": 0.0329622064433604,
+          "tile": -0.0005011360581588242,
+          "toothbrush": 0.001638874364715437,
+          "transistor": 0.00013497774995163692,
+          "wood": -2.0696222820637544e-05
+        },
+        "macro": 0.005700303619182255,
+        "positive_part_macro": 0.005737622157242138
+      },
+      "image_fm_eq8": {
+        "per_category": {
+          "bottle": 0.0,
+          "cable": 0.00018740629685165544,
+          "capsule": 0.01715197447147976,
+          "carpet": 0.0,
+          "grid": 0.0,
+          "hazelnut": 0.0,
+          "leather": 0.0,
+          "metal_nut": 0.0,
+          "pill": 0.0,
+          "screw": 0.010452961672474004,
+          "tile": 0.0,
+          "toothbrush": 0.0,
+          "transistor": 0.0,
+          "wood": 0.0
+        },
+        "macro": 0.001985167317200387,
+        "positive_part_macro": 0.001985167317200387
+      }
+    },
+    "b14_fp32_sealed": {
+      "per_category": {
+        "bottle": {
+          "acquisition": {
+            "stage": 1,
+            "category": "bottle",
+            "pixel_ap": 0.8207670475978991,
+            "image_auroc": 1.0,
+            "scores_sha256": "6ccb73b999ec5fd5981d549878a12fb241331a948d91ce839ccc684670309fed"
+          },
+          "final": {
+            "stage": 15,
+            "category": "bottle",
+            "pixel_ap": 0.8280939021208464,
+            "image_auroc": 1.0,
+            "scores_sha256": "6ccb73b999ec5fd5981d549878a12fb241331a948d91ce839ccc684670309fed"
+          }
+        },
+        "cable": {
+          "acquisition": {
+            "stage": 2,
+            "category": "cable",
+            "pixel_ap": 0.518003385158834,
+            "image_auroc": 0.9166041979010494,
+            "scores_sha256": "1cbf11710aac58f51d912b0a5223e3614faa18844505593c32f01697ee8bb5e0"
+          },
+          "final": {
+            "stage": 15,
+            "category": "cable",
+            "pixel_ap": 0.5198043518392186,
+            "image_auroc": 0.916791604197901,
+            "scores_sha256": "1cbf11710aac58f51d912b0a5223e3614faa18844505593c32f01697ee8bb5e0"
+          }
+        },
+        "capsule": {
+          "acquisition": {
+            "stage": 3,
+            "category": "capsule",
+            "pixel_ap": 0.5231820886140657,
+            "image_auroc": 0.8364579178300758,
+            "scores_sha256": "53fcd84ee6070334cd3e018962927cedbd307fcaa23d29be1bcf286f56434efb"
+          },
+          "final": {
+            "stage": 15,
+            "category": "capsule",
+            "pixel_ap": 0.5244167140324907,
+            "image_auroc": 0.8073394495412844,
+            "scores_sha256": "53fcd84ee6070334cd3e018962927cedbd307fcaa23d29be1bcf286f56434efb"
+          }
+        },
+        "carpet": {
+          "acquisition": {
+            "stage": 4,
+            "category": "carpet",
+            "pixel_ap": 0.7243093019790766,
+            "image_auroc": 1.0,
+            "scores_sha256": "2551d545f950246c50ab1615ad830d6dcc6f81491b8559194b6a9e86299bd63f"
+          },
+          "final": {
+            "stage": 15,
+            "category": "carpet",
+            "pixel_ap": 0.7638296009970826,
+            "image_auroc": 0.9987961476725522,
+            "scores_sha256": "2551d545f950246c50ab1615ad830d6dcc6f81491b8559194b6a9e86299bd63f"
+          }
+        },
+        "grid": {
+          "acquisition": {
+            "stage": 5,
+            "category": "grid",
+            "pixel_ap": 0.45460486797890076,
+            "image_auroc": 1.0,
+            "scores_sha256": "34bf2499477668a2af0bb693421b8832240148f9675ec5231c1f34e4d5a4da3e"
+          },
+          "final": {
+            "stage": 15,
+            "category": "grid",
+            "pixel_ap": 0.44440490501999924,
+            "image_auroc": 1.0,
+            "scores_sha256": "34bf2499477668a2af0bb693421b8832240148f9675ec5231c1f34e4d5a4da3e"
+          }
+        },
+        "hazelnut": {
+          "acquisition": {
+            "stage": 6,
+            "category": "hazelnut",
+            "pixel_ap": 0.7147919959067257,
+            "image_auroc": 0.9907142857142857,
+            "scores_sha256": "c7da80f4a9c48691b25aacace62c4f24eaabdc6120baf381d96107ffc587a925"
+          },
+          "final": {
+            "stage": 15,
+            "category": "hazelnut",
+            "pixel_ap": 0.7399433632391142,
+            "image_auroc": 0.9882142857142857,
+            "scores_sha256": "c7da80f4a9c48691b25aacace62c4f24eaabdc6120baf381d96107ffc587a925"
+          }
+        },
+        "leather": {
+          "acquisition": {
+            "stage": 7,
+            "category": "leather",
+            "pixel_ap": 0.32355315602874096,
+            "image_auroc": 1.0,
+            "scores_sha256": "0685e2f42ba6ca937bfac804b6890017f05b4af8d4d9770209af3e055d149eab"
+          },
+          "final": {
+            "stage": 15,
+            "category": "leather",
+            "pixel_ap": 0.33998216280464705,
+            "image_auroc": 1.0,
+            "scores_sha256": "0685e2f42ba6ca937bfac804b6890017f05b4af8d4d9770209af3e055d149eab"
+          }
+        },
+        "metal_nut": {
+          "acquisition": {
+            "stage": 8,
+            "category": "metal_nut",
+            "pixel_ap": 0.6250775177082967,
+            "image_auroc": 1.0,
+            "scores_sha256": "6ef8674b33af57a65940f2c56b6111c77956a583d49152e070b187cbdf79571e"
+          },
+          "final": {
+            "stage": 15,
+            "category": "metal_nut",
+            "pixel_ap": 0.6263205010721465,
+            "image_auroc": 1.0,
+            "scores_sha256": "6ef8674b33af57a65940f2c56b6111c77956a583d49152e070b187cbdf79571e"
+          }
+        },
+        "pill": {
+          "acquisition": {
+            "stage": 9,
+            "category": "pill",
+            "pixel_ap": 0.51555134868294,
+            "image_auroc": 0.9514457174031642,
+            "scores_sha256": "3173e01fe5ee45b7b07ab931153d9bcfa33aa999062f2af8277da35921171ff3"
+          },
+          "final": {
+            "stage": 15,
+            "category": "pill",
+            "pixel_ap": 0.5127876317612882,
+            "image_auroc": 0.9514457174031643,
+            "scores_sha256": "3173e01fe5ee45b7b07ab931153d9bcfa33aa999062f2af8277da35921171ff3"
+          }
+        },
+        "screw": {
+          "acquisition": {
+            "stage": 10,
+            "category": "screw",
+            "pixel_ap": 0.32592597067741064,
+            "image_auroc": 0.8093871695019471,
+            "scores_sha256": "ce7e126e3ad10626504a8b8661adc3a5c542339fe5155746453b7f6fa11001fa"
+          },
+          "final": {
+            "stage": 15,
+            "category": "screw",
+            "pixel_ap": 0.2871980668081605,
+            "image_auroc": 0.7966796474687435,
+            "scores_sha256": "ce7e126e3ad10626504a8b8661adc3a5c542339fe5155746453b7f6fa11001fa"
+          }
+        },
+        "tile": {
+          "acquisition": {
+            "stage": 11,
+            "category": "tile",
+            "pixel_ap": 0.6233477195553777,
+            "image_auroc": 1.0,
+            "scores_sha256": "319bac9e8b6daed9b7bcc64f17bad1755393e8d36a16c5b5c2b7cc74c3263e86"
+          },
+          "final": {
+            "stage": 15,
+            "category": "tile",
+            "pixel_ap": 0.6801444976875525,
+            "image_auroc": 1.0,
+            "scores_sha256": "319bac9e8b6daed9b7bcc64f17bad1755393e8d36a16c5b5c2b7cc74c3263e86"
+          }
+        },
+        "toothbrush": {
+          "acquisition": {
+            "stage": 12,
+            "category": "toothbrush",
+            "pixel_ap": 0.6054242366839158,
+            "image_auroc": 1.0,
+            "scores_sha256": "088f88ac75ba65d6a08efc30467dbf496e3e9453336b13469c83aa2b791bec67"
+          },
+          "final": {
+            "stage": 15,
+            "category": "toothbrush",
+            "pixel_ap": 0.60373639226692,
+            "image_auroc": 1.0,
+            "scores_sha256": "088f88ac75ba65d6a08efc30467dbf496e3e9453336b13469c83aa2b791bec67"
+          }
+        },
+        "transistor": {
+          "acquisition": {
+            "stage": 13,
+            "category": "transistor",
+            "pixel_ap": 0.43054977554493723,
+            "image_auroc": 0.9404166666666667,
+            "scores_sha256": "18703dfbd6b7eb981e1f0a6d8c23d9c9dfa259b11dd9f73c4207e1813722440f"
+          },
+          "final": {
+            "stage": 15,
+            "category": "transistor",
+            "pixel_ap": 0.4304183333552241,
+            "image_auroc": 0.9445833333333333,
+            "scores_sha256": "18703dfbd6b7eb981e1f0a6d8c23d9c9dfa259b11dd9f73c4207e1813722440f"
+          }
+        },
+        "wood": {
+          "acquisition": {
+            "stage": 14,
+            "category": "wood",
+            "pixel_ap": 0.6609611118536224,
+            "image_auroc": 0.9982456140350878,
+            "scores_sha256": "96926839c80a875f295cec52497ef31cd380fab73b781cee3fb41ebc2d0555e3"
+          },
+          "final": {
+            "stage": 15,
+            "category": "wood",
+            "pixel_ap": 0.6609969468286806,
+            "image_auroc": 0.9982456140350878,
+            "scores_sha256": "96926839c80a875f295cec52497ef31cd380fab73b781cee3fb41ebc2d0555e3"
+          }
+        },
+        "zipper": {
+          "acquisition": {
+            "stage": 15,
+            "category": "zipper",
+            "pixel_ap": 0.5360139569543692,
+            "image_auroc": 0.9960609243697479,
+            "scores_sha256": "cb965ca016c68c1c2983eee5b0ef0ac28a074344a786a1f492cfa4fdac04d886"
+          },
+          "final": {
+            "stage": 15,
+            "category": "zipper",
+            "pixel_ap": 0.5360139569543692,
+            "image_auroc": 0.9960609243697479,
+            "scores_sha256": "cb965ca016c68c1c2983eee5b0ef0ac28a074344a786a1f492cfa4fdac04d886"
+          }
+        }
+      },
+      "final_pixel_ap": 0.5665394217858494,
+      "final_image_auroc": 0.95987711491574,
+      "acquisition_pixel_ap": 0.5601375653950076,
+      "pixel_fm_eq8": {
+        "per_category": {
+          "bottle": 0.003095677426319776,
+          "cable": -1.2523664328911721e-06,
+          "capsule": 0.0,
+          "carpet": 0.005958749865939139,
+          "grid": 0.02471655638289072,
+          "hazelnut": 0.0001038426505749479,
+          "leather": 0.014366336552522618,
+          "metal_nut": 0.0010379734757750558,
+          "pill": 0.0041588432487340565,
+          "screw": 0.03883481612773898,
+          "tile": -0.0005787890735388102,
+          "toothbrush": 0.0016878444169957652,
+          "transistor": 0.00013144218971311572,
+          "wood": -3.58349750582132e-05
+        },
+        "macro": 0.0066768718515838755,
+        "positive_part_macro": 0.006720863024086012
+      },
+      "image_fm_eq8": {
+        "per_category": {
+          "bottle": 0.0,
+          "cable": 0.0011244377811094886,
+          "capsule": 0.029118468288791388,
+          "carpet": 0.0012038523274477964,
+          "grid": 0.0,
+          "hazelnut": 0.0024999999999999467,
+          "leather": 0.0,
+          "metal_nut": 0.0,
+          "pill": 0.0005455537370430141,
+          "screw": 0.012707522033203578,
+          "tile": 0.0,
+          "toothbrush": 0.0,
+          "transistor": 0.0,
+          "wood": 0.0
+        },
+        "macro": 0.0033714167262568007,
+        "positive_part_macro": 0.0033714167262568007
+      }
+    },
+    "b8_fp32_sealed": {
+      "per_category": {
+        "bottle": {
+          "acquisition": {
+            "stage": 1,
+            "category": "bottle",
+            "pixel_ap": 0.8329028997630095,
+            "image_auroc": 0.9992063492063492,
+            "scores_sha256": "8473a5cebbf3fe020e9ef71242ec8ef0cb79e90acf08fbef66153b2f3b3b4cb1"
+          },
+          "final": {
+            "stage": 15,
+            "category": "bottle",
+            "pixel_ap": 0.8397075020446244,
+            "image_auroc": 0.9992063492063492,
+            "scores_sha256": "8473a5cebbf3fe020e9ef71242ec8ef0cb79e90acf08fbef66153b2f3b3b4cb1"
+          }
+        },
+        "cable": {
+          "acquisition": {
+            "stage": 2,
+            "category": "cable",
+            "pixel_ap": 0.5046223406699623,
+            "image_auroc": 0.955584707646177,
+            "scores_sha256": "2980dd5eddceb5b95d5a0477382a4d831248edecf3d20194274ba7de29ac3c95"
+          },
+          "final": {
+            "stage": 15,
+            "category": "cable",
+            "pixel_ap": 0.5026372640642893,
+            "image_auroc": 0.9462143928035982,
+            "scores_sha256": "2980dd5eddceb5b95d5a0477382a4d831248edecf3d20194274ba7de29ac3c95"
+          }
+        },
+        "capsule": {
+          "acquisition": {
+            "stage": 3,
+            "category": "capsule",
+            "pixel_ap": 0.42818735153999077,
+            "image_auroc": 0.8456322297566812,
+            "scores_sha256": "94ca0c488ce343c22febcbc2c2e098f6160202627b92f19f30dbe0e78936a8eb"
+          },
+          "final": {
+            "stage": 15,
+            "category": "capsule",
+            "pixel_ap": 0.4301001881590154,
+            "image_auroc": 0.8428400478659752,
+            "scores_sha256": "94ca0c488ce343c22febcbc2c2e098f6160202627b92f19f30dbe0e78936a8eb"
+          }
+        },
+        "carpet": {
+          "acquisition": {
+            "stage": 4,
+            "category": "carpet",
+            "pixel_ap": 0.719452893878005,
+            "image_auroc": 0.9987961476725522,
+            "scores_sha256": "567c22d0a5e1a14def80c4a59976ae068b993c5683d29a16fb43f8e9192c4d79"
+          },
+          "final": {
+            "stage": 15,
+            "category": "carpet",
+            "pixel_ap": 0.6996284641825333,
+            "image_auroc": 0.9975922953451044,
+            "scores_sha256": "567c22d0a5e1a14def80c4a59976ae068b993c5683d29a16fb43f8e9192c4d79"
+          }
+        },
+        "grid": {
+          "acquisition": {
+            "stage": 5,
+            "category": "grid",
+            "pixel_ap": 0.3439336885068234,
+            "image_auroc": 0.9707602339181286,
+            "scores_sha256": "9b268b34018c7797380fe895b4e9b21595a293b9177412dad7e6910a8e8a6c73"
+          },
+          "final": {
+            "stage": 15,
+            "category": "grid",
+            "pixel_ap": 0.31650534969627586,
+            "image_auroc": 0.9707602339181286,
+            "scores_sha256": "9b268b34018c7797380fe895b4e9b21595a293b9177412dad7e6910a8e8a6c73"
+          }
+        },
+        "hazelnut": {
+          "acquisition": {
+            "stage": 6,
+            "category": "hazelnut",
+            "pixel_ap": 0.7949506179523911,
+            "image_auroc": 0.9935714285714285,
+            "scores_sha256": "0f0131a5a7275e2883c7d2f8ad93b949f089c93bcc37242e000997b64f629ec7"
+          },
+          "final": {
+            "stage": 15,
+            "category": "hazelnut",
+            "pixel_ap": 0.8113659065482612,
+            "image_auroc": 0.9960714285714285,
+            "scores_sha256": "0f0131a5a7275e2883c7d2f8ad93b949f089c93bcc37242e000997b64f629ec7"
+          }
+        },
+        "leather": {
+          "acquisition": {
+            "stage": 7,
+            "category": "leather",
+            "pixel_ap": 0.28924081681351316,
+            "image_auroc": 1.0,
+            "scores_sha256": "bb64037aff19da0a503e7dd39bea5d170aeb5d8a847b0fd2606c06c33f9252a9"
+          },
+          "final": {
+            "stage": 15,
+            "category": "leather",
+            "pixel_ap": 0.24100319861398975,
+            "image_auroc": 1.0,
+            "scores_sha256": "bb64037aff19da0a503e7dd39bea5d170aeb5d8a847b0fd2606c06c33f9252a9"
+          }
+        },
+        "metal_nut": {
+          "acquisition": {
+            "stage": 8,
+            "category": "metal_nut",
+            "pixel_ap": 0.7028392183395378,
+            "image_auroc": 1.0,
+            "scores_sha256": "77f2b77cacb03acf20d2590ee1f95856dd530010d6e259a3c03a23a4adf25474"
+          },
+          "final": {
+            "stage": 15,
+            "category": "metal_nut",
+            "pixel_ap": 0.7053639286895343,
+            "image_auroc": 1.0,
+            "scores_sha256": "77f2b77cacb03acf20d2590ee1f95856dd530010d6e259a3c03a23a4adf25474"
+          }
+        },
+        "pill": {
+          "acquisition": {
+            "stage": 9,
+            "category": "pill",
+            "pixel_ap": 0.7167553429088022,
+            "image_auroc": 0.9629023458810693,
+            "scores_sha256": "7fb6cff6376e18e0bde5a62e3809fca9c757ef26b33a89a29fd96fc8c62331e9"
+          },
+          "final": {
+            "stage": 15,
+            "category": "pill",
+            "pixel_ap": 0.6954585333690144,
+            "image_auroc": 0.9645390070921986,
+            "scores_sha256": "7fb6cff6376e18e0bde5a62e3809fca9c757ef26b33a89a29fd96fc8c62331e9"
+          }
+        },
+        "screw": {
+          "acquisition": {
+            "stage": 10,
+            "category": "screw",
+            "pixel_ap": 0.22742156696281882,
+            "image_auroc": 0.7202295552367288,
+            "scores_sha256": "f47cf560d37b282f7f0321ed05caf70d3bed0d783e2da272d7c4764064f436dd"
+          },
+          "final": {
+            "stage": 15,
+            "category": "screw",
+            "pixel_ap": 0.21564713370356858,
+            "image_auroc": 0.7202295552367288,
+            "scores_sha256": "f47cf560d37b282f7f0321ed05caf70d3bed0d783e2da272d7c4764064f436dd"
+          }
+        },
+        "tile": {
+          "acquisition": {
+            "stage": 11,
+            "category": "tile",
+            "pixel_ap": 0.6186835011304286,
+            "image_auroc": 0.9996392496392497,
+            "scores_sha256": "a6d893b6ec805d99e32310680e69fd9be0a15b866b118b5c50139b2e39f87ac6"
+          },
+          "final": {
+            "stage": 15,
+            "category": "tile",
+            "pixel_ap": 0.6226707256800079,
+            "image_auroc": 0.9996392496392497,
+            "scores_sha256": "a6d893b6ec805d99e32310680e69fd9be0a15b866b118b5c50139b2e39f87ac6"
+          }
+        },
+        "toothbrush": {
+          "acquisition": {
+            "stage": 12,
+            "category": "toothbrush",
+            "pixel_ap": 0.5761865523028847,
+            "image_auroc": 0.9638888888888889,
+            "scores_sha256": "186666b88d7c8871b912df9e4aebb973ceee1eab42c760ffafaf3f36ba8dd7e0"
+          },
+          "final": {
+            "stage": 15,
+            "category": "toothbrush",
+            "pixel_ap": 0.5765280437021439,
+            "image_auroc": 0.9638888888888889,
+            "scores_sha256": "186666b88d7c8871b912df9e4aebb973ceee1eab42c760ffafaf3f36ba8dd7e0"
+          }
+        },
+        "transistor": {
+          "acquisition": {
+            "stage": 13,
+            "category": "transistor",
+            "pixel_ap": 0.30638053665948894,
+            "image_auroc": 0.8425,
+            "scores_sha256": "408b46d6173cf2b880390172bd7b1c9bb9e6906df4745692d85cecef98842916"
+          },
+          "final": {
+            "stage": 15,
+            "category": "transistor",
+            "pixel_ap": 0.306545317266924,
+            "image_auroc": 0.8404166666666667,
+            "scores_sha256": "408b46d6173cf2b880390172bd7b1c9bb9e6906df4745692d85cecef98842916"
+          }
+        },
+        "wood": {
+          "acquisition": {
+            "stage": 14,
+            "category": "wood",
+            "pixel_ap": 0.6922667288236497,
+            "image_auroc": 0.9552631578947368,
+            "scores_sha256": "3050805f1c2926a582d51abc78643535a6b747a4fab7f1dabcc974faaa1f6bba"
+          },
+          "final": {
+            "stage": 15,
+            "category": "wood",
+            "pixel_ap": 0.6922668289559631,
+            "image_auroc": 0.9552631578947368,
+            "scores_sha256": "3050805f1c2926a582d51abc78643535a6b747a4fab7f1dabcc974faaa1f6bba"
+          }
+        },
+        "zipper": {
+          "acquisition": {
+            "stage": 15,
+            "category": "zipper",
+            "pixel_ap": 0.2956513193940458,
+            "image_auroc": 0.9380252100840336,
+            "scores_sha256": "d0dcc202733d5cb1db969c915dc7dd5f01d6bc3cb5f8812a5c2992b8fd7cf177"
+          },
+          "final": {
+            "stage": 15,
+            "category": "zipper",
+            "pixel_ap": 0.2956513193940458,
+            "image_auroc": 0.9380252100840336,
+            "scores_sha256": "d0dcc202733d5cb1db969c915dc7dd5f01d6bc3cb5f8812a5c2992b8fd7cf177"
+          }
+        }
+      },
+      "final_pixel_ap": 0.530071980271346,
+      "final_image_auroc": 0.9423124322142057,
+      "acquisition_pixel_ap": 0.5366316917096902,
+      "pixel_fm_eq8": {
+        "per_category": {
+          "bottle": 0.0,
+          "cable": 0.0019850766056729308,
+          "capsule": 9.610869118337195e-05,
+          "carpet": 0.019824429695471713,
+          "grid": 0.02744299294648561,
+          "hazelnut": 0.0,
+          "leather": 0.04823761819952341,
+          "metal_nut": 0.00010100755185304955,
+          "pill": 0.021451881770067516,
+          "screw": 0.011776752166384852,
+          "tile": -1.4051770085177218e-05,
+          "toothbrush": 0.0,
+          "transistor": 8.636626511182577e-07,
+          "wood": -1.0013231344085938e-07
+        },
+        "macro": 0.009350184241921067,
+        "positive_part_macro": 0.009351195092092398
+      },
+      "image_fm_eq8": {
+        "per_category": {
+          "bottle": 0.0,
+          "cable": 0.009370314842578775,
+          "capsule": 0.0063821300358994915,
+          "carpet": 0.0012038523274477964,
+          "grid": 0.0,
+          "hazelnut": 0.0,
+          "leather": 0.0,
+          "metal_nut": 0.0,
+          "pill": 0.0010911074740861393,
+          "screw": 0.0,
+          "tile": 0.0,
+          "toothbrush": 0.0,
+          "transistor": 0.002083333333333326,
+          "wood": 0.0
+        },
+        "macro": 0.0014379098580961092,
+        "positive_part_macro": 0.0014379098580961092
+      }
+    }
+  },
+  "LITE_GATE": {
+    "passed": true,
+    "guards": {
+      "memory": true,
+      "pixel_ap": true,
+      "image_auroc": true,
+      "acquisition": true
+    }
+  },
+  "a1_minus_lite_raw": {
+    "point": 0.02302357065702147,
+    "lo": 0.018821534710526246,
+    "hi": 0.027965576224719988,
+    "B": 2000,
+    "seed": 20261117,
+    "unit": "category"
+  },
+  "SMOOTH_GATE": {
+    "passed": true,
+    "guards": {
+      "pixel_gain": true,
+      "category_ci": true,
+      "image": true,
+      "acquisition": true,
+      "forgetting": true
+    }
+  },
+  "lite_raw_minus_b14": {
+    "point": 0.00021385090849187493,
+    "lo": -0.00025804348183299327,
+    "hi": 0.00063463161634526,
+    "B": 2000,
+    "seed": 20261117,
+    "unit": "category"
+  },
+  "lite_a1_minus_b14": {
+    "point": 0.023237421565513342,
+    "lo": 0.018907619861251886,
+    "hi": 0.028303572039439374,
+    "B": 2000,
+    "seed": 20261117,
+    "unit": "category"
+  },
+  "lite_a1_minus_b8": {
+    "point": 0.05970486308001661,
+    "lo": 0.009057860897117015,
+    "hi": 0.10668044901339119,
+    "B": 2000,
+    "seed": 20261117,
+    "unit": "category"
+  },
+  "fidelity": {
+    "checks": [
+      {
+        "dtype": "torch.float16",
+        "failure": "RuntimeError('nonfinite expert score')",
+        "category": "bottle",
+        "passed": false
+      },
+      {
+        "dtype": "torch.bfloat16",
+        "relative_mean_abs_error": 0.019429510501492633,
+        "token_cosine_min": 0.989916205406189,
+        "token_cosine_mean": 0.9976435383160909,
+        "images": 60,
+        "passed": true
+      }
+    ],
+    "chosen": "torch.bfloat16"
+  },
+  "cost": {
+    "preprocess": {
+      "p50_ms": 34.19819550072134,
+      "p95_ms": 37.84952080059156,
+      "mean_ms": 34.68118600003436,
+      "n": 20
+    },
+    "encoder": {
+      "p50_ms": 16.15797750037018,
+      "p95_ms": 17.829039399202884,
+      "mean_ms": 16.388064550028503,
+      "n": 20
+    },
+    "detector_and_readout": {
+      "p50_ms": 328.7844505002795,
+      "p95_ms": 358.6626462993991,
+      "mean_ms": 331.89717154982645,
+      "n": 20
+    },
+    "end_to_end": {
+      "p50_ms": 379.10436549918813,
+      "p95_ms": 408.1334427485672,
+      "mean_ms": 382.9664220998893,
+      "n": 20
+    },
+    "cuda_peak_bytes": 377740288,
+    "persistent_bytes": {
+      "shared_encoder": 144806400,
+      "shared_decoder": 122850816,
+      "archive": 25436160,
+      "policy": 3391760
+    },
+    "total_persistent_bytes": 296485136,
+    "dtype": "torch.bfloat16",
+    "note": "encoder blocks 0-9 only; decoder/encoder/adapters half precision; policy fp32"
+  },
+  "exposure": "One seed 2711, alphabetical 15, historically exposed MVTec; exploratory only",
+  "resources": {
+    "wall_seconds": 1491.9783045229997,
+    "gpu_phase_seconds": 427.1709202120019,
+    "phase_seconds": {
+      "fidelity_normal_only": 51.4724682190008,
+      "scoring": 362.39831245000096,
+      "inference_cost": 13.300139543000114,
+      "metrics_raw": 496.17895576000046,
+      "metrics_a1": 561.7094749700009
+    },
+    "peak_cuda_allocated_bytes": 1317464064,
+    "peak_rss_bytes": 5318037504,
+    "artifact_bytes": 81353532
+  }
+}
