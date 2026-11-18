@@ -1,0 +1,311 @@
+{
+  "arm": "F (gamma 2.1, lambda 0, warm rank-8 LoRA, seed 2711)",
+  "per_category": {
+    "candle": {
+      "acquisition": {
+        "stage": 1,
+        "category": "candle",
+        "pixel_ap": 0.4021849975304748,
+        "image_auroc": 0.9470000000000001
+      },
+      "final": {
+        "stage": 12,
+        "category": "candle",
+        "pixel_ap": 0.38016992611324335,
+        "image_auroc": 0.9532999999999999
+      },
+      "final_visa_final_only": {
+        "pixel_ap": 0.36293499945839836,
+        "image_auroc": 0.9492592592592592,
+        "n": 180
+      }
+    },
+    "capsules": {
+      "acquisition": {
+        "stage": 2,
+        "category": "capsules",
+        "pixel_ap": 0.49233842998462324,
+        "image_auroc": 0.9411666666666666
+      },
+      "final": {
+        "stage": 12,
+        "category": "capsules",
+        "pixel_ap": 0.5140043473829955,
+        "image_auroc": 0.945
+      },
+      "final_visa_final_only": {
+        "pixel_ap": 0.5124636842283377,
+        "image_auroc": 0.9453333333333334,
+        "n": 140
+      }
+    },
+    "cashew": {
+      "acquisition": {
+        "stage": 3,
+        "category": "cashew",
+        "pixel_ap": 0.6005834759934703,
+        "image_auroc": 0.9504
+      },
+      "final": {
+        "stage": 12,
+        "category": "cashew",
+        "pixel_ap": 0.6013935153293463,
+        "image_auroc": 0.9518
+      },
+      "final_visa_final_only": {
+        "pixel_ap": 0.6166055654164391,
+        "image_auroc": 0.9497222222222222,
+        "n": 130
+      }
+    },
+    "chewinggum": {
+      "acquisition": {
+        "stage": 4,
+        "category": "chewinggum",
+        "pixel_ap": 0.5942888725793599,
+        "image_auroc": 0.978
+      },
+      "final": {
+        "stage": 12,
+        "category": "chewinggum",
+        "pixel_ap": 0.6241214313344673,
+        "image_auroc": 0.9778
+      },
+      "final_visa_final_only": {
+        "pixel_ap": 0.6146206945971489,
+        "image_auroc": 0.9761111111111112,
+        "n": 130
+      }
+    },
+    "fryum": {
+      "acquisition": {
+        "stage": 5,
+        "category": "fryum",
+        "pixel_ap": 0.40889150464091517,
+        "image_auroc": 0.9392
+      },
+      "final": {
+        "stage": 12,
+        "category": "fryum",
+        "pixel_ap": 0.4222454526959175,
+        "image_auroc": 0.9329999999999999
+      },
+      "final_visa_final_only": {
+        "pixel_ap": 0.43409125673887033,
+        "image_auroc": 0.94,
+        "n": 130
+      }
+    },
+    "macaroni1": {
+      "acquisition": {
+        "stage": 6,
+        "category": "macaroni1",
+        "pixel_ap": 0.07967962868526585,
+        "image_auroc": 0.8842
+      },
+      "final": {
+        "stage": 12,
+        "category": "macaroni1",
+        "pixel_ap": 0.08715879319356223,
+        "image_auroc": 0.8822
+      },
+      "final_visa_final_only": {
+        "pixel_ap": 0.09205023482590707,
+        "image_auroc": 0.9048148148148147,
+        "n": 180
+      }
+    },
+    "macaroni2": {
+      "acquisition": {
+        "stage": 7,
+        "category": "macaroni2",
+        "pixel_ap": 0.10632224345724994,
+        "image_auroc": 0.8281999999999999
+      },
+      "final": {
+        "stage": 12,
+        "category": "macaroni2",
+        "pixel_ap": 0.10680120461447115,
+        "image_auroc": 0.8284
+      },
+      "final_visa_final_only": {
+        "pixel_ap": 0.1083737369387508,
+        "image_auroc": 0.8350617283950617,
+        "n": 180
+      }
+    },
+    "pcb1": {
+      "acquisition": {
+        "stage": 8,
+        "category": "pcb1",
+        "pixel_ap": 0.6908255353956086,
+        "image_auroc": 0.9606000000000001
+      },
+      "final": {
+        "stage": 12,
+        "category": "pcb1",
+        "pixel_ap": 0.677311896508528,
+        "image_auroc": 0.9604999999999999
+      },
+      "final_visa_final_only": {
+        "pixel_ap": 0.6673800778484252,
+        "image_auroc": 0.9567901234567902,
+        "n": 180
+      }
+    },
+    "pcb2": {
+      "acquisition": {
+        "stage": 9,
+        "category": "pcb2",
+        "pixel_ap": 0.3229637674451118,
+        "image_auroc": 0.8811
+      },
+      "final": {
+        "stage": 12,
+        "category": "pcb2",
+        "pixel_ap": 0.3160210348093159,
+        "image_auroc": 0.8804
+      },
+      "final_visa_final_only": {
+        "pixel_ap": 0.3080186677843008,
+        "image_auroc": 0.8720987654320987,
+        "n": 180
+      }
+    },
+    "pcb3": {
+      "acquisition": {
+        "stage": 10,
+        "category": "pcb3",
+        "pixel_ap": 0.41223458714214956,
+        "image_auroc": 0.9336633663366336
+      },
+      "final": {
+        "stage": 12,
+        "category": "pcb3",
+        "pixel_ap": 0.40956807234658543,
+        "image_auroc": 0.9308910891089109
+      },
+      "final_visa_final_only": {
+        "pixel_ap": 0.42160562372180055,
+        "image_auroc": 0.9315018315018314,
+        "n": 181
+      }
+    },
+    "pcb4": {
+      "acquisition": {
+        "stage": 11,
+        "category": "pcb4",
+        "pixel_ap": 0.34045681405468775,
+        "image_auroc": 0.982970297029703
+      },
+      "final": {
+        "stage": 12,
+        "category": "pcb4",
+        "pixel_ap": 0.34098589587765493,
+        "image_auroc": 0.9844554455445544
+      },
+      "final_visa_final_only": {
+        "pixel_ap": 0.3444095590095589,
+        "image_auroc": 0.9877899877899878,
+        "n": 181
+      }
+    },
+    "pipe_fryum": {
+      "acquisition": {
+        "stage": 12,
+        "category": "pipe_fryum",
+        "pixel_ap": 0.5230813101095951,
+        "image_auroc": 0.9600000000000001
+      },
+      "final": {
+        "stage": 12,
+        "category": "pipe_fryum",
+        "pixel_ap": 0.5230813101095951,
+        "image_auroc": 0.9600000000000001
+      },
+      "final_visa_final_only": {
+        "pixel_ap": 0.5557339091508763,
+        "image_auroc": 0.97,
+        "n": 130
+      }
+    }
+  },
+  "full_test": {
+    "final_pixel_ap": 0.41690524002630686,
+    "final_image_auroc": 0.9323122112211223,
+    "acquisition_pixel_ap": 0.41448759725154266,
+    "acquisition_image_auroc": 0.9322083608360835,
+    "pixel_fm_eq8": {
+      "per_category": {
+        "candle": 0.02201507141723147,
+        "capsules": -0.0023436469635613744,
+        "cashew": -0.0003108427278427639,
+        "chewinggum": -0.005408218974964796,
+        "fryum": -8.985611434514373e-05,
+        "macaroni1": 2.4956419487090487e-05,
+        "macaroni2": -5.8652817857274275e-05,
+        "pcb1": 0.013513638887080681,
+        "pcb2": 0.008553836213769372,
+        "pcb3": 0.0026665147955641233,
+        "pcb4": -0.0005290818229671812
+      },
+      "macro": 0.003457610755599473,
+      "positive_part_macro": 0.004252183430284794
+    },
+    "image_fm_eq8": {
+      "per_category": {
+        "candle": -0.00019999999999997797,
+        "capsules": 0.000500000000000056,
+        "cashew": 0.0,
+        "chewinggum": 0.00019999999999997797,
+        "fryum": 0.006200000000000094,
+        "macaroni1": 0.0020000000000000018,
+        "macaroni2": 0.0,
+        "pcb1": 0.00010000000000021103,
+        "pcb2": 0.0007000000000000339,
+        "pcb3": 0.0027722772277226637,
+        "pcb4": -0.0014851485148514865
+      },
+      "macro": 0.0009806480648065067,
+      "positive_part_macro": 0.001133843384338458
+    }
+  },
+  "visa_final_only": {
+    "final_pixel_ap": 0.41985733414323456,
+    "final_image_auroc": 0.9348735981097094
+  },
+  "cost": {
+    "latency_mean_s": 0.3298961531505483,
+    "latency_p95_s": 0.3720695167030499,
+    "inference_cuda_peak_bytes": 403103232,
+    "persistent_bytes": {
+      "encoder_blocks_0_9": 144806400,
+      "shared_decoder": 122850816,
+      "archive": 20348928
+    },
+    "total_persistent_bytes": 288006144,
+    "note": "per image, 12 experts, preprocessing + encoder + decoders + A1 smoothing; native resize excluded"
+  },
+  "update_seconds": 404.3100657859977,
+  "fidelity": {
+    "relative_mean_abs_error": 0.01597091651839319,
+    "passed": true,
+    "dtype": "torch.bfloat16"
+  },
+  "deployment_dtype": "torch.bfloat16",
+  "exposure": "First access to VisA test images/masks except the 240 DEV images consumed by TCS-00. Full-test numbers include DEV (paper protocol); VisA-FINAL-only excludes it. One seed, one order.",
+  "resources": {
+    "wall_seconds": 1794.0152877510045,
+    "gpu_phase_seconds": 795.4334967659961,
+    "phase_seconds": {
+      "training": 428.6904972179982,
+      "fidelity_normal_only": 49.07644788100151,
+      "scoring": 306.6946148069983,
+      "inference_cost": 10.971936859998095,
+      "metrics": 994.2154533689973
+    },
+    "peak_cuda_allocated_bytes": 857814016,
+    "peak_rss_bytes": 5598433280,
+    "artifact_bytes": 122505394
+  }
+}
