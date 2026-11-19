@@ -34,6 +34,22 @@ if [[ "${ARCHIVE_PATH}" == "-h" || "${ARCHIVE_PATH}" == "--help" ]]; then
   exit 0
 fi
 
+validate_tree() {
+  local root="$1"
+  local category
+  for category in "${CATEGORIES[@]}"; do
+    [[ -d "${root}/${category}/train/good" ]] || return 1
+    [[ -d "${root}/${category}/test" ]] || return 1
+    [[ -d "${root}/${category}/ground_truth" ]] || return 1
+  done
+}
+
+# Skip everything (including the multi-GB download) when already prepared.
+if [[ -d "${TARGET_DIR}" ]] && validate_tree "${TARGET_DIR}"; then
+  echo "[OK] MVTec is already prepared at ${TARGET_DIR}; nothing to do."
+  exit 0
+fi
+
 mkdir -p "${DATA_DIR}"
 
 if [[ -z "${ARCHIVE_PATH}" ]]; then
@@ -70,24 +86,9 @@ if [[ ! -f "${ARCHIVE_PATH}" || ! -s "${ARCHIVE_PATH}" ]]; then
 fi
 ARCHIVE_PATH="$(cd "$(dirname "${ARCHIVE_PATH}")" && pwd)/$(basename "${ARCHIVE_PATH}")"
 
-validate_tree() {
-  local root="$1"
-  local category
-  for category in "${CATEGORIES[@]}"; do
-    [[ -d "${root}/${category}/train/good" ]] || return 1
-    [[ -d "${root}/${category}/test" ]] || return 1
-    [[ -d "${root}/${category}/ground_truth" ]] || return 1
-  done
-}
-
 count_images() {
   find "$1" -type f \( -iname '*.png' -o -iname '*.jpg' -o -iname '*.jpeg' \) -print | wc -l | tr -d ' '
 }
-
-if [[ -d "${TARGET_DIR}" ]] && validate_tree "${TARGET_DIR}"; then
-  echo "[OK] MVTec is already prepared at ${TARGET_DIR}; archive was not modified."
-  exit 0
-fi
 
 # Keep an incomplete existing destination intact rather than silently mixing
 # files from two archives.
@@ -163,6 +164,12 @@ fi
 mkdir -p "${TARGET_DIR}"
 for category in "${CATEGORIES[@]}"; do
   mv "${SOURCE_ROOT}/${category}" "${TARGET_DIR}/${category}"
+done
+# Keep the release's root-level license.txt / readme.txt alongside the classes.
+for meta in license.txt readme.txt; do
+  if [[ -f "${SOURCE_ROOT}/${meta}" ]]; then
+    mv "${SOURCE_ROOT}/${meta}" "${TARGET_DIR}/${meta}"
+  fi
 done
 
 if ! validate_tree "${TARGET_DIR}"; then

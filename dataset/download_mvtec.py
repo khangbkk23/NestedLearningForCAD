@@ -154,6 +154,13 @@ def main():
             print(f"[ERROR] unsupported archive format: {archive_path}", file=sys.stderr)
             sys.exit(2)
 
+        # The official archive ships read-only (r-x) directories; moving a
+        # directory to a new parent (and cleaning up the stage) needs write
+        # permission on it, so make the extracted tree writable first.
+        for path in [stage_dir, *stage_dir.rglob("*")]:
+            if path.is_dir() and not path.is_symlink():
+                path.chmod(path.stat().st_mode | stat.S_IWUSR)
+
         # Tìm SOURCE_ROOT chứa dataset hợp lệ trong đống đổ nát sau giải nén
         source_root = None
         for candidate in stage_dir.iterdir():
@@ -172,6 +179,10 @@ def main():
         TARGET_DIR.mkdir(parents=True, exist_ok=True)
         for category in CATEGORIES:
             shutil.move(str(source_root / category), str(TARGET_DIR / category))
+        # Keep the release's root-level license.txt / readme.txt alongside the classes.
+        for meta in ("license.txt", "readme.txt"):
+            if (source_root / meta).is_file():
+                shutil.move(str(source_root / meta), str(TARGET_DIR / meta))
 
     # 6. Kiểm tra hậu di chuyển & In bảng thống kê kết quả
     if not validate_tree(TARGET_DIR):
