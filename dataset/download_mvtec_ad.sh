@@ -7,7 +7,9 @@ REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 DATA_DIR="${REPO_ROOT}/data"
 TARGET_DIR="${DATA_DIR}/mvtec"
 ARCHIVE_PATH="${1:-}"
-DOWNLOAD_URL="https://www.mydrive.ch/shares/150996/b52ecdcbf521176e9db9c731f2304b27/download/420938113-1629960298/mvtec_anomaly_detection.tar.xz"
+# The original mydrive.ch link is dead (404); this mirror serves the same
+# 5,264,982,680-byte archive.
+DOWNLOAD_URL="https://huggingface.co/datasets/micguida1/mvtech_anomaly_detection/resolve/main/mvtec_anomaly_detection.tar.xz"
 DEFAULT_ARCHIVE="${DATA_DIR}/mvtec_anomaly_detection.tar.xz"
 
 CATEGORIES=(
@@ -96,7 +98,7 @@ if [[ -e "${TARGET_DIR}" ]] && [[ -n "$(find "${TARGET_DIR}" -mindepth 1 -print 
 fi
 
 STAGE_DIR="$(mktemp -d "${DATA_DIR}/.mvtec_extract.XXXXXX")"
-cleanup() { rm -rf "${STAGE_DIR}"; }
+cleanup() { chmod -R u+w "${STAGE_DIR}" 2>/dev/null || true; rm -rf "${STAGE_DIR}"; }
 trap cleanup EXIT
 
 export ARCHIVE_PATH STAGE_DIR
@@ -135,6 +137,10 @@ elif tarfile.is_tarfile(archive):
 else:
     raise RuntimeError(f"unsupported archive format: {archive}")
 PY
+
+# The official archive ships read-only (r-x) directories; moving a directory
+# to a new parent requires write permission on it, so make the tree writable.
+chmod -R u+w "${STAGE_DIR}"
 
 SOURCE_ROOT=""
 for candidate in "${STAGE_DIR}"/*; do
