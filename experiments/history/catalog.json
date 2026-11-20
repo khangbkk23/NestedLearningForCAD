@@ -221061,7 +221061,7 @@
           "source_ref": "S-14901d3f03f89e1bb6f7",
           "source_selection_ref": "P-4bb3e5c7c1ab2eb796d2",
           "field": "parent",
-          "value": "qoctrn/a0-b298-foundation-full15",
+          "value": "<kaggle-account>/a0-b298-foundation-full15",
           "resolution": "exact_unique_source_declared_identifier",
           "target_record_ref": "R-2af9f1cbf415af875d"
         }
@@ -301087,7 +301087,7 @@
       "historical_settings": {
         "schema": "d2_cause01_registration_v1",
         "status": "PREPARED_FOR_EXECUTION_NOT_ADOPTED",
-        "source_kernel": "taitrn3107/a0-b239-d2-slow-online",
+        "source_kernel": "<kaggle-account>/a0-b239-d2-slow-online",
         "input_pins": [
           {
             "seed": 0,
@@ -303269,7 +303269,7 @@
       ],
       "historical_settings": {
         "schema": "fnd01_checkpoint_effect_v1",
-        "origin_kernel": "taitrn3107/a0-b269-foundation-baseline",
+        "origin_kernel": "<kaggle-account>/a0-b269-foundation-baseline",
         "origin_version": 1,
         "origin_source_sha256": "75f9aa0c9c2d6be3dd702adf3c9853cbb41ac12487e9de011f597007c1ca464e",
         "checkpoint_sha256": "06aa08de12ef17b8ab1f935157391f69000bfe6ef5e2d0afe8c84c1bf95f2c9e",
@@ -305136,7 +305136,7 @@
         "cross_device_update_verdict": "FAIL",
         "allowed_scope": "fresh_gpu_only",
         "review": "D-GPU-NATIVE-01",
-        "kernel": "qoctrn/a0-b295-foundation-native-gpu",
+        "kernel": "<kaggle-account>/a0-b295-foundation-native-gpu",
         "version": 1,
         "qualification_report_sha256": "7a25d144dd6cbcba5692b54021ce9764cd9744126ad9eb85ced400747c7fea27",
         "audit_sha256": "0588a6e56604f2112fca8f936494d126d2101f782d8dd269eee68acaebddbee6",
@@ -305188,7 +305188,7 @@
         "V-R-2ef3a55f0f75065301"
       ],
       "historical_settings": {
-        "kernel": "qoctrn/a0-b298-foundation-full15",
+        "kernel": "<kaggle-account>/a0-b298-foundation-full15",
         "version": 1,
         "run": "GPU_PIPELINE_20261106T153306Z_3b395680",
         "study_sha256": "a649adf5a4909776c1cb0a4fa6b358b001542cf07e83e5408cb8e6fe796680a0",
@@ -313432,7 +313432,7 @@
       "historical_settings": {
         "schema": "d2_cause01_registration_v1",
         "status": "PREPARED_FOR_EXECUTION_NOT_ADOPTED",
-        "source_kernel": "taitrn3107/a0-b239-d2-slow-online",
+        "source_kernel": "<kaggle-account>/a0-b239-d2-slow-online",
         "input_pins": [
           {
             "seed": 0,
@@ -315307,7 +315307,7 @@
       ],
       "historical_settings": {
         "schema": "fnd01_checkpoint_effect_v1",
-        "origin_kernel": "taitrn3107/a0-b269-foundation-baseline",
+        "origin_kernel": "<kaggle-account>/a0-b269-foundation-baseline",
         "origin_version": 1,
         "origin_source_sha256": "75f9aa0c9c2d6be3dd702adf3c9853cbb41ac12487e9de011f597007c1ca464e",
         "checkpoint_sha256": "06aa08de12ef17b8ab1f935157391f69000bfe6ef5e2d0afe8c84c1bf95f2c9e",

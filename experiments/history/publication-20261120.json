@@ -409,5 +409,8 @@
   "Raw scores and checkpoints are not in the tree",
   "Known-pattern scan of added text is not a proof that no private detail remains",
   "history/catalog.json and history/audit.json still end at B319"
- ]
+ ],
+ "redactions": {
+  "kaggle_account_names": "Kaggle account names in commands, kernel locators and history records were replaced by the placeholder <kaggle-account>. Records containing the placeholder are therefore no longer byte-identical to the originals; no file hash in this repository pins them."
+ }
 }

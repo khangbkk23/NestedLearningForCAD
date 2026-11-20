@@ -133,7 +133,7 @@
       ],
       "result": "PASS_metadata_binding",
       "details": {
-        "parent_kernel": "qoctrn/a0-b298-foundation-full15",
+        "parent_kernel": "<kaggle-account>/a0-b298-foundation-full15",
         "parent_version": 1,
         "parent_checkpoint_declared_sha256": "5e15e1a37ca206daee9e8d52d5deab450d308a91e61d2f131e6ed33fb5c2c097",
         "parent_model_sha256": "391bc1554577a01e534c5c3a653b445f844ad2b43e493a917334f7512af30697"
@@ -122609,7 +122609,7 @@
       "verification_refs": [
         "V-B317-parent"
       ],
-      "external_locator": "Kaggle qoctrn/a0-b298-foundation-full15/1 (availability not queried)",
+      "external_locator": "Kaggle <kaggle-account>/a0-b298-foundation-full15/1 (availability not queried)",
       "independent_backup_verified": false,
       "recommendation": "Owner to decide whether to retrieve/preserve parent bytes; no automatic download"
     },

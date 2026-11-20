@@ -96,7 +96,7 @@ card. Shared source stays in `src/`, recipes in `configs/`, and launchers in
 
 ```sh
 pixi run --locked -e cad-test test
-pixi run --locked -e cad package --owner qoctrn --run-id <new-run-id>
+pixi run --locked -e cad package --owner <kaggle-account> --run-id <new-run-id>
 # On Linux GPU with prepared inputs:
 pixi run --locked -e cad train --run-id <new-run-id>
 # After a local terminal execution, including a failure:

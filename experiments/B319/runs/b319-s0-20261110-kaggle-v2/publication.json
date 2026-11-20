@@ -3,16 +3,16 @@
   "experiment": "B319",
   "run_id": "b319-s0-20261110-kaggle-v2",
   "execution": {
-    "kernel": "qoctrn/b319-standalone-three-arm-reproduction-20261110/2",
+    "kernel": "<kaggle-account>/b319-standalone-three-arm-reproduction-20261110/2",
     "status": "KernelWorkerStatus.CANCEL_ACKNOWLEDGED",
     "failure_message": ""
   },
   "provider_status": {
-    "kernel": "qoctrn/b319-standalone-three-arm-reproduction-20261110/2",
+    "kernel": "<kaggle-account>/b319-standalone-three-arm-reproduction-20261110/2",
     "status": "KernelWorkerStatus.CANCEL_ACKNOWLEDGED",
     "failure_message": ""
   },
-  "provider": "qoctrn/b319-standalone-three-arm-reproduction-20261110/2",
+  "provider": "<kaggle-account>/b319-standalone-three-arm-reproduction-20261110/2",
   "files": {
     "receipts/v2/provider-status.json": "6bd813fac5cdfc2a69ffc9c1131b48e61ad3cfdfabb1dff32910f19125809885"
   },

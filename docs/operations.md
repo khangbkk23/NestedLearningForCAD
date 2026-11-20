@@ -105,7 +105,7 @@ run ID đang dở như fresh run.
 Local package không upload/launch hoặc cần GPU:
 
 ```sh
-pixi run --locked -e cad package --owner qoctrn --run-id b319-s0-new-001
+pixi run --locked -e cad package --owner <kaggle-account> --run-id b319-s0-new-001
 ```
 
 Tạo `.local/runs/b319/b319-s0-new-001/package/{dataset,kernel}/` với source ZIP,
@@ -126,7 +126,7 @@ trong runner. Completion vẫn cần audit.
 Monitor từ root repo bằng Python của environment có Kaggle CLI:
 
 ```sh
-python scripts/watch_kaggle.py --kernel qoctrn/b319-s0-new-001 --token-file /path/to/private-token-file
+python scripts/watch_kaggle.py --kernel <kaggle-account>/b319-s0-new-001 --token-file /path/to/private-token-file
 ```
 
 Có thể bỏ `--token-file` khi CLI đã cấu hình đúng owner. Token contents không vào
@@ -137,7 +137,7 @@ chỉ nghĩa provider execution completed, không nghĩa scientific PASS.
 Sau terminal, fetch **version cụ thể**:
 
 ```sh
-python scripts/kaggle_run.py fetch --kernel qoctrn/b319-s0-new-001/1 --run-id b319-s0-new-001 --token-file /path/to/private-token-file
+python scripts/kaggle_run.py fetch --kernel <kaggle-account>/b319-s0-new-001/1 --run-id b319-s0-new-001 --token-file /path/to/private-token-file
 ```
 
 Mặc định lấy logs/metadata và retained `package/source.zip`, không toàn raw ZIPs.
