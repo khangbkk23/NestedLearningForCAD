@@ -1,0 +1,85 @@
+{
+  "schema": "b323_receipt_v1",
+  "derived_from": {
+    "record": "receipt.json",
+    "sha256": "01e721f749b7e50911dccdc1d9ddb81e433f66b83d43932dee6552c44e070d7b"
+  },
+  "derivation": "Public projection of the original closed receipt. Removed: execution-platform bookkeeping (job and account identifiers, provider status, local storage paths, operational notes). All remaining values are copied unchanged.",
+  "experiment": "B323",
+  "kind": "qualification",
+  "run_id": "b323-qual-20261115-02",
+  "version": 1,
+  "workload_status": "COMPLETE_REVIEW_PENDING",
+  "scope": "prefix of the full trajectory (arrival 433, two boundaries); AD numbers not used to change design, lambda, gate or caps",
+  "source": {
+    "git_commit": "9523679bed5413ac3f37bcf9879716ad9d18b843",
+    "source_zip_sha256": "5e1ac694a9fb4ee4feca5f3eca5b0216e36314f22be570a1ac92f43ca28dbe73",
+    "manifest_sha256": "cbfd4a11e39f5926f1abfe78ff58889b5231ae647605770cf563d76745b9b806"
+  },
+  "whole_job_seconds": 818.21,
+  "gpus": [
+    "Tesla T4",
+    "Tesla T4"
+  ],
+  "exit_codes": {
+    "er_bytes": 0,
+    "anchor": 0
+  },
+  "checks": {
+    "prefix_anchor_model_sha256_at_209_equals_B319_ER": true,
+    "anchor_updates": 1,
+    "anchor_boundary": 209,
+    "anchor_forwards": 702,
+    "anchor_events_active_after_boundary": 224,
+    "anchor_events_active_before_boundary": 0,
+    "observer_state_unchanged_including_slow": true,
+    "arrivals_le_24_identical_replay_ids_between_arms": "24/24",
+    "er_bytes_reservoir_capacity": 74,
+    "anchor_reservoir_capacity": 24
+  },
+  "timing_seconds": {
+    "er_bytes_arm": 429.490256432,
+    "anchor_arm": 503.91128448,
+    "event_mean_after_209": {
+      "er_bytes": 0.729,
+      "anchor": 1.12
+    }
+  },
+  "memory": {
+    "peak_host_RSS_bytes": {
+      "er_bytes": 2216493056,
+      "anchor": 2195075072
+    },
+    "peak_VRAM_allocated_bytes": {
+      "er_bytes": 2187718144,
+      "anchor": 2200089088
+    },
+    "replay_features_bytes": {
+      "er_bytes": 392656896,
+      "anchor": 150276096
+    },
+    "slow_parameters_bytes": 245701632
+  },
+  "anchor_scale": {
+    "mean_distance_after_209": 0.00795,
+    "min": 0.00479,
+    "max": 0.02325,
+    "mean_replay_ER_loss_after_209": 0.1014,
+    "ratio_anchor_to_replay_loss": 0.074
+  },
+  "not_retrieved": "score tensors and checkpoints remain on Kaggle output",
+  "files": {
+    "er_bytes/study.json": {
+      "sha256": "ca3c135bcca8f4ed0de717fc1379c7cedc7d5e18865ff9af0b498b10fc14700b"
+    },
+    "anchor/study.json": {
+      "sha256": "f64870456851de8d8c39acefdb349f36be29407c25c175b4f671597d6917c3d3"
+    },
+    "result.json": {
+      "sha256": "26798d8975b348c3331de99e5bae3621de06851f84535d3792f7826cb7d75eb3"
+    },
+    "logs/v1/execution.log": {
+      "sha256": "99277dfa76c16af30922efd626a898ccd42d988b04a9cd810aa34e3f25dd90d9"
+    }
+  }
+}

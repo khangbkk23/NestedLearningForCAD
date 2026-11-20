@@ -1,0 +1,113 @@
+{
+  "schema": "experiment_publication_record_v1",
+  "derived_from": {
+    "record": "receipt.json",
+    "sha256": "c5388b17b355f63ddc1cc402a722e0186cf1e46585c5151ebd035309e87e0bf1"
+  },
+  "derivation": "Public projection of the original closed receipt. Removed: execution-platform bookkeeping (job and account identifiers, provider status, local storage paths, operational notes). All remaining values are copied unchanged.",
+  "status": "PASS_SCOPED_VERIFIED_LIGHT",
+  "source_manifest_equal": true,
+  "notebook_source_exact": true,
+  "pairs": {
+    "er_uniform": {
+      "hash_fields_match": 11,
+      "physical_uuid": "GPU-73f8ad4e-83bd-c3a0-e3b0-3515c8a9c20b",
+      "slow_steps": 0,
+      "checkpoint_bytes": 1128397085,
+      "checkpoint_save_seconds": 13.994109231000039,
+      "peak_VRAM_GiB": 1.7394695281982422
+    },
+    "a0_tail_ctx": {
+      "hash_fields_match": 11,
+      "physical_uuid": "GPU-974d65ed-1d5d-94b4-5914-678caa8eafc9",
+      "slow_steps": 1,
+      "checkpoint_bytes": 1128401669,
+      "checkpoint_save_seconds": 10.117457638000019,
+      "peak_VRAM_GiB": 2.570622444152832
+    }
+  },
+  "filesystem_tests": 5,
+  "whole_seconds": 253.70501325,
+  "resources": {
+    "group_RSS_bytes": 28852224,
+    "peak_group_RSS_bytes": 6757163008,
+    "aggregate_CPU_seconds": 272.67,
+    "processes": 2,
+    "sample_monotonic": 478.603513208,
+    "peak_worker_RSS_bytes": {
+      "er_uniform": 3377197056,
+      "a0_tail_ctx": 3479891968
+    },
+    "output_bytes": 2256811406,
+    "free_bytes": 18682929152
+  },
+  "scope": "Independent comparison of producer JSON hashes/identity/source; raw tensors/checkpoint bytes not independently downloaded or rehashed. Synthetic17updates only; nofullADacceptance.",
+  "at": "2026-11-14T12:58:09.161962+00:00",
+  "source_commit": "cc3e0c11591a0783731423d4b8642ab72a64ba43",
+  "source_sha256": "669ef9e41288a6093f67d22ec70320fa7ab60192f9b4bb15f85c28786cbe84a9",
+  "versions_observed": [
+    {
+      "version": 1,
+      "status": "KernelWorkerStatus.CANCEL_ACKNOWLEDGED",
+      "failure_message": ""
+    },
+    {
+      "version": 2,
+      "status": "KernelWorkerStatus.CANCEL_ACKNOWLEDGED",
+      "failure_message": ""
+    },
+    {
+      "version": 3,
+      "status": "KernelWorkerStatus.CANCEL_ACKNOWLEDGED",
+      "failure_message": ""
+    },
+    {
+      "version": 4,
+      "status": "KernelWorkerStatus.COMPLETE",
+      "failure_message": ""
+    }
+  ],
+  "intake_manifest": [
+    {
+      "bytes": 1004,
+      "sha256": "9e56775e9bc4efc141d24d9df1a8b435926e980322a503f2beb7a26b63f39c2c"
+    },
+    {
+      "bytes": 2620,
+      "sha256": "9ea8a4906e1ceb1312b57e5365f77b738fed78c35248225a1bea9dd43c03c711"
+    },
+    {
+      "bytes": 2443,
+      "sha256": "1449438b0a34d091e7a961ce901f51df2ee9c23eafe25479dc23d68ccf58b0d4"
+    },
+    {
+      "bytes": 2440,
+      "sha256": "954ef77fb1c5fdd5440cb0626d1648d9e7b37f1f9b4a6715b8cd93ef90a582d3"
+    },
+    {
+      "bytes": 10338,
+      "sha256": "04852bb05f25c6469c8e5a37498739044e8869dc3af732a8bbd10c9c00382ce0"
+    },
+    {
+      "bytes": 1585,
+      "sha256": "ae52889a74ef8a661054aaa1624435421afc7a13ea019d98e6c63ae7735cd314"
+    },
+    {
+      "bytes": 1584,
+      "sha256": "bd9f64e271a7145a6ac1adfab345fb146513d6f6cf7199932bccde9e0ab63e42"
+    },
+    {
+      "bytes": 274,
+      "sha256": "e0a4e5a97b49ac5430ce2e72366827126c07c612aeeffd974b0281f6bccbc482"
+    },
+    {
+      "bytes": 7824,
+      "sha256": "6567e298023cf45065188224a8b2071863244d94620294b978586667c1b5c8cd"
+    },
+    {
+      "bytes": 10680,
+      "sha256": "60c8e6028f31041f503d3d764e02f39a83b09d7de337144b5dd327c22e4949a3"
+    }
+  ],
+  "fullrun_launched": false
+}

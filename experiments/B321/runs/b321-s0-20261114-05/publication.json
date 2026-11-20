@@ -1,0 +1,27 @@
+{
+  "schema": "experiment_publication_record_v1",
+  "derived_from": {
+    "record": "receipt.json",
+    "sha256": "8616e6f90a123f1f8c5611f249fca7d0a7ff2a645cb49e0df25f5d71b91976cc"
+  },
+  "derivation": "Public projection of the original closed receipt. Removed: execution-platform bookkeeping (job and account identifiers, provider status, local storage paths, operational notes). All remaining values are copied unchanged.",
+  "version": 1,
+  "execution_status": "COMPLETE_REVIEW_PENDING",
+  "screen": "SCREEN_NOT_MET",
+  "source_commit": "ee611abb42902f5dae69973bb92729b7677e51fc",
+  "source_zip_sha256": "d727e663fe18504deb278ca4af3c6a40ff67f3a45cffebbc5d20c26390c003f3",
+  "manifest_sha256": "22ea3d69170c5c624a8d2c50631184c32d0d3a1bfdbef45ca9ff33eadc0f2ff5",
+  "whole_seconds": 34051.87895183099,
+  "full_arms": 2,
+  "optimizer_updates_per_arm": 10005,
+  "support_exposures_per_arm": 160080,
+  "seed": 0,
+  "matrices_per_arm": 4,
+  "observed_cells_per_matrix": 120,
+  "source_fidelity": "original lightweight receipts SHA-hashed in intake; committed receipt is semantic audit derivative, not a replacement producer receipt",
+  "verification_refs": [
+    "audit.json"
+  ],
+  "raw_scores_recomputed": false,
+  "checkpoint_payload_rehashed": false
+}

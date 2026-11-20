@@ -1,0 +1,33 @@
+{
+  "schema": "development_terminal_import_v1",
+  "derived_from": {
+    "record": "receipt.json",
+    "sha256": "2656b5bd2799648ca3d10be0d99e7c0e92a2b29f4060edd99f03f7f14bd13513"
+  },
+  "derivation": "Public projection of the original closed receipt. Removed: execution-platform bookkeeping (job and account identifiers, provider status, local storage paths, operational notes). All remaining values are copied unchanged.",
+  "experiment": "B320",
+  "producer_status": "FAILED",
+  "source_commit": "d3bf0ef22b901cb2341ad9ee309869118bfd0a6a",
+  "source_bundle_sha256_declared": "9a50ff1c6861920e11ee094cbe54c7ac444d5bab437af851fda3b96f46db837c",
+  "bundle_hash_scope": "Prelaunch verified local bundle; not rehashed in this audit",
+  "producer_result": {
+    "sha256_observed": "9fd1a9308f97b389f0162dad47c0c0853afef7af0e67238326e3ae90401aaefa",
+    "bytes": 31160,
+    "source_fidelity": "exact_bytes",
+    "verification": "SDK exactversion1 download and observed local hash; no remote authenticity signature claim"
+  },
+  "raw_artifacts_downloaded": false,
+  "historical_receipts_modified": false,
+  "scope_result": {
+    "validated_episodes": 1,
+    "validated_arrival": 30,
+    "production_processed_arrivals": 46,
+    "actual_optimizer_commits": 46,
+    "failure": "ValueError('Actual production phi-gradient assembly changed hidden.bias')",
+    "episode2_validation": "NOT_COMPLETED",
+    "max_query_direction_error": 9.28523875456499e-13,
+    "fast_forward_maxabs_episode1": 0,
+    "query_signal_episode1": 4.099550308603061e-06,
+    "diagnostic_worker_seconds": 83.94930607600003
+  }
+}

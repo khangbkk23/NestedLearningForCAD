@@ -1,0 +1,169 @@
+{
+  "schema": "b323_receipt_v1",
+  "derived_from": {
+    "record": "receipt.json",
+    "sha256": "0b2ba3ed668bf2543c54534b0ee5392acbd2dd09cd4a55e7fbc1047e48a10866"
+  },
+  "derivation": "Public projection of the original closed receipt. Removed: execution-platform bookkeeping (job and account identifiers, provider status, local storage paths, operational notes). All remaining values are copied unchanged.",
+  "experiment": "B323",
+  "kind": "full",
+  "run_id": "b323-s0-20261115-01",
+  "version": 1,
+  "workload_status": "COMPLETE_REVIEW_PENDING",
+  "source": {
+    "git_commit": "2676b0ceff5a5b31f12a97b0d386d23f843358ee",
+    "source_zip_sha256": "d8c8283cf8d122f63d62b4d4890197b031ee284a89e1d5f5e76430ae73af9837",
+    "manifest_sha256": "c19ab0f71358116003b101b70611b2270ad37063abad5d8567f6d52191dab874"
+  },
+  "whole_job_seconds": 8173.557809565,
+  "gpus": [
+    "Tesla T4",
+    "Tesla T4"
+  ],
+  "exit_codes": {
+    "er_bytes": 0,
+    "anchor": 0
+  },
+  "arm_seconds": {
+    "er_bytes": 6037.846226603,
+    "anchor": 7936.764308594999
+  },
+  "timing": {
+    "er_bytes": {
+      "encoder_seconds": 1646.976800071008,
+      "observer_seconds": 2841.342408705,
+      "checkpoint_seconds": 7.877546611000071
+    },
+    "anchor": {
+      "encoder_seconds": 1625.0338271859637,
+      "observer_seconds": 2706.3239876800008,
+      "checkpoint_seconds": 7.058321541000623
+    }
+  },
+  "counters": {
+    "er_bytes": {
+      "encoder": 17579,
+      "support_forwards": 18127,
+      "optimizer": 3629
+    },
+    "anchor": {
+      "encoder": 17579,
+      "support_forwards": 18127,
+      "optimizer": 3629,
+      "anchor_forwards": 12673
+    }
+  },
+  "peak_VRAM_allocated_bytes": {
+    "er_bytes": 2187798016,
+    "anchor": 2299656192
+  },
+  "peak_host_RSS_bytes": {
+    "er_bytes": 2552238080,
+    "anchor": 2528067584
+  },
+  "checks": {
+    "prefix": "PREFIX_REPRODUCED",
+    "anchor_consolidations": 14,
+    "anchor_state": {
+      "weight": 1.0,
+      "boundary": 3389,
+      "updates": 14,
+      "parameters_sha256": "8b96be7e1a7d2d3efe4642fa0007e2924ba96cc7a7106d3b172c94664304f9d4",
+      "parameters_bytes": 245701632
+    },
+    "committed": {
+      "er_bytes": 3629,
+      "anchor": 3629
+    },
+    "boundaries": {
+      "er_bytes": 15,
+      "anchor": 15
+    },
+    "reservoir_capacity": {
+      "er_bytes": 74,
+      "anchor": 24
+    }
+  },
+  "verdict": "NO_SIGNAL",
+  "primary_values": {
+    "final_pixel_AP_gain": -0.03208792989608278,
+    "worst_category_final_pixel_AP_delta": -0.23085298309496258,
+    "acquisition_macro_delta": -0.005864021461016722,
+    "final_image_AUROC_delta": -0.024604643287923778,
+    "Fmax_reduction": -0.026506188317175314
+  },
+  "primary_conditions": {
+    "a_final_pixel_AP": false,
+    "b_category_floor": false,
+    "c_plasticity": true,
+    "d_image_AUROC": false
+  },
+  "floor_violations": [
+    "cable",
+    "carpet",
+    "grid",
+    "hazelnut",
+    "pill",
+    "screw",
+    "toothbrush",
+    "wood",
+    "zipper"
+  ],
+  "reference_er32": {
+    "summary": {
+      "final_macro_pixel_AP": 0.5983417761459076,
+      "final_macro_image_AUROC": 0.9675748713436193,
+      "macro_acquisition_pixel_AP": 0.625611192031861,
+      "macro_Fmax": 0.04569927120285631,
+      "macro_Facq": 0.029217231306378686
+    },
+    "anchor_minus_er32": {
+      "final_pixel_AP_gain": -0.0031629740694051334,
+      "worst_category_final_pixel_AP_delta": -0.168351142597872,
+      "acquisition_macro_delta": -0.005120906329916353,
+      "final_image_AUROC_delta": -0.008434327464146851,
+      "Fmax_reduction": -0.003998957220132507
+    },
+    "er_bytes_minus_er32": {
+      "final_pixel_AP_gain": 0.028924955826677645,
+      "worst_category_final_pixel_AP_delta": -0.02405255790354144,
+      "acquisition_macro_delta": 0.0007431151311003692,
+      "final_image_AUROC_delta": 0.016170315823776926,
+      "Fmax_reduction": 0.022507231097042807
+    },
+    "note": "reported reference, not part of the gate"
+  },
+  "compute_note": "byte-matched, not compute-matched: anchor arm took 7937 s versus 6038 s",
+  "not_retrieved": "score tensors/archives and checkpoints remain on Kaggle output; only JSON/JSONL and logs were fetched",
+  "files": {
+    "er_bytes/study.json": {
+      "sha256": "6a2d6d03dd1b21c39a5b2749ecc3cab8d23be46739cb834406f9904451e377f3",
+      "bytes": 5786250
+    },
+    "er_bytes/events.jsonl": {
+      "sha256": "a7ecbc3eb86d761305482f88b8705d9ccadb3e401a8e3ac721d1c1c5f91bc173",
+      "bytes": 24703187
+    },
+    "anchor/study.json": {
+      "sha256": "7e92d0ef284590bdeb271145fb9628606a6e2ef80a62539003ca825de754db33",
+      "bytes": 5777788
+    },
+    "anchor/events.jsonl": {
+      "sha256": "2f43d1910a59eab5adc8772161732c8dfa50f63c607a33c0809ef7e2b7936a09",
+      "bytes": 12849947
+    },
+    "result.json": {
+      "sha256": "509e79f43c41c51add0e0a285e59e5ab53465a18744b13fdc649f19aa0a78bbc",
+      "bytes": 339
+    },
+    "anchor_report.json": {
+      "sha256": "c5b10770fc228839ccbb68ecdfaa6e102e667b208243feb4973b03fa425ec941",
+      "bytes": 65972
+    },
+    "logs/v1/execution.log": {
+      "sha256": "b495b473f5120a27220c2a86a345e02a60a1c327c9aaffc6cbc90f7cebcaa5fd",
+      "bytes": 279172
+    }
+  },
+  "analysis_source_sha256": "04edd24cd201ce75ce55ea63d4c099e0a096e992f75b5dd6cf0c226bb040b23c"
+}

@@ -1,0 +1,407 @@
+{
+ "schema": "research_publication_manifest_v1",
+ "publication_date": "2026-11-20",
+ "scope": "Adds experiments B320-B324 (cards, run records, analyses) and the code, configs, notebooks and tests they need, on top of the 2026-11-11 edition (publication.json, unchanged).",
+ "source": {
+  "private_development_commit": "33a90ca",
+  "b319_edition_source": "74d975b151f59ad0b5fbf23be392e2d891f350bf",
+  "note": "src/, scripts/, tests/, configs/ and notebooks/ of the 2026-11-11 edition are byte-identical to 74d975b; this edition applies the 74d975b..33a90ca changes for B320-B324."
+ },
+ "code_byte_identical_to_executed_source": {
+  "configs/b320.json": "3bb7a197a12d37c20922095b5dfb968b795f9049e044dc62f255472834eff3b9",
+  "configs/b321.json": "e3269fbe8aca73fcadd116aa3bfeeb289ba3a6258f93e22ac1cfbd59b9adbeb4",
+  "configs/b322.json": "14191db90e7cc89c3ed4bb1a81794682fd8094be6d037b92f0fe326da487e70c",
+  "configs/b323.json": "7205b4b228ecb8a9ffbba8aed1f0a8285cbded7154a28d9a9f77ec7b75775579",
+  "configs/b324.json": "2b7a4da88f7dc3db0e60d8b92f0be74e39bbe3fb8604fc4061204269584d1344",
+  "notebooks/b320.ipynb": "60c07f77aae680b08f3fd83ca1409d925c6c7a6c1ecfb36769c76e7ed14e883c",
+  "notebooks/b321.ipynb": "186fb2540f6e04104ca75a054449df01ddc731984eab69395d29d6fe0c6afcc8",
+  "notebooks/b321_qualification.ipynb": "94d7be37b53510a9e24c8402ebf787e98a09f47c75ad12c45b1d47833f79f6dd",
+  "notebooks/b322.ipynb": "b1c3ba02b721c8879b1261f173477072b0400ad0ea4c04002318284828c0bd2c",
+  "notebooks/b322_profile.ipynb": "d55656d277b5a7caa87001d4c41c5c35a912be84257636fd3fbdff8342b15864",
+  "notebooks/b323.ipynb": "b60b7e7aa2733f86ebbe476299d42033c16806686910d2729ab6b6ab03def594",
+  "notebooks/b323_qualify.ipynb": "16f4a3062df8d4264e1950f85670d2921d3aaeaa67f03e4e680cc2680198c0ab",
+  "notebooks/b324.ipynb": "9fad7c4995060e113a7c64c907dfb981dacf08763e33b664df96d4dd6a0c87f9",
+  "scripts/anchor_pilot.py": "f7124f4649a9dedab37a5f1c84f751cd6b148ab7a25e7797f712f3a7e211622f",
+  "scripts/anchor_report.py": "04edd24cd201ce75ce55ea63d4c099e0a096e992f75b5dd6cf0c226bb040b23c",
+  "scripts/budget_train.py": "3b9756003f0c3b0a1049bb2b2e35c820304dc271c33a48ab91ec31b293de7907",
+  "scripts/coverage_pilot.py": "bab2fb31b83e33c8cd79595914b741a77409b02927f3e9108e8c504cf3dd963b",
+  "scripts/coverage_report.py": "34767ac77bccc428c078c4c6b22018327cf107cca473e136d5cb01b20f05e033",
+  "scripts/episode_diagnostic.py": "394e38f5a474b77e5821048b2c8a40dc2d979d2d1ce6cb164f8bb1ddc1651d36",
+  "scripts/parallel_budget.py": "e7ba54f33f594acee3396131630784224670c9cd7649795beacbd2df6780fbb5",
+  "scripts/profile_timing.py": "633877436ceb2ff6ec0f1549ed2c10ad6eb074f9bc6c4945e78451e30bcacda1",
+  "scripts/qualify_budget_resume.py": "1227092d1a4f68ec646820d55a170420ac46107b213213a19bfb10e363f23966",
+  "scripts/shadow_headroom.py": "9cbdd9a0f9840e9c3d79b041922c99a4701ee9ce200c678bb981ebf5f3998cbf",
+  "scripts/shadow_pilot.py": "02b72c06e8483528e1b284d1462c68feb5b02dc252457103e4606e7356c57f95",
+  "scripts/shadow_profile.py": "7f5e663f6d7d18cd58926632c18f433c4d2f191bb24621929dfe3e3971b0c196",
+  "scripts/shadow_report.py": "0b70054b84aedf32dc01a32b8f810ddf01036d177bbf6005a7d02f3e4fae7544",
+  "src/nested_replay_cad/anchor.py": "01f8045eb1f12521715c9742e6fa2b0b29daf4660cfae6f692f9cf8539d50ef9",
+  "src/nested_replay_cad/core/memory/sampler.py": "e3af76cd6ba9f19723024cb96abdd36a87f85426b10c0bb3068d7dca35cbbfa8",
+  "src/nested_replay_cad/coverage.py": "3a41c9f40626790dbf59b5c3b5ffe6a720f15fe3f09f19177093ae99298ecdb3",
+  "src/nested_replay_cad/shadow.py": "8773d6aaf338391d12913cd2eb9f8303000bb70537011c369e1adfc44b364b7e",
+  "src/nested_replay_cad/storage.py": "d0e9448844bb7a6bd5791432e99b80e8a7dc47b55ac4ad5ce94d2fe482184cb9",
+  "src/nested_replay_cad/trainer.py": "d66a992feda7434c6b124edb1a98903ad3b1fa2c1d3c86173ce9cb69f9d55ea3",
+  "tests/budget_checks.py": "992b423480865ac3e23dcdf490a2c5a81291a2032b084f1b66e65fecf37a4a6b",
+  "tests/episode_reference.py": "583917e3fb7c06c8c34e2cb2382646ea727e4d68e243475e3e129fa35c85f526",
+  "tests/test_budget_checkpoint.py": "2d7ecc0731b41f52a965491dca987535f5f99262de30e6f17626a5afca126a57",
+  "tests/test_budget_schedule.py": "caf98840ef276c4f427fcd904d8e8b226f90ee671ad19c48bd80f99ed4658de6",
+  "tests/test_episode_capture.py": "60b9d4b0c3943799e6ace2c726eb924282e36f06da141be797f19a1e95406401",
+  "tests/test_episode_diagnostic.py": "19a99a8aed41e3e6fc78e2d1693c6c3954dc3b7c9b522cff78e9388611cb9286",
+  "tests/test_profile_timing.py": "4c9aa9cb9ab77a7eb977d0261412d4ec66305428a658d323fbfe6e2f66768dd6",
+  "tests/test_shadow_pilot.py": "d0bbf98f41dd8dfc3961a95aa776c0a98a352ad09b2ef19179c6e41ffa28c881",
+  "tests/test_storage_race.py": "9c547e3db6586a71567c8a2f7e63231c16f0c66ab1b1418a7b19a8f4da0413bf"
+ },
+ "code_edited_for_publication": {
+  "scripts/budget_checkpoint.py": {
+   "published_sha256": "77e7fa85f071786a0397a614f11db250da497ae116fbac7ac47fe1b4a4890a75",
+   "executed_source_sha256": "35f0c73e5d94597bbee9e2e3340a1732073dced5ba9bcf4c2a3e2d4b37b393b8",
+   "reason": "docstring wording only"
+  },
+  "scripts/package_development.py": {
+   "published_sha256": "e5015eb31d2dbe5beb680bf508ac0eecb65122a22264f15ddb5744d455d4e3cb",
+   "executed_source_sha256": "353a36c8bec18aff97850220cd340a88a17aca9fa1386c401b434ffb46b06d19",
+   "reason": "account allowlist and per-experiment account binding replaced by a generic owner-name check; packaging branches for experiments outside B320-B324 removed"
+  },
+  "scripts/watch_kaggle.py": {
+   "published_sha256": "193ac557733a314cbb207f105c2ae2c18b34f4e7837e678daf62ec8c90678a5e",
+   "executed_source_sha256": "0c87dc87d205d71f053845e26c9c9abd1d4cab31fd770b0081a16c4457e47b9b",
+   "reason": "completion messages reworded; terminal markers of experiments outside B320-B324 removed"
+  },
+  "tests/test_anchor_pilot.py": {
+   "published_sha256": "d0cbcdca8feeb372315829c2674b721d01d6f84f7e8f84deab4278bfebccda94",
+   "executed_source_sha256": "2cca0c0897abbccc8950570b432898d134d2c5745c0b54418ab433d2b3ac0638",
+   "reason": "fixture owner name"
+  },
+  "tests/test_b322_transport.py": {
+   "published_sha256": "9edee87beca7944476b2144dd7a2139c2a8205b5f3ae8d7252c6dd0617c5f7fc",
+   "executed_source_sha256": "3795885062f32a3ac3b551ec6421bfdcc1ca894264027adddfbfea4dbca2b68f",
+   "reason": "fixture owner names; account-binding test replaced by an invalid-owner test"
+  },
+  "tests/test_coverage_pilot.py": {
+   "published_sha256": "3009a5768ef6afe9fe2f02f9e8766b7b6b3a683ec768facf15cf15ca572f30a6",
+   "executed_source_sha256": "3af8d34f39381195e6433ed741624506d6dc7ee84d50f4be49eda9ed4f4ab35f",
+   "reason": "fixture owner name"
+  },
+  "tests/test_development_transport.py": {
+   "published_sha256": "8a5301f1d4dc89f90f1d54b625ac0b0424397a2163ba026a46d3fba186b3e57d",
+   "executed_source_sha256": "b50ae4f67cc82abcee4136423f7df90369f62cf466ece3ca0c4de1ebb4bcccc4",
+   "reason": "fixture owner names and scratch names; hidden-path assertion generalised"
+  },
+  "tests/test_parallel_budget.py": {
+   "published_sha256": "29a446874912d6251ac225fcca1a9610855f20f006866b79d29bf19c9ea68575",
+   "executed_source_sha256": "43d815b7e87c4b385037cb7b1652b5c18793c621de7ee8341366cdc102522364",
+   "reason": "scratch directory name"
+  },
+  "tests/test_watch_kaggle.py": {
+   "published_sha256": "a71e60884dfea47b1ca8c5f92cc0c67e57a02c82f4f3403d4a3bc020dd0e1220",
+   "executed_source_sha256": "c5a22ebf0f18abdd865e1880eb9fd3494115a4c88e382c1ec8b2d143e3b9153c",
+   "reason": "fixture user name; markers of experiments outside B320-B324 removed"
+  }
+ },
+ "code_edit_note": "Edited files no longer equal the bytes bundled in the original runs (notebooks embed the source bundle hash of their run). The scientific code paths (src/, the B320-B324 drivers, configs, notebooks) are byte-identical; edits are limited to packaging, the log viewer, one docstring and test fixtures.",
+ "records": {
+  "cards_and_results": "rewritten for publication from the original cards, run reports and analyses; numbers, labels, thresholds and failures unchanged",
+  "run_records": "publication.json is a projection of each closed receipt (sha256 of the original in derived_from); metrics and analysis JSON are copied with the listed fields removed",
+  "files": [
+   {
+    "path": "experiments/B320/runs/b320-s0-20261113-01-v1/publication.json",
+    "source_sha256": "2656b5bd2799648ca3d10be0d99e7c0e92a2b29f4060edd99f03f7f14bd13513",
+    "mode": "publication",
+    "removed_fields": [
+     "/kernel",
+     "/provider_status",
+     "/producer_result/path",
+     "/(acceptance flag)"
+    ],
+    "published_sha256": "57d94ad135982f4ac774502fadc3437cf2e93f124ed3c9d853940a1502058906"
+   },
+   {
+    "path": "experiments/B320/runs/b320-s0-20261114-02-v1/publication.json",
+    "source_sha256": "d3977be44e70d18a98875132c3e3d4a5b609e7f6c889405a351f4ef8a8729abc",
+    "mode": "publication",
+    "removed_fields": [
+     "/kernel",
+     "/provider_status",
+     "/(acceptance flag)",
+     "/producer_result/path"
+    ],
+    "published_sha256": "071f9bff5db11fe22bc90bd39cf2b7c605c8ac25eb3363721c7727120ee29cb3"
+   },
+   {
+    "path": "experiments/B321/analyses/a5-mechanism-audit/audit.json",
+    "source_sha256": "7ac13755960ecd596f6149c503ebe4768a43d85184721bd9e1fcf031150be64b",
+    "mode": "scrub",
+    "removed_fields": [
+     "/kernel"
+    ],
+    "published_sha256": "d0a53b1529f2b98aa1e07daec82456ea7965a13c808d469e3cfa71f8a1fb8bfe"
+   },
+   {
+    "path": "experiments/B321/runs/b321-resume-qual-20261114-02-v4/publication.json",
+    "source_sha256": "c5388b17b355f63ddc1cc402a722e0186cf1e46585c5151ebd035309e87e0bf1",
+    "mode": "publication",
+    "removed_fields": [
+     "/kernel",
+     "/execution_authority_note",
+     "/intake_manifest/0/path",
+     "/intake_manifest/1/path",
+     "/intake_manifest/2/path",
+     "/intake_manifest/3/path",
+     "/intake_manifest/4/path",
+     "/intake_manifest/5/path",
+     "/intake_manifest/6/path",
+     "/intake_manifest/7/path",
+     "/intake_manifest/8/path",
+     "/intake_manifest/9/path",
+     "/(acceptance flag)",
+     "/raw_checkpoint_rehash"
+    ],
+    "published_sha256": "cdbb0941f0b117449879ee3caebb32e65d53fe293d1c8bfd494ecff7872c1d18"
+   },
+   {
+    "path": "experiments/B321/runs/b321-s0-20261113-01-v1/publication.json",
+    "source_sha256": "a16436124267d3ef8f717bdb2c29e701d2e2cf844da6ef024d158df173e3168a",
+    "mode": "publication",
+    "removed_fields": [
+     "/kernel",
+     "/provider_status",
+     "/producer_result/path",
+     "/(acceptance flag)"
+    ],
+    "published_sha256": "76b4c4856c8d9c179a6e8fd228ced3b4668f2e4f6e4dc206c7c356a7420423ea"
+   },
+   {
+    "path": "experiments/B321/runs/b321-s0-20261114-02-v1/publication.json",
+    "source_sha256": "10aebe3480116f664195163e0ba5ddbdcb4dd2224c8dd321d52aec8561b1c03a",
+    "mode": "publication",
+    "removed_fields": [
+     "/kernel",
+     "/provider_status",
+     "/(acceptance flag)",
+     "/producer_result/path"
+    ],
+    "published_sha256": "d6d848c91c44e08a26a87b97ab290e4b1466b1dd818555fd34726aa587ea01a6"
+   },
+   {
+    "path": "experiments/B321/runs/b321-s0-20261114-05/audit.json",
+    "source_sha256": "0cad67aaa97d8b4bf8087f943a4af340315e4d4fec32a2369f760f4f97f45f22",
+    "mode": "scrub",
+    "removed_fields": [
+     "/kernel",
+     "/provider"
+    ],
+    "published_sha256": "4d0282d2395d65071945edf5cc1d1e2d6c25dd62a9b29f0e85e94853124e1c6a"
+   },
+   {
+    "path": "experiments/B321/runs/b321-s0-20261114-05/publication.json",
+    "source_sha256": "8616e6f90a123f1f8c5611f249fca7d0a7ff2a645cb49e0df25f5d71b91976cc",
+    "mode": "publication",
+    "removed_fields": [
+     "/kernel",
+     "/provider_status",
+     "/(acceptance flag)"
+    ],
+    "published_sha256": "0f0fba6084790f71ff9b988e6c0f1042efdd25fedc0ada64cf6bca60b1e093a2"
+   },
+   {
+    "path": "experiments/B322/analyses/A1-headroom/result.json",
+    "source_sha256": "b6e7f1266d3ae7f24d1ceff80e3b00116b82a8fc7b03ed4e521921521cca68f4",
+    "mode": "scrub",
+    "removed_fields": [],
+    "published_sha256": "b6e7f1266d3ae7f24d1ceff80e3b00116b82a8fc7b03ed4e521921521cca68f4"
+   },
+   {
+    "path": "experiments/B322/runs/b322-profile-20261115-01/publication.json",
+    "source_sha256": "beaf7e18ad0c6be844ac4e4e8379437b07f29d9feadb172c446f024f012f4e5b",
+    "mode": "publication",
+    "removed_fields": [
+     "/kernel",
+     "/provider_status",
+     "/(acceptance flag)"
+    ],
+    "published_sha256": "41f9ba7f6782569597de54104b1de60525787a690244a4c18d57389b8b7de0d6"
+   },
+   {
+    "path": "experiments/B322/runs/b322-profile-20261115-02/publication.json",
+    "source_sha256": "d066fadd524dc5f7ecb4a0d0ded1e7b9a632d71e697956473bf64517c5078581",
+    "mode": "publication",
+    "removed_fields": [
+     "/kernel",
+     "/provider_status",
+     "/(acceptance flag)",
+     "/private_readback"
+    ],
+    "published_sha256": "8d54031383ecbb5783f21175fed8687b7b289ef7cb556fcf4fd17991a98129c2"
+   },
+   {
+    "path": "experiments/B322/runs/b322-s0-20261115-01/metrics.json",
+    "source_sha256": "861ace01969998d7c11ecd23a86e30a28471cd7552547f292848cff7d4025a04",
+    "mode": "scrub",
+    "removed_fields": [
+     "/(acceptance flag)"
+    ],
+    "published_sha256": "20c2ec7798d0a0520cabc6663532453d7fbca9c5903a8729067c9591e0f09ec4"
+   },
+   {
+    "path": "experiments/B322/runs/b322-s0-20261115-01/publication.json",
+    "source_sha256": "a9f9cbfdfe299ba8b9aaa5581d789f4f187495f5a57accf25a8e2ec9d828a18f",
+    "mode": "publication",
+    "removed_fields": [
+     "/kernel",
+     "/provider_status",
+     "/(acceptance flag)",
+     "/private_readback",
+     "/local_artifact_root"
+    ],
+    "published_sha256": "66d4d516faa632bb0105c5ed34b302576cbd2599a02a13e085b18411a694a44f"
+   },
+   {
+    "path": "experiments/B323/runs/b323-qual-20261115-01/publication.json",
+    "source_sha256": "5ee7d14d835d3135dced4f0bc7fd043151284eb695b713a38d0ec7cc84b236f2",
+    "mode": "publication",
+    "removed_fields": [
+     "/kernel",
+     "/provider_status",
+     "/(acceptance flag)",
+     "/private_readback"
+    ],
+    "published_sha256": "a49482df2dc50009a53604c569a7f614719e59164745e1cd79f6f1102489194f"
+   },
+   {
+    "path": "experiments/B323/runs/b323-qual-20261115-02/publication.json",
+    "source_sha256": "01e721f749b7e50911dccdc1d9ddb81e433f66b83d43932dee6552c44e070d7b",
+    "mode": "publication",
+    "removed_fields": [
+     "/kernel",
+     "/provider_status",
+     "/(acceptance flag)",
+     "/private_readback"
+    ],
+    "published_sha256": "6d08d8ffea7e5cab5fe4b40beaea9d17c251850795f93b03e4a0652d215f1f64"
+   },
+   {
+    "path": "experiments/B323/runs/b323-s0-20261115-01/metrics.json",
+    "source_sha256": "c5b10770fc228839ccbb68ecdfaa6e102e667b208243feb4973b03fa425ec941",
+    "mode": "scrub",
+    "removed_fields": [
+     "/(acceptance flag)"
+    ],
+    "published_sha256": "4ef94c5e43706c0852e48bb5778483ac5046701570e4c588cb3b85458c3927a0"
+   },
+   {
+    "path": "experiments/B323/runs/b323-s0-20261115-01/publication.json",
+    "source_sha256": "0b2ba3ed668bf2543c54534b0ee5392acbd2dd09cd4a55e7fbc1047e48a10866",
+    "mode": "publication",
+    "removed_fields": [
+     "/kernel",
+     "/provider_status",
+     "/(acceptance flag)",
+     "/private_readback",
+     "/local_artifact_root"
+    ],
+    "published_sha256": "66534e9c3fa630b401328c6bb74c07f6e38b875dc5a02aa5602a9f659d78d173"
+   },
+   {
+    "path": "experiments/B324/analyses/S2-structure/s2_report.json",
+    "source_sha256": "939012dc6097e5d058863be66e1221dd1f8b031bbc01d4068f12fb1f5d2d18a3",
+    "mode": "scrub",
+    "removed_fields": [],
+    "published_sha256": "939012dc6097e5d058863be66e1221dd1f8b031bbc01d4068f12fb1f5d2d18a3"
+   },
+   {
+    "path": "experiments/B324/runs/b324-q0-20261116-01/q0_report.json",
+    "source_sha256": "608b3730a909e3792e4dad4c2b7769634d1938fe25179165860ae52e26ed9982",
+    "mode": "scrub",
+    "removed_fields": [],
+    "published_sha256": "608b3730a909e3792e4dad4c2b7769634d1938fe25179165860ae52e26ed9982"
+   },
+   {
+    "path": "experiments/B324/runs/b324-q0-20261116-01/publication.json",
+    "source_sha256": "1de4716723d2a826ea79bc430d382673d9d3678037b410fffd59a556559409fe",
+    "mode": "publication",
+    "removed_fields": [
+     "/kernel",
+     "/provider_status",
+     "/(acceptance flag)",
+     "/private_readback",
+     "/pytest_gate/tests/test_science.py"
+    ],
+    "published_sha256": "0ca3d0e747e490797074835448b8c595252b68456a906f00c764508d4deb96fe"
+   },
+   {
+    "path": "experiments/B324/runs/b324-r1-20261116-01/metrics.json",
+    "source_sha256": "d2f63c94c73937eede4c1d26e9f78498fee4bbe366b6f21f5fc9989b596dea27",
+    "mode": "scrub",
+    "removed_fields": [],
+    "published_sha256": "d2f63c94c73937eede4c1d26e9f78498fee4bbe366b6f21f5fc9989b596dea27"
+   },
+   {
+    "path": "experiments/B324/runs/b324-r1-20261116-01/publication.json",
+    "source_sha256": "cd74ab33287f4844a4505afaeb7126de02716a3362775523bf4f3920a7d3c774",
+    "mode": "publication",
+    "removed_fields": [
+     "/kernel",
+     "/provider_status",
+     "/(acceptance flag)",
+     "/private_readback"
+    ],
+    "published_sha256": "a08e37eccce59b2e0314abdcf8cfe814055075388b2622f89a4da31c286401a2"
+   },
+   {
+    "path": "experiments/B324/runs/b324-s1-20261116-01/metrics.json",
+    "source_sha256": "3301ef9950d0017c9efb575731238f040c25fae655aace5bbfaaf694db1e69c5",
+    "mode": "scrub",
+    "removed_fields": [],
+    "published_sha256": "3301ef9950d0017c9efb575731238f040c25fae655aace5bbfaaf694db1e69c5"
+   },
+   {
+    "path": "experiments/B324/runs/b324-s1-20261116-01/publication.json",
+    "source_sha256": "88d0b6cbc61a246f8d3ce11749aead05fb47eaf2821d9c3916adaf0333f1e9fb",
+    "mode": "publication",
+    "removed_fields": [
+     "/kernel",
+     "/provider_status",
+     "/(acceptance flag)",
+     "/private_readback"
+    ],
+    "published_sha256": "9ab832fb9c59c37cc141df3276a76601be5ebb91cea725b376dbfe3bb7ccacc0"
+   },
+   {
+    "path": "experiments/B324/runs/b324-s2a-20261116-01/publication.json",
+    "source_sha256": "064ecf1f2bd5f97965b92deed3917478a7051ddd97db4d988c9dde4121db5506",
+    "mode": "publication",
+    "removed_fields": [
+     "/kernel",
+     "/provider_status",
+     "/(acceptance flag)",
+     "/private_readback"
+    ],
+    "published_sha256": "1fee95bf447779335276ba6ea4d44acd902298fcd44f4ecbcc2969ec91075202"
+   },
+   {
+    "path": "experiments/B324/runs/b324-s2b-20261116-01/publication.json",
+    "source_sha256": "59e35b20b131f14f72b8a6c4bcc0ab5e6bce21f8b4d8aba9d4869acd3136d29c",
+    "mode": "publication",
+    "removed_fields": [
+     "/kernel",
+     "/provider_status",
+     "/(acceptance flag)",
+     "/private_readback"
+    ],
+    "published_sha256": "25af6f52368b3a936ec2c1678f45b5d66074f384d096bb8e977a9a382526ea12"
+   }
+  ]
+ },
+ "omitted": {
+  "attempt plans": "per-attempt launch plans (operational: accounts, caps, observation windows); their scientific content is summarised in each card",
+  "B323 prior-work notes": "working notes on related experiments; the precedent (NLCAD-06C-ANCHOR) is stated in the B323 card",
+  "review files and diagnosis notes": "internal working documents; conclusions that changed interpretation are folded into the cards",
+  "B325, B326": "belong to the non-replay direction, published separately"
+ },
+ "scientific_status": "all B320-B324 results are exploratory: the MVTec test set informed development",
+ "verification_limits": [
+  "No new model, training, inference or GPU run",
+  "Raw scores and checkpoints are not in the tree",
+  "Known-pattern scan of added text is not a proof that no private detail remains",
+  "history/catalog.json and history/audit.json still end at B319"
+ ]
+}

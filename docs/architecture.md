@@ -77,3 +77,28 @@ Tests gồm `test_local_layout.py`, `test_experiments.py`, `test_science.py`;
 `context_oracle.py` và `numerical_oracle.py` là các đối chiếu nhỏ; `conftest.py`
 thiết lập paths/cache. Chúng không thay usefulness/portability qualification.
 Final checkpoint lưu audit state; chưa có CLI resume được qualification.
+Câu này nói về đường `scripts/train.py` (B319); từ B321 có checkpoint riêng, xem mục dưới.
+
+## B320–B324: scripts, modules và config
+
+Phần này mô tả vai trò theo docstring, entrypoint và đoạn source liên quan, không phải
+audit hành vi. Thiết kế và kết quả ở card từng thí nghiệm. Các thay đổi trong file đã có:
+`storage.py` (`census` chịu được entry bị xóa trong lúc quét), `core/memory/sampler.py`
+(tham số `capacity` của reservoir, mặc định 24 giữ nguyên hành vi B319) và `trainer.py`
+(các hook của B321–B324, chỉ bật khi recipe có khóa tương ứng; recipe B319 không đổi).
+
+| Path | Vai trò (theo source) |
+| --- | --- |
+| [configs/b320.json](../configs/b320.json), [configs/b321.json](../configs/b321.json) | Recipe B320/B321; B321 kế thừa `configs/b319.json` làm `base_recipe` |
+| [scripts/episode_diagnostic.py](../scripts/episode_diagnostic.py) | B320: hai slow event đầu của B319-CTX, không evaluation, không đổi phương pháp |
+| [scripts/budget_train.py](../scripts/budget_train.py) | Train một arm B321 (`--data --weights --output`): batch, lịch, learner, checkpoint |
+| [scripts/budget_checkpoint.py](../scripts/budget_checkpoint.py) | Checkpoint nguyên tử, có hash, mỗi 500 update và update 10005 |
+| [scripts/parallel_budget.py](../scripts/parallel_budget.py) | Chạy hai arm B321 trên hai GPU trong một cap tài nguyên; profile trước khi train |
+| [scripts/qualify_budget_resume.py](../scripts/qualify_budget_resume.py) | Qualification tổng hợp của checkpoint/resume CUDA, không dùng dataset hay weights |
+| [scripts/profile_timing.py](../scripts/profile_timing.py) | Đo thời gian có warmup, giữ mọi sample |
+| [src/nested_replay_cad/shadow.py](../src/nested_replay_cad/shadow.py), [scripts/shadow_pilot.py](../scripts/shadow_pilot.py), [shadow_profile.py](../scripts/shadow_profile.py), [shadow_report.py](../scripts/shadow_report.py), [shadow_headroom.py](../scripts/shadow_headroom.py) | B322: shadow EMA thụ động, profile, báo cáo và phân tích A1 |
+| [src/nested_replay_cad/anchor.py](../src/nested_replay_cad/anchor.py), [scripts/anchor_pilot.py](../scripts/anchor_pilot.py), [anchor_report.py](../scripts/anchor_report.py) | B323: mức chậm theo boundary làm neo hàm số trên replay |
+| [src/nested_replay_cad/coverage.py](../src/nested_replay_cad/coverage.py), [scripts/coverage_pilot.py](../scripts/coverage_pilot.py), [coverage_report.py](../scripts/coverage_report.py) | B324: replay lưu đầu vào uint8, lịch cập nhật phẳng và hai tần số |
+| [scripts/package_development.py](../scripts/package_development.py) | Đóng gói một run đã đăng ký (`--experiment --owner --run-id`); không upload hay launch |
+| `notebooks/b320.ipynb` … `notebooks/b324.ipynb` | Notebook launcher cho các run tương ứng |
+| `tests/test_*` mới | Test cho các script trên (CPU; phần cần torch tự bỏ qua khi không có torch) |

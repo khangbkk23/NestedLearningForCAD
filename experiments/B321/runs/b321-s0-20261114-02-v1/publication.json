@@ -1,0 +1,93 @@
+{
+  "schema": "development_terminal_import_v1",
+  "derived_from": {
+    "record": "receipt.json",
+    "sha256": "10aebe3480116f664195163e0ba5ddbdcb4dd2224c8dd321d52aec8561b1c03a"
+  },
+  "derivation": "Public projection of the original closed receipt. Removed: execution-platform bookkeeping (job and account identifiers, provider status, local storage paths, operational notes). All remaining values are copied unchanged.",
+  "experiment": "B321",
+  "attempt": 2,
+  "producer_status": "PREFLIGHT_INSUFFICIENT_MEMORY",
+  "source_commit": "7efb9a0e4ef82d13ebd8ea59869390e555c657a0",
+  "source_bundle_sha256_declared": "a18ff1267b3feca7b859046f22818d142f9c5eea0408458497e21b33a4b28b41",
+  "execution_plan": "experiments/B321/attempts/b321-s0-20261114-02.md",
+  "producer_result": {
+    "sha256_observed": "81ff1aff3bfa2f31e31ed159a419a1a869a938a41b2e5bca3cf1bfb23ddae41a",
+    "bytes": 4957,
+    "source_fidelity": "exact_bytes",
+    "verification": "Exact version1 lightweight download, observedhash and scoped field/gate checks; no authenticitysignature or rawtensor audit claim"
+  },
+  "raw_downloaded": false,
+  "old_failures_unchanged": true,
+  "verification": {
+    "disposition": "BLOCKED_RESOURCE_PREFLIGHT",
+    "full_training_started": false,
+    "scientific_arm_updates": 0,
+    "synthetic_profile_updates": 12,
+    "bindings": [
+      {
+        "physical_slot": 1,
+        "physical_uuid": "GPU-03160543-99d1-11bb-e29d-6c90a6f72931",
+        "CUDA_VISIBLE_DEVICES": "1",
+        "visible_device_count": 1,
+        "logical_device": "cuda:0",
+        "name": "Tesla T4",
+        "torch": "2.12.0+cu126",
+        "CUDA": "12.6",
+        "python": "3.14.4 | packaged by conda-forge | (main, Apr  8 2026, 01:59:35) [GCC 14.3.0]"
+      },
+      {
+        "physical_slot": 0,
+        "physical_uuid": "GPU-b5360f4a-6cd1-a157-729d-56b607e399ae",
+        "CUDA_VISIBLE_DEVICES": "0",
+        "visible_device_count": 1,
+        "logical_device": "cuda:0",
+        "name": "Tesla T4",
+        "torch": "2.12.0+cu126",
+        "CUDA": "12.6",
+        "python": "3.14.4 | packaged by conda-forge | (main, Apr  8 2026, 01:59:35) [GCC 14.3.0]"
+      }
+    ],
+    "profile_overlap_seconds": 49.92344173799995,
+    "memory": {
+      "observed_group_profile_peak_RSS_bytes": 7115829248,
+      "two_current_task_cache_headroom_bytes": 3790835712,
+      "projected_group_RSS_bytes": 10906664960,
+      "limit_bytes": 8589934592
+    },
+    "projection": {
+      "remaining_with_margin_export": 41930.93080929478,
+      "remaining_whole_cap": 41318.399682357005,
+      "parallel_critical_path_seconds": 33442.44234107899,
+      "sequential_sum_diagnostic": 61110.98999458431,
+      "margin_fraction": 0.2,
+      "export_reserve_seconds": 1800,
+      "observations_per_arm": 13950
+    },
+    "component_checks": {
+      "a0_tail_ctx": {
+        "composition": "PASS_SCOPED",
+        "batch_parity": {
+          "status": "PASS_SCOPED",
+          "loss_batch": 1.0005717277526855,
+          "loss_serial": 1.0005716681480408,
+          "gradient_relative_L2": 9.005070513490786e-07,
+          "relative_L2_limit": 0.0002,
+          "scope": "Full actual decoder, fixed synthetic four-image batch, dropout off; not optimizer-update equivalence across batch kernels or all inputs"
+        }
+      },
+      "er_uniform": {
+        "composition": "PASS_SCOPED",
+        "batch_parity": {
+          "status": "PASS_SCOPED",
+          "loss_batch": 1.0005717277526855,
+          "loss_serial": 1.0005716681480408,
+          "gradient_relative_L2": 9.005070513490786e-07,
+          "relative_L2_limit": 0.0002,
+          "scope": "Full actual decoder, fixed synthetic four-image batch, dropout off; not optimizer-update equivalence across batch kernels or all inputs"
+        }
+      }
+    },
+    "scope": "NativeGPUisolation/concurrentprofiles/numericalpreflight only; no actualtwo-armtraining,AP/AUROC or usefulness evidence"
+  }
+}

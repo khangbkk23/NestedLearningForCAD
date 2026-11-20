@@ -1,0 +1,52 @@
+{
+  "metric_version": "B324-coverage-v1",
+  "experiment": "B324",
+  "job": "q0",
+  "status": "IDENTITY_REPRODUCED",
+  "checks": {
+    "q0_model_sha256_matches_B319_ER": true,
+    "q0_optimizer_steps": true,
+    "nested_optimizer_steps": true,
+    "nested_extra_updates": true,
+    "replay_within_budget": true
+  },
+  "observed_model_sha256": {
+    "209": "84c3e40145656edfbc149e718b9514c0b8f3abb2038977c163677acb8fa8bfd8",
+    "433": "2d4401de4b9d4a664116fc1003189d9cdbaaf26fdd7331da7c1d1eaf4ad462fc"
+  },
+  "expected_model_sha256": {
+    "209": "84c3e40145656edfbc149e718b9514c0b8f3abb2038977c163677acb8fa8bfd8",
+    "433": "2d4401de4b9d4a664116fc1003189d9cdbaaf26fdd7331da7c1d1eaf4ad462fc"
+  },
+  "timing": {
+    "q0": {
+      "encoder_seconds": 71.5799201319976,
+      "observer_seconds": 69.23698986099998,
+      "checkpoint_seconds": 4.774072417999946,
+      "replay_encoder_seconds": 94.95655104800323
+    },
+    "nested": {
+      "encoder_seconds": 62.75932121000085,
+      "observer_seconds": 48.44054959699997,
+      "checkpoint_seconds": 4.759341788999791,
+      "replay_encoder_seconds": 278.02186110000156
+    }
+  },
+  "counters": {
+    "q0": {
+      "encoder": 749,
+      "support_forwards": 2147,
+      "optimizer": 433,
+      "replay_encoder": 1714,
+      "extra_updates": 0
+    },
+    "nested": {
+      "encoder": 749,
+      "support_forwards": 5987,
+      "optimizer": 1201,
+      "replay_encoder": 5554,
+      "extra_updates": 768
+    }
+  },
+  "note": "AD numbers of this prefix are not used for any decision"
+}

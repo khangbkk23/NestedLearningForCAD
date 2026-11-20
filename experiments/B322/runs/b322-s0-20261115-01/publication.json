@@ -1,0 +1,100 @@
+{
+  "schema": "b322_receipt_v1",
+  "derived_from": {
+    "record": "receipt.json",
+    "sha256": "a9f9cbfdfe299ba8b9aaa5581d789f4f187495f5a57accf25a8e2ec9d828a18f"
+  },
+  "derivation": "Public projection of the original closed receipt. Removed: execution-platform bookkeeping (job and account identifiers, provider status, local storage paths, operational notes). All remaining values are copied unchanged.",
+  "experiment": "B322",
+  "run_id": "b322-s0-20261115-01",
+  "version": 1,
+  "workload_status": "COMPLETE_REVIEW_PENDING",
+  "source": {
+    "git_commit": "32f0634a8959c2feff91537bee5fad59f75188fe",
+    "source_zip_sha256": "764a57b4365409649b22c12fd2ae3205af4da412cd76c1a96abc7722d277249a",
+    "manifest_sha256": "40c7231450ad6ae557ade718b90aef47d278e2942733f27c4fd664f2f78f2d9e"
+  },
+  "whole_job_seconds": 8054.476898442001,
+  "arm_seconds": 7830.803652255,
+  "timing": {
+    "encoder_seconds": 1407.2051151460128,
+    "observer_seconds": 3815.618894003,
+    "checkpoint_seconds": 8.83344913899964,
+    "shadow_update_seconds": 39.960931357991
+  },
+  "committed": 3629,
+  "reproduction_check": {
+    "reference": "b319-s0-20261110-kaggle-v5 er_uniform",
+    "boundary_model_sha256_equal": "15/15",
+    "initial_sha256_equal": true,
+    "matrix_cells_compared": 480,
+    "max_abs_difference": 0.0,
+    "status": "REPRODUCED"
+  },
+  "verdict": "NO_SIGNAL",
+  "primary_values": {
+    "final_pixel_AP_gain": 0.003796446081602456,
+    "Fmax_reduction": 0.043776622384793094,
+    "acquisition_macro_delta": -0.1871993469379299,
+    "acquisition_worst_category_delta": -0.4816123407284621,
+    "final_image_AUROC_delta": 0.008783412441176641
+  },
+  "primary_conditions": {
+    "a_final_pixel_AP": false,
+    "b_retention": true,
+    "c_plasticity": false,
+    "d_image_AUROC": true
+  },
+  "historical_screen_primary": {
+    "status": "SCREEN_NOT_MET",
+    "floor_violations": [
+      "tile",
+      "transistor",
+      "zipper"
+    ]
+  },
+  "secondary_label": "NO_SIGNAL",
+  "secondary_values": {
+    "final_pixel_AP_gain": 0.0032901200896771066,
+    "Fmax_reduction": 0.008467678193673042,
+    "acquisition_macro_delta": -0.012608180188779183,
+    "acquisition_worst_category_delta": -0.1254413175789385,
+    "final_image_AUROC_delta": 0.0024340172169962093
+  },
+  "not_retrieved": "score tensors/archives and checkpoints remain on Kaggle output; only JSON/JSONL and logs were fetched",
+  "files": {
+    "runs/b322/b322-s0-20261115-01/outputs/arms/er_uniform/study.json": {
+      "sha256": "fe5138387e5e72644d0492b67bd6410a62625a3c091801a5ac4419178b4d990b",
+      "bytes": 16152672
+    },
+    "runs/b322/b322-s0-20261115-01/outputs/arms/er_uniform/events.jsonl": {
+      "sha256": "91d3088adebd969ae1422b710527463b16e12fb53f2523cdfcb5052320ef6c36",
+      "bytes": 12530325
+    },
+    "runs/b322/b322-s0-20261115-01/outputs/config.json": {
+      "sha256": "49f07248465d7b0cdcb688db06fb9da70ea40a1cb83f3559acaa010ccfaff545",
+      "bytes": 8109
+    },
+    "runs/b322/b322-s0-20261115-01/outputs/runtime.json": {
+      "sha256": "d6856792f8141b10d68b09eebe496d4872d79916051aae1f845e2a77516b0801",
+      "bytes": 265
+    },
+    "runs/b322/b322-s0-20261115-01/receipts/RUN_STATUS.json": {
+      "sha256": "28105bc77714f5770e3e3fbf9b870dbf084e4fbaec8953c4ea386cc8f0714fa4",
+      "bytes": 366
+    },
+    "runs/b322/b322-s0-20261115-01/receipts/gpu_preflight.json": {
+      "sha256": "943c1971bf2aa9625888b4f2759f051a3ee8c0a9d5b870ad2057d643a254ccf7",
+      "bytes": 236
+    },
+    "shadow_report.json": {
+      "sha256": "861ace01969998d7c11ecd23a86e30a28471cd7552547f292848cff7d4025a04",
+      "bytes": 97121
+    },
+    "logs/v1/execution.log": {
+      "sha256": "629abda434d014f93d21a3afe2e744424aee5fb2de0c07211b1cd78d7b50446d",
+      "bytes": 147043
+    }
+  },
+  "analysis_source_sha256": "0b70054b84aedf32dc01a32b8f810ddf01036d177bbf6005a7d02f3e4fae7544"
+}

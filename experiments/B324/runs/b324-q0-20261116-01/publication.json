@@ -1,0 +1,107 @@
+{
+  "schema": "b324_receipt_v1",
+  "derived_from": {
+    "record": "receipt.json",
+    "sha256": "1de4716723d2a826ea79bc430d382673d9d3678037b410fffd59a556559409fe"
+  },
+  "derivation": "Public projection of the original closed receipt. Removed: execution-platform bookkeeping (job and account identifiers, provider status, local storage paths, operational notes). All remaining values are copied unchanged.",
+  "experiment": "B324",
+  "job": "q0",
+  "run_id": "b324-q0-20261116-01",
+  "version": 1,
+  "workload_status": "COMPLETE_REVIEW_PENDING",
+  "source": {
+    "git_commit": "37ab48f44ae577e7f22a69255e1348176b87d023",
+    "source_zip_sha256": "0768b5ea4ea575b267fa915ec5505c268ccc1a37f6bba34ae7cb2c249fe1e0a1",
+    "manifest_sha256": "b4ad063e2ab8a61e193e6e8d129466917a020b78f495e7cb89053ed0b47abf78"
+  },
+  "whole_job_seconds": 1489.43,
+  "gpus": [
+    "Tesla T4",
+    "Tesla T4"
+  ],
+  "exit_codes": {
+    "q0": 0,
+    "nested": 0
+  },
+  "identity": "IDENTITY_REPRODUCED",
+  "checks": {
+    "q0_model_sha256_matches_B319_ER": true,
+    "q0_optimizer_steps": true,
+    "nested_optimizer_steps": true,
+    "nested_extra_updates": true,
+    "replay_within_budget": true
+  },
+  "observed_model_sha256": {
+    "209": "84c3e40145656edfbc149e718b9514c0b8f3abb2038977c163677acb8fa8bfd8",
+    "433": "2d4401de4b9d4a664116fc1003189d9cdbaaf26fdd7331da7c1d1eaf4ad462fc"
+  },
+  "arm_seconds": {
+    "q0": 554.882988275,
+    "nested": 1254.250249418
+  },
+  "timing": {
+    "q0": {
+      "encoder_seconds": 71.5799201319976,
+      "observer_seconds": 69.23698986099998,
+      "checkpoint_seconds": 4.774072417999946,
+      "replay_encoder_seconds": 94.95655104800323
+    },
+    "nested": {
+      "encoder_seconds": 62.75932121000085,
+      "observer_seconds": 48.44054959699997,
+      "checkpoint_seconds": 4.759341788999791,
+      "replay_encoder_seconds": 278.02186110000156
+    }
+  },
+  "counters": {
+    "q0": {
+      "encoder": 749,
+      "support_forwards": 2147,
+      "optimizer": 433,
+      "replay_encoder": 1714,
+      "extra_updates": 0
+    },
+    "nested": {
+      "encoder": 749,
+      "support_forwards": 5987,
+      "optimizer": 1201,
+      "replay_encoder": 5554,
+      "extra_updates": 768
+    }
+  },
+  "replay_memory_bytes": {
+    "q0": 14290752,
+    "nested": 152588352
+  },
+  "peak_VRAM_allocated_bytes": {
+    "q0": 1793645056,
+    "nested": 1793645568
+  },
+  "peak_host_RSS_bytes": {
+    "q0": 2360066048,
+    "nested": 2518061056
+  },
+  "pytest_gate": {},
+  "note": "AD numbers of this prefix are not used for any decision",
+  "files": {
+    "q0/study.json": {
+      "sha256": "cc61ac4438594344715aaa8a36e9fe4d8c0c3abe030840b57913852aa52cbd2d"
+    },
+    "nested/study.json": {
+      "sha256": "5d334fc07bc1e40ba3d135780f83b92845fe6e1cbe4539022282e38c085b1f93"
+    },
+    "RUN_STATUS.json": {
+      "sha256": "cdfed0b24d1dd838342d6148ec269043fe9f9b37dc0971e0a5c4e1a65df18ba6",
+      "bytes": 438
+    },
+    "pytest-test_science.log": {
+      "sha256": "421c97f09a49f1b1f10eb41c15f3a10f62fcf86934d8cf738f5df3675b3fc61d",
+      "bytes": 4575
+    },
+    "logs/v1/execution.log": {
+      "sha256": "52f3c330a6e20a05598fa23a334493cda1072874cb3177c9e86b1134afc23c96",
+      "bytes": 23986
+    }
+  }
+}

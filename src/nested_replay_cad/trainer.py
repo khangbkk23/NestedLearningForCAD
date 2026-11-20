@@ -108,6 +108,28 @@ def arm_trial(output, config, arm, deadline):
     )
     result["initial_sha256"] = sha(initial_path)
     optimizer = official.make_optimizer(decoder)
+    # B322 passive shadows: absent from the config, nothing below changes.
+    shadows = None
+    if config.get("shadow"):
+        if arm != "er_uniform":
+            raise ValueError("Shadow readouts are registered for er_uniform only")
+        from nested_replay_cad.shadow import Shadows
+
+        shadows = Shadows(torch, decoder, config["shadow"]["taus"])
+    # B323: reservoir size and the boundary-consolidated slow level. Both are
+    # absent from the B319 recipe, where capacity is 24 and there is no anchor.
+    reservoir_capacity = config.get("reservoir_capacity", 24)
+    slow, anchor_weight = None, 0.0
+    if config.get("anchor"):
+        if arm != "anchor" or shadows is not None:
+            raise ValueError("The function anchor is registered for the anchor arm only")
+        from nested_replay_cad.anchor import SlowLevel
+
+        slow = SlowLevel(torch, decoder)
+        anchor_weight = float(config["anchor"]["weight"])
+        if not anchor_weight > 0.0:
+            raise ValueError("Anchor weight must be positive")
+        result["counters"]["anchor_forwards"] = 0
     controller = None
     if arm in ("a0_tail", "a0_tail_ctx"):
         from nested_replay_cad.replay import NestedReplay
@@ -116,6 +138,34 @@ def arm_trial(output, config, arm, deadline):
         result["counters"].update(
             controller_context_forwards=0, slow_query_forwards=0, slow_replay_forwards=0
         )
+    # B324: lossless uint8 input replay and a registered update schedule. Both
+    # are absent from the B319/B322/B323 configs, where replay holds frozen
+    # features and every arrival makes exactly one optimizer step.
+    raw_replay = config.get("replay_format") is not None
+    schedule = {"mode": "single"}
+    consolidation_rng = None
+    observe_at = set(config.get("observe_at", config["snapshots"]))
+    if raw_replay:
+        from nested_replay_cad import coverage
+
+        if config["replay_format"] != coverage.FORMAT:
+            raise ValueError("Unknown replay format")
+        if shadows is not None or slow is not None or controller is not None:
+            raise ValueError("B324 replay is registered for plain ER learners only")
+        schedule = coverage.validate_schedule(config["schedule"])
+        if (reservoir_capacity + 8) * coverage.BYTES_PER_SAMPLE > config["replay_budget_bytes"]:
+            raise ValueError("Replay memory exceeds the registered byte budget")
+        if schedule["mode"] != "single":
+            consolidation_rng = coverage.aux_stream(config["seed"], "consolidation")
+        if config.get("shuffled_stream"):
+            if sorted(observe_at) != [3629]:
+                raise ValueError("The shuffled stream is observed once, at the end")
+            selection = dict(selection, records=coverage.shuffled_records(selection["records"], config["seed"]))
+        result["counters"].update(replay_encoder=0, extra_updates=0)
+        result.update(replay_format=config["replay_format"], schedule=schedule,
+                      reservoir_capacity=reservoir_capacity, shuffled_stream=bool(config.get("shuffled_stream")))
+    elif config.get("schedule") or config.get("shuffled_stream") or config.get("observe_at"):
+        raise ValueError("B324 schedule options need the B324 replay format")
     # Conv2d initialization inside the scorer consumes RNG once. Complete it
     # before the training stream seed so the observer remains read-only.
     readout.gauss(torch.device("cuda:0"))
@@ -123,6 +173,8 @@ def arm_trial(output, config, arm, deadline):
     result["timing"] = dict(
         encoder_seconds=0.0, observer_seconds=0.0, checkpoint_seconds=0.0
     )
+    if raw_replay:
+        result["timing"]["replay_encoder_seconds"] = 0.0
     trace_path = output / "events.jsonl"
 
     from nested_replay_cad.storage import DiskGuard
@@ -148,7 +200,8 @@ def arm_trial(output, config, arm, deadline):
             raise TimeoutError("Arm compute reserve")
         if (
             result["counters"]["encoder"] > encoder_cap
-            or result["counters"]["support_forwards"] > 18145
+            or result["counters"]["support_forwards"] > config.get("support_forwards_cap", 18145)
+            or (raw_replay and result["counters"]["replay_encoder"] > config["replay_encoder_cap"])
         ):
             raise RuntimeError("Registered per-arm compute cap")
         if (
@@ -163,7 +216,7 @@ def arm_trial(output, config, arm, deadline):
         if (
             force
             or result["committed"] % 8 == 0
-            or result["committed"] in config["snapshots"]
+            or result["committed"] in observe_at
         ):
             write(output / "study.json", result)
 
@@ -211,6 +264,57 @@ def arm_trial(output, config, arm, deadline):
             raise ValueError("Grouped frozen features")
         return feature
 
+    def load_service():
+        nonlocal service
+        if service is None:
+            random_before = torch.get_rng_state().clone()
+            try:
+                service = encoder.load(ROOT / config["encoder"]["path"], device="cuda:0")
+            finally:
+                torch.set_rng_state(random_before)
+
+    def checked_feature(feature):
+        if (
+            feature.shape != (2, 789, 768)
+            or feature.dtype != torch.float32
+            or not torch.isfinite(feature).all()
+        ):
+            raise ValueError("Grouped frozen features")
+        return feature
+
+    def extract_raw(row):
+        """B324 current arrival: the checks of extract() plus the uint8 input kept for replay."""
+        guard()
+        torch.cuda.synchronize()
+        extraction_started = time.monotonic()
+        relative = row["relative_path"]
+        raw = read_verified_bytes(dataset, relative)
+        if hashlib.sha256(raw).hexdigest() != row["file_sha256"] or len(raw) != row["bytes"]:
+            raise ValueError("Image byte identity")
+        load_service()
+        stored = coverage.load_uint8(checked_path(dataset, relative))
+        value = coverage.normalize_uint8(stored).unsqueeze(0).to("cuda:0")
+        with torch.no_grad():
+            feature = service.groups(value).detach()[0].contiguous()
+        torch.cuda.synchronize()
+        result["timing"]["encoder_seconds"] += time.monotonic() - extraction_started
+        result["counters"]["encoder"] += 1
+        return checked_feature(feature), stored
+
+    def encode_stored(stored):
+        """Re-encode a stored uint8 replay sample with the frozen encoder; nothing is cached."""
+        guard()
+        torch.cuda.synchronize()
+        started_ = time.monotonic()
+        load_service()
+        value = coverage.normalize_uint8(stored).unsqueeze(0).to("cuda:0")
+        with torch.no_grad():
+            feature = service.groups(value).detach()[0].contiguous()
+        torch.cuda.synchronize()
+        result["timing"]["replay_encoder_seconds"] += time.monotonic() - started_
+        result["counters"]["replay_encoder"] += 1
+        return checked_feature(feature)
+
     def model_hash():
         digest = hashlib.sha256()
         for name, tensor in sorted(decoder.state_dict().items()):
@@ -231,6 +335,17 @@ def arm_trial(output, config, arm, deadline):
         before = model_hash()
         random_before = torch.get_rng_state().clone()
         cuda_rng_before = torch.cuda.get_rng_state(0).clone()
+        shadow_taus = shadows.taus if shadows is not None else ()
+        shadow_before = {tau: shadows.digest(tau) for tau in shadow_taus}
+        slow_before = slow.digest() if slow is not None else None
+        store_before = coverage.store_digest(store) if raw_replay else None
+        shadow_roots = {
+            tau: output / "scores" / f"g{cursor}-ema{tau}" for tau in shadow_taus
+        }
+        shadow_scores = {tau: [] for tau in shadow_taus}
+        shadow_seconds = 0.0
+        for folder in shadow_roots.values():
+            folder.mkdir(parents=True)
         decoder.eval()
         if selection["external_records"]:
             raise ValueError("Full-test route has no external-normal observer")
@@ -304,6 +419,34 @@ def arm_trial(output, config, arm, deadline):
                         resized_positive=int(gt.sum()),
                     )
                 )
+                # Same feature, scorer and GT; only the decoder parameters differ.
+                for tau in shadow_taus:
+                    torch.cuda.synchronize()
+                    shadow_started = time.monotonic()
+                    target, prediction = shadows.forward(
+                        decoder, tau, feature[None, 0], feature[None, 1]
+                    )
+                    pixel, image = readout.dinomaly(target, prediction)
+                    pixel, image = pixel[0].cpu().contiguous(), image[0].cpu().contiguous()
+                    if (
+                        pixel.shape != (256, 256)
+                        or image.ndim != 0
+                        or not torch.isfinite(pixel).all()
+                        or not torch.isfinite(image)
+                    ):
+                        raise ValueError("Shadow score contract")
+                    path = shadow_roots[tau] / (row["image_id"] + ".safetensors")
+                    save_file(dict(pixel=pixel, image=image, gt=gt), str(path))
+                    shadow_scores[tau].append(
+                        dict(
+                            image_id=row["image_id"],
+                            path=path.relative_to(output).as_posix(),
+                            sha256=sha(path),
+                            bytes=path.stat().st_size,
+                        )
+                    )
+                    torch.cuda.synchronize()
+                    shadow_seconds += time.monotonic() - shadow_started
         from nested_replay_cad.metrics import category_metrics
 
         write(destination / "score_manifest.json", dict(cursor=cursor, scores=scores))
@@ -320,11 +463,33 @@ def arm_trial(output, config, arm, deadline):
                 json.dumps(metrics[category]),
                 flush=True,
             )
+        shadow_report = {}
+        for tau in shadow_taus:
+            write(
+                shadow_roots[tau] / "score_manifest.json",
+                dict(cursor=cursor, tau=tau, scores=shadow_scores[tau]),
+            )
+            shadow_report[str(tau)] = dict(
+                metrics={
+                    category: category_metrics(
+                        [row for row in cohort if row["category"] == category],
+                        shadow_roots[tau],
+                    )
+                    for category in seen
+                },
+                scores=shadow_scores[tau],
+                parameters_sha256=shadow_before[tau],
+                parameters_bytes=shadows.nbytes(tau),
+                step=shadows.step,
+            )
         gc.collect()
         if (
             before != model_hash()
             or not torch.equal(random_before, torch.get_rng_state())
             or not torch.equal(cuda_rng_before, torch.cuda.get_rng_state(0))
+            or any(shadow_before[tau] != shadows.digest(tau) for tau in shadow_taus)
+            or (slow is not None and slow_before != slow.digest())
+            or (raw_replay and store_before != coverage.store_digest(store))
         ):
             raise ValueError("Observer mutated model/RNG")
         decoder.train()
@@ -351,6 +516,11 @@ def arm_trial(output, config, arm, deadline):
         snapshot["memory"] = memory_report(
             decoder, optimizer, store, controller, torch, service
         )
+        if slow is not None:
+            snapshot["memory"]["slow_parameters_bytes"] = slow.nbytes()
+            snapshot["slow_during_observer"] = dict(
+                boundary=slow.boundary, updates=slow.updates, parameters_sha256=slow_before
+            )
         snapshot["cohort_images"] = len(cohort)
         result["snapshots"].append(snapshot)
         store_result(force=True)
@@ -367,6 +537,19 @@ def arm_trial(output, config, arm, deadline):
         )
         write(output / ("score_archives_g" + str(cursor) + ".json"), chunks)
         snapshot["score_archives"] = chunks["archives"]
+        if shadows is not None:
+            for tau in shadow_taus:
+                chunks = archive_tensors(
+                    shadow_roots[tau],
+                    output.parent,
+                    output.parent.parent,
+                    output.parent.name + "_" + arm + f"_g{cursor}_ema{tau}_scores",
+                    deadline,
+                )
+                write(output / f"shadow_archives_ema{tau}_g{cursor}.json", chunks)
+                shadow_report[str(tau)]["score_archives"] = chunks["archives"]
+            snapshot["shadow"] = shadow_report
+            snapshot["shadow_observer_seconds"] = shadow_seconds
         store_result(force=True)
 
     try:
@@ -375,14 +558,19 @@ def arm_trial(output, config, arm, deadline):
             identity = row["opaque_id"]
             if row["arrival"] != arrival or identity in metas:
                 raise ValueError("Arrival identity")
-            reserved, advanced = sample_reservations(reservoir, fifo, rng)
+            reserved, advanced = sample_reservations(
+                reservoir, fifo, rng, capacity=reservoir_capacity
+            )
             support_ids = reserved.R_reserved
             blocked = set((*reserved.Q_recent, *reserved.Q_history))
             if blocked & set(support_ids) or any(
                 metas[key]["arrival"] >= arrival for key in support_ids
             ):
                 raise ValueError("Support/query causality")
-            current = extract(row)
+            if raw_replay:
+                current, current_stored = extract_raw(row)
+            else:
+                current = extract(row)
             p = config["hard_mining_final"] * min(
                 arrival / config["hard_mining_ramp_arrivals"], 1.0
             )
@@ -417,16 +605,30 @@ def arm_trial(output, config, arm, deadline):
                     (key, store[key]) for key in support_ids
                 ]
                 losses = []
+                anchor_distances = []
                 for index, (key, feature) in enumerate(records):
                     guard()
+                    if raw_replay and index > 0:
+                        feature = encode_stored(feature)
                     target, prediction = decoder(feature[None, 0], feature[None, 1])
-                    loss = official.global_cosine_hm_percent(
-                        target, prediction, p=p, factor=0.1
-                    )
                     coefficient = (
                         1.0
                         if len(records) == 1
                         else (0.5 if index == 0 else 0.5 / len(support_ids))
+                    )
+                    if slow is not None and index > 0 and slow.covers(metas[key]["arrival"]):
+                        # Backward the anchor before the replay loss registers its
+                        # hard-mining gradient hooks on ``prediction``; otherwise the
+                        # hooks would also scale the anchor gradient.
+                        distance = slow.distance(decoder, feature, prediction)
+                        if not torch.isfinite(distance):
+                            raise ValueError("Nonfinite anchor distance")
+                        anchor_distances.append(float(distance.detach()))
+                        (coefficient * anchor_weight * distance).backward(retain_graph=True)
+                        result["counters"]["anchor_forwards"] += 1
+                        del distance
+                    loss = official.global_cosine_hm_percent(
+                        target, prediction, p=p, factor=0.1
                     )
                     if not torch.isfinite(loss):
                         raise ValueError("Nonfinite loss")
@@ -440,23 +642,78 @@ def arm_trial(output, config, arm, deadline):
                 optimizer.step()
             torch.cuda.synchronize()
             result["counters"]["optimizer"] += 1
+            if shadows is not None:
+                # Order: optimizer step, then shadow update, then any observer.
+                shadow_update_started = time.monotonic()
+                shadows.update(decoder)
+                torch.cuda.synchronize()
+                result["timing"]["shadow_update_seconds"] = result["timing"].get(
+                    "shadow_update_seconds", 0.0
+                ) + (time.monotonic() - shadow_update_started)
+                if shadows.step != arrival:
+                    raise ValueError("Shadow clock differs from the optimizer clock")
+            extra_count = coverage.extra_updates(schedule, arrival) if raw_replay else 0
+            extra_ids = []
+            for _ in range(extra_count):
+                with_current = schedule["mode"] == "flat"
+                picked, consolidation_rng = coverage.uniform_sample(
+                    consolidation_rng, reservoir, schedule["samples"]
+                )
+                extra_ids.append(list(picked))
+                plan = ([(current, 0.5 if picked else 1.0)] if with_current else []) + [
+                    (store[key], (0.5 if with_current else 1.0) / len(picked)) for key in picked
+                ]
+                if not plan:
+                    raise ValueError("Empty consolidation update")
+                decoder.train()
+                optimizer.zero_grad(set_to_none=True)
+                for feature, coefficient in plan:
+                    guard()
+                    if feature.dtype == torch.uint8:
+                        feature = encode_stored(feature)
+                    target, prediction = decoder(feature[None, 0], feature[None, 1])
+                    loss = official.global_cosine_hm_percent(target, prediction, p=p, factor=0.1)
+                    if not torch.isfinite(loss):
+                        raise ValueError("Nonfinite loss")
+                    (coefficient * loss).backward()
+                    result["counters"]["support_forwards"] += 1
+                    del target, prediction, loss
+                extra_norm = torch.nn.utils.clip_grad_norm_(decoder.parameters(), 0.1)
+                if not torch.isfinite(extra_norm):
+                    raise ValueError("Nonfinite gradient norm")
+                optimizer.step()
+                torch.cuda.synchronize()
+                result["counters"]["optimizer"] += 1
+                result["counters"]["extra_updates"] += 1
             result["new_normal_training"] = True
-            slot, admission_rng = admission_slot(advanced.admission, arrival)
+            slot, admission_rng = admission_slot(
+                advanced.admission, arrival, capacity=reservoir_capacity
+            )
             staged_reservoir = list(reservoir)
             if slot is not None:
-                if arrival <= 24:
+                if arrival <= reservoir_capacity:
                     staged_reservoir.append(identity)
                 else:
                     staged_reservoir[slot] = identity
             reservoir = tuple(staged_reservoir)
             fifo = (*fifo, identity)[-8:]
             retained = set(reservoir) | set(fifo)
-            store[identity] = current
+            store[identity] = current_stored if raw_replay else current
             metas[identity] = dict(arrival=arrival, raw_sha256=row["file_sha256"])
             store = {key: store[key] for key in retained}
             metas = {key: metas[key] for key in retained}
             rng = replace(advanced, admission=admission_rng)
-            if len(retained) > 32 or any(
+            if raw_replay:
+                if (
+                    len(retained) > reservoir_capacity + 8
+                    or any(
+                        value.dtype != torch.uint8 or tuple(value.shape) != (3, 392, 392)
+                        for value in store.values()
+                    )
+                    or sum(value.numel() for value in store.values()) > config["replay_budget_bytes"]
+                ):
+                    raise ValueError("Raw replay memory bound")
+            elif len(retained) > reservoir_capacity + 8 or any(
                 value.shape != (2, 789, 768) for value in store.values()
             ):
                 raise ValueError("Grouped memory bound")
@@ -479,6 +736,17 @@ def arm_trial(output, config, arm, deadline):
                 gradient_norm=float(norm),
                 seconds=time.monotonic() - event_start,
             )
+            if slow is not None:
+                event["anchor"] = anchor_distances
+            if raw_replay:
+                event.update(
+                    memory_sha256=coverage.memory_digest(reservoir, fifo),
+                    reservoir_size=len(reservoir),
+                    extra_updates=extra_count,
+                    extra_ids_sha256=coverage.ids_digest(extra_ids),
+                )
+                if arrival not in config["snapshots"]:
+                    del event["reservoir"], event["fifo"]
             if controller_event is not None:
                 event["weights"] = controller_event["weights"]
                 event["slow"] = controller_event["slow"]
@@ -497,11 +765,22 @@ def arm_trial(output, config, arm, deadline):
                     flush=True,
                 )
             if arrival >= config.get("integration_arrivals", 256):
-                if arrival in config["snapshots"]:
+                if arrival in observe_at:
                     observe(arrival)
                 break
-            if arrival in config["snapshots"]:
+            if arrival in observe_at:
                 observe(arrival)
+                if slow is not None:
+                    # Slow level: one update per task, after the boundary observer.
+                    slow.consolidate(decoder, arrival)
+                    result["snapshots"][-1]["slow_consolidated_sha256"] = slow.digest()
+        if raw_replay:
+            expected = coverage.expected_updates(schedule, result["committed"])
+            if result["counters"]["optimizer"] != expected:
+                raise ValueError("Optimizer steps differ from the registered schedule")
+            if result["committed"] == 3629 and expected != config["total_updates"]:
+                raise ValueError("Registered total updates differ from the schedule")
+            result["replay_memory_bytes"] = sum(value.numel() for value in store.values())
         checkpoint_started = time.monotonic()
         optimizer.zero_grad(set_to_none=True)
         tensors = {
@@ -518,6 +797,27 @@ def arm_trial(output, config, arm, deadline):
             tensors["memory." + key] = value.contiguous()
         tensors["rng.torch"] = torch.get_rng_state()
         tensors["rng.cuda0"] = torch.cuda.get_rng_state(0)
+        if shadows is not None:
+            for tau in shadows.taus:
+                for name, value in shadows.params[tau].items():
+                    tensors[f"shadow.ema{tau}.{name}"] = value
+            result["shadow"] = dict(
+                taus=list(shadows.taus),
+                step=shadows.step,
+                parameters_sha256={str(t): shadows.digest(t) for t in shadows.taus},
+            )
+        if slow is not None:
+            if slow.active:
+                for name, value in slow.params.items():
+                    tensors[f"slow.{name}"] = value
+            result["anchor"] = dict(
+                weight=anchor_weight,
+                boundary=slow.boundary,
+                updates=slow.updates,
+                parameters_sha256=slow.digest(),
+                parameters_bytes=slow.nbytes(),
+            )
+        result["reservoir_capacity"] = reservoir_capacity
         if controller is not None:
             result["controller"] = controller.preserve(tensors)
             if (

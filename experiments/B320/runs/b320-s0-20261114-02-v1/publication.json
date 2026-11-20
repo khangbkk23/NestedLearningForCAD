@@ -1,0 +1,56 @@
+{
+  "schema": "development_terminal_import_v1",
+  "derived_from": {
+    "record": "receipt.json",
+    "sha256": "d3977be44e70d18a98875132c3e3d4a5b609e7f6c889405a351f4ef8a8729abc"
+  },
+  "derivation": "Public projection of the original closed receipt. Removed: execution-platform bookkeeping (job and account identifiers, provider status, local storage paths, operational notes). All remaining values are copied unchanged.",
+  "experiment": "B320",
+  "attempt": 2,
+  "producer_status": "PASS_SCOPED",
+  "source_commit": "2461ddd0f78a28da5480aedb0928240afcd90b02",
+  "source_bundle_sha256_declared": "515cde40a3ab8f441ff8b29d5d74ad524ee099c2c53c4e3538eb4be6894d5e23",
+  "execution_plan": "experiments/B320/attempts/b320-s0-20261114-02.md",
+  "producer_result": {
+    "sha256_observed": "7533d8877b87cdb0dab42ba4f8f13f5f9cea6db86bfb668fbc41dc4089c58701",
+    "bytes": 55375,
+    "source_fidelity": "exact_bytes",
+    "verification": "Exact version1 lightweight download, observedhash and scoped field/gate checks; no authenticitysignature or rawtensor audit claim"
+  },
+  "raw_downloaded": false,
+  "old_failures_unchanged": true,
+  "verification": {
+    "verdict": "PASS_SCOPED",
+    "episodes": [
+      {
+        "arrival": 30,
+        "max_direction_error": 9.28523875456499e-13,
+        "query_signal": 4.099550308603061e-06,
+        "full_forward_maxabs": 0,
+        "live_capture_record_match": true,
+        "recomputation": {
+          "bitwise_equal": true,
+          "maxabs": 0.0,
+          "acceptance_gate": false,
+          "reason": "Graph replay can differ by FP32 accumulation order; actual total captured before Adam"
+        }
+      },
+      {
+        "arrival": 46,
+        "max_direction_error": 1.4507070345400185e-12,
+        "query_signal": 3.2501681843606747e-06,
+        "full_forward_maxabs": 0,
+        "live_capture_record_match": true,
+        "recomputation": {
+          "bitwise_equal": true,
+          "maxabs": 0.0,
+          "acceptance_gate": false,
+          "reason": "Graph replay can differ by FP32 accumulation order; actual total captured before Adam"
+        }
+      }
+    ],
+    "scope": "Two early episodes/eight fixedphi directions with independent optimizer/policy reference; shared productionGi/query; not full97D/alltraining qualification or ADgain",
+    "source_python_hashes_match_bundle": true,
+    "worker_seconds": 89.03075787399996
+  }
+}

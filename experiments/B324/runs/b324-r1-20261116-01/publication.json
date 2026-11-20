@@ -1,0 +1,201 @@
+{
+  "schema": "b324_receipt_v1",
+  "derived_from": {
+    "record": "receipt.json",
+    "sha256": "cd74ab33287f4844a4505afaeb7126de02716a3362775523bf4f3920a7d3c774"
+  },
+  "derivation": "Public projection of the original closed receipt. Removed: execution-platform bookkeeping (job and account identifiers, provider status, local storage paths, operational notes). All remaining values are copied unchanged.",
+  "experiment": "B324",
+  "job": "r1",
+  "seed": 1,
+  "run_id": "b324-r1-20261116-01",
+  "version": 1,
+  "workload_status": "COMPLETE_REVIEW_PENDING",
+  "source": {
+    "git_commit": "53aa9f03a1768cdf7b9d50e36a5a4e81321b8c2d",
+    "source_zip_sha256": "55f790c82d7af14854dc82a1ea02023f7ce12fe399309d98ecd622588312ccc0",
+    "manifest_sha256": "745d1742feaafcf45c160c41f48349c039aebaa63c62e998a9a63b3de3a8fff0"
+  },
+  "whole_job_seconds": 7565.982464623,
+  "gpus": [
+    "Tesla T4",
+    "Tesla T4"
+  ],
+  "exit_codes": {
+    "q0": 0,
+    "raw1": 0
+  },
+  "pytest_gate": "PASSED",
+  "label": "REPLICATED",
+  "rule": {
+    "final_pixel_AP_gain_min": 0.005,
+    "raw1_macro_Facq_max": 0.01
+  },
+  "checks": {
+    "optimizer_steps": {
+      "q0": 3629,
+      "raw1": 3629
+    },
+    "committed": {
+      "q0": 3629,
+      "raw1": 3629
+    },
+    "extra_updates": {
+      "q0": 0,
+      "raw1": 0
+    },
+    "boundaries": {
+      "q0": 15,
+      "raw1": 15
+    },
+    "seed": {
+      "q0": 1,
+      "raw1": 1
+    },
+    "initial_sha256_equal": true,
+    "reservoir_capacity": {
+      "q0": 24,
+      "raw1": 328
+    },
+    "replay_memory_bytes": {
+      "q0": 14751744,
+      "raw1": 154432320
+    },
+    "tracebacks_in_log": 0
+  },
+  "q0": {
+    "final_macro_pixel_AP": 0.6038516346856728,
+    "final_macro_image_AUROC": 0.9759268125824789,
+    "macro_acquisition_pixel_AP": 0.6300220196809366,
+    "macro_Fmax": 0.05242304057228626,
+    "macro_Facq": 0.028039698209211178
+  },
+  "raw1": {
+    "final_macro_pixel_AP": 0.6292509520069053,
+    "final_macro_image_AUROC": 0.9861170519908036,
+    "macro_acquisition_pixel_AP": 0.6285125735989506,
+    "macro_Fmax": 0.01929915835316765,
+    "macro_Facq": -0.0007911197228086531
+  },
+  "raw1_minus_q0": {
+    "final_macro_pixel_AP": 0.025399317321232462,
+    "final_macro_image_AUROC": 0.010190239408324642,
+    "macro_acquisition_pixel_AP": -0.001509446081985999,
+    "macro_Fmax": -0.033123882219118606,
+    "macro_Facq": -0.02883081793201983
+  },
+  "historical_screen": {
+    "pixel_AP_gain_met": true,
+    "pixel_AP_floor_violations": [
+      "carpet",
+      "tile",
+      "toothbrush"
+    ],
+    "image_AUROC_floor_violations": [
+      "toothbrush"
+    ]
+  },
+  "category_pixel_AP_delta": {
+    "bottle": -0.002554197451807627,
+    "cable": 0.09993126077310138,
+    "capsule": 0.017723195883538545,
+    "carpet": -0.03302199686361107,
+    "grid": 0.04280200190032846,
+    "hazelnut": 0.023420233532900125,
+    "leather": 0.023027788763499535,
+    "metal_nut": 0.0479369873051978,
+    "pill": 0.04950582658758629,
+    "screw": 0.1385365340541519,
+    "tile": -0.03563028564199178,
+    "toothbrush": -0.04529279763450378,
+    "transistor": 0.0260480764206395,
+    "wood": 0.015495642411946009,
+    "zipper": 0.013061489777511981
+  },
+  "category_image_AUROC_delta": {
+    "bottle": 0.0,
+    "cable": 0.05640929535232375,
+    "capsule": 0.005584363781412027,
+    "carpet": 0.0,
+    "grid": 0.0008354218880534114,
+    "hazelnut": 0.00035714285714272265,
+    "leather": 0.0,
+    "metal_nut": 0.0,
+    "pill": 0.003818876159301765,
+    "screw": 0.10145521623283471,
+    "tile": 0.0,
+    "toothbrush": -0.019444444444444375,
+    "transistor": 0.002083333333333326,
+    "wood": 0.0017543859649122862,
+    "zipper": 0.0
+  },
+  "arm_seconds": {
+    "q0": 7295.244662036001,
+    "raw1": 7074.0718683039995
+  },
+  "timing": {
+    "q0": {
+      "encoder_seconds": 1817.7907432750342,
+      "observer_seconds": 3028.5756137100007,
+      "checkpoint_seconds": 4.31515754999964,
+      "replay_encoder_seconds": 823.9195400530098
+    },
+    "raw1": {
+      "encoder_seconds": 1819.010568016007,
+      "observer_seconds": 3031.5338471079986,
+      "checkpoint_seconds": 6.284806437000043,
+      "replay_encoder_seconds": 782.392380016008
+    }
+  },
+  "counters": {
+    "q0": {
+      "encoder": 17579,
+      "support_forwards": 18127,
+      "optimizer": 3629,
+      "replay_encoder": 14498,
+      "extra_updates": 0
+    },
+    "raw1": {
+      "encoder": 17579,
+      "support_forwards": 18127,
+      "optimizer": 3629,
+      "replay_encoder": 14498,
+      "extra_updates": 0
+    }
+  },
+  "peak_VRAM_allocated_bytes": {
+    "q0": 1793645056,
+    "raw1": 1793645056
+  },
+  "not_retrieved": "score tensors/archives and checkpoints remain on Kaggle output; only JSON/JSONL and logs were fetched",
+  "files": {
+    "q0/study.json": {
+      "sha256": "0f3608ad0f6180453d4fcb83db25613b30c17c32659587e62c9d6c9c4a8d01a1",
+      "bytes": 5772853
+    },
+    "q0/events.jsonl": {
+      "sha256": "4c43237eb3bb6be0c1c8f6487d9b471407376bbb858f046540394509bed37e34",
+      "bytes": 5377434
+    },
+    "raw1/study.json": {
+      "sha256": "dc81f4f515769875fbc5353a37ca0b8c50947857f7208805d19dab21ff25e88f",
+      "bytes": 5855428
+    },
+    "raw1/events.jsonl": {
+      "sha256": "90b7b1d9dcb6c16a77ccc6624efcb2d0abb8c12205f340dc4aab3aa8355db0fb",
+      "bytes": 5680604
+    },
+    "RUN_STATUS.json": {
+      "sha256": "3d309ec15a57f4beae7fcf607e22939ae58d60eb440f8970e11c5d06a9b94913",
+      "bytes": 360
+    },
+    "result.json": {
+      "sha256": "57fa760de29c5b4eb084bb5fbf7fd30f5b5b7d5a69ec34a2bd56d3b1ce349ab5",
+      "bytes": 321
+    },
+    "logs/v1/execution.log": {
+      "sha256": "b139e3aeab90cd33fdb4d7a274084f603f6892db8775b664b8ab0bae6d169c03",
+      "bytes": 261669
+    }
+  }
+}

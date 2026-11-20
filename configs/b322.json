@@ -1,0 +1,31 @@
+{
+  "experiment": "B322",
+  "base_recipe": "configs/b319.json",
+  "base_recipe_sha256": "584507260bdf0ed35d137b0fefd376c27b9be713a93252227586eb040d06a78c",
+  "seed": 0,
+  "arm": "er_uniform",
+  "shadow": {
+    "taus": [
+      512,
+      128
+    ],
+    "primary": 512,
+    "secondary": 128
+  },
+  "gate": {
+    "final_pixel_AP_gain_min": 0.005,
+    "Fmax_reduction_min": 0.01,
+    "acquisition_macro_drop_max": 0.01,
+    "acquisition_category_drop_max": 0.03,
+    "final_image_AUROC_drop_max": 0.005
+  },
+  "historical_screen": {
+    "pixel_AP_gain_min": 0.005,
+    "category_pixel_AP_delta_min": -0.01,
+    "category_image_AUROC_delta_min": -0.005
+  },
+  "caps_status": "APPROVED",
+  "caps": {
+    "per_arm_seconds": 14400
+  }
+}

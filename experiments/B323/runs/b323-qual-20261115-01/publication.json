@@ -1,0 +1,27 @@
+{
+  "schema": "b323_receipt_v1",
+  "derived_from": {
+    "record": "receipt.json",
+    "sha256": "5ee7d14d835d3135dced4f0bc7fd043151284eb695b713a38d0ec7cc84b236f2"
+  },
+  "derivation": "Public projection of the original closed receipt. Removed: execution-platform bookkeeping (job and account identifiers, provider status, local storage paths, operational notes). All remaining values are copied unchanged.",
+  "experiment": "B323",
+  "kind": "qualification",
+  "run_id": "b323-qual-20261115-01",
+  "version": 1,
+  "workload_status": "FAILED",
+  "seconds": 58.08,
+  "source": {
+    "git_commit": "d8ffcf769708a4cea2d4655a5fe57447f4ba07a6",
+    "source_zip_sha256": "8f866ba140888dd187578cb646509b3113a8c7aaf20f5ad672e4da76ca50954f",
+    "manifest_sha256": "58ac2bc99c75a5a633b3c5274c86b232eb7c7106de240e53d377a8683496c305"
+  },
+  "failure": "CPU test step ran tests/test_shadow_pilot.py (copied from the B322 notebook), which reads configs/b322.json at import; the B323 bundle does not contain it. Failed after pixi install, before any data, GPU or training. No measurement produced.",
+  "fix": "B323 notebooks run only tests/test_anchor_pilot.py; a packaging test now imports every notebook test file from an isolated bundle.",
+  "files": {
+    "logs/v1/execution.log": {
+      "sha256": "3492c8e245c2bdca22babb019840337cdcc0f17e64924417be7d6c427b2dff9a",
+      "bytes": 5659
+    }
+  }
+}

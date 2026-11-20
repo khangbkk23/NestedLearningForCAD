@@ -81,3 +81,34 @@ sau fast-update consistency probes.
 làm tròn FP32 hoặc higher-order oracle. Xem B317 card cho qualification và
 actual-episode gaps. Không tự chuyển qualification của source/bundle cũ sang code
 đã đổi namespace/runtime. `COMPLETE_REVIEW_PENDING` khác scientific acceptance.
+
+## B321 khác B319 ở đâu
+
+Các mục trên mô tả B319. B321 là biến thể grouped, chạy qua
+[configs/b321.json](../configs/b321.json) và [scripts/budget_train.py](../scripts/budget_train.py);
+thiết kế, giới hạn và kết quả ở [card B321](../experiments/B321/card.md). Dưới đây là mô tả
+vai trò sau khi đọc source, không phải audit hành vi.
+
+- **Lịch update:** 667 update/task, không còn một fast step mỗi arrival. Stage 1 lấy 16
+  current mỗi batch, chưa replay. Từ stage 2 mỗi batch có 8 current và 8 replay phân biệt,
+  chia hai nhóm bốn support (`Batches` và `Schedule.reserve`).
+- **Loss khi có replay:** mỗi current mang hệ số `0.5/số_current`, mỗi replay mang `0.25·w`,
+  tức hai nhóm bốn; ở uniform `w=0.25` tổng replay bằng 0.5. Khi không có replay (stage 1),
+  current mang `1/số_current` (`Learner.step`). Công thức B319
+  `0.5·current + 0.5·Σ(w_i·replay_i)` không áp dụng nguyên cho B321.
+- **Controller:** chỉ arm learned có controller; trọng số học chỉ dùng khi batch đủ điều
+  kiện, nếu không dùng 0.25 đều. Query gồm 2 recent + 2 historical, slow step mỗi 16
+  eligible batch.
+- **Checkpoint và resume:** B321 có checkpoint theo update
+  ([budget_checkpoint.py](../scripts/budget_checkpoint.py)) mà B319 chưa có. Qualification
+  native resume (run `b321-resume-qual-20261114-02`, version 4) chỉ là tổng hợp và có phạm
+  vi hẹp; không coi là qualification cho run thật.
+
+## B322–B324
+
+Ba thí nghiệm sau B321 giữ recipe B319 (một fast update mỗi arrival) và thử ba cơ chế
+khác nhau: readout bằng trung bình trọng số theo thời gian (B322), neo hàm số về một
+bản sao decoder chụp ở mỗi boundary (B323), và đổi định dạng bộ nhớ replay sang ảnh
+đầu vào uint8 rồi so lịch cập nhật hai tần số với lịch phẳng (B324). Định nghĩa chính xác
+ở card [B322](../experiments/B322/card.md), [B323](../experiments/B323/card.md),
+[B324](../experiments/B324/card.md).

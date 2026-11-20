@@ -1,0 +1,58 @@
+{
+  "schema": "development_terminal_import_v1",
+  "derived_from": {
+    "record": "receipt.json",
+    "sha256": "a16436124267d3ef8f717bdb2c29e701d2e2cf844da6ef024d158df173e3168a"
+  },
+  "derivation": "Public projection of the original closed receipt. Removed: execution-platform bookkeeping (job and account identifiers, provider status, local storage paths, operational notes). All remaining values are copied unchanged.",
+  "experiment": "B321",
+  "producer_status": "PREFLIGHT_INSUFFICIENT_CAP",
+  "source_commit": "379b9bccd037bd5fce7af74635c2ddce71eb2f80",
+  "source_bundle_sha256_declared": "0878e47019662d27facbaa8f3b685cebecdffcbf3555f1351e944b1c1dcbc998",
+  "bundle_hash_scope": "Prelaunch verified local bundle; not rehashed in this audit",
+  "producer_result": {
+    "sha256_observed": "d4afc6f4332190aea3ea5ab92b2e9895947e428ba0e6929df85650c88dec7caf",
+    "bytes": 8445,
+    "source_fidelity": "exact_bytes",
+    "verification": "SDK exactversion1 download and observed local hash; no remote authenticity signature claim"
+  },
+  "raw_artifacts_downloaded": false,
+  "historical_receipts_modified": false,
+  "scope_result": {
+    "full_training_started": false,
+    "scientific_arm_updates": 0,
+    "synthetic_preflight_commits": 6,
+    "composition": "PASS_SCOPED",
+    "batch_parity": {
+      "status": "PASS_SCOPED",
+      "loss_batch": 1.0005717277526855,
+      "loss_serial": 1.0005716681480408,
+      "gradient_relative_L2": 9.005070513490786e-07,
+      "relative_L2_limit": 0.0002,
+      "scope": "Full actual decoder, fixed synthetic four-image batch, dropout off; not optimizer-update equivalence across batch kernels or all inputs"
+    },
+    "measurements": {
+      "ER_batch_seconds": 1.7680299380000406,
+      "primary_ordinary_seconds": 2.0502826020000384,
+      "primary_due_seconds": 6.5383770479999725,
+      "encoder_image_seconds": 0.12294370900002605,
+      "readout_image_seconds": 0.1298346160000392,
+      "serialization_image_seconds": 0.01137666699997908,
+      "rank_maxclass_seconds": 2.615358890999971,
+      "checkpoint_seconds": 6.525694570999974,
+      "checkpoint_bytes": 982851288,
+      "profiled_commits": 6
+    },
+    "projection": {
+      "training": 40818.776024718754,
+      "cache": 892.325439922189,
+      "evaluation": 7997.61041064123,
+      "remaining_with_margin_export": 61481.77758427941,
+      "remaining_whole_cap": 41337.374830556,
+      "observations_per_arm": 13950,
+      "margin_fraction": 0.2,
+      "export_reserve_seconds": 1800
+    },
+    "worker_seconds": 62.63599755200005
+  }
+}

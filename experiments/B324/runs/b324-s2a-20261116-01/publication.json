@@ -1,0 +1,149 @@
+{
+  "schema": "b324_receipt_v1",
+  "derived_from": {
+    "record": "receipt.json",
+    "sha256": "064ecf1f2bd5f97965b92deed3917478a7051ddd97db4d988c9dde4121db5506"
+  },
+  "derivation": "Public projection of the original closed receipt. Removed: execution-platform bookkeeping (job and account identifiers, provider status, local storage paths, operational notes). All remaining values are copied unchanged.",
+  "experiment": "B324",
+  "job": "s2a",
+  "seed": 0,
+  "run_id": "b324-s2a-20261116-01",
+  "version": 1,
+  "workload_status": "COMPLETE_REVIEW_PENDING",
+  "source": {
+    "git_commit": "f9ba408ed601df4061b4bc27ad840846b9c75ae8",
+    "source_zip_sha256": "3fbe5f2de7c1ee6ad5a0d0ed5e828429bc3edf156fb3cffee0ec7c8fd3048bd4",
+    "manifest_sha256": "f845afd321c43f7f001b9e13f08ea4ceb7b9047d3d823e91d619a1489b57c398"
+  },
+  "whole_job_seconds": 14913.078613441,
+  "gpus": [
+    "Tesla T4",
+    "Tesla T4"
+  ],
+  "exit_codes": {
+    "flat": 0,
+    "nested": 0
+  },
+  "pytest_gate": "PASSED",
+  "checks": {
+    "optimizer_steps": {
+      "flat": 10887,
+      "nested": 10887
+    },
+    "extra_updates": {
+      "flat": 7258,
+      "nested": 7258
+    },
+    "boundaries": {
+      "flat": 15,
+      "nested": 15
+    },
+    "memory_trajectory_equal": true,
+    "replay_memory_bytes": {
+      "flat": 154432320,
+      "nested": 154432320
+    }
+  },
+  "flat": {
+    "final_macro_pixel_AP": 0.6459735632254774,
+    "final_macro_image_AUROC": 0.9883989389201608,
+    "macro_acquisition_pixel_AP": 0.6377594728164991,
+    "macro_Fmax": 0.011707207296132924,
+    "macro_Facq": -0.008800811152476797
+  },
+  "nested": {
+    "final_macro_pixel_AP": 0.6459204010409926,
+    "final_macro_image_AUROC": 0.9859289449616553,
+    "macro_acquisition_pixel_AP": 0.6266222717724288,
+    "macro_Fmax": 0.014275957962884778,
+    "macro_Facq": -0.020676567073461136
+  },
+  "nested_minus_flat": {
+    "final_pixel_AP_gain": -5.31621844848118e-05,
+    "worst_category_delta": -0.033358964713043227,
+    "final_image_AUROC_delta": -0.0024699939585055564,
+    "acquisition_macro_delta": -0.011137201044070344,
+    "Fmax_reduction": -0.0025687506667518532
+  },
+  "floor_violations": [
+    "carpet",
+    "pill",
+    "toothbrush",
+    "transistor"
+  ],
+  "arm_seconds": {
+    "flat": 14623.939111718,
+    "nested": 14477.145729191001
+  },
+  "timing": {
+    "flat": {
+      "encoder_seconds": 1735.9299524368294,
+      "observer_seconds": 3000.2964857629977,
+      "checkpoint_seconds": 5.056981330999406,
+      "replay_encoder_seconds": 2512.351992071069
+    },
+    "nested": {
+      "encoder_seconds": 1721.1473031219875,
+      "observer_seconds": 2959.295901030995,
+      "checkpoint_seconds": 6.459984720000648,
+      "replay_encoder_seconds": 2747.37885616688
+    }
+  },
+  "counters": {
+    "flat": {
+      "encoder": 17579,
+      "support_forwards": 54397,
+      "optimizer": 10887,
+      "replay_encoder": 43510,
+      "extra_updates": 7258
+    },
+    "nested": {
+      "encoder": 17579,
+      "support_forwards": 54417,
+      "optimizer": 10887,
+      "replay_encoder": 50788,
+      "extra_updates": 7258
+    }
+  },
+  "peak_VRAM_allocated_bytes": {
+    "flat": 1797513216,
+    "nested": 1793645568
+  },
+  "peak_host_RSS_bytes": {
+    "flat": 2749005824,
+    "nested": 2766835712
+  },
+  "label_note": "the S2 label needs both seeds; see experiments/B324/analyses/S2-structure",
+  "not_retrieved": "score tensors/archives and checkpoints remain on Kaggle output; only JSON/JSONL and logs were fetched",
+  "files": {
+    "flat/study.json": {
+      "sha256": "53dd190964c08fe780b1e2b431a230e28e618f2725365a83e9117d11db89823e",
+      "bytes": 5855424
+    },
+    "flat/events.jsonl": {
+      "sha256": "bc85a5cdcedd93241bb4a9967e175683470ed99329613c1ddce9e1b650eee4e2",
+      "bytes": 5682433
+    },
+    "nested/study.json": {
+      "sha256": "fd14f6570bdae74a84a48a678de43279a071e42f80ea8739be78cbd2e5724f4c",
+      "bytes": 5855488
+    },
+    "nested/events.jsonl": {
+      "sha256": "346a8513d4d4878bcb8d66f90622f5c2533ae03c9e08a7c19d8a9fa50c80cd54",
+      "bytes": 5683416
+    },
+    "RUN_STATUS.json": {
+      "sha256": "6726930bb9f7955b354caacf537c4b8e45c14579fda85bf53b8ac737eb57027a",
+      "bytes": 362
+    },
+    "result.json": {
+      "sha256": "30838baf3b635f049c3c5554976685b50f29a31a32c43913332bca05ec5b2fe6",
+      "bytes": 330
+    },
+    "logs/v1/execution.log": {
+      "sha256": "2ee505cb3ad9863d2573ae98ec43a2b4ba60733488b5eb7fb51a2108af8e710e",
+      "bytes": 269611
+    }
+  }
+}

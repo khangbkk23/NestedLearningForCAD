@@ -1,0 +1,75 @@
+{
+  "metric_version": "B324-coverage-v1",
+  "experiment": "B324",
+  "job": "r1",
+  "seed": 1,
+  "label": "REPLICATED",
+  "delta_sign": "raw1 minus q0 (ER 32 in uint8 form), same job",
+  "q0": {
+    "final_macro_pixel_AP": 0.6038516346856728,
+    "final_macro_image_AUROC": 0.9759268125824789,
+    "macro_acquisition_pixel_AP": 0.6300220196809366,
+    "macro_Fmax": 0.05242304057228626,
+    "macro_Facq": 0.028039698209211178
+  },
+  "raw1": {
+    "final_macro_pixel_AP": 0.6292509520069053,
+    "final_macro_image_AUROC": 0.9861170519908036,
+    "macro_acquisition_pixel_AP": 0.6285125735989506,
+    "macro_Fmax": 0.01929915835316765,
+    "macro_Facq": -0.0007911197228086531
+  },
+  "raw1_minus_q0": {
+    "final_macro_pixel_AP": 0.025399317321232462,
+    "final_macro_image_AUROC": 0.010190239408324642,
+    "macro_acquisition_pixel_AP": -0.001509446081985999,
+    "macro_Fmax": -0.033123882219118606,
+    "macro_Facq": -0.02883081793201983
+  },
+  "category_pixel_AP_delta": {
+    "bottle": -0.002554197451807627,
+    "cable": 0.09993126077310138,
+    "capsule": 0.017723195883538545,
+    "carpet": -0.03302199686361107,
+    "grid": 0.04280200190032846,
+    "hazelnut": 0.023420233532900125,
+    "leather": 0.023027788763499535,
+    "metal_nut": 0.0479369873051978,
+    "pill": 0.04950582658758629,
+    "screw": 0.1385365340541519,
+    "tile": -0.03563028564199178,
+    "toothbrush": -0.04529279763450378,
+    "transistor": 0.0260480764206395,
+    "wood": 0.015495642411946009,
+    "zipper": 0.013061489777511981
+  },
+  "category_image_AUROC_delta": {
+    "bottle": 0.0,
+    "cable": 0.05640929535232375,
+    "capsule": 0.005584363781412027,
+    "carpet": 0.0,
+    "grid": 0.0008354218880534114,
+    "hazelnut": 0.00035714285714272265,
+    "leather": 0.0,
+    "metal_nut": 0.0,
+    "pill": 0.003818876159301765,
+    "screw": 0.10145521623283471,
+    "tile": 0.0,
+    "toothbrush": -0.019444444444444375,
+    "transistor": 0.002083333333333326,
+    "wood": 0.0017543859649122862,
+    "zipper": 0.0
+  },
+  "historical_screen": {
+    "pixel_AP_gain_met": true,
+    "pixel_AP_floor_violations": [
+      "carpet",
+      "tile",
+      "toothbrush"
+    ],
+    "image_AUROC_floor_violations": [
+      "toothbrush"
+    ]
+  },
+  "note": "replication of the S1 comparison; seed 0 compared raw1 with the recorded B319 ER across jobs"
+}

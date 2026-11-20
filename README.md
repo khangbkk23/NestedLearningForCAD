@@ -4,8 +4,10 @@
 
 Gói nghiên cứu của Tài về **learned replay cho continual anomaly detection**:
 encoder DINOv2 frozen, decoder Dinomaly trainable, memory features và controller
-học trọng số replay. Workload được hỗ trợ hiện tại là **B319 seed 0**, ba arms
-`er_uniform`, `a0_tail`, `a0_tail_ctx`.
+học trọng số replay. Workload được hỗ trợ là **B319 seed 0**, ba arms
+`er_uniform`, `a0_tail`, `a0_tail_ctx`, và các thí nghiệm tiếp theo **B320–B324**
+(xem [index](experiments/README.md)). Phần B320–B324 bổ sung ngày 20/11/2026; xem
+[publication manifest](experiments/history/publication-20261120.json).
 
 Detector có thành phần kế thừa qua Khang và upstream; xem
 [provenance](docs/provenance.md). Worktree này không chứa workflow NL-CAD của
@@ -51,6 +53,11 @@ chưa đạt development screen; MVTec test đã dùng trong phát triển. Stan
 khớp recorded matrices của original trong phạm vi audit. Các đổi namespace,
 environment/tooling về sau không tự kế thừa qualification của bundle cũ.
 Không suy Phase4B closure, paper parity hoặc independent confirmation từ docs.
+
+B320–B324 ([lịch sử](experiments/HISTORY.md)) không đưa ra
+tín hiệu cho bốn cơ chế kiểu Nested Learning trên nền replay; cải thiện đo được đến từ
+replay lưu ảnh đầu vào uint8 (B324: +0,038 và +0,025 Pixel AP ở hai seed), vẫn chưa đạt sàn
+theo category của screen. Tất cả đều exploratory trên MVTec test đã lộ.
 
 Git chứa source và reports nhẹ; datasets, weights, checkpoints, raw scores và
 credentials nằm ngoài Git. Khả năng raw audit phụ thuộc payloads/locators trong

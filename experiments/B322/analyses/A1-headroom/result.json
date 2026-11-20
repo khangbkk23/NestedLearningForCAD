@@ -1,0 +1,212 @@
+{
+  "analysis": "B322-A1-headroom-v1",
+  "status": "exploratory post-hoc, one seed, exposed MVTec test",
+  "fast": {
+    "final_macro_pixel_AP": 0.5983417761459076,
+    "acquisition_macro_pixel_AP": 0.625611192031861,
+    "acquisition_minus_final_macro_15": 0.02726941588595344,
+    "best_boundary_macro_pixel_AP": 0.6416857518720145,
+    "best_boundary_minus_final": 0.04334397572610693,
+    "note": "best-boundary is an optimistic ceiling (per-category max on one seed)"
+  },
+  "forgetting_concentration": {
+    "acquisition_minus_final": {
+      "bottle": -0.005959123329938976,
+      "cable": 0.1320725128757762,
+      "capsule": 0.061771082248507914,
+      "carpet": -0.03436246799221532,
+      "grid": 0.10976189229990635,
+      "hazelnut": 0.046083042424524434,
+      "leather": -0.015704443923472255,
+      "metal_nut": -0.020893721703823753,
+      "pill": 0.017013036419908478,
+      "screw": 0.13261077610119504,
+      "tile": -0.06896631286215038,
+      "toothbrush": -0.044832208778015026,
+      "transistor": 0.039065833676928174,
+      "wood": 0.06138134083217073,
+      "zipper": 0.0
+    },
+    "top3": [
+      "screw",
+      "cable",
+      "grid"
+    ],
+    "top3_share_of_positive_mass": 0.6243255350501967
+  },
+  "backward_transfer": {
+    "carpet": -0.03436246799221532,
+    "leather": -0.015704443923472255,
+    "metal_nut": -0.020893721703823753,
+    "tile": -0.06896631286215038,
+    "toothbrush": -0.044832208778015026
+  },
+  "oracle_readout_choice_at_final": {
+    "macro_pixel_AP": 0.6127839779177215,
+    "note": "per-category choice among the three readouts; needs the task identity"
+  },
+  "shadow_minus_fast_on_old_tasks": {
+    "ema512": {
+      "by_age_in_boundaries": {
+        "0": {
+          "mean": -0.18719934693792994,
+          "cells": 15
+        },
+        "1": {
+          "mean": -0.07092597471964839,
+          "cells": 14
+        },
+        "2": {
+          "mean": -0.03366157753688888,
+          "cells": 13
+        },
+        "3": {
+          "mean": -0.011469737122391466,
+          "cells": 12
+        },
+        "4": {
+          "mean": -0.010280221210484764,
+          "cells": 11
+        },
+        "5": {
+          "mean": 0.001483132977008811,
+          "cells": 10
+        },
+        "6": {
+          "mean": -0.0039051906362723276,
+          "cells": 9
+        },
+        "7": {
+          "mean": 0.0034104677479800116,
+          "cells": 8
+        },
+        "8": {
+          "mean": 0.009610677535856062,
+          "cells": 7
+        },
+        "9": {
+          "mean": 0.011292769134033135,
+          "cells": 6
+        },
+        "10": {
+          "mean": 0.0037344002976122505,
+          "cells": 5
+        },
+        "11": {
+          "mean": 0.0023798845105094946,
+          "cells": 4
+        },
+        "12": {
+          "mean": 0.005570401803977961,
+          "cells": 3
+        },
+        "13": {
+          "mean": 0.0040889115468780435,
+          "cells": 2
+        },
+        "14": {
+          "mean": 0.0022490047278778125,
+          "cells": 1
+        }
+      },
+      "pooled": {
+        "age>=1": {
+          "mean": -0.01413289663326026,
+          "share_positive": 0.38095238095238093,
+          "cells": 105
+        },
+        "age>=2": {
+          "mean": -0.005395500004585164,
+          "share_positive": 0.4175824175824176,
+          "cells": 91
+        },
+        "age>=3": {
+          "mean": -0.0006844870825345447,
+          "share_positive": 0.47435897435897434,
+          "cells": 78
+        }
+      }
+    },
+    "ema128": {
+      "by_age_in_boundaries": {
+        "0": {
+          "mean": -0.01260818018877918,
+          "cells": 15
+        },
+        "1": {
+          "mean": 0.003919246820979986,
+          "cells": 14
+        },
+        "2": {
+          "mean": -0.001637278102519107,
+          "cells": 13
+        },
+        "3": {
+          "mean": 0.005387893197003747,
+          "cells": 12
+        },
+        "4": {
+          "mean": 0.002738985125001082,
+          "cells": 11
+        },
+        "5": {
+          "mean": 0.0059829940646173195,
+          "cells": 10
+        },
+        "6": {
+          "mean": 0.0005325341845732807,
+          "cells": 9
+        },
+        "7": {
+          "mean": 0.005614177970169047,
+          "cells": 8
+        },
+        "8": {
+          "mean": 0.005025502835648787,
+          "cells": 7
+        },
+        "9": {
+          "mean": 1.0834094215132298e-05,
+          "cells": 6
+        },
+        "10": {
+          "mean": -0.001952151064862806,
+          "cells": 5
+        },
+        "11": {
+          "mean": 0.0007516712830846622,
+          "cells": 4
+        },
+        "12": {
+          "mean": 0.0009953108432516438,
+          "cells": 3
+        },
+        "13": {
+          "mean": 0.0007848220996895805,
+          "cells": 2
+        },
+        "14": {
+          "mean": 0.0015797930729550824,
+          "cells": 1
+        }
+      },
+      "pooled": {
+        "age>=1": {
+          "mean": 0.0025955180094634233,
+          "share_positive": 0.6190476190476191,
+          "cells": 105
+        },
+        "age>=2": {
+          "mean": 0.00239186742307626,
+          "share_positive": 0.6043956043956044,
+          "cells": 91
+        },
+        "age>=3": {
+          "mean": 0.0030633916773421545,
+          "share_positive": 0.6538461538461539,
+          "cells": 78
+        }
+      }
+    }
+  }
+}

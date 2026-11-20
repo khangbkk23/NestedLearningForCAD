@@ -1,0 +1,146 @@
+{
+  "schema": "b324_receipt_v1",
+  "derived_from": {
+    "record": "receipt.json",
+    "sha256": "88d0b6cbc61a246f8d3ce11749aead05fb47eaf2821d9c3916adaf0333f1e9fb"
+  },
+  "derivation": "Public projection of the original closed receipt. Removed: execution-platform bookkeeping (job and account identifiers, provider status, local storage paths, operational notes). All remaining values are copied unchanged.",
+  "experiment": "B324",
+  "job": "s1",
+  "run_id": "b324-s1-20261116-01",
+  "version": 1,
+  "workload_status": "COMPLETE_REVIEW_PENDING",
+  "source": {
+    "git_commit": "8ee36fb080f2e913c0c7e7f15f2f931cb10e5136",
+    "source_zip_sha256": "b2ee2dc3f629341ef56fe111085f9114bcdaa8fc883d41b76787ae8243683e8b",
+    "manifest_sha256": "e9d49c6b6de3ecab5d92cbcc30a4c001780958f381908c3cf346a6b009a3c90f"
+  },
+  "whole_job_seconds": 11193.73,
+  "gpus": [
+    "Tesla T4",
+    "Tesla T4"
+  ],
+  "exit_codes": {
+    "raw1": 0,
+    "iid": 0
+  },
+  "pytest_gate": "PASSED",
+  "label": "COVERAGE_SUPPORTED",
+  "raw1": {
+    "final_macro_pixel_AP": 0.6362113912929269,
+    "final_macro_image_AUROC": 0.9828834575881208,
+    "macro_acquisition_pixel_AP": 0.6282489457989832,
+    "macro_Fmax": 0.010794095992442172,
+    "macro_Facq": -0.008531191600654122
+  },
+  "er32_reference": {
+    "final_macro_pixel_AP": 0.5983417761459076,
+    "final_macro_image_AUROC": 0.9675748713436193,
+    "macro_acquisition_pixel_AP": 0.625611192031861,
+    "macro_Fmax": 0.04569927120285631,
+    "macro_Facq": 0.029217231306378686
+  },
+  "raw1_minus_er32": {
+    "final_macro_pixel_AP": 0.037869615147019364,
+    "final_macro_image_AUROC": 0.015308586244501488,
+    "macro_acquisition_pixel_AP": 0.002637753767122164,
+    "macro_Fmax": -0.034905175210414134,
+    "macro_Facq": -0.03774842290703281
+  },
+  "iid_reference": {
+    "final_macro_pixel_AP": 0.6425651486092379,
+    "final_macro_image_AUROC": 0.9904297393782368,
+    "categories": 15,
+    "note": "same learner and budget as flat on a shuffled stream; not Dinomaly joint training"
+  },
+  "counters": {
+    "raw1": {
+      "encoder": 17579,
+      "support_forwards": 18127,
+      "optimizer": 3629,
+      "replay_encoder": 14498,
+      "extra_updates": 0
+    },
+    "iid": {
+      "encoder": 5354,
+      "support_forwards": 54397,
+      "optimizer": 10887,
+      "replay_encoder": 43510,
+      "extra_updates": 7258
+    }
+  },
+  "arm_seconds": {
+    "raw1": 6726.856347387,
+    "iid": 10850.261748410001
+  },
+  "timing": {
+    "raw1": {
+      "encoder_seconds": 1681.0940521499447,
+      "observer_seconds": 2823.8777796960003,
+      "checkpoint_seconds": 5.7838089480001145,
+      "replay_encoder_seconds": 760.2971435989635
+    },
+    "iid": {
+      "encoder_seconds": 467.93241223596624,
+      "observer_seconds": 245.94080251500054,
+      "checkpoint_seconds": 4.968230946999029,
+      "replay_encoder_seconds": 2314.732716800014
+    }
+  },
+  "replay_memory_bytes": {
+    "raw1": 154432320,
+    "iid": 154432320
+  },
+  "peak_VRAM_allocated_bytes": {
+    "raw1": 1793645056,
+    "iid": 1797513216
+  },
+  "peak_host_RSS_bytes": {
+    "raw1": 2744631296,
+    "iid": 2666487808
+  },
+  "checks": {
+    "raw1_optimizer_steps": true,
+    "iid_optimizer_steps": true,
+    "iid_extra_updates": true,
+    "iid_observers": 1,
+    "raw1_boundaries": 15
+  },
+  "not_retrieved": "score tensors/archives and checkpoints remain on Kaggle output; only JSON/JSONL and logs were fetched",
+  "note": "cross-job comparison with ER 32 is descriptive; iid is not Dinomaly joint training",
+  "files": {
+    "raw1/study.json": {
+      "sha256": "83482a38261640a4221209cbd43a2245322fdbb22a5fab2d9ebef2987a7aee0d",
+      "bytes": 5855400
+    },
+    "raw1/events.jsonl": {
+      "sha256": "d07786e45bc302c61afe75940e6a28612251329e723399c17ea1bf548ca65e15",
+      "bytes": 5680503
+    },
+    "iid/study.json": {
+      "sha256": "a2f5b1a8108c41bdd5c5d7b05fb776eef86a4e9bd6244d2b0de1643aced3726e",
+      "bytes": 811318
+    },
+    "iid/events.jsonl": {
+      "sha256": "0f9df712125c288fbb00d2a29b1cff6ffa2f291f2e36139946b61a753bcb5bc2",
+      "bytes": 5680970
+    },
+    "RUN_STATUS.json": {
+      "sha256": "d8a6eb0270cedfdd97c769da32f0dba6345eedbd1c83e9f3b4b157826cfd44cc",
+      "bytes": 360
+    },
+    "result.json": {
+      "sha256": "75e612989b4ee61203f4038f762db683afdf2784795699d872066b4a57e3c304",
+      "bytes": 323
+    },
+    "logs/setup/pytest-test_science.log": {
+      "sha256": "9a09e19adfe2e7d4032649a18acfbeea05358578b88323bffe7f1ca7e897ffab",
+      "bytes": 226
+    },
+    "logs/v1/execution.log": {
+      "sha256": "fdc70a8fc839bda19386f0e955113cb4e5af46199d781400e5b58c496bbf57ac",
+      "bytes": 175765
+    }
+  },
+  "analysis_source_sha256": "81c9ff9524239e9ec7c11fdb230377e73191380ea5ea1a3c307c5f98628d8834"
+}

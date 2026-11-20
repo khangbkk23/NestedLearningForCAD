@@ -18,10 +18,35 @@ CHUNK_TARGET_BYTES = 1024**3
 
 
 def census(root):
-    root = Path(root).resolve()
-    return sum(
-        p.stat().st_size for p in root.rglob("*") if p.is_file() and not p.is_symlink()
-    )
+    """Best-effort live census: tolerate only entries removed during traversal.
+
+    This is an observation, not an atomic filesystem snapshot. Writers must
+    reserve new payload bytes with DiskGuard before allocation. Other I/O and
+    permission errors propagate, and symlinks are never followed.
+    """
+    import stat
+    root = Path(root).resolve(strict=True)
+    total = 0
+    pending = [root]
+    while pending:
+        directory = pending.pop()
+        try:
+            with os.scandir(directory) as entries:
+                for entry in entries:
+                    try:
+                        info = entry.stat(follow_symlinks=False)
+                    except FileNotFoundError:
+                        continue
+                    if stat.S_ISDIR(info.st_mode):
+                        pending.append(Path(entry.path))
+                    elif stat.S_ISREG(info.st_mode):
+                        total += info.st_size
+        except FileNotFoundError:
+            if directory == root:
+                raise
+            # A writer may retire an entire completed scratch directory.
+            continue
+    return total
 
 
 class DiskGuard:

@@ -1,0 +1,217 @@
+{
+  "at": "2026-11-15T02:24:50.809417+00:00",
+  "version": 1,
+  "execution_audit": "PASS_SCOPED_METADATA_AND_MATRIX_RECOMPUTATION",
+  "scientific_screen": "SCREEN_NOT_MET",
+  "whole_seconds": 34051.87895183099,
+  "source_notebook_manifest_and_pair_identity": "MATCH",
+  "arms": {
+    "er_uniform": {
+      "counts": {
+        "optimizer": 10005,
+        "support_forwards": 160080,
+        "current_exposures": 85376,
+        "replay_exposures": 74704,
+        "context_forwards": 0,
+        "query_forwards": 0,
+        "alignment_forwards": 0
+      },
+      "slow_steps": 0,
+      "eligible_batches": 0,
+      "matrix_cells_verified": 480,
+      "score_observations_manifested": 13950,
+      "checkpoint_ledger_records": 21,
+      "score_archive_declared_bytes": 3191426036,
+      "metrics_recomputed": {
+        "final_macro_pixel_AP": 0.555500083420788,
+        "final_macro_image_AUROC": 0.9455229509493557,
+        "macro_Fmax": 0.11281196497378396,
+        "macro_Facq": 0.09678336014513467
+      },
+      "timing": {
+        "training_seconds": 21721.04937521896,
+        "cache_encoder_seconds": 512.7013175539962,
+        "observer_seconds": 3549.3208787460035,
+        "checkpoint_seconds": 312.22057463599936,
+        "whole_arm_seconds": 26234.196757174002
+      },
+      "memory": {
+        "decoder_parameter_elements": 61425408,
+        "decoder_parameters_bytes": 245701632,
+        "decoder_buffers": 0,
+        "replay_unique_records": 32,
+        "replay_features": 155123712,
+        "fast_optimizer_tensors": 737104896,
+        "peak_host_RSS_bytes": 5958721536,
+        "GPU_allocated_bytes": 1401205248,
+        "GPU_reserved_bytes": 1637875712,
+        "GPU_peak_allocated_bytes": 1867741696,
+        "GPU_peak_reserved_bytes": 2019557376,
+        "controller_parameters_bytes": 0,
+        "controller_slow_optimizer_bytes": 0,
+        "encoder_weights_bytes": 346334208
+      }
+    },
+    "a0_tail_ctx": {
+      "counts": {
+        "optimizer": 10005,
+        "support_forwards": 160080,
+        "current_exposures": 85376,
+        "replay_exposures": 74704,
+        "context_forwards": 74704,
+        "query_forwards": 2332,
+        "alignment_forwards": 4664
+      },
+      "slow_steps": 583,
+      "eligible_batches": 9338,
+      "matrix_cells_verified": 480,
+      "score_observations_manifested": 13950,
+      "checkpoint_ledger_records": 21,
+      "score_archive_declared_bytes": 3190721454,
+      "metrics_recomputed": {
+        "final_macro_pixel_AP": 0.5547755161498966,
+        "final_macro_image_AUROC": 0.9460104454506367,
+        "macro_Fmax": 0.11697685242899238,
+        "macro_Facq": 0.09871595615009324
+      },
+      "timing": {
+        "training_seconds": 29905.121151236115,
+        "cache_encoder_seconds": 449.41974846300934,
+        "observer_seconds": 2988.433382365004,
+        "checkpoint_seconds": 298.6064636300057,
+        "whole_arm_seconds": 33771.688408385
+      },
+      "memory": {
+        "decoder_parameter_elements": 61425408,
+        "decoder_parameters_bytes": 245701632,
+        "decoder_buffers": 0,
+        "replay_unique_records": 32,
+        "replay_features": 155123712,
+        "fast_optimizer_tensors": 737104896,
+        "peak_host_RSS_bytes": 7424258048,
+        "GPU_allocated_bytes": 1401205248,
+        "GPU_reserved_bytes": 1637875712,
+        "GPU_peak_allocated_bytes": 2760355328,
+        "GPU_peak_reserved_bytes": 2990538752,
+        "controller_parameters_bytes": 388,
+        "controller_slow_optimizer_bytes": 776,
+        "encoder_weights_bytes": 346334208
+      }
+    }
+  },
+  "gain_pixel_AP": -0.0007245672708914297,
+  "category_differences": {
+    "bottle": {
+      "pixel_AP": -0.0010627985491677983,
+      "image_AUROC": 0.0
+    },
+    "cable": {
+      "pixel_AP": -0.031948507517372604,
+      "image_AUROC": -0.006184407796101854
+    },
+    "capsule": {
+      "pixel_AP": -0.023996896216024965,
+      "image_AUROC": 0.01316314319904277
+    },
+    "carpet": {
+      "pixel_AP": 0.021739794961264436,
+      "image_AUROC": 0.0
+    },
+    "grid": {
+      "pixel_AP": -0.0215719429682385,
+      "image_AUROC": -0.004177109440267279
+    },
+    "hazelnut": {
+      "pixel_AP": 0.005775016517025611,
+      "image_AUROC": -0.00035714285714272265
+    },
+    "leather": {
+      "pixel_AP": 0.01960594182674369,
+      "image_AUROC": 0.0
+    },
+    "metal_nut": {
+      "pixel_AP": 0.0049941652779988965,
+      "image_AUROC": 0.003421309872922773
+    },
+    "pill": {
+      "pixel_AP": -0.006735040412104265,
+      "image_AUROC": 0.009547190398254246
+    },
+    "screw": {
+      "pixel_AP": 0.02197343054250102,
+      "image_AUROC": -0.006558721049395477
+    },
+    "tile": {
+      "pixel_AP": -0.00874996758554969,
+      "image_AUROC": 0.0
+    },
+    "toothbrush": {
+      "pixel_AP": 0.03404089776985092,
+      "image_AUROC": 0.002777777777777768
+    },
+    "transistor": {
+      "pixel_AP": 0.0020957650256323568,
+      "image_AUROC": 0.002083333333333326
+    },
+    "wood": {
+      "pixel_AP": -0.04978207248746924,
+      "image_AUROC": -0.0061403508771930015
+    },
+    "zipper": {
+      "pixel_AP": 0.022753704751538262,
+      "image_AUROC": -0.0002626050420168058
+    }
+  },
+  "floor_violations": {
+    "cable": {
+      "pixel_AP": -0.031948507517372604,
+      "image_AUROC": -0.006184407796101854
+    },
+    "capsule": {
+      "pixel_AP": -0.023996896216024965,
+      "image_AUROC": 0.01316314319904277
+    },
+    "grid": {
+      "pixel_AP": -0.0215719429682385,
+      "image_AUROC": -0.004177109440267279
+    },
+    "screw": {
+      "pixel_AP": 0.02197343054250102,
+      "image_AUROC": -0.006558721049395477
+    },
+    "wood": {
+      "pixel_AP": -0.04978207248746924,
+      "image_AUROC": -0.0061403508771930015
+    }
+  },
+  "provider_file_count": 164,
+  "resources": {
+    "group_RSS_bytes": 44773376,
+    "peak_group_RSS_bytes": 12410691584,
+    "aggregate_CPU_seconds": 79485.2,
+    "processes": 2,
+    "sample_monotonic": 34202.79777078,
+    "peak_worker_RSS_bytes": {
+      "er_uniform": 5958721536,
+      "a0_tail_ctx": 7424258048
+    }
+  },
+  "checks": [
+    "4 matrices480observedcells perarm match snapshots",
+    "macro final performance and signed forgetting independently recomputed",
+    "15 seen-task cohorts/13950observations perarm, same member IDs/GT counts",
+    "21checkpoint ledger records perarm; latest2markers/retention paths present",
+    "source manifest and executed notebook match registered package;version1private",
+    "counts/selection/init/cache identities paired",
+    "RAM/VRAM caps and full completion before11h"
+  ],
+  "numerical_observation": "Six image AP cells (metal_nut,5336/6003/6670,botharms) equal1+oneFP64ULP; preserved verbatim, finalprimary pixelAP/imageAUROC unaffected; not a changed scientific threshold",
+  "limitations": [
+    "Raw score archives and state.pt payload bytes NOT downloaded/CRC-rehashed independently; producer SHA/CRC attestations only",
+    "Metrics independently recomputed from stored per-stage metrics, not from raw pixel tensors/labels",
+    "Full per-update events JSONL exceeds16MiB small-read allowance; bounded GET refused before reading; event-level audit not performed",
+    "One seed, MVTec development already exposed; no confirmatory benefit or exact Khang/paper parity",
+    "No need to resume; checkpoint persistence payload existence observed, cross-session restoration of this actual run NOT tested"
+  ],
+  "new_GPU_jobs": 0
+}

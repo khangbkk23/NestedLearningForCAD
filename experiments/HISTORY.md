@@ -45,6 +45,30 @@ primary CTX cũng không đạt. Standalone khớp recorded matrices/model ident
 của original, không tạo một kết quả thắng mới. Chưa có independent confirmation
 hoặc Phase4B closure từ việc dọn code hay khớp checksum.
 
+## Sau B319: B320–B324 (13–17/11/2026)
+
+Năm thí nghiệm tiếp theo đều có card đăng ký trước execution, chạy trên MVTec test đã
+lộ, nên đều là exploratory. Catalog/audit ở dưới dừng ở mốc B319; các run mới được ghi
+trực tiếp trong thư mục của từng card.
+
+- **[B320](B320/card.md).** Phi-gradient production ở hai slow event thật khớp reference
+  FP64 theo gate đã đăng ký (`PASS_SCOPED`, sau một lần checker báo sai). Không đo lợi ích AD.
+- **[B321](B321/card.md).** Grouped learned replay khớp số update (10.005/arm): ER 55,55% so
+  với tail+CTX 55,48% Pixel AP, năm category vi phạm sàn, `SCREEN_NOT_MET`. Audit cơ chế cho
+  thấy controller có học nhưng trọng số có độ tương phản thấp.
+- **[B322](B322/card.md).** Readout shadow EMA thụ động: `NO_SIGNAL`; EMA không giữ task cũ tốt
+  hơn fast.
+- **[B323](B323/card.md).** Neo hàm số về bản sao decoder theo boundary: `NO_SIGNAL`; thấp hơn
+  đối chứng ER cùng byte (82 mẫu) 0,032 Pixel AP.
+- **[B324](B324/card.md).** Lưu replay dạng ảnh uint8 (336 mẫu trong 155 MB) nâng Pixel AP cuối
+  +0,038 (seed 0, khác job) và +0,025 (seed 1, cùng job), quên macro về khoảng 0 (`COVERAGE_SUPPORTED`,
+  `REPLICATED`); cấu trúc cập nhật hai tần số không hơn cập nhật phẳng ở hai seed
+  (`STRUCTURE_ADDS_NOTHING`).
+
+Tổng kết của chuỗi: bốn cơ chế kiểu Nested Learning trên nền replay (trọng số replay học được,
+EMA thụ động, neo theo boundary, cập nhật hai tần số) không cho tín hiệu; cải thiện đo được đến
+từ định dạng và độ phủ của bộ nhớ replay. Screen theo category của B319 vẫn chưa đạt nguyên văn.
+
 ## Cách đọc và phần còn thiếu
 
 [Catalog](history/catalog.json) công bố **4,371 records nghiên cứu và tham chiếu**,

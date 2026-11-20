@@ -1,0 +1,115 @@
+{
+  "experiment": "B324",
+  "base_recipe": "configs/b319.json",
+  "base_recipe_sha256": "584507260bdf0ed35d137b0fefd376c27b9be713a93252227586eb040d06a78c",
+  "seeds": [
+    0,
+    1
+  ],
+  "replay": {
+    "format": "uint8_chw_392",
+    "bytes_per_sample": 460992,
+    "budget_bytes": 155123712,
+    "fifo": 8
+  },
+  "arms": {
+    "q0": {
+      "reservoir_capacity": 24,
+      "updates_per_arrival": 1,
+      "total_updates": 3629
+    },
+    "raw1": {
+      "reservoir_capacity": 328,
+      "updates_per_arrival": 1,
+      "total_updates": 3629
+    },
+    "flat": {
+      "reservoir_capacity": 328,
+      "updates_per_arrival": 3,
+      "total_updates": 10887
+    },
+    "nested": {
+      "reservoir_capacity": 328,
+      "updates_per_arrival": 1,
+      "consolidation": {
+        "every_arrivals": 64,
+        "updates": 128,
+        "samples_per_update": 5,
+        "tail_updates": 90
+      },
+      "total_updates": 10887
+    },
+    "iid": {
+      "reservoir_capacity": 328,
+      "updates_per_arrival": 3,
+      "shuffled_stream": true,
+      "observers": "final_only",
+      "total_updates": 10887
+    }
+  },
+  "jobs": {
+    "q0": {
+      "arms": [
+        "q0",
+        "nested"
+      ],
+      "seed": 0,
+      "integration_arrivals": 433
+    },
+    "s1": {
+      "arms": [
+        "raw1",
+        "iid"
+      ],
+      "seed": 0
+    },
+    "s2a": {
+      "arms": [
+        "flat",
+        "nested"
+      ],
+      "seed": 0
+    },
+    "s2b": {
+      "arms": [
+        "flat",
+        "nested"
+      ],
+      "seed": 1
+    },
+    "r1": {
+      "arms": [
+        "q0",
+        "raw1"
+      ],
+      "seed": 1
+    }
+  },
+  "identity_reference": {
+    "arm": "q0",
+    "seed": 0,
+    "model_sha256": {
+      "209": "84c3e40145656edfbc149e718b9514c0b8f3abb2038977c163677acb8fa8bfd8",
+      "433": "2d4401de4b9d4a664116fc1003189d9cdbaaf26fdd7331da7c1d1eaf4ad462fc"
+    },
+    "source": "B319 er_uniform boundaries 1 and 2, reproduced by b322-s0-20261115-01"
+  },
+  "s1_prediction": {
+    "macro_Facq_max": 0.01,
+    "final_macro_pixel_AP_min": 0.62
+  },
+  "s2_gate": {
+    "final_pixel_AP_gain_min": 0.005,
+    "category_pixel_AP_delta_min": -0.01,
+    "final_image_AUROC_drop_max": 0.005,
+    "adds_nothing_abs_mean_gain_below": 0.005
+  },
+  "r1_rule": {
+    "final_pixel_AP_gain_min": 0.005,
+    "raw1_macro_Facq_max": 0.01
+  },
+  "caps_status": "APPROVED",
+  "caps": {
+    "per_arm_seconds": 18000
+  }
+}

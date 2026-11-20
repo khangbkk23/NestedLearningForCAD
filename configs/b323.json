@@ -1,0 +1,39 @@
+{
+  "experiment": "B323",
+  "base_recipe": "configs/b319.json",
+  "base_recipe_sha256": "584507260bdf0ed35d137b0fefd376c27b9be713a93252227586eb040d06a78c",
+  "seed": 0,
+  "arms": [
+    "er_bytes",
+    "anchor"
+  ],
+  "er_bytes": {
+    "reservoir_capacity": 74
+  },
+  "anchor": {
+    "weight": 1.0
+  },
+  "comparison": {
+    "candidate": "anchor",
+    "control": "er_bytes"
+  },
+  "gate": {
+    "final_pixel_AP_gain_min": 0.005,
+    "category_pixel_AP_delta_min": -0.01,
+    "acquisition_macro_drop_max": 0.01,
+    "final_image_AUROC_drop_max": 0.005
+  },
+  "prefix_reference": {
+    "arm": "anchor",
+    "boundary": 209,
+    "model_sha256": "84c3e40145656edfbc149e718b9514c0b8f3abb2038977c163677acb8fa8bfd8",
+    "source": "B319 er_uniform boundary 1, reproduced by b322-s0-20261115-01"
+  },
+  "qualification": {
+    "integration_arrivals": 433
+  },
+  "caps_status": "APPROVED",
+  "caps": {
+    "per_arm_seconds": 14400
+  }
+}

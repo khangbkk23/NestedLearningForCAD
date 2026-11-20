@@ -1,0 +1,25 @@
+{
+  "schema": "b322_profile_receipt_v1",
+  "derived_from": {
+    "record": "receipt.json",
+    "sha256": "beaf7e18ad0c6be844ac4e4e8379437b07f29d9feadb172c446f024f012f4e5b"
+  },
+  "derivation": "Public projection of the original closed receipt. Removed: execution-platform bookkeeping (job and account identifiers, provider status, local storage paths, operational notes). All remaining values are copied unchanged.",
+  "experiment": "B322",
+  "kind": "profile",
+  "run_id": "b322-profile-20261115-01",
+  "version": 1,
+  "workload_status": "FAILED",
+  "failure": "scripts/shadow_profile.py: torch.allclose received a list (decoder returns nested lists of tensors). Installation and 3 CPU torch tests had passed; no measurement was produced. Fixed in commit fb1b947.",
+  "seconds": 94.39,
+  "source": {
+    "source_zip_sha256": "f20291ad1620f9c6a994d778fbe5225e076c3598d78d669d8867df3025949d4c",
+    "manifest_sha256": "4cfb70035bdd024991744547b00251f915e3914a0247828258701eae77ef98bd"
+  },
+  "files": {
+    "logs/v1/execution.log": {
+      "sha256": "f45f0ec8c487f696e57d5fd31a3a632c7b78c5bcc081d5fd4843f418e6e1d451",
+      "bytes": 5574
+    }
+  }
+}

@@ -1,0 +1,123 @@
+{
+  "metric_version": "B324-coverage-v1",
+  "experiment": "B324",
+  "job": "s2",
+  "label": "STRUCTURE_ADDS_NOTHING",
+  "delta_sign": "nested minus flat",
+  "seeds": [
+    {
+      "seed": 0,
+      "memory_trajectory_equal": true,
+      "flat": {
+        "final_macro_pixel_AP": 0.6459735632254774,
+        "final_macro_image_AUROC": 0.9883989389201608,
+        "macro_acquisition_pixel_AP": 0.6377594728164991,
+        "macro_Fmax": 0.011707207296132924,
+        "macro_Facq": -0.008800811152476797
+      },
+      "nested": {
+        "final_macro_pixel_AP": 0.6459204010409926,
+        "final_macro_image_AUROC": 0.9859289449616553,
+        "macro_acquisition_pixel_AP": 0.6266222717724288,
+        "macro_Fmax": 0.014275957962884778,
+        "macro_Facq": -0.020676567073461136
+      },
+      "compare": {
+        "values": {
+          "final_pixel_AP_gain": -5.31621844848118e-05,
+          "worst_category_delta": -0.033358964713043227,
+          "final_image_AUROC_delta": -0.0024699939585055564,
+          "acquisition_macro_delta": -0.011137201044070344,
+          "Fmax_reduction": -0.0025687506667518532
+        },
+        "passes_signal_rule": false,
+        "category_delta": {
+          "bottle": -0.0007739986079837724,
+          "cable": -0.008699499227680985,
+          "capsule": 0.012270341202461066,
+          "carpet": -0.011495447244735835,
+          "grid": 0.013707092265379694,
+          "hazelnut": -0.001427983030403035,
+          "leather": 0.03368864760259627,
+          "metal_nut": 0.0239604647442343,
+          "pill": -0.012135969613095376,
+          "screw": -0.009263374540266212,
+          "tile": 0.011611357207425343,
+          "toothbrush": -0.011409419630722506,
+          "transistor": -0.033358964713043227,
+          "wood": -0.0008967020272971915,
+          "zipper": -0.0065739771541414305
+        },
+        "floor_violations": [
+          "carpet",
+          "pill",
+          "toothbrush",
+          "transistor"
+        ]
+      },
+      "seconds": {
+        "flat": 14623.939111718,
+        "nested": 14477.145729191001
+      }
+    },
+    {
+      "seed": 1,
+      "memory_trajectory_equal": true,
+      "flat": {
+        "final_macro_pixel_AP": 0.647461380264682,
+        "final_macro_image_AUROC": 0.9893288662642158,
+        "macro_acquisition_pixel_AP": 0.641144262711716,
+        "macro_Fmax": 0.016539342104761694,
+        "macro_Facq": -0.006768340235320762
+      },
+      "nested": {
+        "final_macro_pixel_AP": 0.6441050535287451,
+        "final_macro_image_AUROC": 0.9877547656299461,
+        "macro_acquisition_pixel_AP": 0.636962819786352,
+        "macro_Fmax": 0.012131399654146061,
+        "macro_Facq": -0.007652393295421124
+      },
+      "compare": {
+        "values": {
+          "final_pixel_AP_gain": -0.0033563267359368876,
+          "worst_category_delta": -0.050553348333137405,
+          "final_image_AUROC_delta": -0.0015741006342696595,
+          "acquisition_macro_delta": -0.004181442925363932,
+          "Fmax_reduction": 0.004407942450615633
+        },
+        "passes_signal_rule": false,
+        "category_delta": {
+          "bottle": -0.0054469507094241365,
+          "cable": -0.050553348333137405,
+          "capsule": -0.0046200393053414945,
+          "carpet": 0.00824907052803625,
+          "grid": 0.013183070496224691,
+          "hazelnut": -0.010235874509726295,
+          "leather": 0.06616631798553935,
+          "metal_nut": 0.015174960674146143,
+          "pill": -0.00928040230770899,
+          "screw": -0.010834553535934321,
+          "tile": -0.04899370183206986,
+          "toothbrush": 0.0005898713099768416,
+          "transistor": -0.016213921528619668,
+          "wood": -0.0017503072888989113,
+          "zipper": 0.004220907317883826
+        },
+        "floor_violations": [
+          "cable",
+          "hazelnut",
+          "screw",
+          "tile",
+          "transistor"
+        ]
+      },
+      "seconds": {
+        "flat": 13772.244804435,
+        "nested": 15012.024116398
+      }
+    }
+  ],
+  "mean_final_pixel_AP_gain": -0.0017047444602108497,
+  "all_memory_trajectories_equal": true,
+  "compute_note": "flat and nested make the same number of optimizer steps"
+}

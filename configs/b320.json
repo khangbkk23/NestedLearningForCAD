@@ -1,0 +1,23 @@
+{
+  "experiment": "B320",
+  "seed": 0,
+  "arm": "a0_tail_ctx",
+  "max_arrivals": 64,
+  "target_slow_events": 2,
+  "directions": 8,
+  "direction_seed": 31901,
+  "directional_atol": 2e-08,
+  "directional_rtol": 0.0002,
+  "fast_atol": 1e-06,
+  "fast_rtol": 1e-05,
+  "minimum_query_direction_signal": 2e-08,
+  "caps": {
+    "whole_seconds": 3600,
+    "worker_seconds": 2400,
+    "group_RSS_bytes": 8589934592,
+    "VRAM_bytes": 12884901888,
+    "payload_bytes": 1073741824,
+    "cpu_seconds": 7200
+  },
+  "base_recipe": "configs/b319.json"
+}

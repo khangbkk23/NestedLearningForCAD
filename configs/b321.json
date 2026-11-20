@@ -1,0 +1,31 @@
+{
+  "experiment": "B321",
+  "seed": 0,
+  "arms": [
+    "er_uniform",
+    "a0_tail_ctx"
+  ],
+  "primary": "a0_tail_ctx",
+  "iterations_per_task": 667,
+  "batch_size": 16,
+  "microbatch": 4,
+  "replay_size": 8,
+  "reservoir_size": 24,
+  "fifo_size": 8,
+  "slow_interval": 16,
+  "hard_mining_final": 0.9,
+  "hard_mining_ramp_updates": 26,
+  "gradientcheck_relative_L2": 0.0002,
+  "loss_atol": 1e-05,
+  "loss_rtol": 0.0001,
+  "budget_margin_fraction": 0.2,
+  "export_reserve_seconds": 1800,
+  "caps": {
+    "whole_seconds": 43200,
+    "worker_seconds": 41400,
+    "group_RSS_bytes": 8589934592,
+    "VRAM_bytes": 12884901888,
+    "payload_bytes": 19327352832
+  },
+  "base_recipe": "configs/b319.json"
+}

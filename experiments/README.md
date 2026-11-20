@@ -1,6 +1,6 @@
 # Experiment records
 
-This repository currently supports the B319 seed-0 workload. An experiment is a
+This repository supports the B319 seed-0 workload and the B320–B324 runs. An experiment is a
 question/design/decision; a run is one execution. New experiments get their own
 card. Shared source stays in `src/`, recipes in `configs/`, and launchers in
 `scripts/` and `notebooks/`. A recipe has one authoritative copy.
@@ -19,6 +19,11 @@ card. Shared source stays in `src/`, recipes in `configs/`, and launchers in
 | [Dinomaly](H04-dinomaly/card.md) | Detector transition and population changes |
 | [B317](B317/card.md) | Scoped numerical/context qualification |
 | [B319](B319/card.md) | Seed0 workload; recorded reproduction, screen not met |
+| [B320](B320/card.md) | Phi-gradient diagnostic on two real slow events: first run FAILED (checker), second PASS_SCOPED; no AD claim |
+| [B321](B321/card.md) | Count-matched grouped learned replay, seed 0: SCREEN_NOT_MET (Pixel AP −0.0725 pp, five floor violations); [mechanism audit](B321/analyses/a5-mechanism-audit/results.md) |
+| [B322](B322/card.md) | Passive EMA shadow readout on the B319 recipe, seed 0: NO_SIGNAL; fast readout reproduces B319 ER; [A1 headroom](B322/analyses/A1-headroom/README.md) |
+| [B323](B323/card.md) | Boundary function anchor vs byte-matched ER, seed 0: NO_SIGNAL (anchor below byte-matched ER); prefix reproduced |
+| [B324](B324/card.md) | Input-storage replay (uint8, 336 samples in 155 MB): COVERAGE_SUPPORTED (seed 0), REPLICATED (seed 1, same job); two-frequency vs flat updates on two seeds: STRUCTURE_ADDS_NOTHING ([analysis](B324/analyses/S2-structure/README.md)) |
 
 ## Historical evidence rules
 

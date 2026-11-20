@@ -1,0 +1,73 @@
+{
+  "schema": "b322_profile_receipt_v1",
+  "derived_from": {
+    "record": "receipt.json",
+    "sha256": "d066fadd524dc5f7ecb4a0d0ded1e7b9a632d71e697956473bf64517c5078581"
+  },
+  "derivation": "Public projection of the original closed receipt. Removed: execution-platform bookkeeping (job and account identifiers, provider status, local storage paths, operational notes). All remaining values are copied unchanged.",
+  "experiment": "B322",
+  "kind": "profile",
+  "run_id": "b322-profile-20261115-02",
+  "version": 1,
+  "workload_status": "COMPLETE_REVIEW_PENDING",
+  "scope": "synthetic features; no dataset, weights or AD metrics; says nothing about whether shadows help",
+  "source": {
+    "git_commit": "b3a7fd1b20669974f1e837e55cd135028399cf14",
+    "source_zip_sha256": "aa08c1c8ac04e9bb22b02a7d9f7bba19b45234a517c5b3b197055722cb175bc6",
+    "manifest_sha256": "c237fcbd297e493e1b53dbacebab0bb0317ef577a2801ec078875d8f51628cfa"
+  },
+  "files": {
+    "profile.json": {
+      "sha256": "719f47613865e38d23ffb22356c1de1968e4cf09a761a9dcdf648bfe5714e608",
+      "bytes": 1248
+    },
+    "RUN_STATUS.json": {
+      "sha256": "fb3d18da5b98a8aaaf542044057f178c2b872bbf32e6587046107fb46f8ead9a",
+      "bytes": 321
+    },
+    "logs/v1/execution.log": {
+      "sha256": "5e96c55bac60c429b7549083e1e8535e3a403cb46c56044a31544992383a7be8",
+      "bytes": 3402
+    }
+  },
+  "profile": {
+    "status": "PROFILE_COMPLETE",
+    "experiment": "B322",
+    "scope": "synthetic features, real decoder/scorer/Shadows; no dataset, no AD metrics",
+    "device": "Tesla T4",
+    "torch": "2.12.0+cu126",
+    "checks": {
+      "finite_parameters": true,
+      "tau1_equals_decoder": true,
+      "observer_fast_parameters_unchanged": true,
+      "observer_shadow_digests_unchanged": true,
+      "observer_rng_unchanged": true,
+      "shadow_differs_from_fast": true
+    },
+    "steps_measured": 36,
+    "images_measured": 20,
+    "seconds": {
+      "train_step_median": 0.1480942264999925,
+      "shadow_update_median": 0.01089394500000651,
+      "shadow_update_max": 0.010994343000021445,
+      "score_fast_median": 0.03125017350001258,
+      "score_two_shadows_median": 0.06364930050000339
+    },
+    "projections": {
+      "note": "Linear extrapolation from medians; synthetic features, one GPU. Not an ETA.",
+      "shadow_update_total_seconds": 39.53412640502363,
+      "extra_seconds_per_1000_scored_images": 63.64930050000339
+    },
+    "bytes": {
+      "decoder_state": 245711016,
+      "two_shadows": 491424904,
+      "score_file_each": 327892,
+      "shadow_save_seconds": 0.5269310220000136
+    },
+    "memory": {
+      "peak_VRAM_allocated_bytes": 2365072896,
+      "peak_host_RSS_bytes": 2820366336
+    }
+  },
+  "parent_attempt": "b322-profile-20261115-01"
+}
