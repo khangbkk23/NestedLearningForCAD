@@ -62,7 +62,7 @@
    "reason": "account allowlist and per-experiment account binding replaced by a generic owner-name check; packaging branches for experiments outside B320-B324 removed"
   },
   "scripts/watch_kaggle.py": {
-   "published_sha256": "193ac557733a314cbb207f105c2ae2c18b34f4e7837e678daf62ec8c90678a5e",
+   "published_sha256": "f17a9c8ad6018cbf0ea24775c88168db393c590d198d33106c5090b3631849cb",
    "executed_source_sha256": "0c87dc87d205d71f053845e26c9c9abd1d4cab31fd770b0081a16c4457e47b9b",
    "reason": "completion messages reworded; terminal markers of experiments outside B320-B324 removed"
   },

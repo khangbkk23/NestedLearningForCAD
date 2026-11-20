@@ -26,7 +26,7 @@ def completion_notice(payload):
         return ('[PAUSED] CHECKPOINT SAVED - RESUME REQUIRED','Session ended normally; experiment is NOT complete. Verify/export checkpoints before continuation.',0)
     if status=='COMPLETE_REVIEW_PENDING':
         return ('[ENDED] WORKLOAD COMPLETED - AUDIT PENDING',
-                'Execution ended; the results are NOT yet audited. Download and audit the outputs.',0)
+                'Execution ended; results are NOT confirmed until the outputs are audited.',0)
     return ('[ENDED] KAGGLE EXECUTION ENDED - AUDIT REQUIRED',
             'Training completion is NOT verified. Inspect the workload receipt.',0)
 
