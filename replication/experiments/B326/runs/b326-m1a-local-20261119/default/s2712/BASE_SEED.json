@@ -1,0 +1,14 @@
+{
+ "aten_cpu_capability_env": "default",
+ "canonical_sha256": "0892af9565d8ef075f9644d9a501980ba46bf795bc2298aaeebc67f0df15f07d",
+ "code_sha256": "592aaea625ca515f3f1a701e912961996b4b31d7129570e614e851975541faa5",
+ "cpu_capability": "DEFAULT",
+ "file_sha256": "85003fa79c85d9aec30ee7ead66e71c7e3b7a2d9d2da8dd28861a4284bd79e79",
+ "generator": "torch.Generator(cpu).manual_seed (mt19937)",
+ "machine": "AMD64",
+ "os": "Windows-11-10.0.26300-SP0",
+ "processor": "Intel64 Family 6 Model 154 Stepping 3, GenuineIntel",
+ "seed": 2712,
+ "torch": "2.11.0+cpu",
+ "vendored_commit": "5217cb1edb319019b1cddfb7e83c0c852ec150ab"
+}

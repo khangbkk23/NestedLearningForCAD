@@ -1,0 +1,62 @@
+{
+ "schema": "b325_execution_v1",
+ "derived_from_run_record_sha256": "6c304b61ac4b276af0fa6158392276170bbe7672787f76ee3a174f5df3446294",
+ "derivation": "Projection of the original run record. Removed: execution-platform bookkeeping (job id, provider status, storage locations, file listings, disk-space readings). Rewritten: source (reduced to the commit of Khang's code and the source bundle hash), inputs.located (seed list instead of paths), base_files_location (as base_files_note), caps renamed time_limits_seconds, and the free-text base_identity note. All other values are copied unchanged.",
+ "experiment": "B325",
+ "job": "C",
+ "seed": 2711,
+ "run_id": "b325-c-20261119-01",
+ "source": {
+  "khang_code_commit": "5217cb1edb319019b1cddfb7e83c0c852ec150ab",
+  "source_bundle_sha256": "9ac13d72be793d7b7befd4fbcb6e5c967e3722df6daf045fe1054c39a5cf7a15"
+ },
+ "environment": {
+  "python": "3.13.16",
+  "torch": "2.11.0+cu130",
+  "cuda_build": "13.0",
+  "scipy": "1.16.3",
+  "sklearn": "1.6.1",
+  "gpus": [
+   "Tesla T4",
+   "Tesla T4"
+  ]
+ },
+ "whole_job_seconds": 4348.442953272999,
+ "pytest_gate": "PASSED",
+ "gate": {
+  "encoder_sha256": "73182a088cf94833c94b1666d1c99e02fe87e2007bff57b564fb6206e25dba71",
+  "khang_base_sha256": "dfe6689e34d103c0a8b61931b71701c901cc4e9048ca1d04037bdf633d10cc31",
+  "train_images_identical": 3629,
+  "vendored_commit": "5217cb1edb319019b1cddfb7e83c0c852ec150ab"
+ },
+ "precision": {
+  "2711": "bfloat16"
+ },
+ "fidelity": {
+  "dtype": "torch.bfloat16",
+  "images": 60,
+  "passed": true,
+  "relative_mean_abs_error": 0.018640536317209157,
+  "token_cosine_mean": 0.9978441437085469,
+  "token_cosine_min": 0.9906401038169861
+ },
+ "train": {
+  "update_seconds": 687.6022246280006,
+  "cuda_peak_bytes": 775178240,
+  "stage15_sha256": "3ba0906e10fa9264f1d7ada7ae5017a062cd862f7d6aa80873549f6fa22319af",
+  "gamma0": 0.0,
+  "learn": false
+ },
+ "checks": {
+  "gamma_all_stages": 0.0,
+  "lambda_all_zero": true,
+  "initial_digest_equals_job_Q_arms": true,
+  "base_sha256": "dfe6689e34d103c0a8b61931b71701c901cc4e9048ca1d04037bdf633d10cc31"
+ },
+ "tracebacks_in_log": 0,
+ "label": {
+  "delta_image_auroc": 1.690542096222103e-05,
+  "delta_pixel_ap": -0.003800253288249289,
+  "label": "C_PATH_FAITHFUL"
+ }
+}

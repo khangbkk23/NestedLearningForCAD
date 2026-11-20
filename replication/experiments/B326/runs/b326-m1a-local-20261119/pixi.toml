@@ -1,0 +1,15 @@
+[workspace]
+name = "b326-base-portability"
+channels = ["conda-forge"]
+platforms = ["win-64"]
+
+[dependencies]
+python = "3.13.*"
+numpy = "*"
+scipy = "*"
+scikit-learn = "*"
+pillow = "*"
+matplotlib-base = "*"
+
+[pypi-dependencies]
+torch = { version = "==2.11.0", index = "https://download.pytorch.org/whl/cpu" }

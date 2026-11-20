@@ -1,0 +1,110 @@
+{
+ "schema": "b325_execution_v1",
+ "derived_from_run_record_sha256": "053d56ea8b7aaf45276c4b3f220436b8de45d6e075ec5277f149d96725cf8e63",
+ "derivation": "Projection of the original run record. Removed: execution-platform bookkeeping (job id, provider status, storage locations, file listings, disk-space readings). Rewritten: source (reduced to the commit of Khang's code and the source bundle hash), inputs.located (seed list instead of paths), base_files_location (as base_files_note), caps renamed time_limits_seconds, and the free-text base_identity note. All other values are copied unchanged.",
+ "experiment": "B325",
+ "job": "Q",
+ "seed": 2711,
+ "run_id": "b325-q-20261119-03",
+ "source": {
+  "khang_code_commit": "5217cb1edb319019b1cddfb7e83c0c852ec150ab",
+  "source_bundle_sha256": "8ca5aaa331eedafd4b931e81e9c9f6957c22f16048f54a94af7f7d758ea4103c"
+ },
+ "inputs": {
+  "khang_base_sha256": "dfe6689e34d103c0a8b61931b71701c901cc4e9048ca1d04037bdf633d10cc31",
+  "base_identity": "sidecar sha256 only (decision of 2026-11-19, card s9)"
+ },
+ "environment": {
+  "python": "3.13.16",
+  "torch": "2.11.0+cu130",
+  "cuda_build": "13.0",
+  "scipy": "1.16.3",
+  "sklearn": "1.6.1",
+  "gpus": [
+   "Tesla T4",
+   "Tesla T4"
+  ]
+ },
+ "whole_job_seconds": 4758.726911078999,
+ "pytest_gate": "PASSED",
+ "gate": {
+  "encoder_sha256": "73182a088cf94833c94b1666d1c99e02fe87e2007bff57b564fb6206e25dba71",
+  "khang_base_sha256": "dfe6689e34d103c0a8b61931b71701c901cc4e9048ca1d04037bdf633d10cc31",
+  "train_images_identical": 3629,
+  "vendored_commit": "5217cb1edb319019b1cddfb7e83c0c852ec150ab"
+ },
+ "phase_seconds_from_log": {
+  "setup_and_assets": 264,
+  "gate": 18,
+  "extract_train": 396,
+  "base_probe": 15,
+  "train_lane_wall": 776,
+  "fidelity": 112,
+  "extract_test_bf16": 198,
+  "score_lane_wall": 1192,
+  "metrics_two_workers_wall": 1794
+ },
+ "train": {
+  "F": {
+   "update_seconds": 675.2302144560001,
+   "cuda_peak_bytes": 775178240,
+   "stage15_sha256": "f246793d4538b6d169408a47c3bdb67e56c59b854286e1b66bcf25626b2bfdbd"
+  },
+  "H": {
+   "update_seconds": 718.8829452879996,
+   "cuda_peak_bytes": 775178240,
+   "stage15_sha256": "06129318c7d7deab02f7d55a7a27ce3d5d00c2d72390664088cf8c9cd12e3366"
+  }
+ },
+ "fidelity": {
+  "F": {
+   "dtype": "torch.bfloat16",
+   "images": 60,
+   "passed": true,
+   "relative_mean_abs_error": 0.017226025161385133,
+   "token_cosine_mean": 0.9978441437085469,
+   "token_cosine_min": 0.9906401038169861
+  },
+  "H": {
+   "dtype": "torch.bfloat16",
+   "images": 60,
+   "passed": true,
+   "relative_mean_abs_error": 0.017296796846739158,
+   "token_cosine_mean": 0.9978441437085469,
+   "token_cosine_min": 0.9906401038169861
+  }
+ },
+ "precision": {
+  "2711": "bfloat16"
+ },
+ "base_probe": {
+  "bitwise_equal": false,
+  "compare_sha256": "dfe6689e34d103c0a8b61931b71701c901cc4e9048ca1d04037bdf633d10cc31",
+  "cuda_build": "13.0",
+  "device": "Tesla T4",
+  "max_abs_diff": 0.05957580730319023,
+  "python": "3.13.16",
+  "seed": 2711,
+  "sha256": "b8ccbbe77c49ce590ad9429abc82015521f946deeb4a783c66528d0904b8bca2",
+  "torch": "2.11.0+cu130",
+  "vendored_commit": "5217cb1edb319019b1cddfb7e83c0c852ec150ab"
+ },
+ "feature_cache_bitwise_equal_khang": "0 of 15 (informational)",
+ "tracebacks_in_log": 0,
+ "label": "PORT_FAITHFUL",
+ "rule": {
+  "F_pixel_ap": [
+   0.6013057919698526,
+   0.005
+  ],
+  "F_image_auroc": [
+   0.9782962028327018,
+   0.005
+  ],
+  "H_pixel_ap": [
+   0.6006047361677704,
+   0.005
+  ],
+  "gamma_rel_tol": 0.1
+ }
+}

@@ -1,0 +1,333 @@
+{
+ "seed": 2712,
+ "kaggle_canonical_sha256": "50ccb6804a1a1a4e7637309da252c15f7dfe3f1b15e40fe2fefe2e25c58db8be",
+ "local_canonical_sha256": "0892af9565d8ef075f9644d9a501980ba46bf795bc2298aaeebc67f0df15f07d",
+ "torch_local": "2.11.0+cpu",
+ "cpu_capability_local": "DEFAULT",
+ "tensors": 100,
+ "tensors_with_any_diff": 34,
+ "elements": 61425408,
+ "elements_differ": 402455,
+ "fraction_differ": 0.006551930432436037,
+ "max_abs_diff": 3.725290298461914e-09,
+ "max_ulp_diff": 2,
+ "max_rel_diff": 1.317082762852806e-07,
+ "ulp_histogram": {
+  "1": 374348,
+  "2": 28107
+ },
+ "per_tensor_differing": [
+  {
+   "key": "bottleneck.0.fc1.weight",
+   "numel": 2359296,
+   "n_differ": 15639,
+   "max_abs": 3.725290298461914e-09,
+   "max_ulp": 2,
+   "max_rel": 1.317082762852806e-07,
+   "scale_abs_max": 0.02999892830848694
+  },
+  {
+   "key": "bottleneck.0.fc2.weight",
+   "numel": 2359296,
+   "n_differ": 15560,
+   "max_abs": 3.725290298461914e-09,
+   "max_ulp": 2,
+   "max_rel": 1.3170568990972242e-07,
+   "scale_abs_max": 0.02999798394739628
+  },
+  {
+   "key": "decoder.0.attn.qkv.weight",
+   "numel": 1769472,
+   "n_differ": 11589,
+   "max_abs": 3.725290298461914e-09,
+   "max_ulp": 2,
+   "max_rel": 1.3168869372748304e-07,
+   "scale_abs_max": 0.02999959886074066
+  },
+  {
+   "key": "decoder.0.attn.proj.weight",
+   "numel": 589824,
+   "n_differ": 3831,
+   "max_abs": 1.862645149230957e-09,
+   "max_ulp": 2,
+   "max_rel": 1.3168647683414747e-07,
+   "scale_abs_max": 0.0299986582249403
+  },
+  {
+   "key": "decoder.0.mlp.fc1.weight",
+   "numel": 2359296,
+   "n_differ": 15346,
+   "max_abs": 3.725290298461914e-09,
+   "max_ulp": 2,
+   "max_rel": 1.3164626011530345e-07,
+   "scale_abs_max": 0.029999999329447746
+  },
+  {
+   "key": "decoder.0.mlp.fc2.weight",
+   "numel": 2359296,
+   "n_differ": 15440,
+   "max_abs": 3.725290298461914e-09,
+   "max_ulp": 2,
+   "max_rel": 1.317081910201523e-07,
+   "scale_abs_max": 0.0299998689442873
+  },
+  {
+   "key": "decoder.1.attn.qkv.weight",
+   "numel": 1769472,
+   "n_differ": 11599,
+   "max_abs": 3.725290298461914e-09,
+   "max_ulp": 2,
+   "max_rel": 1.3168869372748304e-07,
+   "scale_abs_max": 0.02999919466674328
+  },
+  {
+   "key": "decoder.1.attn.proj.weight",
+   "numel": 589824,
+   "n_differ": 3845,
+   "max_abs": 3.725290298461914e-09,
+   "max_ulp": 2,
+   "max_rel": 1.3164287793188123e-07,
+   "scale_abs_max": 0.029999330639839172
+  },
+  {
+   "key": "decoder.1.mlp.fc1.weight",
+   "numel": 2359296,
+   "n_differ": 15380,
+   "max_abs": 3.725290298461914e-09,
+   "max_ulp": 2,
+   "max_rel": 1.316768845072147e-07,
+   "scale_abs_max": 0.029999464750289917
+  },
+  {
+   "key": "decoder.1.mlp.fc2.weight",
+   "numel": 2359296,
+   "n_differ": 15561,
+   "max_abs": 3.725290298461914e-09,
+   "max_ulp": 2,
+   "max_rel": 1.3168869372748304e-07,
+   "scale_abs_max": 0.029999734833836555
+  },
+  {
+   "key": "decoder.2.attn.qkv.weight",
+   "numel": 1769472,
+   "n_differ": 11465,
+   "max_abs": 3.725290298461914e-09,
+   "max_ulp": 2,
+   "max_rel": 1.3170568990972242e-07,
+   "scale_abs_max": 0.0299998689442873
+  },
+  {
+   "key": "decoder.2.attn.proj.weight",
+   "numel": 589824,
+   "n_differ": 3865,
+   "max_abs": 3.725290298461914e-09,
+   "max_ulp": 2,
+   "max_rel": 1.3168647683414747e-07,
+   "scale_abs_max": 0.029995568096637726
+  },
+  {
+   "key": "decoder.2.mlp.fc1.weight",
+   "numel": 2359296,
+   "n_differ": 15550,
+   "max_abs": 3.725290298461914e-09,
+   "max_ulp": 2,
+   "max_rel": 1.3168002510610677e-07,
+   "scale_abs_max": 0.029999999329447746
+  },
+  {
+   "key": "decoder.2.mlp.fc2.weight",
+   "numel": 2359296,
+   "n_differ": 15527,
+   "max_abs": 3.725290298461914e-09,
+   "max_ulp": 2,
+   "max_rel": 1.3170568990972242e-07,
+   "scale_abs_max": 0.02999919466674328
+  },
+  {
+   "key": "decoder.3.attn.qkv.weight",
+   "numel": 1769472,
+   "n_differ": 11805,
+   "max_abs": 3.725290298461914e-09,
+   "max_ulp": 2,
+   "max_rel": 1.317082762852806e-07,
+   "scale_abs_max": 0.02999959886074066
+  },
+  {
+   "key": "decoder.3.attn.proj.weight",
+   "numel": 589824,
+   "n_differ": 3880,
+   "max_abs": 1.862645149230957e-09,
+   "max_ulp": 2,
+   "max_rel": 1.316640663162616e-07,
+   "scale_abs_max": 0.02999959886074066
+  },
+  {
+   "key": "decoder.3.mlp.fc1.weight",
+   "numel": 2359296,
+   "n_differ": 15460,
+   "max_abs": 3.725290298461914e-09,
+   "max_ulp": 2,
+   "max_rel": 1.317073525797241e-07,
+   "scale_abs_max": 0.0299998689442873
+  },
+  {
+   "key": "decoder.3.mlp.fc2.weight",
+   "numel": 2359296,
+   "n_differ": 15614,
+   "max_abs": 3.725290298461914e-09,
+   "max_ulp": 2,
+   "max_rel": 1.3170485146929423e-07,
+   "scale_abs_max": 0.0299998689442873
+  },
+  {
+   "key": "decoder.4.attn.qkv.weight",
+   "numel": 1769472,
+   "n_differ": 11615,
+   "max_abs": 3.725290298461914e-09,
+   "max_ulp": 2,
+   "max_rel": 1.3170568990972242e-07,
+   "scale_abs_max": 0.02999959886074066
+  },
+  {
+   "key": "decoder.4.attn.proj.weight",
+   "numel": 589824,
+   "n_differ": 3829,
+   "max_abs": 3.725290298461914e-09,
+   "max_ulp": 2,
+   "max_rel": 1.3162637912955688e-07,
+   "scale_abs_max": 0.029993688687682152
+  },
+  {
+   "key": "decoder.4.mlp.fc1.weight",
+   "numel": 2359296,
+   "n_differ": 15534,
+   "max_abs": 3.725290298461914e-09,
+   "max_ulp": 2,
+   "max_rel": 1.3168647683414747e-07,
+   "scale_abs_max": 0.0299986582249403
+  },
+  {
+   "key": "decoder.4.mlp.fc2.weight",
+   "numel": 2359296,
+   "n_differ": 15446,
+   "max_abs": 3.725290298461914e-09,
+   "max_ulp": 2,
+   "max_rel": 1.3168647683414747e-07,
+   "scale_abs_max": 0.029999464750289917
+  },
+  {
+   "key": "decoder.5.attn.qkv.weight",
+   "numel": 1769472,
+   "n_differ": 11520,
+   "max_abs": 3.725290298461914e-09,
+   "max_ulp": 2,
+   "max_rel": 1.316650894978011e-07,
+   "scale_abs_max": 0.02999717928469181
+  },
+  {
+   "key": "decoder.5.attn.proj.weight",
+   "numel": 589824,
+   "n_differ": 3880,
+   "max_abs": 1.862645149230957e-09,
+   "max_ulp": 2,
+   "max_rel": 1.3164626011530345e-07,
+   "scale_abs_max": 0.029998254030942917
+  },
+  {
+   "key": "decoder.5.mlp.fc1.weight",
+   "numel": 2359296,
+   "n_differ": 15370,
+   "max_abs": 3.725290298461914e-09,
+   "max_ulp": 2,
+   "max_rel": 1.3168647683414747e-07,
+   "scale_abs_max": 0.029999330639839172
+  },
+  {
+   "key": "decoder.5.mlp.fc2.weight",
+   "numel": 2359296,
+   "n_differ": 15546,
+   "max_abs": 3.725290298461914e-09,
+   "max_ulp": 2,
+   "max_rel": 1.317065141392959e-07,
+   "scale_abs_max": 0.029999734833836555
+  },
+  {
+   "key": "decoder.6.attn.qkv.weight",
+   "numel": 1769472,
+   "n_differ": 11578,
+   "max_abs": 3.725290298461914e-09,
+   "max_ulp": 2,
+   "max_rel": 1.3170568990972242e-07,
+   "scale_abs_max": 0.029999330639839172
+  },
+  {
+   "key": "decoder.6.attn.proj.weight",
+   "numel": 589824,
+   "n_differ": 3780,
+   "max_abs": 1.862645149230957e-09,
+   "max_ulp": 2,
+   "max_rel": 1.3159804268525477e-07,
+   "scale_abs_max": 0.029998524114489555
+  },
+  {
+   "key": "decoder.6.mlp.fc1.weight",
+   "numel": 2359296,
+   "n_differ": 15334,
+   "max_abs": 3.725290298461914e-09,
+   "max_ulp": 2,
+   "max_rel": 1.317081910201523e-07,
+   "scale_abs_max": 0.029998524114489555
+  },
+  {
+   "key": "decoder.6.mlp.fc2.weight",
+   "numel": 2359296,
+   "n_differ": 15473,
+   "max_abs": 3.725290298461914e-09,
+   "max_ulp": 2,
+   "max_rel": 1.316650894978011e-07,
+   "scale_abs_max": 0.029999999329447746
+  },
+  {
+   "key": "decoder.7.attn.qkv.weight",
+   "numel": 1769472,
+   "n_differ": 11618,
+   "max_abs": 3.725290298461914e-09,
+   "max_ulp": 2,
+   "max_rel": 1.3170568990972242e-07,
+   "scale_abs_max": 0.029999060556292534
+  },
+  {
+   "key": "decoder.7.attn.proj.weight",
+   "numel": 589824,
+   "n_differ": 3858,
+   "max_abs": 3.725290298461914e-09,
+   "max_ulp": 2,
+   "max_rel": 1.316768845072147e-07,
+   "scale_abs_max": 0.02999959886074066
+  },
+  {
+   "key": "decoder.7.mlp.fc1.weight",
+   "numel": 2359296,
+   "n_differ": 15564,
+   "max_abs": 3.725290298461914e-09,
+   "max_ulp": 2,
+   "max_rel": 1.3170568990972242e-07,
+   "scale_abs_max": 0.029999999329447746
+  },
+  {
+   "key": "decoder.7.mlp.fc2.weight",
+   "numel": 2359296,
+   "n_differ": 15554,
+   "max_abs": 3.725290298461914e-09,
+   "max_ulp": 2,
+   "max_rel": 1.317082762852806e-07,
+   "scale_abs_max": 0.029999734833836555
+  }
+ ],
+ "bf16_cast": {
+  "elements_differ": 8,
+  "fraction_differ": 1.3023926515880855e-07
+ },
+ "weight_matrices": 34,
+ "differing_tensors_are_weight_matrices": true
+}

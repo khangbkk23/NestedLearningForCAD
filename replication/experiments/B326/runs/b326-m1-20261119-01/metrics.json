@@ -1,0 +1,182 @@
+{
+  "schema": "b326_metrics_v1",
+  "run_id": "b326-m1-20261119-01",
+  "job": "M1",
+  "labels": {
+    "M1a": "BASE_SAME_MACHINE_ONLY",
+    "M1b": "BASE_FROM_SEED_OK"
+  },
+  "canonical_sha256": {
+    "2712": [
+      "50ccb6804a1a1a4e7637309da252c15f7dfe3f1b15e40fe2fefe2e25c58db8be",
+      "50ccb6804a1a1a4e7637309da252c15f7dfe3f1b15e40fe2fefe2e25c58db8be"
+    ],
+    "2713": [
+      "fa99585832acc32f61ee56315603fe23a646daf242927574e10f884cad833f63",
+      "fa99585832acc32f61ee56315603fe23a646daf242927574e10f884cad833f63"
+    ]
+  },
+  "mean_cpu_minus_t4": -0.0021925296425774343,
+  "rules": {
+    "m2_fidelity_max": 0.01,
+    "m2_lossless_abs": 0.002,
+    "m2_within": 0.005,
+    "m1b_null_mean_abs": 0.005,
+    "m1b_null_seed_abs": 0.01,
+    "m1b_worse": -0.01
+  },
+  "seeds": {
+    "2712": {
+      "cpu": {
+        "base_sha256": "9e5a727cf31bbcb19d20c63520deed80c1c65f343dc28f2884ebd20ce2d44cc6",
+        "stage15_sha256": "db9aa4a3ad39ca5082565cd69482ee737451321b70cf888337489d537626c4f4",
+        "update_seconds": 684.251791181,
+        "cuda_peak_bytes": 775178240,
+        "fidelity": {
+          "dtype": "torch.bfloat16",
+          "images": 60,
+          "passed": true,
+          "relative_mean_abs_error": 0.017046375302513517,
+          "token_cosine_mean": 0.9978441437085469,
+          "token_cosine_min": 0.9906401038169861
+        },
+        "final_image_auroc": 0.9797045307600196,
+        "final_pixel_ap": 0.6049615913417863
+      },
+      "t4": {
+        "base_sha256": "eebf94cef4989bf973afcb4de825558f4da3d23af5781f1d7428059351beacda",
+        "stage15_sha256": "e527b449503b1bef17155eb02bd538b199f01d71eb53cb6c020ed9be7bff8bfe",
+        "update_seconds": 681.8821766389995,
+        "cuda_peak_bytes": 775178240,
+        "fidelity": {
+          "dtype": "torch.bfloat16",
+          "images": 60,
+          "passed": true,
+          "relative_mean_abs_error": 0.016986167955229583,
+          "token_cosine_mean": 0.9978441437085469,
+          "token_cosine_min": 0.9906401038169861
+        },
+        "final_image_auroc": 0.9800210950614755,
+        "final_pixel_ap": 0.6076438636920848
+      },
+      "cpu_base": [
+        {
+          "aten_cpu_capability_env": "default",
+          "canonical_sha256": "50ccb6804a1a1a4e7637309da252c15f7dfe3f1b15e40fe2fefe2e25c58db8be",
+          "code_sha256": "592aaea625ca515f3f1a701e912961996b4b31d7129570e614e851975541faa5",
+          "cpu_capability": "DEFAULT",
+          "file_sha256": "9e5a727cf31bbcb19d20c63520deed80c1c65f343dc28f2884ebd20ce2d44cc6",
+          "generator": "torch.Generator(cpu).manual_seed (mt19937)",
+          "machine": "x86_64",
+          "os": "Linux-6.18.55+-x86_64-with-glibc2.39",
+          "processor": "x86_64",
+          "seed": 2712,
+          "torch": "2.11.0+cu130",
+          "vendored_commit": "5217cb1edb319019b1cddfb7e83c0c852ec150ab"
+        },
+        {
+          "aten_cpu_capability_env": "default",
+          "canonical_sha256": "50ccb6804a1a1a4e7637309da252c15f7dfe3f1b15e40fe2fefe2e25c58db8be",
+          "code_sha256": "592aaea625ca515f3f1a701e912961996b4b31d7129570e614e851975541faa5",
+          "cpu_capability": "DEFAULT",
+          "file_sha256": "9e5a727cf31bbcb19d20c63520deed80c1c65f343dc28f2884ebd20ce2d44cc6",
+          "generator": "torch.Generator(cpu).manual_seed (mt19937)",
+          "machine": "x86_64",
+          "os": "Linux-6.18.55+-x86_64-with-glibc2.39",
+          "processor": "x86_64",
+          "seed": 2712,
+          "torch": "2.11.0+cu130",
+          "vendored_commit": "5217cb1edb319019b1cddfb7e83c0c852ec150ab"
+        }
+      ],
+      "t4_stage15_equals_job_R": true,
+      "t4_base_equals_job_R": true,
+      "cpu_minus_t4": -0.002682272350298498,
+      "ci_cpu_minus_t4": {
+        "B": 2000,
+        "hi": 0.0031445623628117065,
+        "lo": -0.008634493737354846,
+        "point": -0.002682272350298472,
+        "seed": 20261117,
+        "unit": "category"
+      },
+      "rerun_t4_minus_job_R": 0.0
+    },
+    "2713": {
+      "cpu": {
+        "base_sha256": "eaa9c95cf69ea8a65be3e4ad5f37b5dc648037098aeb1f56bf483c1d942ccaf2",
+        "stage15_sha256": "32d53e4693ef00d1c3b49113f5b258ae3fd2bca43252e575818e5dce9df43000",
+        "update_seconds": 708.1847150069998,
+        "cuda_peak_bytes": 775178240,
+        "fidelity": {
+          "dtype": "torch.bfloat16",
+          "images": 60,
+          "passed": true,
+          "relative_mean_abs_error": 0.017220984310542788,
+          "token_cosine_mean": 0.9978441437085469,
+          "token_cosine_min": 0.9906401038169861
+        },
+        "final_image_auroc": 0.9789709002286904,
+        "final_pixel_ap": 0.6038111613868314
+      },
+      "t4": {
+        "base_sha256": "d3f306049378cf798c6b3c3f20797c84e94bc3cfbb53b997157da1234a597cf4",
+        "stage15_sha256": "d8bedce7da6ee1f7e451f6bbdd89da8366ee452e8dfd909474cbfec2847196d1",
+        "update_seconds": 719.3730454059998,
+        "cuda_peak_bytes": 775178240,
+        "fidelity": {
+          "dtype": "torch.bfloat16",
+          "images": 60,
+          "passed": true,
+          "relative_mean_abs_error": 0.01709145773104764,
+          "token_cosine_mean": 0.9978441437085469,
+          "token_cosine_min": 0.9906401038169861
+        },
+        "final_image_auroc": 0.9786245082109986,
+        "final_pixel_ap": 0.6055139483216878
+      },
+      "cpu_base": [
+        {
+          "aten_cpu_capability_env": "default",
+          "canonical_sha256": "fa99585832acc32f61ee56315603fe23a646daf242927574e10f884cad833f63",
+          "code_sha256": "592aaea625ca515f3f1a701e912961996b4b31d7129570e614e851975541faa5",
+          "cpu_capability": "DEFAULT",
+          "file_sha256": "eaa9c95cf69ea8a65be3e4ad5f37b5dc648037098aeb1f56bf483c1d942ccaf2",
+          "generator": "torch.Generator(cpu).manual_seed (mt19937)",
+          "machine": "x86_64",
+          "os": "Linux-6.18.55+-x86_64-with-glibc2.39",
+          "processor": "x86_64",
+          "seed": 2713,
+          "torch": "2.11.0+cu130",
+          "vendored_commit": "5217cb1edb319019b1cddfb7e83c0c852ec150ab"
+        },
+        {
+          "aten_cpu_capability_env": "default",
+          "canonical_sha256": "fa99585832acc32f61ee56315603fe23a646daf242927574e10f884cad833f63",
+          "code_sha256": "592aaea625ca515f3f1a701e912961996b4b31d7129570e614e851975541faa5",
+          "cpu_capability": "DEFAULT",
+          "file_sha256": "eaa9c95cf69ea8a65be3e4ad5f37b5dc648037098aeb1f56bf483c1d942ccaf2",
+          "generator": "torch.Generator(cpu).manual_seed (mt19937)",
+          "machine": "x86_64",
+          "os": "Linux-6.18.55+-x86_64-with-glibc2.39",
+          "processor": "x86_64",
+          "seed": 2713,
+          "torch": "2.11.0+cu130",
+          "vendored_commit": "5217cb1edb319019b1cddfb7e83c0c852ec150ab"
+        }
+      ],
+      "t4_stage15_equals_job_R": true,
+      "t4_base_equals_job_R": true,
+      "cpu_minus_t4": -0.0017027869348563707,
+      "ci_cpu_minus_t4": {
+        "B": 2000,
+        "hi": 0.0030091152892861937,
+        "lo": -0.0055863193605556905,
+        "point": -0.0017027869348564078,
+        "seed": 20261117,
+        "unit": "category"
+      },
+      "rerun_t4_minus_job_R": 0.0
+    }
+  }
+}

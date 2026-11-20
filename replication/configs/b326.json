@@ -1,0 +1,90 @@
+{
+  "experiment": "B326",
+  "card": "replication/experiments/B326/card.md",
+  "driver": "replication/scripts/b326_memory.py",
+  "base_driver": "replication/scripts/hope_replicate.py",
+  "checkpoints_F": {
+    "2711": {
+      "stage15": "b325-q-20261119-03/s2711/F/stage15.pt",
+      "stage15_sha256": "f246793d4538b6d169408a47c3bdb67e56c59b854286e1b66bcf25626b2bfdbd",
+      "base": "khang-reference/BASE.pt",
+      "base_sha256": "dfe6689e34d103c0a8b61931b71701c901cc4e9048ca1d04037bdf633d10cc31"
+    },
+    "2712": {
+      "stage15": "b325-r-20261119-01/s2712/F/stage15.pt",
+      "stage15_sha256": "e527b449503b1bef17155eb02bd538b199f01d71eb53cb6c020ed9be7bff8bfe",
+      "base": "b325-r-20261119-01/s2712/BASE.pt",
+      "base_sha256": "eebf94cef4989bf973afcb4de825558f4da3d23af5781f1d7428059351beacda"
+    },
+    "2713": {
+      "stage15": "b325-r-20261119-01/s2713/F/stage15.pt",
+      "stage15_sha256": "d8bedce7da6ee1f7e451f6bbdd89da8366ee452e8dfd909474cbfec2847196d1",
+      "base": "b325-r-20261119-01/s2713/BASE.pt",
+      "base_sha256": "d3f306049378cf798c6b3c3f20797c84e94bc3cfbb53b997157da1234a597cf4"
+    }
+  },
+  "checkpoints_F_note": "paths are suffixes searched under --inputs: the B325 work directories of jobs Q and R (named by run id) and a directory khang-reference/ holding Khang's BASE.pt",
+  "job_R_F_a1": {
+    "source": "replication/experiments/B325/runs/b325-r-20261119-01/metrics.json",
+    "2712": {
+      "final_pixel_ap": 0.6076438636920848,
+      "final_image_auroc": 0.9800210950614755
+    },
+    "2713": {
+      "final_pixel_ap": 0.6055139483216878,
+      "final_image_auroc": 0.9786245082109986
+    }
+  },
+  "rules": {
+    "m2_fidelity_max": 0.01,
+    "m2_lossless_abs": 0.002,
+    "m2_within": 0.005,
+    "m1b_null_mean_abs": 0.005,
+    "m1b_null_seed_abs": 0.01,
+    "m1b_worse": -0.01
+  },
+  "jobs": {
+    "M2": {
+      "seeds": [
+        2711,
+        2712,
+        2713
+      ],
+      "variants": [
+        "bf16",
+        "int8"
+      ],
+      "gpus": [
+        0,
+        1
+      ],
+      "metric_workers": 3,
+      "whole_job_seconds": 12600,
+      "phase_seconds": {
+        "fidelity_seed": 900,
+        "metrics_arm": 5400
+      }
+    },
+    "M1": {
+      "seeds": [
+        2712,
+        2713
+      ],
+      "arms": [
+        "cpu",
+        "t4"
+      ],
+      "gpus": [
+        0,
+        1
+      ],
+      "metric_workers": 2,
+      "whole_job_seconds": 12600,
+      "phase_seconds": {
+        "train_arm": 2400,
+        "fidelity_arm": 900,
+        "metrics_arm": 5400
+      }
+    }
+  }
+}

@@ -1,0 +1,130 @@
+{
+  "schema": "b326_metrics_v1",
+  "run_id": "b326-m2-20261119-01",
+  "label": "INT8_LOSSLESS",
+  "seeds": {
+    "2711": {
+      "bf16": {
+        "final_image_auroc": 0.9772185265200445,
+        "final_pixel_ap": 0.602420998090073
+      },
+      "ci_int8_minus_bf16": {
+        "B": 2000,
+        "hi": 0.00015087036798284824,
+        "lo": -0.00010493501975731883,
+        "point": 1.563438274712059e-05,
+        "seed": 20261117,
+        "unit": "category"
+      },
+      "d_ap": 1.5634382747098385e-05,
+      "d_auc": 7.59288608421782e-05,
+      "gate_passed": true,
+      "int8": {
+        "final_image_auroc": 0.9772944553808867,
+        "final_pixel_ap": 0.6024366324728201
+      },
+      "int8_gate": {
+        "bf16_pipeline_vs_fp32_floor": 0.017226025161385133,
+        "images": 60,
+        "passed": true,
+        "relative_mean_abs_error_int8_vs_fp32_in_fp32": 0.001104500662256993,
+        "relative_mean_abs_error_int8_vs_original_in_bf16": 0.0014510296796643868,
+        "threshold": 0.01
+      },
+      "per_category_max_abs_d_ap": 0.0006797460396563704,
+      "quant": {
+        "archive_int8_sha256": "dd9cb782bbc659bfeb35fa61e017f111ecde02260e45a9d2365ea2c91c37a919",
+        "bf16_bytes": 25436160,
+        "experts": 15,
+        "max_abs_dequant_error_fp32": 0.0024297479540109634,
+        "min_component_amax": 0.032243113964796066,
+        "scale_underflow_guard_hits": 0,
+        "sites": 34,
+        "stored_bytes_int8_plus_scales": 12734400,
+        "zero_components": 0
+      }
+    },
+    "2712": {
+      "bf16": {
+        "final_image_auroc": 0.9800210950614755,
+        "final_pixel_ap": 0.6076438636920848
+      },
+      "ci_int8_minus_bf16": {
+        "B": 2000,
+        "hi": 0.00012490959695714483,
+        "lo": -0.00030024457699009743,
+        "point": -7.771900453555174e-05,
+        "seed": 20261117,
+        "unit": "category"
+      },
+      "d_ap": -7.771900453568126e-05,
+      "d_auc": -4.3445317343682177e-07,
+      "gate_passed": true,
+      "int8": {
+        "final_image_auroc": 0.9800206606083021,
+        "final_pixel_ap": 0.6075661446875491
+      },
+      "int8_gate": {
+        "bf16_pipeline_vs_fp32_floor": 0.016986167955229583,
+        "images": 60,
+        "passed": true,
+        "relative_mean_abs_error_int8_vs_fp32_in_fp32": 0.0011516180153325708,
+        "relative_mean_abs_error_int8_vs_original_in_bf16": 0.001466523876444105,
+        "threshold": 0.01
+      },
+      "per_category_max_abs_d_ap": 0.0012122158034960084,
+      "quant": {
+        "archive_int8_sha256": "5e75e6dfd0a1e07644d4c0cfafabaff6ad14ca5c26435f0df74aebc1c0657a5e",
+        "bf16_bytes": 25436160,
+        "experts": 15,
+        "max_abs_dequant_error_fp32": 0.002748137339949608,
+        "min_component_amax": 0.031074129045009613,
+        "scale_underflow_guard_hits": 0,
+        "sites": 34,
+        "stored_bytes_int8_plus_scales": 12734400,
+        "zero_components": 0
+      }
+    },
+    "2713": {
+      "bf16": {
+        "final_image_auroc": 0.9786245082109986,
+        "final_pixel_ap": 0.6055139483216878
+      },
+      "ci_int8_minus_bf16": {
+        "B": 2000,
+        "hi": 0.0001048774570634547,
+        "lo": -0.00013630631528977106,
+        "point": -2.1785761640521115e-05,
+        "seed": 20261117,
+        "unit": "category"
+      },
+      "d_ap": -2.1785761640469303e-05,
+      "d_auc": -0.0002208773125544905,
+      "gate_passed": true,
+      "int8": {
+        "final_image_auroc": 0.9784036308984441,
+        "final_pixel_ap": 0.6054921625600473
+      },
+      "int8_gate": {
+        "bf16_pipeline_vs_fp32_floor": 0.01709145773104764,
+        "images": 60,
+        "passed": true,
+        "relative_mean_abs_error_int8_vs_fp32_in_fp32": 0.001142418012630616,
+        "relative_mean_abs_error_int8_vs_original_in_bf16": 0.0014743966734543346,
+        "threshold": 0.01
+      },
+      "per_category_max_abs_d_ap": 0.0006175963582568667,
+      "quant": {
+        "archive_int8_sha256": "2ea9e98740ed603b798b63622c125f474b7d6386cb7bd1680a8f4af4f9a71aea",
+        "bf16_bytes": 25436160,
+        "experts": 15,
+        "max_abs_dequant_error_fp32": 0.002540595829486847,
+        "min_component_amax": 0.031219491735100746,
+        "scale_underflow_guard_hits": 0,
+        "sites": 34,
+        "stored_bytes_int8_plus_scales": 12734400,
+        "zero_components": 0
+      }
+    }
+  }
+}

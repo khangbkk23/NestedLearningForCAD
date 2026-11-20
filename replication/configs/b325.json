@@ -1,0 +1,173 @@
+{
+  "experiment": "B325",
+  "card": "replication/experiments/B325/card.md",
+  "driver": "replication/scripts/hope_replicate.py",
+  "khang_code": {
+    "repo": "khangbkk23/NestedLearningForCAD",
+    "commit": "5217cb1",
+    "pin": "replication/khang_source.json",
+    "note": "published runs used these exact files; the pin is checked before every phase that imports them"
+  },
+  "encoder_sha256": "73182a088cf94833c94b1666d1c99e02fe87e2007bff57b564fb6206e25dba71",
+  "khang_base_sha256": "dfe6689e34d103c0a8b61931b71701c901cc4e9048ca1d04037bdf633d10cc31",
+  "khang_train_manifests": {
+    "bottle": "7d1a4de1020bf2d97d8046dc919efb1c6d3bf13e244f6cfbbd7162d5476eb0b6",
+    "cable": "030a196ca58648bc65cce301a3b0b789da64e241af4accbf7368d104cfa8bd70",
+    "capsule": "ef0909873a641f5dc1575e2690ee89d7c322a994db6b5c6198fff890e9c3915e",
+    "carpet": "15fcca8a7952af6a0f945c20db39761001a342871e36602c26807bbc5460a273",
+    "grid": "d00f705ba1380f0c882281fe64f484018d285f5d865c5470b7b5520138fd0d48",
+    "hazelnut": "7f61a35e8a66cb7205a6382e9507dbe7bf478cba21f8d9bf26b583643c1e16c9",
+    "leather": "7441fdae66ab7b8556559c951163ed65b62c3e57017c01381c20ad94cd315b14",
+    "metal_nut": "3d18222883fe700878ea2b51f7ca60743e7b7b4304778bfc1ee180d608acf68e",
+    "pill": "2ed4317a246c5d3519cd28a5ca43cfb63ff9a1bf7f2a04c9fd31c63bf773add2",
+    "screw": "8cf14b65725618795a15564e7546599a7f335feeead0e85261647f91be18c72d",
+    "tile": "b2ba6d438130b749687b732fca86a9b82f232efef5052edaf07a657d1d337f37",
+    "toothbrush": "5afeec329efaacf886d1a7fc66644f7e12578630874ab73308bea7f913a922c3",
+    "transistor": "4baf783ad637d060aa79b55fa224e0ddbe1eca5c3e81c3e7c83d39edc915b000",
+    "wood": "bf80a5cb196c3369f6fb996a20c4ad85d5741b57cb1b40184efed5573d6ef9ba",
+    "zipper": "900561960bac9e436ef4995318213514d1b5d2e419f50c39fc287fc22148defa"
+  },
+  "khang_reference": {
+    "source": "hope_s_02/RESULT.json sha256 5c48a639ab0aa405a81f9643d39a74dad13ba0c093977008ac22b6b23419678e; hope_s_01/RESULT.json sha256 e8f0392284074c5ae4bea4aeccce4c299741b8837e921f66fb02d3dea58e4e82",
+    "F": {
+      "final_pixel_ap": 0.6013057919698526,
+      "final_image_auroc": 0.9782962028327018
+    },
+    "C": {
+      "final_pixel_ap": 0.5897768433513627,
+      "final_image_auroc": 0.9648896665373655,
+      "source": "hope_s_02/RESULT.json arms.c_a1 (Khang's C = NAR-LITE-01 lite_a1, fit_task path)"
+    },
+    "H": {
+      "final_pixel_ap": 0.6006047361677704,
+      "gamma_end": {
+        "stage01": 0.3603495687069857,
+        "stage04": 1.1644896962793616,
+        "stage08": 2.05318869869108,
+        "stage15": 3.4407200440906083
+      }
+    }
+  },
+  "disk_free_min_bytes": 18000000000,
+  "disk_need_note": "train cache fp32 12.9 GB + test cache 2.1 GB (bf16) or 4.2 GB (fp32) + margin",
+  "jobs": {
+    "Q": {
+      "seeds": [
+        2711
+      ],
+      "arms": [
+        "F",
+        "H"
+      ],
+      "base": "khang",
+      "gpus": [
+        0,
+        1
+      ],
+      "lanes": [
+        [
+          [
+            2711,
+            "F"
+          ]
+        ],
+        [
+          [
+            2711,
+            "H"
+          ]
+        ]
+      ],
+      "metric_workers": 2,
+      "whole_job_seconds": 14400,
+      "phase_seconds": {
+        "train_arm": 5400,
+        "fidelity_arm": 900,
+        "metrics_arm": 5400
+      },
+      "description": "port check: Khang BASE.pt, seed 2711, arms F and H"
+    },
+    "C": {
+      "seeds": [
+        2711
+      ],
+      "arms": [
+        "C"
+      ],
+      "base": "khang",
+      "gpus": [
+        0
+      ],
+      "lanes": [
+        [
+          [
+            2711,
+            "C"
+          ]
+        ]
+      ],
+      "metric_workers": 1,
+      "whole_job_seconds": 9000,
+      "phase_seconds": {
+        "train_arm": 2400,
+        "fidelity_arm": 900,
+        "metrics_arm": 5400
+      },
+      "description": "code-path check for arm C at seed 2711 (card s11)"
+    },
+    "R": {
+      "seeds": [
+        2712,
+        2713
+      ],
+      "arms": [
+        "C",
+        "F",
+        "H"
+      ],
+      "base": "generate",
+      "gpus": [
+        0,
+        1
+      ],
+      "lanes": [
+        [
+          [
+            2712,
+            "C"
+          ],
+          [
+            2712,
+            "F"
+          ],
+          [
+            2712,
+            "H"
+          ]
+        ],
+        [
+          [
+            2713,
+            "C"
+          ],
+          [
+            2713,
+            "F"
+          ],
+          [
+            2713,
+            "H"
+          ]
+        ]
+      ],
+      "metric_workers": 3,
+      "whole_job_seconds": 18000,
+      "phase_seconds": {
+        "train_arm": 2400,
+        "fidelity_arm": 900,
+        "metrics_arm": 5400
+      },
+      "description": "new seeds 2712 and 2713, BASE generated per seed; time limits set from job Q timings"
+    }
+  }
+}

@@ -1,0 +1,54 @@
+{
+ "schema": "b326_execution_v1",
+ "derived_from_run_record_sha256": "9d8ccf43f92e2bd9dc9486f985139a7d986562950bc91b497d4b737ad53c5812",
+ "derivation": "Projection of the original run record. Removed: execution-platform bookkeeping (job id, provider status, storage locations, file listings, disk-space readings). Rewritten: source (reduced to the commit of Khang's code and the source bundle hash), inputs.located (seed list instead of paths), base_files_location (as base_files_note), caps renamed time_limits_seconds, and the free-text base_identity note. All other values are copied unchanged.",
+ "experiment": "B326",
+ "job": "M1",
+ "run_id": "b326-m1-20261119-01",
+ "source": {
+  "khang_code_commit": "5217cb1edb319019b1cddfb7e83c0c852ec150ab",
+  "source_bundle_sha256": "fe6707599a7f18e5202be71eeb6307805211ec1e198654b67ac5dd77727e5cd8"
+ },
+ "inputs": {
+  "located": [
+   "2711",
+   "2712",
+   "2713"
+  ],
+  "hashes_checked_against": "configs/b326.json checkpoints_F (pinned from B325 receipts)",
+  "located_note": "pinned checkpoint and BASE found and hash-checked for these seeds"
+ },
+ "environment": {
+  "python": "3.13.16",
+  "torch": "2.11.0+cu130",
+  "cuda_build": "13.0",
+  "scipy": "1.16.3",
+  "sklearn": "1.6.1",
+  "gpus": [
+   "Tesla T4",
+   "Tesla T4"
+  ]
+ },
+ "whole_job_seconds": 8304.671720381,
+ "time_limits_seconds": {
+  "whole_job_seconds": 12600,
+  "train_arm": 2400,
+  "fidelity_arm": 900,
+  "metrics_arm": 5400
+ },
+ "pytest_gate": "PASSED",
+ "pytest_counts": {
+  "driver_b326_b325": 48,
+  "khang": 30
+ },
+ "gate": {
+  "encoder_sha256": "73182a088cf94833c94b1666d1c99e02fe87e2007bff57b564fb6206e25dba71",
+  "train_images_identical": 3629,
+  "vendored_commit": "5217cb1edb319019b1cddfb7e83c0c852ec150ab"
+ },
+ "tracebacks_in_log": 0,
+ "labels": {
+  "M1a": "BASE_SAME_MACHINE_ONLY",
+  "M1b": "BASE_FROM_SEED_OK"
+ }
+}

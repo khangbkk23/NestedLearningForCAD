@@ -1,0 +1,188 @@
+{
+ "schema": "b325_execution_v1",
+ "derived_from_run_record_sha256": "8ae639f1c8bf72537a20ca79c7b49d6d33d542a5165fa9990a2108adc51c2642",
+ "derivation": "Projection of the original run record. Removed: execution-platform bookkeeping (job id, provider status, storage locations, file listings, disk-space readings). Rewritten: source (reduced to the commit of Khang's code and the source bundle hash), inputs.located (seed list instead of paths), base_files_location (as base_files_note), caps renamed time_limits_seconds, and the free-text base_identity note. All other values are copied unchanged.",
+ "experiment": "B325",
+ "job": "R",
+ "seeds": [
+  2712,
+  2713
+ ],
+ "run_id": "b325-r-20261119-01",
+ "source": {
+  "khang_code_commit": "5217cb1edb319019b1cddfb7e83c0c852ec150ab",
+  "source_bundle_sha256": "6f6127380461292489a346e271e358b58a8f18d28db97c34879c4b06b7eb97b4"
+ },
+ "environment": {
+  "python": "3.13.16",
+  "torch": "2.11.0+cu130",
+  "cuda_build": "13.0",
+  "scipy": "1.16.3",
+  "sklearn": "1.6.1",
+  "gpus": [
+   "Tesla T4",
+   "Tesla T4"
+  ]
+ },
+ "whole_job_seconds": 12073.133793063,
+ "time_limits_seconds": {
+  "whole_job_seconds": 18000,
+  "train_arm": 2400,
+  "fidelity_arm": 900,
+  "metrics_arm": 5400
+ },
+ "pytest_gate": "PASSED",
+ "gate": {
+  "encoder_sha256": "73182a088cf94833c94b1666d1c99e02fe87e2007bff57b564fb6206e25dba71",
+  "train_images_identical": 3629,
+  "vendored_commit": "5217cb1edb319019b1cddfb7e83c0c852ec150ab"
+ },
+ "precision": {
+  "2712": "bfloat16",
+  "2713": "bfloat16"
+ },
+ "base": {
+  "2712": {
+   "cuda_build": "13.0",
+   "device": "Tesla T4",
+   "python": "3.13.16",
+   "seed": 2712,
+   "sha256": "eebf94cef4989bf973afcb4de825558f4da3d23af5781f1d7428059351beacda",
+   "torch": "2.11.0+cu130",
+   "vendored_commit": "5217cb1edb319019b1cddfb7e83c0c852ec150ab"
+  },
+  "2713": {
+   "cuda_build": "13.0",
+   "device": "Tesla T4",
+   "python": "3.13.16",
+   "seed": 2713,
+   "sha256": "d3f306049378cf798c6b3c3f20797c84e94bc3cfbb53b997157da1234a597cf4",
+   "torch": "2.11.0+cu130",
+   "vendored_commit": "5217cb1edb319019b1cddfb7e83c0c852ec150ab"
+  }
+ },
+ "train": {
+  "2712/C": {
+   "update_seconds": 775.5044102269999,
+   "cuda_peak_bytes": 775178240,
+   "stage15_sha256": "494181dbe2106d7e30ed8ae64375ce2f929d2ff1161b01f057c77213047814ea",
+   "learn": false,
+   "gamma0": 0.0
+  },
+  "2712/F": {
+   "update_seconds": 794.6651457540006,
+   "cuda_peak_bytes": 775178240,
+   "stage15_sha256": "e527b449503b1bef17155eb02bd538b199f01d71eb53cb6c020ed9be7bff8bfe",
+   "learn": false,
+   "gamma0": 2.1
+  },
+  "2712/H": {
+   "update_seconds": 798.1745665059984,
+   "cuda_peak_bytes": 775178240,
+   "stage15_sha256": "17ca182e801ea0e46bbc01852b065cbce4cb8da771d46fe26647956217dadba3",
+   "learn": true,
+   "gamma0": 0.0
+  },
+  "2713/C": {
+   "update_seconds": 707.935314476,
+   "cuda_peak_bytes": 775178240,
+   "stage15_sha256": "db9a186523d643220191c89bcb5f302777be924ba26816e6eca763f800e0d53a",
+   "learn": false,
+   "gamma0": 0.0
+  },
+  "2713/F": {
+   "update_seconds": 727.2822336719996,
+   "cuda_peak_bytes": 775178240,
+   "stage15_sha256": "d8bedce7da6ee1f7e451f6bbdd89da8366ee452e8dfd909474cbfec2847196d1",
+   "learn": false,
+   "gamma0": 2.1
+  },
+  "2713/H": {
+   "update_seconds": 728.5401500080006,
+   "cuda_peak_bytes": 775178240,
+   "stage15_sha256": "1cffc9cd0ec7d7a9934c5fffc6d6ab251ae212c0354cf744bcb8c3cd51e1f0a2",
+   "learn": true,
+   "gamma0": 0.0
+  }
+ },
+ "fidelity": {
+  "2712/C": {
+   "dtype": "torch.bfloat16",
+   "images": 60,
+   "passed": true,
+   "relative_mean_abs_error": 0.018275607498116613,
+   "token_cosine_mean": 0.9978441437085469,
+   "token_cosine_min": 0.9906401038169861
+  },
+  "2712/F": {
+   "dtype": "torch.bfloat16",
+   "images": 60,
+   "passed": true,
+   "relative_mean_abs_error": 0.016986167955229583,
+   "token_cosine_mean": 0.9978441437085469,
+   "token_cosine_min": 0.9906401038169861
+  },
+  "2712/H": {
+   "dtype": "torch.bfloat16",
+   "images": 60,
+   "passed": true,
+   "relative_mean_abs_error": 0.016839869581565737,
+   "token_cosine_mean": 0.9978441437085469,
+   "token_cosine_min": 0.9906401038169861
+  },
+  "2713/C": {
+   "dtype": "torch.bfloat16",
+   "images": 60,
+   "passed": true,
+   "relative_mean_abs_error": 0.018378990648095856,
+   "token_cosine_mean": 0.9978441437085469,
+   "token_cosine_min": 0.9906401038169861
+  },
+  "2713/F": {
+   "dtype": "torch.bfloat16",
+   "images": 60,
+   "passed": true,
+   "relative_mean_abs_error": 0.01709145773104764,
+   "token_cosine_mean": 0.9978441437085469,
+   "token_cosine_min": 0.9906401038169861
+  },
+  "2713/H": {
+   "dtype": "torch.bfloat16",
+   "images": 60,
+   "passed": true,
+   "relative_mean_abs_error": 0.017035867106031506,
+   "token_cosine_mean": 0.9978441437085469,
+   "token_cosine_min": 0.9906401038169861
+  }
+ },
+ "phase_end_seconds_from_log": {
+  "setup_and_assets": 202,
+  "gate": 218,
+  "extract_train": 610,
+  "make_base": 622,
+  "train_lanes": 3155,
+  "fidelity_lanes": 3495,
+  "extract_test_bf16": 3709,
+  "score_lanes": 7580,
+  "metrics_round1": 9874,
+  "metrics_round2": 12080,
+  "labels": 12084
+ },
+ "tracebacks_in_log": 0,
+ "labels": {
+  "Q_NL": "NL_NULL_REPLICATED",
+  "Q_HP": "HARDPATCH_SUPPORTED"
+ },
+ "checks": {
+  "initial_digest_equal_within_seed": {
+   "2712": true,
+   "2713": true
+  },
+  "initial_digest_differs_between_seeds": true,
+  "C_gamma_all_stages": 0.0,
+  "F_gamma_all_stages": 2.1,
+  "C_F_lambda_all_zero": true,
+  "base_shared_within_seed": true
+ },
+ "base_files_note": "T4-generated BASE files of seeds 2712 and 2713 are kept with the run outputs, not in git; generated on CUDA, so not regenerable on other hardware"
+}
