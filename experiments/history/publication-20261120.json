@@ -397,6 +397,12 @@
   "review files and diagnosis notes": "internal working documents; conclusions that changed interpretation are folded into the cards",
   "B325, B326": "belong to the non-replay direction, published separately"
  },
+ "residual_identifiers": {
+  "note": "Identifiers kept in executable code and configs because the executed configs, the B319 code and the record schemas already use them; renaming would break recipe-hash and schema identity.",
+  ".local": "default local artifact root of the B319 layout (src/nested_replay_cad/paths.py)",
+  "review-status field": "boolean field of produced run records, written as false by every run script, as in B319",
+  "caps_status": "cap state of the B322-B324 recipes (provisional until a profile measured the run time); the pilot scripts and notebooks refuse full runs while it is provisional"
+ },
  "scientific_status": "all B320-B324 results are exploratory: the MVTec test set informed development",
  "verification_limits": [
   "No new model, training, inference or GPU run",

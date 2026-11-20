@@ -101,4 +101,4 @@ audit hành vi. Thiết kế và kết quả ở card từng thí nghiệm. Các
 | [src/nested_replay_cad/coverage.py](../src/nested_replay_cad/coverage.py), [scripts/coverage_pilot.py](../scripts/coverage_pilot.py), [coverage_report.py](../scripts/coverage_report.py) | B324: replay lưu đầu vào uint8, lịch cập nhật phẳng và hai tần số |
 | [scripts/package_development.py](../scripts/package_development.py) | Đóng gói một run đã đăng ký (`--experiment --owner --run-id`); không upload hay launch |
 | `notebooks/b320.ipynb` … `notebooks/b324.ipynb` | Notebook launcher cho các run tương ứng |
-| `tests/test_*` mới | Test cho các script trên (CPU; phần cần torch tự bỏ qua khi không có torch) |
+| `tests/test_*` mới | Test cho các script trên, chạy trên CPU. Phần lớn tự bỏ qua phần cần torch; `test_budget_checkpoint.py` và `test_episode_capture.py` import torch ngay đầu file nên cần env có torch |
