@@ -1,0 +1,432 @@
+# SOURCE: docs/papers/related_cad/arxiv_2503.02691.pdf
+# SOURCE_SHA256: 3ad2e52dd8ef064593880286e83d0c6e7406fbebaebdf037e11fdcb2a3b8d328
+# EXTRACTOR: pypdf 7.1.0 (PdfReader.extract_text, per page)
+# EXTRACTED: 2026-11-19
+# NOTE: machine extraction; equations/tables/unicode may be garbled. Cite the PDF, not this file.
+
+
+===== PAGE 1 =====
+MEMORY EFFICIENT CONTINUAL LEARNING FOR EDGE-BASED
+VISUAL ANOMALY DETECTION
+Manuel Barusco
+University of Padova, Italy
+manuel.barusco@phd.unipd.it
+Lorenzo D’Antoni
+University of Padova, Italy
+lorenzo.dantoni@studenti.unipd.it
+Davide Dalle Pezze
+University of Padova, Italy
+davide.dallepezze@unipd.it
+Francesco Borsatti
+University of Padova, Italy
+francesco.borsatti.1@phd.unipd.it
+Gian Antonio Susto
+University of Padova, Italy
+gianantonio.susto@unipd.it
+ABSTRACT
+Visual Anomaly Detection (VAD) is a critical task in computer vision with numerous real-world
+applications. However, deploying these models on edge devices presents significant challenges,
+such as constrained computational and memory resources. Additionally, dynamic data distributions
+in real-world settings necessitate continuous model adaptation, further complicating deployment
+under limited resources. To address these challenges, we present a novel investigation into the
+problem of Continual Learning for Visual Anomaly Detection (CLAD) on edge devices. We evaluate
+the STFPM approach, given its low memory footprint on edge devices, which demonstrates good
+performance when combined with the Replay approach. Furthermore, we propose to study the
+behavior of a recently proposed approach, PaSTe, specifically designed for the edge but not yet
+explored in the Continual Learning context. Our results show that PaSTe is not only a lighter version
+of STPFM, but it also achieves superior anomaly detection performance, improving the f1 pixel
+performance by 10% with the Replay technique. In particular, the structure of PaSTe allows us to
+test it using a series of Compressed Replay techniques, reducing memory overhead by a maximum of
+91.5% compared to the traditional Replay for STFPM. Our study proves the feasibility of deploying
+VAD models that adapt and learn incrementally on CLAD scenarios on resource-constrained edge
+devices.
+1 Introduction
+Visual Anomaly Detection (VAD) is a critical Computer Vision task that involves identifying images containing
+anomalies and localizing the specific pixels responsible for the irregularity. By leveraging unsupervised learning,
+VAD avoids the time-consuming and costly process of collecting labeled data for pixel-level anomaly annotation.
+VAD has a significant potential impact across various industries, with applications such as manufacturing, medical
+imaging, and autonomous vehicles [2] [3] [4].
+VAD has gained much research attention in recent years, and many VAD methods have been developed, focusing
+mainly on performance. Only in the last period have other challenges been considered in the development of the
+methods. For example, [5] considers the scenario where training and test data are noisy, with the images not well
+illuminated or presenting other kinds of noise. Other studies considered the challenge of deploying VAD methods in
+edge scenarios, where resources are limited [6], analyzing the compatibility of established VAD methods with edge
+limitations.
+arXiv:2503.02691v1  [cs.CV]  4 Mar 2025
+
+===== PAGE 2 =====
+Figure 1: Considered CL setting for the AD problem [1]. Each task corresponds to a new item. The AD models must
+be able to detect the anomalous products (image-level) and the defects inside the image (pixel-level) of a new item
+while remembering to perform well on previously seen items.
+Lastly, [1,7,8] consider the development of VAD methods in the Continual Learning (CL) scenario. This last challenge
+deals with the shifts in the input data distribution that can occur over time in real-world scenarios. For instance, in
+industrial settings, novel objects are continually introduced (see Fig. 1), requiring defect detection, while in medical
+imaging, newly discovered anatomical structures necessitate analysis for anomaly detection.
+In this work, we want to tackle the unexplored challenge of the development of VAD solutions that can work in an
+edge scenario under the CL setting. As a VAD model with a low memory footprint on edge devices, as demonstrated
+by previous studies [6], we assess the STFPM model within the CLAD setting for edge devices with limited resources.
+Furthermore, we propose to study the behavior of a recently proposed approach, Paste, specifically designed for the
+edge but not yet explored in the Continual Learning context.
+Our results show that using the Replay technique, PaSTe model is not only a lighter version of STPFM, but it also
+achieves superior anomaly detection performance, improving the f1 pixel performance by 10%. In particular, the
+structure of PaSTe allows us to test it using a series of Compressed Replay techniques, reducing memory overhead by
+a maximum of 91.5% compared to the traditional Replay for STFPM.
+The main contributions of our work can be summarized as follows:
+1. We tackled for the first time the challenge of Continual Learning Visual Anomaly Detection (CLAD) in the
+Edge Setting by testing the STFPM model using the Replay approach.
+2. Moreover, we propose to use for the first time the Paste approach in the Continual Learning scenario, proving
+that it is able to have better performance than STFPM while reducing several metrics such as training and
+inference time.
+3. Moreover, given the architecture of Paste, we propose a series of Compressed Replay techniques that allow
+to reduce further the memory.
+In addition, we make the code available for reproducibility 1.
+The outline of the paper is as follows: Sec. 2 describes the literature of VAD algorithms, with a focus on the VAD
+methods suitable for edge deployment and for Continual Learning. Sec. 3 describes the implementation details of our
+solution. Sec. 4 shows the experimental settings while Sec. 5 discusses the obtained results in our study. Eventually,
+Sec. 6 concludes this work delineating potential future research directions
+2 Related Work
+Sec. 2.1 provides a review of the literature on VAD, with a particular focus on approaches designed for edge computing
+environments. Sec. 2.2 presents a concise overview of the relevant work in Continual Learning.
+1https://bitbucket.org/papers_vad_group/clad_paste/src/master/
+2
+
+===== PAGE 3 =====
+(a) STFPM
+ (b) Paste
+Figure 2: Comparison between the STFPM and PaSTe architectures [6]. PaSTe reduces the memory required and
+computation resources to the minimum.
+2.1 Visual Anomaly Detection
+Anomaly Detection (AD) has numerous applications in Computer Vision, including manufacturing, healthcare, au-
+tonomous vehicles, and security. Many AD models provide a binary sample level classification (normal or anomalous)
+to support decision-making. Still, decision-makers often need more information about why a sample is anomalous.
+Enhancing model predictions to the pixel level can improve model explainability and user confidence in the model.
+A significant advantage of unsupervised AD approaches is eliminating the time-consuming and resource-intensive la-
+beling process. Most Pixel-Level AD methods fall into two categories: reconstruction-based and feature embedding-
+based methods [2] [9].
+Reconstruction-based methods use generative models to learn normal image reconstruction during training: large
+reconstruction errors during inference indicate anomalies. Approaches like AutoEncoders, GANs and Diffusion Mod-
+els are prominent in this area.
+Feature Embedding-based methods rely on data representations generated by pre-trained neural networks. These
+approaches can be further categorized into three categories as follows.
+Teacher-Student approaches based on two networks (teacher and student) with knowledge distillation, where student
+and teacher feature map deviations indicate anomalies.
+Memory Bank approaches that save features of normal images in a memory bank. Approaches like Padim, Patch-
+Core, and CFA fall under this category.
+Normalizing Flow approaches based on normalizing flow models to transform complex input data distributions into
+normal distributions, leveraging probability as a measure of normality.
+These techniques offer diverse strategies for identifying anomalies while balancing interpretability and performance.
+Most practical VAD applications must be deployed close to the environment of interest, requiring the processing of the
+models directly on edge devices. Although the important realistic scenario, only [6] provides a benchmark for VAD
+algorithms on edge devices and proposes PaSTe: a new VAD model suited for edge deployment based on the STFPM
+architecture [10]. However, the study is limited since the models are not able to handle dynamic environments where
+data can change over time and the model needs to adapt while remembering previous information. For example, new
+objects could be introduced to the model over time.
+2.2 Continual Learning
+In traditional Machine Learning, models are trained on fixed datasets. However, real-world environments often present
+new data with different distributions from the training set. Continual Learning (CL) addresses this challenge by
+enabling models to adapt to new data without forgetting previous knowledge. Effective CL methods should minimize
+forgetting, have low memory usage, and be computationally efficient [1]. CL techniques are generally categorized
+into three main approaches: rehearsal-based, regularization-based, and architecture-based. Rehearsal-based methods,
+such as Experience Replay [11], store and reuse past data samples during training. Regularization-based approaches
+introduce constraints or penalties to retain knowledge of old tasks, often using parameter importance [12] or distillation
+techniques [13]. Architecture-based methods modify the model’s structure to preserve prior knowledge [14] [15] [16].
+3
+
+===== PAGE 4 =====
+Experience Replay is widely considered the most effective strategy to mitigate Catastrophic Forgetting [17] [18] [19]
+[20], particularly for image classification. One of the first studies on Continual Learning for VAD has been performed
+in [1], which shows how adaptations of VAD methods combined with a Replay strategy can get good performances
+with a quite long stream of tasks. The CL scenario considered in [1] and in this work is shown in Fig. 1.
+In this work, we study the VAD algorithms for the first time in a Continual Learning scenario on the edge, where
+resources are limited.
+3 Methodology
+(a) Replay
+ (b) Compressed Replay
+Figure 3: On the left, we present the scheme of the Replay approach, where current data is combined with images
+from previous tasks, stored in the replay memory. On the right, we show the general framework for all Compressed
+Replay approaches, including Feature Replay, FQ Replay, and PQ Replay. In this approach, the replay memory stores
+either feature representations or compressed versions, which are then decompressed (when necessary) and then mixed
+with the representations of the images of the current task.
+3.1 Continual Learning VAD on Edge
+Starting from the work done in [6] we test the STFPM model in the CL setting by adopting the tiny backbone MCUNet-
+IN3, which provides the best trade-off memory performance as reported in [6]. STFPM is evaluated considering
+Replay as CL method, Replay performs well for the VAD models as previously tested [1]. The same is done by
+considering the PaSTe architecture. After that, further optimization of the Replay memory is performed by considering
+three Compressed Replay techniques as reported in Section 3.3: Feature Replay, Feature Quantization (FQ) Replay,
+and Feature Product Quantization (FPQ) Replay. The goal of Compressed Replay approaches aims to compress the
+replay memory to reduce the memory footprint.
+3.2 STFPM and PaSTe
+Student-Teacher Feature Pyramid Matching [10] is a feature-based VAD model that employs a teacher-student archi-
+tecture for the task (see Fig. 2a). Since the student replicates the features extracted by the teacher at given feature
+extraction layers on normal images, a difference between student and teacher features is an anomaly during inference.
+PaSTe is an optimized version of the STFPM, where the first layers of the network that are not used in the feature
+extraction are frozen and shared between the Student and the Teacher (see Fig. 2b). The backbone used for both
+STFPM and PaSTe in this work is the MCUNet-IN3 [21] pre-trained on the ImageNet dataset, which provides a good
+trade-off between memory and performance. For feature extraction, we consider the same layers reported in the work
+of VAD at the edge [6]. Their results show that PaSTe, when compared to STFPM, decreases the inference time by
+25%, while reducing the training time by 33% and peak RAM usage during training by 76% (see Tab. 1).
+3.3 Replay and Compressed Replay Approaches
+The Replay approach is one of the most effective CL techniques to mitigate Catastrophic Forgetting [17] [18] [19]
+and ca be described as in Fig. 3a. When a new task is introduced to the model, the model stores a small portion of
+samples into a storage or replay memory. When the model is trained on a new task, to maintain the previously acquired
+knowledge, a batch of data is extracted from the replay memory and mixed with a batch of data from the current task.
+This mix is then fed to the model to learn the new task while remembering previously seen tasks.
+Since we are working with tiny devices, the additional memory needed for the Replay mechanism must be optimized
+and lowered. As reported in [1], the more old training samples are stored in the replay memory, the more catastrophic
+4
+
+===== PAGE 5 =====
+forgetting is reduced. Therefore, we decided to consider a series of Compressed Replay techniques that aim to reduce
+the memory footprint (MBs) while keeping the same number of samples (see Fig. 3b).
+We decided to optimize the replay memory for PaSTe by leveraging its particular architecture, where a portion of
+layers are shared between the teacher and the student (see Fig. 2b). Since these layers are shared and frozen, the
+trainable parameters of the network start after an intermediate layer, so the saved samples for Replay can be forwarded
+from there. Therefore, when referring to Feature Replay, it means there is no need to save the images in the replay
+memory but instead a latent representation of them (more precisely, a feature map extracted at an intermediate layer),
+which occupies less memory.
+Therefore, the storage in Compressed Replay approaches like Feature Replay is composed by representations (e.g.,
+intermediate features) of the samples and can include a step of decompression when necessary (see Fig. 3b). From
+this point, further optimizations can be done on the representations stored in the replay memory. Precisely, the feature
+maps extracted can be compressed more by using feature quantization and product quantization. Then, during the
+training, the compressed representations can be decompressed.
+Feature quantization is a commonly used technique for minimizing memory consumption, especially in resource-
+constrained environments. In this work, 8-bit quantization was applied to the feature maps stored in memory to reduce
+storage requirements significantly. Intermediate feature maps in PyTorch use 32-bit floating-point values, where each
+value occupies 4 bytes. Converting these to 8-bit integers through quantization reduces the memory footprint by a
+factor of four, resulting in more efficient memory usage. Quantization was implemented by determining the minimum
+and maximum values of each feature map and calculating a quantization scale based on the range. Each value in
+the feature map was scaled, rounded, and clamped within a range of 0 to 255, representing the 256 levels of 8-bit
+quantization. The quantization process also stores the minimum value and scaling factor for each feature map to
+ensure the feature maps can be accurately reconstructed. The scaling factor adjusts the range of the integers, while the
+minimum value shifts the range to align with the original feature map’s distribution. This enabled the reconstruction
+of the feature maps to approximate their original representation.
+Product Quantization (PQ) is a powerful technique for reducing the memory footprint and computational complexity
+of high-dimensional vector representations [22]. The core idea of PQ is to decompose a high-dimensional vector space
+into a Cartesian product of lower-dimensional subspaces, each of which is quantized independently using Vector
+Quantization (VQ) techniques, such as k-means clustering. During this process, a vector x ∈ Rd is split into m sub-
+vectors, and each sub-vector is quantized by assigning it to the nearest centroid from a pre-learned codebook (set of
+centroids), resulting in a compact representation through centroid indices. PQ is particularly effective in large-scale
+applications such as image retrieval [23] and natural language processing (NLP) [24], where balancing speed, memory
+efficiency, and accuracy is critical. The hyperparameters of the PQ algorithm are
+• num subvectors : number of subvectors to divide the initial vectors.
+• n bit subvector : number of bits for representing a given subvector. This is related to the number of centroids
+used in the clustering algorithm, which is 2n bit subvector .
+By varying these parameters, it is possible to reduce the vectors dimensions in a more or less aggressive way.
+Table 1: Comparison of STFPM and PaSTe for the MCUNet backbone as reported in [6] for the static scenario, where
+a different model is trained for each object. While memory improvements are modest, there are significant gains in
+inference, training computation, and training memory, with a slight change in AD performance. This suggests that
+using the Paste method could be essential for continual learning on edge devices with limited resources. Here, ∆
+represents the improvement in percentual of PaSTe compared to STFPM.
+STFPM PaSTe ∆ [%]
+Memory [MB] 1.76 1.68 4.5
+Inference [MAC] 224.3M 156.9M 30.1
+Training [MAC] 146.85M 91.12M 37.95
+AD Performance [FI] 0.52 0.53 0.09
+4 Experimental Setting
+In the following part, we delineate the experimental setup employed in our work. The considered CL scenario is the
+same as that considered in [1] and visible in Fig. 1. Following this, we explain the metrics under consideration, which
+are shown in Tab. 2. Lastly, we describe the CL strategies evaluated.
+5
+
+===== PAGE 6 =====
+Figure 4: Behavior of the f1 pixel-level metric over time for STFPM and PaSTe. Each point represents the average
+performance on all the tasks seen so far. The considered strategies are the same as defined in 4.2
+Figure 5: Behavior of the f1 pixel-level metric over time for PaSTe. Each point represents the average performance on
+all the tasks seen so far. The considered strategies are the same as defined in 4.2
+4.1 Dataset
+The MVTec Dataset [3] is used in our experiments. This dataset encompasses ten objects and five textures, making
+it suitable for assessing the robustness and generalization capabilities of various AD techniques. In the given CL
+scenario, we consider a sequence of ten tasks, where each task corresponds to a different object. Specifically, the
+evaluation includes the following objects: Bottle, Cable, Capsule, Hazelnut, Transistor, Metal Nut, Pill, Screw, Zipper,
+and Toothbrush.
+4.2 Continual Learning Strategies
+During the experiments, six CL approaches have been considered:
+1. Joint Training (JT): The model is trained with all the tasks simultaneously and is thus not affected by
+catastrophic forgetting. The performance obtained with this configuration is considered an upper bound for
+all the CL strategies.
+2. Fine-Tuning (FT): The model is trained by considering the data only from the current task without any
+countermeasure to catastrophic forgetting. The performance obtained with this configuration is considered a
+lower bound for all the CL strategies.
+6
+
+===== PAGE 7 =====
+3. Replay: the model is trained by considering the data from the current task and a portion of the data from the
+previous tasks. In our experiment, the Replay memory size is 100, which means that the memory contains at
+most 10% of the entire dataset.
+4. Compressed Replay: The model is trained as in the Replay strategy, but as stated before, we considered:
+• Feature Replay: In the memory, only the feature maps are stored.
+• Feature Quantization Replay (FQ Replay): In the memory, the quantized feature maps are stored.
+• Product Quantization Feature Replay (FPQ Replay): In the memory, the feature maps compressed
+with PQ are stored.
+4.3 Metrics
+In this section, all the VAD and CL metrics considered in the experiments are reported in Tab. 2.
+4.4 Anomaly Detection Metrics
+The performance of Anomaly Detection techniques using the MVTec dataset is typically evaluated using a range of
+metrics. A key distinction in evaluation approaches lies in the level of analysis, which can be conducted at either the
+image or pixel level. To provide a comprehensive assessment, we employ two primary metrics for image and pixel-
+level evaluations: the ROC and the F1-score. In addition to these metrics, we also utilize the Per-region-overlap (PRO)
+metric for pixel-level evaluation. The PRO metric ensures that ground-truth regions are weighted equally, regardless
+of their size, thereby mitigating the limitations of simplistic per-pixel metrics [25].
+4.5 Continual Learning Metrics
+The previous AD metrics are evaluated within the CL scenario. For each metric listed, the final value is averaged across
+all the tasks after the model is trained on the last task, as standard practice in the CL evaluations. For example, after
+the model was trained sequentially on all ten objects, the final performance is calculated by averaging the performance
+on all the objects. The percentage of forgetting indicates the average forgetting on all the tasks and is defined as in [1].
+A higher value of forgetting indicates it is more difficult to maintain previous knowledge.
+To provide a more comprehensive evaluation, we also calculate the relative performance gap between each Continual
+Learning approach and the Joint Training, which is an upper bound for all CL methods. This comparison is crucial
+because a model may demonstrate minimal forgetting yet still achieve significantly lower overall performance than the
+Joint Training strategy. By highlighting this gap, we can better understand the trade-offs between knowledge retention
+and absolute performance in CL approaches.
+As previously stated, in the CL framework, we are interested in updating and expanding model knowledge over time,
+avoiding forgetting, while at the same time, we want to obtain this goal with minimal computation and memory
+overhead [26]. Hence, the values for the necessary memory are also provided in Tab. 2. For memory, we report the
+Architecture Memory and Additional Memory. Architecture Memory represents the memory of the model and of the
+backbone, while Additional Memory refers to the memory necessary for the replay memory.
+5 Results
+In this section, the results obtained with the various CL strategies explained in Sec. 4.2 are discussed. Firstly, a
+comparison of the performances of STFPM and PaSTe with MCUNet-IN3 backbone with the Replay strategy is
+provided, and then a comprehensive analysis of the different Compressed Replay techniques adopted with PaSTe.
+5.1 Replay Approach
+In Fig. 4, a first comparison between STFPM and PaSTe models is shown, reporting the behavior of the F1 pixel
+level metric over time; each point represents the average performance on all the tasks seen so far. It is very interesting
+to note how PaSTe is performing better than STFPM in the Replay approach. This is also confirmed by the values
+reported in Tab. 2, where the average forgetting value for PaSTe is lower than for STFPM.
+The motivation for this lower forgetting value can be found in the structure of the PaSTe model, where some layers
+are kept frozen and are shared between the Student and the Teacher. As a consequence, the initial layers generate
+7
+
+===== PAGE 8 =====
+Figure 6: Memory - Performance trade-off between the different Replay strategies adopted with PaSTe
+more consistent feature representations across tasks than those obtained with a fully trainable Student-Teacher archi-
+tecture. This property enables the Paste mechanism to adjust the weights of the trainable part less aggressively when
+transitioning between tasks, thereby reducing the extent of forgetting during model training.
+Table 2: Table shows results for both STFPM and Paste model, the names of the CL approaches are the same as
+indicated in Sec. 4.2. Here are shown all the metrics for image-level and pixel-level. Moreover, additional metrics to
+consider for edge devices are reported, such as Architecture memory and Additional memory. Average forgetting is
+measured with respect to the f1 pixel metric.
+Model STFPM PaSTe
+CL Approach JT FT Replay JT FT Replay Feature Replay FQ Replay PQ Replay
+Image AUC ROC 0.77 0.50 0.80 0.82 0.54 0.80 0.82 0.69 0.49 f1 0.88 0.82 0.88 0.89 0.83 0.87 0.89 0.86 0.81
+Pixel
+AUC ROC 0.92 0.59 0.90 0.92 0.74 0.90 0.91 0.88 0.65
+f1 0.42 0.09 0.36 0.41 0.15 0.40 0.40 0.32 0.29
+PR AUC 0.38 0.04 0.32 0.37 0.10 0.36 0.36 0.26 0.30
+AU PRO 0.81 0.32 0.70 0.76 0.44 0.74 0.76 0.70 0.34
+Architecture memory [MB] 1.76 1.76 1.76 1.68 1.68 1.68 1.68 1.68 1.68
+Additional memory [MB] 0 0 19.66 0 0 19.66 9.83 2.46 1.68
+Average forgetting [%] / 0.84 0.20 / 0.76 0.19 0.19 0.28 0.50
+5.2 Compressed Replay Techniques
+As reported before, other optimizations have been considered to reduce the size of the replay memory in the PaSTe
+approach. A comprehensive overview of the trade-off between memory and performance can be depicted in Fig. 5
+and Fig. 6.
+A big improvement in the Replay memory size is achieved when switching from Replay to Feature Replay. Indeed,
+with the same number of saved samples in the memory (always 100), there is a reduction of 50% of the Replay Memory
+size in terms of MBs, with no reduction in the F1 pixel level metric. Instead, when switching to Feature Quantization
+Replay, there is a reduction of 75% with respect to the Feature Replay strategy with a decrease in the F1 pixel level
+metric (20%).
+When adopting even more aggressive compression strategies, like PQ in the Feature Product Quantization Re-
+play approach, there is another decrease of 68% of the memory with another slight decrease in the F1 pixel level
+score (9.3%). The results reported with FPQ Replay are obtained with hyperparameters: numsubvectors = 6 &
+nbitsubvector = 7.
+8
+
+===== PAGE 9 =====
+Therefore, FPQ Replay achieves the highest compression ratio, providing a 12× reduction compared to classic Replay,
+followed by FQ Replay with an 8× reduction and Feature Replay with a 2× reduction. However, based on the com-
+pression level, different AD performances are obtained, showing the trade-off between compression and performance
+(see Fig. 6).
+In particular, from these results, another big insight can be deduced. The Visual Anomaly Detection task is very
+precise, and a lot of precision in the extracted features is needed to perform the task well, at least for architectures
+like STFPM and Paste. By looking at the F1 pixel-level score reduction from Feature Replay to the FPQ Replay, it is
+easy to conclude that the quality of the feature maps that are saved in the Replay memory is crucial for the task, and
+altering them with a quantization process or more aggressively with Product Quantization, can lead to a decrease in
+the performances because it changes the feature distribution over which the Student and Teacher architectures must
+match their behavior.
+6 Conclusion
+In this work, we addressed the challenge of Continual Learning for Visual Anomaly Detection on edge devices,
+where memory and computational constraints pose significant challenges. Our study demonstrated the feasibility of
+deploying VAD models like STFPM on the edge while still being able to learn continuously from a data stream where
+new objects arrive over time.
+Moreover, we tested the advantages of PaSTe, an optimized variant of STFPM, in a CL scenario for edge devices,
+improving efficiency in resource-limited environments. Our results show that PaSTe not only reduces memory and
+computational requirements but also improves anomaly detection performance. Specifically, when combined with the
+Replay technique, PaSTe achieved a 10% increase in pixel-level F1 score compared to STFPM while also reducing
+training time, inference time, and peak memory usage. Moreover, we proved that Paste not only works well in the
+Continual Learning context, but it is also a more reasonable choice than STFPM when considering the edge application
+where the computation resources are limited. Our results show that PaSTe is not only a lighter version of STPFM, but
+it also achieves superior anomaly detection performance, improving the f1 pixel performance by 10% with the Replay
+technique.
+Furthermore, the structure of PaSTe allows us to test it using a series of Compressed Replay techniques to further
+optimize memory consumption. Our findings indicate that Feature Replay reduces memory usage by 50% with no
+performance loss, while more aggressive compression strategies, such as Feature Quantization and Product Quantiza-
+tion, allow for a maximum memory reduction of 91.5% but with performance degradation.
+Eventually, our study demonstrates that Continual Learning can be effectively applied to VAD for edge deployment,
+enabling models to adapt incrementally to new tasks with minimal resource consumption. Future research directions
+include exploring alternative compression techniques to reduce further the replay memory or exploring other CL
+techniques like distillation-based approaches.
+References
+[1] N. Bugarin, J. Bugaric, M. Barusco, D. D. Pezze, and G. A. Susto, “Unveiling the anomalies in an ever-changing
+world: A benchmark for pixel-level anomaly detection in continual learning,” in Proceedings of the IEEE/CVF
+Conference on Computer Vision and Pattern Recognition, 2024, pp. 4065–4074. 2, 3, 4, 5, 7
+[2] J. Bao, H. Sun, H. Deng, Y. He, Z. Zhang, and X. Li, “Bmad: Benchmarks for medical anomaly detection,” arXiv
+preprint arXiv:2306.11876, 2023. 1, 3
+[3] P. Bergmann, M. Fauser, D. Sattlegger, and C. Steger, “Mvtec ad — a comprehensive real-world dataset for
+unsupervised anomaly detection,” in 2019 IEEE/CVF Conference on Computer Vision and Pattern Recognition
+(CVPR), 2019, pp. 9584–9592. 1, 6
+[4] R. Chan, K. Lis, S. Uhlemeyer, H. Blum, S. Honari, R. Siegwart, P. Fua, M. Salzmann, and M. Rottmann,
+“Segmentmeifyoucan: A benchmark for anomaly segmentation,” arXiv preprint arXiv:2104.14812, 2021. 1
+[5] H. Cheng, J. Luo, X. Zhang, H. Liu, and F. Wu, “Towards training noise-robust anomaly detection
+via collaborative adversarial flows,” Measurement, vol. 242, p. 115865, 2025. [Online]. Available:
+https://www.sciencedirect.com/science/article/pii/S0263224124017500 1
+[6] M. Barusco, F. Borsatti, D. D. Pezze, F. Paissan, E. Farella, and G. A. Susto, “Paste: Improving the efficiency of
+visual anomaly detection at the edge,” arXiv preprint arXiv:2410.11591, 2024. 1, 2, 3, 4, 5
+9
+
+===== PAGE 10 =====
+[7] D. D. Pezze, E. Anello, C. Masiero, and G. A. Susto, “Continual learning approaches for anomaly detection,”
+arXiv preprint arXiv:2212.11192, 2022. 2
+[8] G. Xie, J. Wang, J. Liu, J. Lyu, Y. Liu, C. Wang, F. Zheng, and Y. Jin, “Im-iad: Industrial image anomaly
+detection benchmark in manufacturing,” IEEE Transactions on Cybernetics, 2024. 2
+[9] ——, “Im-iad: Industrial image anomaly detection benchmark in manufacturing,” 2024. [Online]. Available:
+https://arxiv.org/abs/2301.13359 3
+[10] G. Wang, S. Han, E. Ding, and D. Huang, “Student-teacher feature pyramid matching for anomaly detection,”
+arXiv preprint arXiv:2103.04257, 2021. 3, 4
+[11] D. Rolnick, A. Ahuja, J. Schwarz, T. P. Lillicrap, and G. Wayne, “Experience replay for continual learning,”
+2019. [Online]. Available: https://arxiv.org/abs/1811.11682 3
+[12] J. Kirkpatrick, R. Pascanu, N. Rabinowitz, J. Veness, G. Desjardins, A. A. Rusu, K. Milan, J. Quan, T. Ramalho,
+A. Grabska-Barwinska, D. Hassabis, C. Clopath, D. Kumaran, and R. Hadsell, “Overcoming catastrophic
+forgetting in neural networks,” Proceedings of the National Academy of Sciences, vol. 114, no. 13, p.
+3521–3526, Mar. 2017. [Online]. Available: http://dx.doi.org/10.1073/pnas.1611835114 3
+[13] Z. Li and D. Hoiem, “Learning without forgetting,” IEEE Transactions on Pattern Analysis and Machine
+Intelligence, vol. 40, no. 12, pp. 2935–2947, 2018. 3
+[14] A. A. Rusu, N. C. Rabinowitz, G. Desjardins, H. Soyer, J. Kirkpatrick, K. Kavukcuoglu, R. Pascanu, and
+R. Hadsell, “Progressive neural networks,” 2022. [Online]. Available: https://arxiv.org/abs/1606.04671 3
+[15] C. Fernando, D. Banarse, C. Blundell, Y. Zwols, D. Ha, A. A. Rusu, A. Pritzel, and D. Wierstra, “Pathnet:
+Evolution channels gradient descent in super neural networks,” arXiv preprint arXiv:1701.08734, 2017. 3
+[16] A. Mallya and S. Lazebnik, “Packnet: Adding multiple tasks to a single network by iterative pruning,” in
+Proceedings of the IEEE conference on Computer Vision and Pattern Recognition, 2018, pp. 7765–7773. 3
+[17] Q. Yang, F. Feng, and R. Chan, “A benchmark and empirical analysis for replay strategies in continual learning,”
+2022. [Online]. Available: https://arxiv.org/abs/2208.02660 4
+[18] L. Pellegrini, G. Graffieti, V. Lomonaco, and D. Maltoni, “Latent replay for real-time continual learning,” in 2020
+IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS). IEEE, 2020, pp. 10 203–10 209.
+4
+[19] P. Buzzega, M. Boschini, A. Porrello, and S. Calderara, “Rethinking experience replay: a bag of tricks for
+continual learning,” 2020. [Online]. Available: https://arxiv.org/abs/2010.05595 4
+[20] C. D. Kim, J. Jeong, and G. Kim, “Imbalanced continual learning with partitioning reservoir sampling,” 2020.
+[Online]. Available: https://arxiv.org/abs/2009.03632 4
+[21] J. Lin, W.-M. Chen, Y. Lin, J. Cohn, C. Gan, and S. Han, “Mcunet: Tiny deep learning on iot devices,” 2020.
+[Online]. Available: https://arxiv.org/abs/2007.10319 4
+[22] H. Jegou, M. Douze, and C. Schmid, “Product quantization for nearest neighbor search,” IEEE transactions on
+pattern analysis and machine intelligence, vol. 33, no. 1, pp. 117–128, 2010. 5
+[23] T. Yu, J. Yuan, C. Fang, and H. Jin, “Product quantization network for fast image retrieval,” in Proceedings of
+the European Conference on Computer Vision (ECCV), September 2018. 5
+[24] J. Zhang, Q. Liu, D. Lian, Z. Liu, L. Wu, and E. Chen, “Anisotropic additive quantization for fast inner product
+search,” Proceedings of the AAAI Conference on Artificial Intelligence, vol. 36, no. 4, pp. 4354–4362, Jun.
+2022. [Online]. Available: https://ojs.aaai.org/index.php/AAAI/article/view/20356 5
+[25] Y. Yang, S. Xiang, and R. Zhang, “Improving unsupervised anomaly localization by applying multi-scale mem-
+ories to autoencoders,” arXiv preprint arXiv:2012.11113, 2020. 7
+[26] M. De Lange, R. Aljundi, M. Masana, S. Parisot, X. Jia, A. Leonardis, G. Slabaugh, and T. Tuytelaars, “A
+continual learning survey: Defying forgetting in classification tasks,” IEEE transactions on pattern analysis and
+machine intelligence, vol. 44, no. 7, pp. 3366–3385, 2021. 7
+10

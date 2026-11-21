@@ -1,0 +1,977 @@
+# SOURCE: docs/papers/related_cad/arxiv_2312.08917.pdf
+# SOURCE_SHA256: 53ca9c71b8854266634de9e40c9390d57a4e5b0355099bb84768a166c5bf1c7b
+# EXTRACTOR: pypdf 7.1.0 (PdfReader.extract_text, per page)
+# EXTRACTED: 2026-11-19
+# NOTE: machine extraction; equations/tables/unicode may be garbled. Cite the PDF, not this file.
+
+
+===== PAGE 1 =====
+An Incremental Unified Framework for Small
+Defect Inspection
+Jiaqi Tang1,2,3, Hao Lu1,2, Xiaogang Xu4, Ruizheng Wu5, Sixing Hu5, Tong
+Zhang6, Tsz Wa Cheng6, Ming Ge7, Ying-Cong Chen1,2,3⋆, and Fugee Tsung1,2
+1 Hong Kong University of Science and Technology (Guangzhou)
+2 Hong Kong University of Science and Technology
+3 HKUST(GZ) – SmartMore Joint Lab
+4 Chinese University of Hong Kong
+5 SmartMore Corporation
+6 Hong Kong Industrial Artificial Intelligence & Robotics Centre
+7 Hong Kong Productivity Council
+{jtang092, hlu585}@connect.hkust-gz.edu.cn
+xiaogangxu00@gmail.com {ruizheng.wu, david.hu}@smartmore.com
+{jacquelinezhang, alancheng}@hkflair.org mingge@hkpc.org
+yingcongchen@hkust-gz.edu.cn season@ust.hk
+Abstract. Artificial Intelligence (AI)-driven defect inspection is pivotal
+in industrial manufacturing. However, existing inspection systems are
+typically designed for specific industrial products and struggle with di-
+verse product portfolios and evolving processes. Although some previous
+studies attempt to address object dynamics by storing embeddings in
+the reserved memory bank, these methods suffer from memory capacity
+limitations and object distribution conflicts. To tackle these issues, we
+propose the Incremental Unified Framework (IUF), which integrates in-
+cremental learning into a unified reconstruction-based detection method,
+thus eliminating the need for feature storage in the memory. Based on
+IUF, we introduce Object-Aware Self-Attention (OASA) to delineate
+distinct semantic boundaries. We also integrate Semantic Compression
+Loss (SCL) to optimize non-primary semantic space, enhancing network
+adaptability for new objects. Additionally, we prioritize retaining the
+features of established objects during weight updates. Demonstrating
+prowess in both image and pixel-level defect inspection, our approach
+achieves state-of-the-art performance, supporting dynamic and scalable
+industrial inspections.
+Our code is released at https://github.com/jqtangust/IUF.
+Keywords: Small Defect Inspection; Incremental Unified Framework
+1 Introduction
+AI-driven small defect inspection, commonly known as anomaly detection, is piv-
+otal in numerous industrial manufacturing sectors [14,26,36,42], spanning from
+⋆ Corresponding author.
+arXiv:2312.08917v3  [cs.CV]  23 Sep 2024
+
+===== PAGE 2 =====
+2 J. Tang et al.
+(B) One-Model-One-Object 
+with Defect-Incremental
+Model 1
+Model 2
+Model 3
+Input
+Predicted 
+Mask
+More
+Defects
+Predicted 
+Mask for
+More
+Defects
+··· ··· ··· ··· ···
+(A) One-Model-One-Object
+Model 1
+Model 2
+Model 3
+Fixed 
+Input
+Predicted 
+Mask
+······ ···
+(C) One-Model-N-Objects
+Unified
+Model
+Fixed 
+Input
+Predicted 
+Mask
+··· ···
+Incremental
+(D) One-Model-N-Objects 
+with Object-Incremental
+Original 
+Input
+New 
+Objects
+True 
+OR 
+False
+···
+···
+Memory 
+Bank
+(E) One-Model-N-Objects 
+with Incremental-Unified (Ours)
+Original 
+Input
+New 
+Objects
+Original 
+Prediction
+Mask
+New 
+Prediction
+Mask
+······
+······
+Incremental
+Unified
+Model
+Binary 
+Classifier
+Fig. 1: Different framework in small defect inspection. (A) shows the most common
+One-Model-One-Object pattern [9,10,20,23,29], which trains a separate model for each
+of the different objects. (B), based on (A), the types of defects are incrementing [5,7,31,
+32,37],whichimprovesthegeneralizationperformanceindetectingdifferentdefects.(C)
+showsaunifiedmodel[38,41]formulti-objects.(D)useamemorybanktoincrementally
+record features for all objects for distinguishing [20]. (E) is our Incremental Unified
+framework, and it combines the advantages of both (C) and (D).
+medical engineering [17] to material science [16], and electronic components [15].
+Automated product inspections facilitated by these applications not only boast
+impressive accuracy but also significantly reduce labor costs.
+While most of the current inspection systems [5,7,9,10,20,23,29,31,32,37] are
+specifically designed for particular industrial products (One-Model-One-Object,
+cf. Fig. 1 (A) (B)), the ever-changing dynamics of real-world product variants
+present two salient challenges. Firstly, there is a pressing need for a system ca-
+pable of detecting multiple objects. Secondly, the adaptability of these systems
+to the frequently adjusted production schedules [33] is a lingering concern. Re-
+lying solely on acquiring new inspection equipment is neither cost-effective nor
+efficient due to increased deployment time.
+Currently, only limited research addresses these challenges. One-Model-N-
+Object approaches like UniAD [38] and OmiAD [41] propose a unified network
+suitable for a broad spectrum of objects (Fig. 1 (C)). However, its capability
+is restricted when encountering dynamic or unfamiliar objects. On the other
+hand, CAD [20] suggests embedding features of multiple objects into a memory
+bank, with a binary classifier discerning defects (Fig. 1 (D)). Yet, the differences
+in object distributions can jeopardize memory bank features and impede pixel-
+
+===== PAGE 3 =====
+An Incremental Unified Framework for Small Defect Inspection 3
+Space
+Importance
+Semantic 
+Boundary Compress Non-Primary Space Updating Space
+(A) (B) (D)(C)
+Fig. 2: Semantic space in our methodology (B-D). In (A), all objects in the original
+semantic space are tightly coupled, leading to “catastrophic forgetting”, i.e., the learn-
+ing of new objects will result in forgetting previously learned objects. Our method
+firstly builds a semantic boundary of each object (B), then compacts the non-primary
+semantic space (C), and finally suppresses semantic updating in the previous objects’
+feature space (D).
+level performance evaluation. Although Liu et al. [22] design a learnable prompt
+to find needed object information in the memory bank, this solution is still
+constrained by escalating storage demands.
+To surmount the confines of prior research, we introduce an Incremental
+Unified Framework (IUF), which integrates the multi-object unified model with
+object-incremental learning, as depicted in Fig. 1 (E). IUF capitalizes on the
+unified model’s prowess, enabling pixel-precise defect inspection across diverse
+objects without necessitating an embedded feature storage in the memory bank.
+In this framework, one significant challenge is “catastrophic forgetting”, which
+hampers network efficacy in the Incremental Unified framework due to semantic
+feature conflicts in the reconstruction network (Fig. 2 (A)). We propose Object-
+Aware Self-Attention (OASA), leveraging object category features to segregate
+the semantic spaces of different objects (Fig.2 (B)). These features serve as se-
+mantic constraints within the encoding process of the reconstruction network,
+establishing distinct feature boundaries in the semantic hyperplane, thereby alle-
+viating feature coupling. Then, we introduce Semantic Compression Loss (SCL)
+to condense non-essential feature values, concentrating the feature space on prin-
+cipal components (Fig.2 (C)). This creates more semantic space for optimizing
+unseen objects and minimizing potential forgetting issues. Finally, when learn-
+ing novel objects, we propose a new updating strategy to retain features of prior
+objects and reduce interference from new objects in the prevailing feature space
+(Fig.2 (D)). Our framework offers a versatile solution for small defect inspection,
+adeptly navigating the challenges posed by feature space conflicts, and achieves
+state-of-the-art (SOTA) performance at both image and pixel levels.
+To summarize, our contributions are listed as follows:
+– We propose the Incremental Unified Framework (IUF), which can dynami-
+cally detect small defects in frequently-adjusted industrial scenarios. To the
+best of our knowledge, IUF is the first framework to integrate incremental
+learning into the unified reconstruction-based small defect detection method,
+thereby overcoming memory bank capacity limitations and object distribu-
+tion conflicts.
+
+===== PAGE 4 =====
+4 J. Tang et al.
+– Our framework incorporates Object-Aware Self-Attention (OASA), Seman-
+tic Compression Loss (SCL), and a new updating strategy, which together
+reduce the potential risk of feature conflicts and mitigate the catastrophic
+forgetting issue.
+– The Incremental Unified Framework (IUF) enables our method to deliver
+not only image-level performance but also pixel-level location. Compared to
+other baselines, our method achieves SOTA performance.
+2 Related Work
+Small Defect Inspection Small defect inspection (Anomaly Detection) pri-
+marily falls into two paradigms: feature embedding-based and reconstruction-
+based methods. Both aim to pinpoint the locations of defects.
+Feature embedding-based methods localize defective regions by discerning
+feature distribution discrepancies between defective and non-defective images,
+e.g., SPADE [9], PaDim [10], PatchCore [30], GraphCore [35], SimpleNet [24].
+These approaches extract diverse image features using a deep network and sub-
+sequently assess the dissimilarities between test image features and those of
+the training dataset. If these disparities are substantial, they indicate defective
+regions. Another efficient method is the reconstruction-based approach, which
+relies on an alternative hypothesis. Such methods posit that models trained
+on normal samples excel in reproducing normal regions while struggling with
+anomalous regions [4,8,38,41]. Therefore, many approaches aim to discover
+an optimal network architecture for effective sample reconstruction, including
+Autoencoder (AE) [4], Variational Autoencoder (VAE) [23], Generative Adver-
+sarial Networks (GANs) [1], Transformer [38], etc. Furthermore, beyond image-
+level reconstruction, certain methods endeavor to reconstruct features at a more
+granular level, e.g., InTra [28] and UniAD [38]. Until recently, the majority of
+prior approaches adhered to the One-Model-One-Object pattern, as shown in
+Fig. 1 (A). However, recent advancements such as UniAD [38] and OmniAL [41]
+have extended the reconstruction paradigm to the One-Model-N-Objects pat-
+tern (depicted in Fig. 1 (C)). This progress curtails memory usage compared to
+the one-model-one-object approach, propelling the entire problem into a more
+general framework.
+In the context of industrial defect inspection, scenarios often evolve over time.
+Initial training may not encompass all objects, but rather the acquisition of ob-
+jects unfolds progressively in response to manufacturing schedules and adapta-
+tions. Hence, an ideal approach would involve continual learning of new objects
+within a dynamic environment, while preserving the existing objects. This ap-
+proach aligns with industrial evolution needs. To address this, we introduce a
+framework for small defect inspection under Object-Incremental Learning, as
+illustrated in Fig. 1 (E).
+Incremental Learning for Small Defect Inspection There have been some
+previous studies combining incremental learning and small defect inspection;
+however, these studies mainly focused on augmenting the defect types of one
+
+===== PAGE 5 =====
+An Incremental Unified Framework for Small Defect Inspection 5
+10 11 12 13 14 15
+Task Number (n)
+60
+70
+80
+90
+100Pixel-level AUROC (%)
+(A-1) 10-1 with 5 Steps
+Our Framework
+Upper Boundary
+10 11 12 13 14 15
+Task Number (n)
+60
+70
+80
+90
+100Image-level AUROC (%)
+(A-2) 10-1 with 5 Steps
+Our Framework
+Upper Boundary
+Catastrophic 
+Forgetting
+Catastrophic 
+Forgetting
+(B) Feature Conflict
+Unified
+Model
+Unified
+Model
+Same 
+Semantic
+Pattern
+Catastrophic 
+Forgetting
+Different 
+Semantic
+Pattern 
+Object Ground Truth
+(Mask)
+Predicted 
+Mask
+New Predicted 
+Mask
+New
+Object
+Incremental
+Learning
+Previous Object(s)
+Current Object(s)
+Fig. 3: Problems in task stream. 10 − 1 with 5 Steps is an example of a task stream
+protocol, where we first train on 10 basic objects and then add one object at a time,
+with the process being completed in 5 steps (Please see Sec. 5.1(Task Protocol) for
+more details.). (A-1) and (A-2) demonstrate the performance of image-level and pixel-
+level models under the previous unified framework, UniAD [38], where catastrophic
+forgetting significantly occurs. The upper boundary represents the best performance
+when we can use all previous objects for joint training. (B) demonstrates the reason for
+catastrophic forgetting. When training the current step, the training model overwrites
+the previous semantic patterns, causing severe feature conflicts in the reconstructed
+network.
+object under a specific scenario [5,7,31,32,37] (Fig. 1 (C)). The primary goal
+of these methods is to enhance the model’s performance, which does not align
+with the requirements of object-incremental learning.
+Recently, Li et al. [20] initially proposed a feature embedding-based method
+for continuous learning of task sequences. However, due to the algorithm using a
+single memory bank to store all object information, which leads to interference
+between objects, the reference feature space cannot be exactly the same as the
+detected objects. Consequently, this algorithm cannot compute pixel-level per-
+formance and can only provide image-level performance. Most recently, Liu et
+al. [22] proposed an unsupervised continual anomaly detection (UCAD) method.
+Although it attempts to distinguish features of different objects using contrastive
+learning, this strategy still requires the assistance of a memory feature bank.
+Unlike previous solutions, our method avoids interference from multiple ob-
+jectclassescausedbyexplicitmemoryobjects.Weproposethefirstreconstruction-
+based model for this continuous learning problem. Therefore, our method can
+effectively avoid the problem of feature space distribution differences between
+different objects and only requires a reasonable feature space reassignment in
+the reconstruction network.
+
+===== PAGE 6 =====
+6 J. Tang et al.
+3 Problem Formulation
+In our Incremental Unified framework (IUF), we partition distinct objects x into
+independent steps indexed by t = 1...N , corresponding to the number of objects.
+The incremental flow of involving objects into IUF can be succinctly described
+as Tn, n ∈ 1, ..., N . During the learning process in the t-th step, the network
+undergoes updates using the model that does not access training data from
+previous steps ranging from 1 to t − 1. Among these steps, we identify normal
+images as x+ = {x+ o1 , x+ o2 , · · ·, x+ oN }, while defective images are represented as
+x− = {x− o1 , x− o2 , · · ·, x− oN }. Here, on denotes distinct objects within the dataset.
+For small defect inspection by reconstruction methods [38], an autoencoder
+is required to reconstruct normal features in all objects, as Eq. 1,
+ˆx = fr (x+; θ),
+min L1(ˆx, x+) = min |ˆx − x+|, (1)
+where ˆx is the reconstructed features, θ is the network parameter, and fr (·) is
+the reconstruction network. Combining Eq. (1) and our framework, this process
+is redefined as:
+Step n: ˆxon = fr (x+ on ; θ),
+min L1( ˆxon , x+ on ) = min | ˆxon − x+ on |, (2)
+where n ∈ [1, N ].
+In such task pipelines, we notice that small defect inspection is also notably
+susceptible to catastrophic forgetting, as shown in Fig. 3 (A-1) and (A-2). Unlike
+other incremental learning tasks, small defect inspection requires the reconstruc-
+tion of normal features, necessitating the decoding of semantic information from
+multiple channels. Without the rehearsal of the old category, the features of the
+new category will modify and occupy the original feature channel, resulting in
+semantic conflicts in space, as shown in Fig. 3.
+Intuitively, our objective is to reorganize distinct categories of features into
+their respective channels, while avoiding any potential semantic conflicts. Nev-
+ertheless, within our framework, the task of establishing meaningful semantic
+relationships between these diverse categories presents a considerable challenge.
+4 Methodology
+Overview To mitigate catastrophic forgetting, we propose three critical com-
+ponents for Incremental Unified small defect inspection. Firstly, we identify the
+semantic boundary to highlight the differences among categories, thereby facil-
+itating the preservation of old knowledge (Sec. 4.1). Secondly, we compact the
+semantic space to maximize the compression of redundant features, which helps
+to alleviate the issue of semantic conflicts (Sec. 4.2). Finally, we sustain primary
+semantic memory to minimize the feature forgetting of the old object, thereby
+improving the retention of critical knowledge (Sec. 4.3).
+
+===== PAGE 7 =====
+An Incremental Unified Framework for Small Defect Inspection 7
+Locating
+Defect
+…
+Step 1: Bottle
+Step 2: Cable
+Step 3: Capsule
+…
+Step N: Zipper
+SA SA…
+OA
+SA
+OA
+SA
+… SA SA… Locating Defect
+SA SA… SA SA…
+Transformer with 
+Self-Attention
+Transformer with
+Object-Aware Self-AttentionOASASA
+Category
+Label
+Semantic 
+Boundary 
+Inserting
+OASA
+Semantic
+Information
+Original
+Feature
+Original
+Feature
+𝑄 𝑉𝐾
+𝐶𝑂𝑛
+Attention 
+Map
+(A) Previous Reconstruction Network (B) Ours
+Recon-
+structed
+Feature
+Recon-
+structed
+Feature
+Input
+Feature
+Output
+Feature
+Fig. 4: Identify object semantics by Object-Aware Self-Attention (Sec. 4.1). (A) is the
+reconstructed network from the previous method [38]. (B) is our current setup, which
+inserts the category attributes of an image into the reconstructed network via Object-
+Aware Self-Attention, thus constraining the semantic space to the corresponding image
+features and constructing the semantic boundaries of the network.
+4.1 Identifying Semantics Boundary
+Previous unified method [38] directly reconstructs all objects through one au-
+toencoder, as in Fig. 4 (A), so multiple objects share the same semantic space
+in one model. So, the semantic spaces of different objects are tightly coupled.
+This tight semantic coupling is likely to cause undifferentiated updating of
+the feature space of the old objects when learning a new object, consequently
+resulting in a significant catastrophic forgetting of the old knowledge. Therefore,
+we introduce a more explicit constraint to facilitate the network to distinguish
+the feature semantic space among different objects. Specifically, for step n, we
+introduce its category label, Ln, as in Eq. (3),
+Step n: {yn, Con } = D(x+ on ; σ),
+min LCE (yn, Ln) = min −
+NX
+i=1
+Li n log(yi n), (3)
+where x+ on ∈ R3×Ho ×Wo indicates the normal object images in current step, yn
+is the final output of the discriminator, D(·), and σ is the parameter in this dis-
+criminator. LCE (·) is the cross-entropy loss, which contains N objects. Besides,
+D(·) also outputs Con ∈ RT ×C×H×W , which corresponding to T key layers of
+semantic features, as Fig. 4 (B). By introducing the category label, each object is
+limited to its corresponding semantic space in the reconstruction network, which
+helps to identify the semantic boundary between different objects.
+Subsequently, to introduce this semantic boundary in the reconstruction
+network, we designed an Object-Aware Self-Attention (OSOA) mechanism as
+Eq. (4),
+Attention(Con , Q, K, V ) = softmax( (Con · Q)K T √dk )V, (4)
+where · is Hadamard product, dk is the dimension of the key or query, and T
+is the matrix transpose operator. Q ∈ RT ×C×H×W is the query in T key layers
+
+===== PAGE 8 =====
+8 J. Tang et al.
+of the transformer-based network. K and V are the keys and values of this
+network, respectively. By inserting Con to Q, the reconstruction network can
+explicitly identify semantic boundaries.
+4.2 Compacting Semantic Space
+By identifying semantic boundaries, we can further compress the feature space
+of old objects as much as possible, thus reserving more network capacity for
+new objects, which can reduce feature conflicts. To meet this goal, we design
+a compact feature regularization, which helps us to eliminate the redundant
+features of old objects and leave more capacity for future unknown new objects.
+Specifically, given a training sample, the latent features M ∈ RB×C×H×W is
+firstly compressed by aggregating spatial features as in Eq. (5),
+ˆM = 1 H × W
+HX
+h=1
+WX
+w=1
+Mn(b, c, h, w), (5)
+where ˆM ∈ RB×C represents the semantic information matrix of latent features
+in each batch. As is common in the field [11,27], we hypothesize that different
+objects of semantic features are distributed on distinct channels, while spatial
+information is relatively irrelevant. Then, we perform SVD on the first two di-
+mensions B and C of ˆM . The representation formula is as Eq. (6),
+ˆM = U SV T
+=
+
+
+u11 u12 u13 · · · u1B
+u21 u22 u23 · · · u2B
+u31 u32 u33 · · · u3B
+... ... ... ... ...
+uB1 uB2 uB3 · · · uBB
+
+
+| {z }
+Batch Space
+
+
+σ1 0 · · · 0
+0 σ2 · · · 0
+... ... ... ...
+0 0 · · · σC
+0 0 · · · 0
+... ... ... ...
+0 0 · · · 0
+
+     v11 v12 · · · v1C v21 v22 · · · v2C ... ... ... ... vC1 vC2 · · · vCC     T | {z }
+Channel Space
+,
+(6)
+where three matrices obtained after SVD, i.e., U , S, and V T . Among them, U ∈
+RB×B is an orthogonal matrix for batch eigenspace, S = diag(σ1, σ2, ..., σC ) ∈
+RB×C is a diagonal matrix of eigenvalues, and V T ∈ RC×C is an orthogonal
+matrix of channel eigenspace.
+Sn reflects the importance of semantic information for M on each channel di-
+mension. Larger eigenvalues correspond to more important semantic space, while
+smaller eigenvalues correspond to relatively non-primary semantic space [12,13,
+21]. Based on this fact, we can compress the features of each object by reducing
+the non-primary semantic information. Therefore, we construct the Semantic
+Compression Loss (SCL) as in Eq. (7) and Fig. 5,
+Lsc =
+CX
+i=t
+σi, (7)
+
+===== PAGE 9 =====
+An Incremental Unified Framework for Small Defect Inspection 9
+SVD
+1
+2
+3
+𝐵𝐵
+1 2 3 4 𝐶𝐶…
+Latent Feature 
+𝑈𝑈 𝑉𝑉𝑇𝑇𝑆𝑆
+𝐵𝐵
+𝐵𝐵
+1
+1
+…
+… 𝐶𝐶1 …
+𝐵𝐵
+1… 𝐶𝐶1 …
+𝐶𝐶
+1…
+Channel
+Batch
+Step N
+Semantic
+Compression 
+LossLayer x+1
+Layer x
+Semantic 
+Importance
+𝑉𝑉𝑜𝑜𝑜𝑜𝑜𝑜 𝑇𝑇
+𝐶𝐶
+1 …
+1…
+𝑊𝑊
+1
+0
+(𝑉𝑉𝑜𝑜𝑜𝑜𝑜𝑜 𝑇𝑇 )−1
+⊙
+𝐶𝐶
+Semantic 
+Importance
+𝐶𝐶1 … 𝐶𝐶1 …
+𝐶𝐶
+1 …
+1…
+𝑊𝑊
+𝐶𝐶
+1 …
+1…
+𝑊𝑊
+𝐶𝐶
+1 …
+1…
+𝑊𝑊
+𝐶𝐶
+1…
+𝐶𝐶
+1…
+ProjectionΔ𝜃𝜃𝑗𝑗 ΔΘ𝑗𝑗 Δ𝜃𝜃𝑗𝑗 ∗
+Ω(𝑘𝑘, 𝑐𝑐)
+Reverse
+Projection
+Step N+1
+Constrain
+Updating
+Fig. 5: Semantic space operation. We perform an SVD decomposition of the semantic
+space, based on the feature values that represent semantic importance, and compact
+the non-primary space in Sec. 4.2. In addition, when learning a new object, we project
+the update weights to the semantic space of previous features, and then block the
+weight updates that are semantically significant for previous information in Sec. 4.3.
+where t ∈ [1, C] is a hyperparameter, which is a scale factor that reflects the
+degree of compression of the semantic feature space. To construct the total loss,
+we use L = λ0L1 + λ1LCE + λ2Lsc. λ0 is set to 1 as a standard of the base task,
+and λ1 is0.5astheauxiliarytaskexperienceforbalancingdifferentlossvalues. λ2
+iswithintherangeof 1−10,andinpractice,userscanmakecustomadjustmentof
+λ2 for controlling the old objects’ feature space. This loss continuously compacts
+the non-primary feature space while achieving the final optimization goal.
+4.3 Reinforcing Primary Semantic Memory
+While we have taken measures to ensure the availability of the requisite semantic
+space within the network, the risk of catastrophic forgetting still persists, par-
+ticularly in an unregulated task stream, when significant feature space overlap
+exists between older and newer objects. Hence, it becomes imperative for us to
+address dual concerns: firstly, how to retain the prior semantic information when
+updating weights, and secondly, how to simultaneously acquire knowledge about
+new objects without unduly influencing the semantic space associated with older
+objects.
+Vanilla gradient descent leads to an undifferentiated update of all feature
+space, if θ = (θ1, θ2, . . . , θJ ) ∈ RC×W is the parameter of the model, and W is
+related to network structure. ∂L(θ) ∂θj , j = 1, 2, . . . , J is the partial derivative of θ.
+The process of model updating is shown in Eq. (8),
+∇θj = −α ∂L(θ) ∂θj ,
+θ
+′
+j ← θj + ∇θj ,
+(8)
+
+===== PAGE 10 =====
+10 J. Tang et al.
+where α is the learning rate, ∇θj is updating vector, and θ
+′
+j is the new weight
+next iteration.
+Retaining Prior Semantic Information To maintain the semantics of the
+old objects, it is essential to continuously consolidate the existing weights in old
+objects during the incremental process. Therefore, we constantly copy the old
+weight in gradient descent in the next step, as in Eq. (9),
+θ
+′
+j ← θj + ∇θj + βθold j , (9)
+where θold j is the old weight in previous objects, and β is a hyper-parameter for
+controlling the magnitude of this regulation.
+Decreasing Rewriting of Prior Semantics Although we can retain prior
+semantic information in updating weight, the rewriting of old semantic space
+still happens. Therefore, suppressing weight updates in old semantic spaces will
+constrain the new object to use other undisturbed semantic spaces, which will
+further reduce feature conflicts.
+Based on this motivation, we consider that the importance of the semantic
+space can be represented by V T (Eq. (6)). Thus, we project the updating weight,
+∇θj , to the corresponding channel space in old objects, as in Eq. (10),
+∇Θj = V T old∇θj , (10)
+where ∇Θj ∈ RC×W isupdatingweightinchannelspace. V T old ischanneleigenspace
+in previous steps.
+To constrain the updating in primary semantic space in previous steps, we
+empirically use a log function to constrain the updating of different channels,
+c ∈ R1×C , as Eq. (11),
+Ω(k, c) = k × log(c), (11)
+where Ω(·) is constraining function. When the channel index c equals 1, the
+result of the log function is 0, indicating that the model does not update in this
+specific dimension. This is because the model is in the most crucial semantic
+space for the previous objects. As the channel index c increases, this channel
+becomes more likely to trigger model updates, and these dimensions become less
+important for representing previous objects.
+By acting on this function to ∇Θj and then projecting it back to the original
+space, we finally get the updating weight in the original space, as in Eq. (12)
+and Fig. 5,
+∇θ∗ j = (V T old)−1Ω(k, n) ⊙ ∇Θj , (12)
+where ⊙ is the channel-wise product. In summary, our updating is shown as
+Eq. (13),
+θ
+′
+j ← θj + ∇θ∗ j + βθold j . (13)
+Based on this, our model can reinforce the primary semantic memory of old
+objects and overcome catastrophic forgetting significantly.
+
+===== PAGE 11 =====
+An Incremental Unified Framework for Small Defect Inspection 11
+5 Experiments
+5.1 Experimental Setup
+Datasets We choose MVTec-AD [3] and VisA [43] as our dataset. MVTec-
+AD [3] and VisA [43] have 15 and 12 types of objects, respectively. These two
+employed datasets have well-recognized complex cases for real-world evaluation,
+and different objects’ feature domains show significantly varying distributions,
+so both of them can be available for our Incremental Unified Framework.
+Task Protocol According to our framework in Fig. 1 (E), our reconstruction
+model incrementally learns new objects. Based on the practical requirements of
+industrial defect inspection, we set up our experiments in both single-step and
+multi-step settings.
+We represent our task stream as X − Y with N Step(s). Here, X denotes
+the number of base objects before starting incremental learning, Y represents
+the number of new objects incremented in each step, and N indicates the number
+of tasks during incremental learning. When training on base objects, N = 0, and
+after one step, N = N + 1. Our task stream is shown as follows:
+– MVTec-AD [3]: 14 − 1 with 1 Step, 10 − 5 with 1 Step,
+3 − 3 with 4 Steps and 10 − 1 with 5 Steps.
+– VisA [43]: 11 − 1 with 1 Step, 8 − 4 with 1 Step, 8 − 1 with 4 Steps.
+Baselines We select some SOTA methods in small defect inspection as the
+baseline, including PaDiM [10], DRAEM [39], PatchCore [30], PANDA [29],
+CutPaste [19], and UniAD [38]. Notably, some baselines integrate with the in-
+cremental learning protocol, CAD [20]. In addition, we integrate several avail-
+able SOTA baselines in incremental learning with UniAD, including EWC [18],
+SI [40], MAS [2] and LVT [34].
+Evaluation Metrics Currently, there are two metrics for continual learning:
+average accuracy (ACC) [25] and forgetting measure (FM) [6]. However, for
+individual tasks, we usually use Pixel-level AUROC, Apix, and Image-level AU-
+ROC, Aimg, to characterize the detection accuracy. In this task, we combine
+these two goals and define four metrics, as in Eq. (14),
+ACC =
+
+
+
+1
+N
+N −1X
+i=1
+Apix N,i
+1
+N
+N −1X
+i=1
+Aimg N,i
+, F M =
+
+
+
+1
+N − 1
+N −1X
+i=1
+max
+b∈{1,··· ,N −1}
+
+Apix b,i − Apix N,i
+
+1
+N − 1
+N −1X
+i=1
+max
+b∈{1,··· ,N −1}
+
+Aimg b,i − Aimg N,i
+ . (14)
+5.2 Experiment Performance
+Quantitative Evaluation Table 1 (A) (B) shows that our method achieves
+SOTA performance with different experiment settings in pixel-level (A) and
+Image-level (B), respectively. We observe that the network performance is catas-
+trophic forgetting in the reconstruction-based approach (UniAD [38]). While
+
+===== PAGE 12 =====
+12 J. Tang et al.
+Table 1: Quantitative evaluation in MvTec AD [3] (A) and VisA [43] (B). “Image
+/ Pixel” shows the image-level and pixel-level performance respectively. “NA” is Not
+Available, since CAD [20]-based method cannot locate defects in pixel-level. Red and
+Gray Red represents the best image-level and pixel-level performance respectively.
+(A) Quantitative Performance in MvTec [3].
+14 − 1 with 1 Step 10 − 5 with 1 Step 3 − 3 with 4 Steps 10 − 1 with 5 Steps
+Method ACC(↑) FM(↓) ACC(↑) FM(↓) ACC(↑) FM(↓) ACC(↑) FM(↓)
+PaDim [10] 57.5 / 77.1 23.1 / 20.2 64.4 / 81.4 9.1 / 14.1 60.0 / 76.16 22.6 / 20.3 53.9 / 68.4 18.1 / 24.1
+PatchCore [30] 66.5 / 83.8 34.2 / 24.1 69.6 / 62.4 22.6 / 25.2 62.4 / 77.9 37.3 / 22.1 55.3 / 73.8 30.8 / 27.5
+DRAEM [39] 51.1 / 61.2 8.2 / 8.2 58.0 / 63.2 11.8 / 3.9 54.9 / 57.6 2.6 / 9.8 52.3 / 59.0 13.8 / 8.8
+UniAD [38] 85.7 / 89.6 18.3 / 13.3 86.7 / 91.5 14.9 / 10.6 81.3 / 88.7 7.4 / 10.6 76.6 / 82.3 21.1 / 17.3
+UniAD [38] + EWC [18] 92.8 / 95.4 4.1 / 1.9 90.5 / 93.6 7.3 / 4.2 79.6 / 89.0 9.5 / 10.1 89.6 / 93.8 5.4 / 3.6
+UniAD [38] + SI [40] 85.7 / 89.5 18.4 / 13.4 84.1 / 88.3 20.2 / 17.0 81.9 / 88.5 7.0 / 10.8 77.2 / 81.6 20.2 / 18.2
+UniAD [38] + MAS [2] 85.8 / 89.6 18.1 / 13.3 86.8 / 91.0 14.9 / 11.6 81.5 / 89.0 7.2 / 10.2 77.9 / 82.0 19.5 / 17.7
+UniAD [38] + LVT [34] 80.4 / 86.0 29.1 / 20.6 87.1 / 90.6 14.1 / 12.3 80.4 / 88.6 8.6 / 10.6 78.2 / 88.3 19.1 / 16.1
+CAD + DNE [20] 84.5 / NA -2.0 / NA 87.8 / NA 1.1 / NA 80.3 / NA 6.6 / NA 77.7 / NA 9.7 / NA
+CAD [20] + CutPaste [19] 84.3 / NA -1.6 / NA 87.1 / NA -0.3 / NA 79.2 / NA 12.6 / NA 70.6 / NA 20.2 / NA
+CAD [20] + PANDA [29] 50.0 / NA 6.0 / NA 55.4 / NA 8.9 / NA 62.4 / NA 36.8 / NA 51.3 / NA 10.3 / NA
+Ours 96.0 / 96.3 1.0 / 0.6 92.2 / 94.4 9.3 / 6.3 84.2 / 91.1 10.0 / 8.4 94.2 / 95.1 3.2 / 1.0
+(B) Quantitative Performance in VisA [43].
+11 − 1 with 1 Step 8 − 4 with 1 Step 8 − 1 with 4 Steps
+Method ACC(↑) FM(↓) ACC(↑) FM(↓) ACC(↑) FM(↓)
+PaDim [10] 59.7 / 84.3 20.6 / 14.2 60.3 / 84.2 21.8 / 14.0 54.3 / 83.4 21.1 / 9.7
+PatchCore [30] 66.0 / 85.6 30.0 / 13.0 67.4 / 86.4 33.3 / 14.3 56.2 / 83.6 34.8 / 12.4
+DRAEM [39] 48.4 / 60.5 30.6 / 15.8 63.6 / 49.6 17.7 / 29.7 51.8 / 63.4 25.9 / 10.5
+UniAD [38] 75.0 / 92.1 22.4 / 11.4 78.1 / 94.0 14.7 / 8.4 72.2 / 90.8 16.6 / 9.2
+UniAD [38] + EWC [18] 78.7 / 95.4 14.9 / 4.8 80.5 / 95.4 10.0 / 5.3 72.3 / 92.3 16.5 / 7.3
+UniAD [38] + SI [40] 78.1 / 92.0 16.9 / 11.5 80.8 / 93.9 9.2 / 8.3 69.8 / 88.5 19.8 / 12.0
+UniAD [38] + MAS [2] 75.4 / 91.8 21.5 / 11.9 78.4/ 94.0 14.1 / 8.4 72.1 / 90.6 16.7 / 9.4
+UniAD [38] + LVT [34] 77.5 / 92.3 17.3 / 10.9 78.8/ 94.1 13.4 / 8.1 70.8 / 91.4 18.3 / 8.4
+CAD + DNE [20] 71.2 / NA -10.2 / NA 64.1 / NA 6.1 / NA 58.6 / NA 10.2 / NA
+CAD [20] + CutPaste [19] 65.8 / NA 3.5 / NA 63.2 / NA 5.1 / NA 56.2 / NA 13.9 / NA
+CAD [20] + PANDA [29] 55.7 / NA -1.7 / NA 56.7 / NA -3.3 / NA 56.0 / NA -0.3 / NA
+Ours 87.3 / 97.6 2.4 / 1.8 80.1 / 95.4 15.2 / 6.1 79.8 / 95.0 9.8 / 6.8
+some continuous learning strategies [2, 18, 34, 40] can partially mitigate this
+problem, our approach provides an optimal solution. Besides, compared with
+CAD-based methods, our method can offer not only pixel-level location but also
+SOTA performance for incrementing more objects. Overall, our algorithm can
+overcome the above drawbacks and maintain a low level of forgetting.
+Qualitative Evaluation for Defect Localization Fig. 6 shows the defect
+location (heatmap) of our method and other SOTA reconstruction-based ap-
+proaches. We follow the same strategy in UniAD [38] to calculate the heatmap.
+Regions, where the occurring chance of defects is higher, are colored red. Con-
+versely, regions, where defects are almost impossible to occur, are colored blue.
+Our method can significantly reduce semantic feature conflicts (In Fig. 3) and
+output more accurate defect locations.
+
+===== PAGE 13 =====
+An Incremental Unified Framework for Small Defect Inspection 13
+Input UniAD [38] UniAD + SI [40] UniAD + MAS [2] UniAD + LVT [34] UniAD + EWC [18] Ours Ground Truth
+Fig. 6: Qualitative evaluation in MVTec-AD [3] and VisA [43]. The intensity of red
+in the heatmap indicates a higher likelihood of defects, whereas blue signifies a lower
+probability. Our approach outperforms existing baselines by significantly mitigating
+semantic feature conflict and enhancing defect localization accuracy. (Please zoom in
+for more details.)
+5.3 Ablation Study
+We conduct the ablation study on MvTec AD [3] to evaluate the effectiveness of
+different components in our proposed method.
+Effectiveness of Object-Aware Self-Attention To demonstrate the effec-
+tiveness of category labels, we ablate Object-Aware Self-Attention in our struc-
+ture. “w/o OASA” in Table 2 shows that this structure can reduce catastrophic
+forgetting by category information insertion. Moreover, in Fig. 7 (“w/o OASA”),
+if there is no semantic boundary, the network can still detect anomalies in the
+current object, but serious feature conflicts will occur in other regions of the
+object, further affecting the overall performance of the network.
+Effectiveness of Semantic Compression Loss To demonstrate the effective-
+ness of Semantic Compression Loss, we ablate this loss in our training. “w/o
+SCL” in Table 2 shows that this structure can reduce catastrophic forgetting by
+preserving more space for new objects. Besides, in Fig. 7 (“w/o SCL”), by com-
+pressing more space for new objects, we can obtain clearer defect localization in
+
+===== PAGE 14 =====
+14 J. Tang et al.
+Table 2: Quantitative evaluation in ablation study. The results show that three com-
+ponents, Object-Aware Self-Attention, semantic compression loss, and the updating
+strategy, contribute to the performance improvement of the whole framework. Red and
+Gray Red represents the best image-level and pixel-level performance respectively.
+14 − 1 with 1 Step 10 − 5 with 1 Step 3 − 3 with 4 Steps 10 − 1 with 5 Steps
+ACC(↑) FM(↓) ACC(↑) FM(↓) ACC(↑) FM(↓) ACC(↑) FM(↓)
+w/o OASA 89.3 / 92.5 13.3 / 8.2 87.6 / 90.6 16.5 / 13.5 81.4 / 88.9 12.2 / 10.8 84.2 / 90.3 14.2 / 8.6
+w/o SCL 95.5 / 96.1 2.4 / 0.8 92.0 / 94.3 8.1 / 6.0 82.7 / 88.3 10.6 / 11.7 93.4 / 95.1 3.6 / 2.7
+w/o US 95.9 / 96.2 1.1 / 0.7 88.6 / 93.3 16.5 / 8.5 83.5 / 89.5 10.9 / 10.3 85.6 / 90.5 13.5 / 8.4
+Ours 96.0 / 96.3 1.0 / 0.6 92.2 / 94.4 9.3 / 6.3 84.2 / 91.1 10.0 / 8.4 94.2 / 95.1 3.2 / 1.0
+Input w/o OSOA w/o US w/o SCL Ours Ground Truth
+Fig. 7: Qualitative evaluation of ablation study. Compared with “w/o US” and “w/o
+OSOA”, it is obvious that our method can be more accurate in locating defects. Com-
+pared with “w/o SCL”, since increasing the available space of the model, our algorithm
+can further reduce the feature conflict and reduce more interference in the background.
+(Please zoom in for more details.)
+detail, which indicates that more network space can be explained in incremental
+learning by semantic compression loss.
+Effectiveness of Our Updating Strategy To demonstrate the effectiveness
+of our updating strategy, we ablate this updating method, and “w/o US” in
+Table2showsthatthismethodcanreducecatastrophicforgetting.Also,inFig.7
+(“w/o US”), our algorithm can help memorize important semantic spaces for
+old objects, thus reducing the rewriting of semantic space in the reconstruction
+network, thus leading to a better localization performance.
+6 Conclusion
+To conclude, our incremental unified framework effectively integrates the multi-
+objects detection model with object-incremental learning, significantly enhanc-
+ing the dynamic of defect inspection systems. Leveraging Object-Aware Self-
+Attention, Semantic Compression Loss, and updating strategy, we demarcate
+semantic boundaries for objects and minimize interference during incrementing
+new objects. Benchmarks demonstrate our SOTA performance at both the im-
+age level and pixel level. Widespread deployment of this technology will increase
+efficiency and reduce overhead in industrial manufacturing.
+
+===== PAGE 15 =====
+An Incremental Unified Framework for Small Defect Inspection 15
+Acknowledgements
+The research work is sponsored by AIR@InnoHK.
+Besides, this work is funded by National Natural Science Foundation of China
+Grant No. 72371271, the Guangzhou Industrial Information and Intelligent Key
+Laboratory Project (No. 2024A03J0628), the Nansha Key Area Science and
+Technology Project (No. 2023ZD003), Project No. 2021JC02X191, and Natural
+Science Foundation of Zhejiang Pvovince, China (No. LD24F020002).
+References
+1. Akcay, S., Atapour-Abarghouei, A., Breckon, T.P.: Ganomaly: Semi-supervised
+anomaly detection via adversarial training. In: Computer Vision–ACCV 2018: 14th
+Asian Conference on Computer Vision, Perth, Australia, December 2–6, 2018, Re-
+vised Selected Papers, Part III 14. pp. 622–637. Springer (2019)
+2. Aljundi, R., Babiloni, F., Elhoseiny, M., Rohrbach, M., Tuytelaars, T.: Memory
+aware synapses: Learning what (not) to forget. In: Proceedings of the European
+conference on computer vision (ECCV). pp. 139–154 (2018)
+3. Bergmann, P., Fauser, M., Sattlegger, D., Steger, C.: Mvtec ad–a comprehen-
+sive real-world dataset for unsupervised anomaly detection. In: Proceedings of the
+IEEE/CVF conference on computer vision and pattern recognition (CVPR). pp.
+9592–9600 (2019)
+4. Bergmann, P., Löwe, S., Fauser, M., Sattlegger, D., Steger, C.: Improving unsuper-
+vised defect segmentation by applying structural similarity to autoencoders. arXiv
+preprint arXiv:1807.02011 (2018)
+5. Chang, C.Y., Su, Y.D., Li, W.Y.: Tire bubble defect detection using incremental
+learning. Applied Sciences 12(23), 12186 (2022)
+6. Chaudhry, A., Dokania, P.K., Ajanthan, T., Torr, P.H.: Riemannian walk for in-
+cremental learning: Understanding forgetting and intransigence. In: Proceedings of
+the European conference on computer vision (ECCV). pp. 532–547 (2018)
+7. Chen, C.H., Tu, C.H., Li, J.D., Chen, C.S.: Defect detection using deep lifelong
+learning. In: 2021 IEEE 19th International Conference on Industrial Informatics
+(INDIN). pp. 1–6. IEEE (2021)
+8. Chen, L., You, Z., Zhang, N., Xi, J., Le, X.: Utrad: Anomaly detection and local-
+ization with u-transformer. Neural Networks 147, 53–62 (2022)
+9. Cohen, N., Hoshen, Y.: Sub-image anomaly detection with deep pyramid corre-
+spondences. arXiv preprint arXiv:2005.02357 (2020)
+10. Defard,T.,Setkov,A.,Loesch,A.,Audigier,R.:Padim:apatchdistributionmodel-
+ing framework for anomaly detection and localization. In: International Conference
+on Pattern Recognition. pp. 475–489. Springer (2021)
+11. Ding, X., Hao, T., Tan, J., Liu, J., Han, J., Guo, Y., Ding, G.: Resrep: Lossless
+cnn pruning via decoupling remembering and forgetting. In: Proceedings of the
+IEEE/CVF International Conference on Computer Vision (ICCV). pp. 4510–4520
+(October 2021)
+12. Han, L., Li, Y., Zhang, H., Milanfar, P., Metaxas, D., Yang, F.: Svdiff: Compact
+parameter space for diffusion fine-tuning. arXiv preprint arXiv:2303.11305 (2023)
+13. Hoefler, T., Alistarh, D., Ben-Nun, T., Dryden, N., Peste, A.: Sparsity in deep
+learning:Pruningandgrowthforefficientinferenceandtraininginneuralnetworks.
+The Journal of Machine Learning Research 22(1), 10882–11005 (2021)
+
+===== PAGE 16 =====
+16 J. Tang et al.
+14. Huong, T.T., Bac, T.P., Ha, K.N., Hoang, N.V., Hoang, N.X., Hung, N.T., Tran,
+K.P.: Federated learning-based explainable anomaly detection for industrial control
+systems. IEEE Access 10, 53854–53872 (2022)
+15. Jayasekara, H., Zhang, Q., Yuen, C., Zhang, M., Woo, C.W., Low, J.: Detecting
+anomalous solder joints in multi-sliced pcb x-ray images: A deep learning based
+approach. SN Computer Science 4(3), 307 (2023)
+16. Kähler, F., Schmedemann, O., Schüppstuhl, T.: Anomaly detection for industrial
+surface inspection: Application in maintenance of aircraft components. Procedia
+CIRP 107, 246–251 (2022)
+17. Khalil, A.A., E Ibrahim, F., Abbass, M.Y., Haggag, N., Mahrous, Y., Sedik, A.,
+Elsherbeeny, Z., Khalaf, A.A., Rihan, M., El-Shafai, W., et al.: Efficient anomaly
+detection from medical signals and images with convolutional neural networks for
+internet of medical things (iomt) systems. International Journal for Numerical
+Methods in Biomedical Engineering 38(1), e3530 (2022)
+18. Kirkpatrick, J., Pascanu, R., Rabinowitz, N., Veness, J., Desjardins, G., Rusu,
+A.A., Milan, K., Quan, J., Ramalho, T., Grabska-Barwinska, A., et al.: Overcoming
+catastrophic forgetting in neural networks. Proceedings of the national academy of
+sciences 114(13), 3521–3526 (2017)
+19. Li, C.L., Sohn, K., Yoon, J., Pfister, T.: Cutpaste: Self-supervised learning for
+anomaly detection and localization. In: Proceedings of the IEEE/CVF Conference
+on Computer Vision and Pattern Recognition (CVPR). pp. 9664–9674 (June 2021)
+20. Li, W., Zhan, J., Wang, J., Xia, B., Gao, B.B., Liu, J., Wang, C., Zheng, F.:
+Towards continual adaptation in industrial anomaly detection. In: Proceedings of
+the 30th ACM International Conference on Multimedia. pp. 2871–2880 (2022)
+21. Lin, M., Ji, R., Wang, Y., Zhang, Y., Zhang, B., Tian, Y., Shao, L.: Hrank: Filter
+pruning using high-rank feature map. In: Proceedings of the IEEE/CVF conference
+on computer vision and pattern recognition (CVPR). pp. 1529–1538 (2020)
+22. Liu, J., Wu, K., Nie, Q., Chen, Y., Gao, B.B., Liu, Y., Wang, J., Wang, C., Zheng,
+F.: Unsupervised continual anomaly detection with contrastively-learned prompt.
+arXiv preprint arXiv:2401.01010 (2024)
+23. Liu, W., Li, R., Zheng, M., Karanam, S., Wu, Z., Bhanu, B., Radke, R.J., Camps,
+O.: Towards visually explaining variational autoencoders. In: Proceedings of the
+IEEE/CVF Conference on Computer Vision and Pattern Recognition. pp. 8642–
+8651 (2020)
+24. Liu, Z., Zhou, Y., Xu, Y., Wang, Z.: Simplenet: A simple network for image
+anomaly detection and localization. In: Proceedings of the IEEE/CVF Conference
+on Computer Vision and Pattern Recognition. pp. 20402–20411 (2023)
+25. Lopez-Paz, D., Ranzato, M.: Gradient episodic memory for continual learning.
+Advances in neural information processing systems 30 (2017)
+26. Lu, B., Xu, D., Huang, B.: Deep-learning-based anomaly detection for lace defect
+inspection employing videos in production line. Advanced Engineering Informatics
+51, 101471 (2022)
+27. Peng, C., Zhang, K., Ma, Y., Ma, J.: Cross fusion net: A fast semantic segmen-
+tation network for small-scale semantic information capturing in aerial scenes.
+IEEE Transactions on Geoscience and Remote Sensing 60, 1–13 (2022). https:
+//doi.org/10.1109/TGRS.2021.3053062
+28. Pirnay,J.,Chai,K.:Inpaintingtransformerforanomalydetection.In:International
+Conference on Image Analysis and Processing. pp. 394–406. Springer (2022)
+29. Reiss, T., Cohen, N., Bergman, L., Hoshen, Y.: Panda: Adapting pretrained fea-
+tures for anomaly detection and segmentation. In: Proceedings of the IEEE/CVF
+
+===== PAGE 17 =====
+An Incremental Unified Framework for Small Defect Inspection 17
+Conference on Computer Vision and Pattern Recognition (CVPR). pp. 2806–2814
+(2021)
+30. Roth, K., Pemula, L., Zepeda, J., Schölkopf, B., Brox, T., Gehler, P.: Towards
+total recall in industrial anomaly detection. In: Proceedings of the IEEE/CVF
+Conference on Computer Vision and Pattern Recognition. pp. 14318–14328 (2022)
+31. Sun, C., Gao, L., Li, X., Gao, Y.: A new knowledge distillation network for incre-
+mental few-shot surface defect detection. arXiv preprint arXiv:2209.00519 (2022)
+32. Sun, W., Al Kontar, R., Jin, J., Chang, T.S.: A continual learning framework for
+adaptive defect classification and inspection. Journal of Quality Technology pp.
+1–17 (2023)
+33. Towill, D.R., Evans, G.N., Cheema, P.: Analysis and design of an adaptive min-
+imum reasonable inventory control system. Production Planning & Control 8(6),
+545–557 (1997)
+34. Wang, Z., Liu, L., Duan, Y., Kong, Y., Tao, D.: Continual learning with lifelong
+vision transformer. In: Proceedings of the IEEE/CVF Conference on Computer
+Vision and Pattern Recognition (CVPR). pp. 171–181 (2022)
+35. Xie, G., Wang, J., Liu, J., Zheng, F., Jin, Y.: Pushing the limits of fewshot anomaly
+detection in industry vision: Graphcore. arXiv preprint arXiv:2301.12082 (2023)
+36. Yang, S., Chen, Z., Chen, P., Fang, X., Liu, S., Chen, Y.: Defect spectrum: A
+granular look of large-scale defect datasets with rich semantics (2024), https:
+//arxiv.org/abs/2310.17316
+37. Yildiz, O., Chan, H., Raghavan, K., Judge, W., Cherukara, M.J., Balaprakash, P.,
+Sankaranarayanan, S., Peterka, T.: Automated continual learning of defect identi-
+fication in coherent diffraction imaging. In: 2022 IEEE/ACM International Work-
+shop on Artificial Intelligence and Machine Learning for Scientific Applications
+(AI4S). pp. 1–6. IEEE (2022)
+38. You, Z., Cui, L., Shen, Y., Yang, K., Lu, X., Zheng, Y., Le, X.: A unified model for
+multi-class anomaly detection. Advances in Neural Information Processing Systems
+35, 4571–4584 (2022)
+39. Zavrtanik, V., Kristan, M., Skovcaj, D.: Draem - a discriminatively trained recon-
+struction embedding for surface anomaly detection. 2021 IEEE/CVF International
+Conference on Computer Vision (ICCV) (2021)
+40. Zenke, F., Poole, B., Ganguli, S.: Continual learning through synaptic intelligence.
+In: International conference on machine learning. pp. 3987–3995. PMLR (2017)
+41. Zhao, Y.: Omnial: A unified cnn framework for unsupervised anomaly localization.
+In: Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern
+Recognition. pp. 3924–3933 (2023)
+42. Zhou, X., Liang, W., Shimizu, S., Ma, J., Jin, Q.: Siamese neural network based
+few-shot learning for anomaly detection in industrial cyber-physical systems. IEEE
+Transactions on Industrial Informatics 17(8), 5790–5798 (2020)
+43. Zou, Y., Jeong, J., Pemula, L., Zhang, D., Dabeer, O.: Spot-the-difference self-
+supervised pre-training for anomaly detection and segmentation. In: European
+Conference on Computer Vision. pp. 392–408. Springer (2022)

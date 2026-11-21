@@ -1,0 +1,478 @@
+# SOURCE: docs/papers/related_cad/arxiv_2512.15323.pdf
+# SOURCE_SHA256: 9617d67fcde871b9abe1b31aec904ba2e9375809798ac422ded33272ad216631
+# EXTRACTOR: pypdf 7.1.0 (PdfReader.extract_text, per page)
+# EXTRACTED: 2026-11-19
+# NOTE: machine extraction; equations/tables/unicode may be garbled. Cite the PDF, not this file.
+
+
+===== PAGE 1 =====
+MECAD: A multi-expert architecture for
+continual anomaly detection
+Malihe Dahmardeh1 and Francesco Setti1,2
+1 Department of Engineering for Innovation Medicine, University of Verona, Italy
+2 Qualyco S.r.l., strada le Grazie 15, Verona, Italy
+Corresponding Author: malihe.dahmardeh@univr.it
+Abstract. In this paper we propose MECAD, a novel approach for con-
+tinual anomaly detection using a multi-expert architecture. Our system
+dynamically assigns experts to object classes based on feature similarity
+and employs efficient memory management to preserve the knowledge of
+previously seen classes. By leveraging an optimized coreset selection and a
+specialized replay buffer mechanism, we enable incremental learning with-
+out requiring full model retraining. Our experimental evaluation on the
+MVTec AD dataset demonstrates that the optimal 5-expert configuration
+achieves an average AUROC of 0.8259 across 15 diverse object categories
+while significantly reducing knowledge degradation compared to single-
+expert approaches. This framework balances computational efficiency,
+specialized knowledge retention, and adaptability, making it well-suited
+for industrial environments with evolving product types.
+Keywords: Multi-Expert · Continual Learning · Anomaly Detection.
+1 Introduction
+Anomaly Detection (AD) has become increasingly relevant in industrial applica-
+tions, where detecting defects and irregularities in manufacturing processes is
+critical for quality control and operational efficiency. Traditional AD methods,
+particularly those based on supervised learning, require extensive labeled data,
+which can be expensive and time-consuming to collect. As a result, unsupervised
+AD approaches have gained traction, allowing systems to identify anomalies
+without relying on explicitly labeled abnormal samples.
+One of the primary limitations of existing AD models is that they are trained
+on specific object categories and cannot generalize well when deployed in dynamic
+environments where new objects and variations frequently emerge. In industrial
+production lines, for example, manufacturing conditions, product types, and
+defect patterns change rapidly, necessitating models that can adapt to new object
+classes efficiently without requiring retraining from scratch. This adaptability is
+crucial for ensuring continued performance without incurring the high cost of
+dataset re-annotation and model re-optimization.
+Continual learning (CL) provides a promising approach to address these chal-
+lenges. By enabling models to learn sequentially from new tasks while preserving
+arXiv:2512.15323v1  [cs.CV]  17 Dec 2025
+
+===== PAGE 2 =====
+2 M. Dahmardeh et al.
+knowledge from previously learned tasks, CL mitigates catastrophic forgetting
+and allows for long-term adaptation. However, applying CL to anomaly detection
+presents unique difficulties, as conventional CL techniques are typically designed
+for classification problems rather than unsupervised tasks. Many existing CL
+strategies require extensive retraining or memory buffers to store past data,
+making them impractical for real-time industrial applications.
+In this work, we propose a Multi-Expert Continual Anomaly Detection ar-
+chitecture (MECAD). Our system dynamically assigns experts to object classes
+based on feature similarity, enabling efficient knowledge specialization. This
+method eliminates the need for full model retraining and reduces computational
+overhead while ensuring that new object classes are integrated efficiently. By
+distributing the learning tasks across specialized experts, our approach effectively
+mitigates catastrophic forgetting while maintaining high detection performance.
+We demonstrate the effectiveness of our method on the widely used MVTec AD
+dataset, a standard benchmark for industrial anomaly detection. Our approach
+achieves an excellent anomaly detection performance across 15 diverse object
+categories while utilizing only 5 experts. Our system maintains a balanced
+distribution of computational resources while offering improved specialization for
+similar object categories.
+The main contributions of our paper are as follows:
+– we present MECAD, a multi-expert architecture for continual anomaly de-
+tection that enables the system to learn incrementally from sequentially
+introduced object classes while mitigating catastrophic forgetting through
+specialized knowledge distribution;
+– we introduce a two-level memory management system that leverages Coreset
+selection with expert-specific replay buffers, optimizing storage efficiency
+while retaining critical information about previous classes; and
+– We develop a similarity-driven expert assignment strategy that dynamically
+routes new classes to the most appropriate experts based on feature similarity
+measures, configurable thresholds, and capacity constraints, resulting in
+natural specialization patterns that improve both performance and knowledge
+retention.
+2 Related Work
+2.1 Usupervised Anomaly Detection
+Anomaly detection (AD) methods aim to identify patterns deviating from normal
+data distributions and can be broadly categorized into reconstruction-based
+and feature-embedding-based techniques. Reconstruction-based methods such
+as Variational Autoencoders (VAEs) [12] and Generative Adversarial Networks
+(GANs) [26] learn to model normal data patterns and identify anomalies based
+on high reconstruction errors. Feature-embedding-based techniques, on the other
+hand, project data into a learned latent space where normal and anomalous
+samples can be better separated. Memory bank models [8,23] and one-class SVMs
+
+===== PAGE 3 =====
+MECAD: A multi-expert architecture for continual anomaly detection 3
+[9] fall under this category. Recent works utilizing more advanced architectures
+like MoEAD [19] and ADMoE [31] have introduced the use of transformer-
+based mixture-of-experts for enhanced anomaly scoring, though they do not
+integrate continual learning. Our work presents an evolution of PatchCore [23]
+for continual anomaly detection. Unlike prior works that use fixed models, our
+method incorporates specialized experts that can efficiently adapt to new classes
+while preserving knowledge of previously learned patterns.
+2.2 Continual Learning
+Continual learning (CL) focuses on sequential learning of multiple tasks without
+catastrophic forgetting. Regularization-based methods like Elastic Weight Con-
+solidation (EWC) [1,13,20,30] encode knowledge of previous tasks to constrain
+network weight updates. However, these methods often struggle with significant
+task dissimilarities. Replay-based methods maintain a memory buffer containing
+representative samples from past tasks [21,22]. Selection of informative samples
+is crucial, with approaches like Gradient-based Sample Selection (GSS) [4], Ex-
+perience Replay with Maximally Interfered Retrieval (ER-MIR) [2] and Online
+Coreset Selection (OCS) [28] addressing this challenge. Finally, Expert-based
+methods like Expert Gate [3] and Mixture-of-Experts (MoE) [16] train multiple
+specialized models, each assigned to specific tasks [11,14,24,29]. TAME [32]
+employs a task detection mechanism to activate the most relevant expert based
+on loss deviation. However, these approaches typically focus on classification
+rather than unsupervised anomaly detection. Our approach combines replay-based
+principles with the multi-expert architecture for the specific challenges of con-
+tinual anomaly detection, where the goal is to identify anomalies in sequentially
+introduced object classes rather than classify them.
+2.3 Continual Learning for Anomaly Detection (CLAD)
+Recent works have begun to address continual learning in anomaly detection con-
+texts specifically, demonstrating how structured memory retention enhances
+knowledge transfer and reduces forgetting [15]. A benchmark for continual
+anomaly detection with pixel-level evaluation has also been introduced [6]. Pro-
+posed approaches include fitting of normal data distributions [17], adaptive
+learning [7] and incremental learning [25] strategies, continual prompting and
+contrastive learning within a Vision Transformer [18], and reverse distillation [27].
+All these works demonstrated that simple replay strategies significantly out-
+perform conventional approaches in dynamic environments [10]. Nevertheless,
+they often face trade-offs between adaptability, accuracy, and computational
+efficiency. Existing methods typically use fixed model architectures or lack explicit
+mechanisms for managing expertise across diverse object classes. Our approach
+addresses these specific gaps by leveraging a multi-expert architecture with spe-
+cialized memory management techniques, offering a more effective framework for
+handling the dynamic nature of industrial anomaly detection tasks compared to
+the methods discussed above.
+
+===== PAGE 4 =====
+4 M. Dahmardeh et al.
+3 Multi-expert continual anomaly detection
+Our framework for continual anomaly detection with a multi-expert architecture
+(MECAD) is designed to incrementally learn and detect anomalies across multiple
+object classes while mitigating catastrophic forgetting. The system dynamically
+assigns experts to object classes based on feature similarity and employs efficient
+memory management for optimal performance. The overall pipeline of MECAD
+is presented in Figure 1.
+3.1 Multi-Expert Architecture
+We use a fixed number of expert models E = {E1, E2, ..., EN }, where each expert
+specializes in detecting anomalies for one or more object classes. Inspired by
+PatchCore [23], each expert operates as an independent memory bank of normal
+sample embeddings, while the feature extraction backbone is shared among
+all the experts. This architecture allows for specialized knowledge retention
+while enabling parallel processing during inference. We limit the number of
+classes assigned to each expert, balancing specialization with computational
+efficiency. This design choice reduces interference between dissimilar classes while
+maintaining robust performance across the entire system.
+3.2 Patch embedding memory-bank
+Our framework relies on an efficient patch-level memory representation for
+anomaly detection. This approach is inspired by PatchCore’s mechanism [23], but
+introduces novel mechanisms specifically designed for the continual learning con-
+text. Given an input image I ∈ RH×W ×3, we extract discriminative patch-level
+features from intermediate layers of a pre-trained WideResNet50 [30] backbone.
+This produces a feature tensor F ∈ Rh×w×d, where h and w represent spatial
+dimensions and d is the feature dimension. The extracted patches are particu-
+larly effective because each patch embedding aggregates local descriptors from
+neighboring regions through the network’s hierarchical receptive fields, capturing
+normal patterns at multiple scales. During training, we build a memory bank
+of normal patch embeddings that serves as a reference for anomaly detection.
+For efficient resource utilization, we apply Coreset selection [28] to reduce the
+full set of patch embeddings into a compact yet representative memory bank.
+This selection process identifies the most informative patches while discarding
+redundant information, allowing our system to maintain high detection perfor-
+mance with substantially lower memory requirements. For anomaly detection
+at inference time, test image patches are compared against this memory bank
+using a nearest-neighbor approach. Patches that differ significantly from their
+nearest neighbors in the memory bank are flagged as potential anomalies, with
+the maximum patch-level anomaly score determining the image-level anomaly
+score. Our multi-expert architecture extends this memory-bank approach by
+maintaining separate, specialized banks for different experts, each focusing on
+specific object classes based on feature similarity. This expert-specific memory
+
+===== PAGE 5 =====
+MECAD: A multi-expert architecture for continual anomaly detection 5
+Fig. 1: Overview of the MECAD pipeline. The system processes object classes se-
+quentially, extracting patch-level embeddings from normal samples, Coreset of these
+embeddings are assigned to specialized experts based on cosine similarity. Each expert
+maintains a memory buffer with randomly selected samples and is updated only when
+assigned a new class. During inference, test samples are processed through the corre-
+sponding expert to generate anomaly scores at the image level.
+organization is key to preventing catastrophic forgetting in the continual learning
+setting, as it allows the system to preserve critical information about previously
+seen classes while effectively incorporating new ones.
+3.3 Expert Assignment
+When a new class c arrives, we determine which expert should handle it based
+on feature similarity. We assign the first class to the first expert. For subsequent
+classes, we compute the cosine similarity between the class’s feature centroid and
+each expert’s memory:
+sim(c, Ei) = ⟨µc, µEi ⟩ ||µc|| · ||µEi || (1)
+where µc is the centroid of embeddings of class c, µEi is the centroid of expert Ei’s
+memory, and ⟨·⟩ is the inner product operator. The class is assigned to the expert
+with the highest similarity. To avoid assignments of classes to non-representative
+experts, we only assign the expert if the similarity exceeds a predefined threshold
+θ. Otherwise, we assign the class to a new, unassigned, expert E∅ (if any).
+A(c) =
+(
+arg maxi sim(c, Ei) if sim(c, Ei) ≥ θ
+E∅ otherwise (2)
+3.4 Expert Training with Replay
+When a new class is assigned to an expert, only that expert is updated, leaving
+other experts unchanged. This targeted update strategy significantly reduces
+computational overhead compared to full model retraining. The expert is trained
+
+===== PAGE 6 =====
+6 M. Dahmardeh et al.
+using both the new class embeddings and replay samples from previously assigned
+classes:
+MEi = Sc ∪ {r | r ∈ REi ,j , j ∈ CEi \ {c}} (3)
+where MEi is the updated memory for expert Ei, Sc represents selected
+embeddings from the new class c, REi ,j represents the replay buffer samples for
+class j, and CEi \ {c} is the set of all classes previously assigned to expert Ei
+except the current class.
+The replay mechanism is crucial for mitigating catastrophic forgetting. We
+maintain a fixed replay ratio to balance stability and plasticity.
+3.5 Anomaly Detection Inference
+During testing, for an image from class c, we extract patch embeddings and
+process them through the corresponding expert Ei that was assigned to class c
+during training. For image-level anomaly detection, we compute the maximum
+patch-level anomaly score:
+simage = max p∈P s(p, MEi ) (4)
+where P is the set of patch embeddings p from the test image and s(p, MEi )
+measures the distance between patch p and the nearest neighbor in the expert’s
+memory MEi .
+Our framework achieves effective continual learning for anomaly detection by
+combining expert specialization, strategic class assignment, and efficient memory
+management. The experimental results demonstrate that this approach success-
+fully mitigates catastrophic forgetting while maintaining high anomaly detection
+performance across sequentially introduced object classes.
+4 Experiments
+In this section, we evaluate our MECAD framework on the MVTec AD dataset [5],
+a benchmark widely used for industrial anomaly detection tasks. We systemat-
+ically analyze the impact of varying the number of experts on both anomaly
+detection performance and forgetting mitigation. Our experiments will provide
+detailed insights into how similarity-based expert assignment affects class-level
+performance and knowledge retention in continual learning scenarios. We also
+investigate expert utilization patterns and the effectiveness of our replay buffer
+mechanism in preserving knowledge of previously seen classes.
+4.1 Experimental Setup
+Dataset MVTec-AD is a standard benchmark for industrial anomaly detection.
+The dataset consists of 15 different object categories with a total of 5,354 high-
+resolutionimages.Eachcategorycontainsnormal(defect-free)samplesfortraining
+and both normal and anomalous samples for testing, with pixel-level ground
+truth annotations for anomalous regions.
+
+===== PAGE 7 =====
+MECAD: A multi-expert architecture for continual anomaly detection 7
+Evaluation Protocol and Metrics We follow a continual learning evaluation
+protocol where object classes are introduced sequentially. We report results with:
+– Image-level AUROC: Area Under the Receiver Operating Characteristic
+curve for image-level anomaly detection
+– Forgetting: The decrease in performance on previously learned classes after
+incorporating new classes.
+– Memory Usage: The distribution of classes across experts and corresponding
+memory usage.
+Implementation Details We implemented our MECAD framework using
+PyTorch with Amazon’s PatchCore as the backbone architecture. For feature
+extraction, we used a WideResNet50 pre-trained on ImageNet, extracting features
+from layers 2 and 3. Input image size of 224 × 224 pixels and Patch size of 32 × 32
+pixels. We considered 400 a 400-samples-per-class memory budget and 2400 a
+2400-samples-per-expert memory budget. We used random sampling to select the
+replayed samples, with a replay ratio of 0.2. The threshold for expert assignment
+is set to 0.9. All experiments were conducted on a single NVIDIA GPU with
+16GB of memory. The training process was performed sequentially, with classes
+introduced in the same order across all experimental configurations to ensure fair
+comparison.
+4.2 Results and Analysis
+For our primary experiments, we systematically varied the number of experts
+from 1 to 8, while keeping all other hyperparameters consistent. This allowed us
+to isolate the impact of the expert allocation strategy on both performance and
+forgetting metrics.
+Class Performance Across Expert Configurations. The heat map in Figure
+2 visualizes per-class AUROC across all expert configurations (1-8), revealing key
+patterns: certain classes maintain high performance (AUROC>0.95) regardless of
+expert count (e.g., leather, bottle), while others remain challenging (e.g., screw,
+transistor with AUROC<0.5). Most classes show significant improvement when
+moving from a single expert to multiple experts, with performance stabilizing
+after 3-5 experts. The heat map validates our similarity-based expert assignment
+approach, as evidenced by visible performance clusters in the 5-expert configura-
+tion, demonstrating our framework’s ability to identify inherent class similarities
+for efficient knowledge distribution.
+Impact of Number of Experts Figure3b illustrates the relationship between
+the number of experts and average AUROC across all 15 classes. The results
+demonstrate a clear pattern; single-expert configuration achieves 0.7494 AUROC.
+Performance increases substantially to 0.7793 with 2 experts. A significant jump
+
+===== PAGE 8 =====
+8 M. Dahmardeh et al.
+Fig. 2: Per-Class Auroc Across Expert Configurations
+to 0.8212 occurs with 3 experts. The peak performance of 0.8269 was reached
+with 4 experts. Performance stabilizes around 0.823-0.824 with 5-8 experts
+This pattern indicates diminishing returns beyond 4 experts in terms of raw
+anomaly detection performance. However, examining the forgetting in Figure3a
+reveals a different pattern; Forgetting decreases progressively as the number of
+experts increases. The single expert system exhibits severe forgetting (-0.3736)
+Substantial improvement occurs with 5 experts (-0.1396) Forgetting continues to
+decrease with 6-8 experts (-0.0816 with 8 experts).
+These results demonstrate that while raw performance plateaus after 4-5
+experts, additional experts continue to provide significant benefits for knowledge
+retention.
+Optimal Expert Configuration Based on the comprehensive analysis of both
+performance and forgetting metrics, we identify the 5-expert configuration as the
+optimal balance point for our MECAD framework. This configuration achieves
+near-peak anomaly detection performance (0.8259 AUROC), while substantially
+reducing forgetting compared to configurations with fewer experts as well as
+limiting the memory consumption.
+Per-Expert and Per-Class Performance Figure 4b presents the final AUROC
+scores for each expert in the 5-expert configuration. The substantial variation in
+performance across experts is notable: Experts 2 and 3 are assigned to a single
+
+===== PAGE 9 =====
+MECAD: A multi-expert architecture for continual anomaly detection 9
+(a) Average Forgetting across different numbers
+of experts
+(b) Average AUROC performance across different
+numbers of experts
+Fig. 3: Impact of varying the number of experts (1-8) on (a) forgetting mitigation and
+(b) anomaly detection performance across all classes
+(a) Per-class AUROC scores across all 15 classes
+ (b) Final AUROC scores per expert
+Fig. 4: Final evaluation results showing (a) detailed per-class AUROC performance
+and (b) average AUROC scores achieved by each expert in the 5-expert configuration
+class, providing results in line with the state of the art for that specific class.
+Expert 1 provides excellent performance on 3 texture-based classes. Experts 0
+and 4 are assigned 5 classes each, with relatively high variability.
+The detailed per-class performance in Figure 4a further illustrates this varia-
+tion, with AUROC scores ranging from 0.4384 (screw) to 1.0000 (leather). This
+class-level analysis reveals that the low performance of some experts is mostly
+due to a few problematic classes. These results demonstrate that our multi-expert
+architecture effectively handles a diverse range of object classes while maintaining
+strong overall performance.
+Memory Utilization Analysis. Our approach maintained efficient memory
+management through controlled per-expert budgets. In the 5-expert configuration,
+memoryutilizationvariedaccordingtoclassassignments:Expert0reached83.33%
+utilization with its 5 assigned classes (bottle, cable, capsule, hazelnut, metal_nut),
+Expert 1 utilized 50% with 3 classes (carpet, wood, zipper), Experts 2 and 3 used
+only 16.67% with single class assignments (grid and leather, respectively), while
+Expert 4 reached 83.33% with 5 classes (pill, screw, tile, toothbrush, transistor).
+This distribution demonstrates how our similarity-based assignment naturally
+
+===== PAGE 10 =====
+10 M. Dahmardeh et al.
+(a) Forgetting evolution per expert
+ (b) AUROC evolution per expert
+Fig. 5: Evolution of (a) forgetting and (b) AUROC metrics for each expert in the
+5-expert configuration as classes are introduced sequentially
+balances memory resources, with experts specializing in related classes utilizing
+similar memory proportions.
+Forgetting Analysis Figure 5a illustrates the evolution of forgetting for different
+experts as new classes are introduced. The data reveals distinct patterns: Expert
+1 (handling texture-based classes) maintains stable performance with minimal
+forgetting (-0.0144 in final evaluation) Experts 0 and 4 (each handling 5 diverse
+classes) experience more significant forgetting (-0.3601 and -0.3304 respectively).
+Forgetting correlates strongly with both the number and diversity of classes
+assigned to each expert.
+5 Conclusion
+Summarizing, our experiments with varying numbers of experts (1-8) revealed
+that similarity-based assignment naturally creates efficient expert allocation
+patterns. The system intelligently groups similar classes with the same expert
+rather than distributing them arbitrarily. With a fixed similarity threshold of
+0.9, our approach effectively balances detection performance (0.8238 AUROC
+with 8 experts) and forgetting mitigation (-0.0816 with 8 experts). Our MECAD
+framework demonstrates that a 5-expert configuration provides the optimal
+balance between performance (0.8259 AUROC across 15 MVTec AD classes),
+forgetting mitigation, and computational efficiency. By adaptively assigning
+classes based on feature similarity and implementing targeted replay, our system
+effectively combats catastrophic forgetting without requiring full model retraining,
+making it well-suited for industrial environments with evolving product types.
+Acknowledgements
+This study was carried out within the PNRR research activities of the consor-
+tium iNEST (Interconnected North-Est Innovation Ecosystem) funded by the
+European Union Next-GenerationEU (Piano Nazionale di Ripresa e Resilienza
+(PNRR) – Missione 4 Componente 2, Investimento 1.5 – D.D. 1058 23/06/2022,
+ECS_00000043).
+
+===== PAGE 11 =====
+MECAD: A multi-expert architecture for continual anomaly detection 11
+References
+1. Aljundi, R., Babiloni, F., Elhoseiny, M., Rohrbach, M., Tuytelaars, T.: Memory
+aware synapses: Learning what (not) to forget. In: European Conference on Com-
+puter Vision (2018)
+2. Aljundi, R., Caccia, L., Belilovsky, E., Caccia, M., Lin, M., Charlin, L., Tuytelaars,
+T.: Online continual learning with maximally interfered retrieval. In: International
+Conference on Neural Information Processing Systems (2019)
+3. Aljundi, R., Chakravarty, P., Tuytelaars, T.: Expert gate: Lifelong learning with
+a network of experts. In: IEEE Conference on Computer Vision and Pattern
+Recognition (2017)
+4. Aljundi, R., Lin, M., Goujaud, B., Bengio, Y.: Gradient based sample selection for
+online continual learning. Advances in Neural Information Processing Systems 32
+(2019)
+5. Bergmann, P., Fauser, M., Sattlegger, D., Steger, C.: MVTec AD–a comprehensive
+real-world dataset for unsupervised anomaly detection. In: IEEE/CVF Conference
+on Computer Vision and Pattern Recognition (2019)
+6. Bugarin, N., Bugaric, J., Barusco, M., Pezze, D.D., Susto, G.A.: Unveiling the
+anomalies in an ever-changing world: A benchmark for pixel-level anomaly detection
+in continual learning. In: IEEE/CVF Conference on Computer Vision and Pattern
+Recognition (2024)
+7. Dalle Pezze, D., Anello, E., Masiero, C., Susto, G.A.: Continual learning approaches
+for anomaly detection. arXiv preprint arXiv:2212.11192 (2022)
+8. Defard, T., Setkov, A., Loesch, A., Audigier, R.: Padim: a patch distribution
+modeling framework for anomaly detection and localization. In: International
+Conference on Pattern Recognition (2021)
+9. Deng,H.,Li,X.:Anomalydetectionviareversedistillationfromone-classembedding.
+In: IEEE/CVF Conference on Computer Vision and Pattern Recognition (2022)
+10. Faber, K., Corizzo, R., Sniezynski, B., Japkowicz, N.: Lifelong continual learning
+for anomaly detection: New challenges, perspectives, and insights. IEEE Access 12,
+41364–41380 (2024)
+11. Hihn, H., Braun, D.A.: Mixture-of-variational-experts for continual learning. arXiv
+preprint arXiv:2110.12667 (2021)
+12. Kingma, D.P.: Auto-encoding variational bayes. arXiv preprint arXiv:1312.6114
+(2013)
+13. Kirkpatrick, J., Pascanu, R., Rabinowitz, N., Veness, J., Desjardins, G., Rusu,
+A.A., Milan, K., Quan, J., Ramalho, T., Grabska-Barwinska, A., et al.: Overcoming
+catastrophic forgetting in neural networks. Proceedings of the National Academy
+of Sciences 114(13), 3521–3526 (2017)
+14. Le, M., Nguyen, A., Nguyen, H., Nguyen, T., Pham, T., Van Ngo, L., Ho, N.: Mixture
+of experts meets prompt-based continual learning. arXiv preprint arXiv:2405.14124
+(2024)
+15. Lee, J.C., Kim, T., Park, E., Woo, S.S., Ko, J.H.: Continuous memory representation
+for anomaly detection. In: European Conference on Computer Vision (2025)
+16. Li, H., Lin, S., Duan, L., Liang, Y., Shroff, N.B.: Theory on mixture-of-experts in
+continual learning. arXiv preprint arXiv:2406.16437 (2024)
+17. Li, W., Zhan, J., Wang, J., Xia, B., Gao, B.B., Liu, J., Wang, C., Zheng, F.: To-
+wards continual adaptation in industrial anomaly detection. In: ACM International
+Conference on Multimedia (2022)
+
+===== PAGE 12 =====
+12 M. Dahmardeh et al.
+18. Liu, J., Wu, K., Nie, Q., Chen, Y., Gao, B.B., Liu, Y., Wang, J., Wang, C., Zheng,
+F.: Unsupervised continual anomaly detection with contrastively-learned prompt.
+In: AAAI Conference on Artificial Intelligence (2024)
+19. Meng, S., Meng, W., Zhou, Q., Li, S., Hou, W., He, S.: Moead: A parameter-efficient
+model for multi-class anomaly detection. In: European Conference on Computer
+Vision (2025)
+20. Nguyen, C.V., Li, Y., Bui, T.D., Turner, R.E.: Variational continual learning. arXiv
+preprint arXiv:1710.10628 (2017)
+21. Rebuffi, S.A., Kolesnikov, A., Sperl, G., Lampert, C.H.: icarl: Incremental classifier
+and representation learning. In: IEEE/CVF Conference on Computer Vision and
+Pattern Recognition (2017)
+22. Rolnick, R.D., Ahuja, A., Schwarz, J., Lillicrap, T.P., Wayne, G.: Experience replay
+for continual learning. arXiv:1811.11682 (2018)
+23. Roth, K., Pemula, L., Zepeda, J., Schölkopf, B., Brox, T., Gehler, P.: Towards total
+recall in industrial anomaly detection. In: IEEE/CVF Conference on Computer
+Vision and Pattern Recognition (2022)
+24. Rypeść, G., Cygert, S., Khan, V., Trzciński, T., Zieliński, B., Twardowski, B.:
+Divide and not forget: Ensemble of selectively trained experts in continual learning.
+arXiv preprint arXiv:2401.10191 (2024)
+25. Tang, J., Lu, H., Xu, X., Wu, R., Hu, S., Zhang, T., Cheng, T.W., Ge, M., Chen,
+Y.C., Tsung, F.: An incremental unified framework for small defect inspection. In:
+European Conference on Computer Vision (2025)
+26. Yan, X., Zhang, H., Xu, X., Hu, X., Heng, P.A.: Learning semantic context from
+normal samples for unsupervised anomaly detection. In: AAAI Conference on
+Artificial Intelligence (2021)
+27. Yang, A., Xu, X., Wu, Y., Liu, H.: Reverse distillation for continuous anomaly
+detection. IEEE Transactions on Instrumentation and Measurement (2024)
+28. Yoon, J., Madaan, D., Yang, E., Hwang, S.J.: Online coreset selection for rehearsal-
+based continual learning. In: International Conference on Learning Representations
+(ICLR) (2021)
+29. Yu, X., Rosing, T., Guo, Y.: Evolve: Enhancing unsupervised continual learning with
+multiple experts. In: IEEE/CVF Winter Conference on Applications of Computer
+Vision (2024)
+30. Zenke, F., Poole, B., Ganguli, S.: Continual learning through synaptic intelligence.
+In: International Conference on Machine Learning (2017)
+31. Zhao, Y., Zheng, G., Mukherjee, S., McCann, R., Awadallah, A.: Admoe: Anomaly
+detection with mixture-of-experts from noisy labels. In: AAAI Conference on
+Artificial Intelligence (2023)
+32. Zhu, H., Majzoubi, M., Jain, A., Choromanska, A.: Tame: Task agnostic continual
+learning using multiple experts. In: IEEE/CVF Conference on Computer Vision
+and Pattern Recognition (2024)

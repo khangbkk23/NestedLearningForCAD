@@ -1,0 +1,189 @@
+{
+ "extractor": "pypdf 7.1.0",
+ "files": [
+  {
+   "pdf": "docs/papers/CADIC_Continual_Anomaly_Detection_Based_on_Incremental_Coreset.pdf",
+   "pdf_sha256": "fce2e29ab8bc41f2ec97293f6922521982d7fc493028d2052996f2fd77f92116",
+   "txt": "docs/papers/text/CADIC_Continual_Anomaly_Detection_Based_on_Incremental_Coreset.txt",
+   "pages": 12,
+   "chars": 52948,
+   "empty_pages": 0
+  },
+  {
+   "pdf": "docs/papers/CAD_Fundamental.pdf",
+   "pdf_sha256": "8c64ef8ad92f70a1f8a2407bece433a96a1bea5bc89e301e12d184f14d75592a",
+   "txt": "docs/papers/text/CAD_Fundamental.txt",
+   "pages": 21,
+   "chars": 75072,
+   "empty_pages": 0
+  },
+  {
+   "pdf": "docs/papers/Nested_Learning_The_Illusion_of_Deep_Learning_Architectures.pdf",
+   "pdf_sha256": "e87a9ce82ff24e96f55b83fb9713a5d6fc9e4a1a232c12d42da49c10022ed891",
+   "txt": "docs/papers/text/Nested_Learning_The_Illusion_of_Deep_Learning_Architectures.txt",
+   "pages": 52,
+   "chars": 218845,
+   "empty_pages": 0
+  },
+  {
+   "pdf": "docs/papers/ReplayCAD_Generative_Diffusion_Replay_for_Continual_Anomaly_Detection.pdf",
+   "pdf_sha256": "b857599ab324670f007012496e905895698c7663be9abc770a2c8c9f74bb8f9f",
+   "txt": "docs/papers/text/ReplayCAD_Generative_Diffusion_Replay_for_Continual_Anomaly_Detection.txt",
+   "pages": 14,
+   "chars": 50986,
+   "empty_pages": 0
+  },
+  {
+   "pdf": "docs/papers/Titans_Learning_to_Memorize_at_Test_Time.pdf",
+   "pdf_sha256": "a65e4a7d02784df1a040b487127e6dd09fff4474e5caf94d93263af3d50cfbc2",
+   "txt": "docs/papers/text/Titans_Learning_to_Memorize_at_Test_Time.txt",
+   "pages": 27,
+   "chars": 107908,
+   "empty_pages": 0
+  },
+  {
+   "pdf": "docs/papers/VisionHOPE.pdf",
+   "pdf_sha256": "73f157ecd534be17861bc1580ca629730201d8c708d9df28b2bc04ceebc6f97c",
+   "txt": "docs/papers/text/VisionHOPE.txt",
+   "pages": 25,
+   "chars": 94752,
+   "empty_pages": 0
+  },
+  {
+   "pdf": "docs/papers/related_cad/arxiv_2312.08917.pdf",
+   "pdf_sha256": "53ca9c71b8854266634de9e40c9390d57a4e5b0355099bb84768a166c5bf1c7b",
+   "txt": "docs/papers/text/related_cad__arxiv_2312.08917.txt",
+   "pages": 17,
+   "chars": 46723,
+   "empty_pages": 0
+  },
+  {
+   "pdf": "docs/papers/related_cad/arxiv_2401.01010.pdf",
+   "pdf_sha256": "479dca2948eccee4953e1712d220fc5f554c3b31d72ddcd1b71523917d96d784",
+   "txt": "docs/papers/text/related_cad__arxiv_2401.01010.txt",
+   "pages": 12,
+   "chars": 58327,
+   "empty_pages": 0
+  },
+  {
+   "pdf": "docs/papers/related_cad/arxiv_2403.15463.pdf",
+   "pdf_sha256": "542ed403bc78f02f9c1783f5f4c0642045664b7500477082c4c332196daabc31",
+   "txt": "docs/papers/text/related_cad__arxiv_2403.15463.txt",
+   "pages": 12,
+   "chars": 47969,
+   "empty_pages": 0
+  },
+  {
+   "pdf": "docs/papers/related_cad/arxiv_2412.03907.pdf",
+   "pdf_sha256": "1aafd1a51bd243e2e45272557034c97f8edda09db224623ddeffd6879b461666",
+   "txt": "docs/papers/text/related_cad__arxiv_2412.03907.txt",
+   "pages": 10,
+   "chars": 43059,
+   "empty_pages": 0
+  },
+  {
+   "pdf": "docs/papers/related_cad/arxiv_2502.06194.pdf",
+   "pdf_sha256": "15a3d4b7cfea840667cd465fe75855c976b037522c1d523879bd4c192fafa7ca",
+   "txt": "docs/papers/text/related_cad__arxiv_2502.06194.txt",
+   "pages": 10,
+   "chars": 47369,
+   "empty_pages": 0
+  },
+  {
+   "pdf": "docs/papers/related_cad/arxiv_2502.19848.pdf",
+   "pdf_sha256": "7daa2dd44ca171b0fc12828b14400f1da6450fa746117c59b3367190e9476e4c",
+   "txt": "docs/papers/text/related_cad__arxiv_2502.19848.txt",
+   "pages": 16,
+   "chars": 58499,
+   "empty_pages": 0
+  },
+  {
+   "pdf": "docs/papers/related_cad/arxiv_2503.02691.pdf",
+   "pdf_sha256": "3ad2e52dd8ef064593880286e83d0c6e7406fbebaebdf037e11fdcb2a3b8d328",
+   "txt": "docs/papers/text/related_cad__arxiv_2503.02691.txt",
+   "pages": 10,
+   "chars": 35230,
+   "empty_pages": 0
+  },
+  {
+   "pdf": "docs/papers/related_cad/arxiv_2506.00956.pdf",
+   "pdf_sha256": "d5b2e6fc37c7f91c424cf0f262d47fa91664d8cecd467e37800970754d4c3d58",
+   "txt": "docs/papers/text/related_cad__arxiv_2506.00956.txt",
+   "pages": 18,
+   "chars": 78914,
+   "empty_pages": 0
+  },
+  {
+   "pdf": "docs/papers/related_cad/arxiv_2512.15323.pdf",
+   "pdf_sha256": "9617d67fcde871b9abe1b31aec904ba2e9375809798ac422ded33272ad216631",
+   "txt": "docs/papers/text/related_cad__arxiv_2512.15323.txt",
+   "pages": 12,
+   "chars": 30412,
+   "empty_pages": 0
+  },
+  {
+   "pdf": "docs/papers/related_cad/arxiv_2601.01856.pdf",
+   "pdf_sha256": "5bf2562bd1a6feddfd91814fbdec933b4c4f9c1d6dcd638c055073f8e9f0ee43",
+   "txt": "docs/papers/text/related_cad__arxiv_2601.01856.txt",
+   "pages": 9,
+   "chars": 39186,
+   "empty_pages": 0
+  },
+  {
+   "pdf": "docs/papers/related_cad/arxiv_2603.21562.pdf",
+   "pdf_sha256": "8955fe3365c1a71bb672636304edd84db608eb7747059993dc6bdde07c09f5e2",
+   "txt": "docs/papers/text/related_cad__arxiv_2603.21562.txt",
+   "pages": 10,
+   "chars": 52980,
+   "empty_pages": 0
+  },
+  {
+   "pdf": "docs/papers/related_cad/arxiv_2604.06435.pdf",
+   "pdf_sha256": "46d5511cb902a400ab48d9ec95496758341a8d29b320161de3026880ee70d458",
+   "txt": "docs/papers/text/related_cad__arxiv_2604.06435.txt",
+   "pages": 21,
+   "chars": 71217,
+   "empty_pages": 0
+  },
+  {
+   "pdf": "docs/papers/related_cad/arxiv_2605.24251.pdf",
+   "pdf_sha256": "92b581523a2cf925c585c058876f9f7f4b8c1d2d64807cbcf39e8db12b20f39c",
+   "txt": "docs/papers/text/related_cad__arxiv_2605.24251.txt",
+   "pages": 20,
+   "chars": 74289,
+   "empty_pages": 0
+  },
+  {
+   "pdf": "docs/papers/related_cad/arxiv_2606.26687.pdf",
+   "pdf_sha256": "94ee2fdf3e8971914334e8f62155c8a804fe434e8f9503bb587ac24ef86417ee",
+   "txt": "docs/papers/text/related_cad__arxiv_2606.26687.txt",
+   "pages": 18,
+   "chars": 47906,
+   "empty_pages": 0
+  },
+  {
+   "pdf": "docs/papers/related_cad/arxiv_2607.18289.pdf",
+   "pdf_sha256": "f3bf5565e248c8fbcdf0dcb9b254dcd70cd547fe14c48efc7ad4b759117f0a69",
+   "txt": "docs/papers/text/related_cad__arxiv_2607.18289.txt",
+   "pages": 47,
+   "chars": 144847,
+   "empty_pages": 0
+  },
+  {
+   "pdf": "docs/papers/related_cad/arxiv_2608.15277.pdf",
+   "pdf_sha256": "7141652c549f81dcc74c06d03e95db730f4cb8b7ef313d2dbe32eefa05c61399",
+   "txt": "docs/papers/text/related_cad__arxiv_2608.15277.txt",
+   "pages": 26,
+   "chars": 70277,
+   "empty_pages": 0
+  },
+  {
+   "pdf": "docs/papers/related_cad/arxiv_2610.15032.pdf",
+   "pdf_sha256": "b285c4e2427b8a5a16ab3af194688c892fc8b747695a6adbae965e59a21aa176",
+   "txt": "docs/papers/text/related_cad__arxiv_2610.15032.txt",
+   "pages": 52,
+   "chars": 177486,
+   "empty_pages": 0
+  }
+ ]
+}

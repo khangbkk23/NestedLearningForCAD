@@ -1,0 +1,4762 @@
+# SOURCE: docs/papers/related_cad/arxiv_2607.18289.pdf
+# SOURCE_SHA256: f3bf5565e248c8fbcdf0dcb9b254dcd70cd547fe14c48efc7ad4b759117f0a69
+# EXTRACTOR: pypdf 7.1.0 (PdfReader.extract_text, per page)
+# EXTRACTED: 2026-11-19
+# NOTE: machine extraction; equations/tables/unicode may be garbled. Cite the PDF, not this file.
+
+
+===== PAGE 1 =====
+Towards Principled Continual Anomaly Detection: A
+Systematic Framework and Benchmark Scenarios
+Kamil Faber
+Faculty of Computer Science
+AGH University of Krakow
+Krakow, Poland
+kfaber@agh.edu.pl
+Mateusz Smendowski
+Faculty of Computer Science
+AGH University of Krakow
+Krakow, Poland
+smendowski@agh.edu.pl
+Roberto Corizzo
+Department of Computer Science
+American University
+Washington DC, US
+rcorizzo@american.edu
+Abstract
+Continual anomaly detection (CAD) studies how models can adapt to evolving
+data distributions while retaining performance on previously observed regimes.
+CAD benchmarks, however, depend critically on how tasks are defined, filtered,
+ordered, and validated. In tabular domains, task boundaries are rarely given, and
+arbitrary splits can create unlearnable, redundant, or overly transferable tasks that
+obscure genuine continual-learning behavior. To this end, we introduce a systematic
+framework for reproducible benchmark scenario design from existing tabular
+anomaly-detection datasets. The framework discovers candidate tasks, filters
+unsuitable tasks, and derives principled orderings that expose diverse dynamics.
+The framework allows us to deliver five benchmark-ready scenarios from three
+large-scale cybersecurity anomaly detection datasets, yielding both single-dataset
+and multi-dataset CAD settings.
+1 Introduction
+Anomaly detection (AD) models are increasingly deployed in non-stationary environments, where
+the notion of normality itself shifts over time [Lu et al., 2023]. Continual anomaly detection (CAD)
+studies this setting by requiring detectors to adapt to emerging regimes while retaining useful
+knowledge about previously observed ones [Faber et al., 2024a]. CAD inherits specific challenges of
+anomaly detection: it is commonly one-class, unsupervised, or semi-supervised; anomalies are rare
+while normality itself drifts independently of the observed anomalies [Pang et al., 2021].
+A key aspect to consider is that conventional anomaly detection datasets do not automatically yield
+strong continual scenarios: when tasks have low diversity, the induced task sequence may exhibit
+limited distributional separation, and high performance can partly reflect an easy or weakly differen-
+tiated scenario rather than a broadly solved CAD problem Dragoi et al. [2022], Amalapuram et al.
+[2024b]. Unlike vision-based CAD, where object categories can provide semantically meaningful
+units of progression [Lee et al., 2025], tabular anomaly detection datasets rarely include validated
+task boundaries. As a result, CAD scenarios are often constructed from chronological windows,
+metadata fields, or manual partitions. These choices are convenient, but not necessarily valid, as
+different time periods may represent nearly identical normal regimes, while substantial distributional
+shifts may occur within a single period. Consequently, the resulting task sequence may fail to
+Preprint.
+arXiv:2607.18289v1  [cs.LG]  30 Jun 2026
+
+===== PAGE 2 =====
+induce meaningful continual-learning dynamics [Amalapuram et al., 2024b, Chin and Corizzo, 2024].
+Consequently, tabular CAD lacks reliable, reusable benchmark scenarios and principled mechanisms
+for transforming existing anomaly-detection datasets into validated CAD scenarios.
+This paper addresses the scenario-design problem directly. Rather than treating task sequences as a
+minor experimental detail, we treat scenario construction as a first-class benchmark-design problem.
+Given one or more existing tabular anomaly-detection datasets, the framework discovers candidate
+tasks, evaluates their learnability and transfer structure with single-task experts, filters unsuitable
+tasks, and derives principled orderings that expose different continual-learning dynamics.
+Rather than providing an exhaustive leaderboard of CAD methods, this paper focuses on the
+benchmark-design problem itself. We introduce a systematic framework for constructing and vali-
+dating CAD scenarios, and deliver five single-dataset and multi-dataset benchmark scenarios. Each
+scenario is equipped with six orderings based on curriculum, generalization and drift levels. Together,
+the framework and released scenarios provide a reproducible methodological foundation for future
+CAD benchmarking. Our contributions are as follows:
+- We formalize a principled framework for reproducible benchmark-design, which transforms
+existing tabular anomaly detection datasets into continual scenarios through candidate task discov-
+ery, single-task expert analysis, iterative task filtering, scenario ordering, scenario selection, and
+validation.
+- We define six principled task-ordering families that expose complementary continual-learning
+dynamics from the same retained task set. Moreover, we define three scenario quality properties for
+CAD scenarios: feasibility, non-triviality, and forgetting.
+- We deliver five CAD benchmark scenarios from three large-scale tabular anomaly detection
+datasets from the cybersecurity domain, spanning within-dataset regime shifts and cross-dataset
+continual adaptation. We provide ready-to-use benchmark artifacts, including task splits, train-test
+splits, and final orderings, which establish a reproducible foundation for future CAD benchmarking.
+2 Related Works
+Anomaly Detection Benchmarks: Existing anomaly detection benchmarks have improved repro-
+ducibility by standardizing datasets, metrics, and evaluation protocols [Han et al., 2022, Lu et al.,
+2023, Arodi et al., 2024]. However, they primarily evaluate anomaly detectors under static, stream-
+oriented, or domain-specific protocols. They do not address the CAD-specific question of continual
+adaptation with knowledge retention.
+Continual Learning Benchmarks and Tasks: Continual learning benchmarks have shown that
+benchmark design and evaluation protocols strongly determine which forms of forgetting, transfer,
+and adaptation become observable [Lin et al., 2021], arguing that the benchmark design is inseparable
+from the claims made about lifelong learning systems [Parisi et al., 2019]. In domains such as
+image classification and reinforcement learning, CL benchmarks typically define progression through
+image classes, games, or robotic tasks, often relying on natural boundaries or artificial splits such as
+partitioning a class set into sequential tasks [Lin et al., 2021, Parisi et al., 2019, Wang et al., 2024].
+Similarly, In vision-oriented CAD, task splits can often be grounded in semantically meaningful
+units such as object categories or product types. However, in tabular CAD, such splits are much less
+straightforward, creating a central challenge for constructing meaningful CL scenarios from existing
+datasets.
+Continual Anomaly Detection and Tabular CAD Scenarios: Continual anomaly detection (CAD)
+has emerged as a distinct research area at the intersection of anomaly detection and continual
+learning [Faber et al., 2024a]. Existing work focus on both vision-oriented CAD, often built on image
+anomaly-detection benchmarks with semantically meaningful object, product, or defect structure [Hu
+et al., 2025, Lee et al., 2025], and tabular CAD, where such structure is usually less explicit. Recent
+CAD methods study replay-based retention, prompt-based adaptation, task-aware parametrization,
+and cybersecurity-oriented continual training [Faber et al., 2023, Amalapuram et al., 2023, Liu et al.,
+2024, Zhang et al., 2025, Amalapuram et al., 2024b,a]. However, the evaluation side of tabular CAD
+remains less mature than the methodological side. Many widely used tabular anomaly detection
+datasets were designed for static anomaly detection rather than CL evaluation. Consequently, they
+do not provide validated task boundaries, principled task orderings, or evidence that the induced
+2
+
+===== PAGE 3 =====
+1 Task Discovery
+Generate task candidates
+TNatural splits
+Clustering-based discovery
+Multiple datasets
+2 Task Evaluation
+Learnability and heterogeneity
+M fEvaluate T with multiple AD
+models
+M f i,j – train model f on task i
+test on task j
+3 Task Selection
+Filter unsuitable tasks
+SFC1. Self-learnability
+FC2, FC3. Transfer coverage
+FC4, FC5. Redundancy
+4 Scenario Orderings
+Define principled orderings
+Π
+Drift-based (smooth, abrupt)
+Curriculum-based
+Generalization
+5 Scenario Selection
+Final scenario and orderings
+S∗
+Scenario selection via cross-
+model concordance
+Ordering consensus via Borda
+count
+6 Scenario Validation
+Check continual-learning dynamics
+Feasibility
+Non-triviality
+Forgetting
+7 Output CAD scenario suite ready for benchmarking
+- CAD-CICIDS2017: 6 tasks;
+- CAD-CICIDS2018: 5 tasks;
+- CAD-CICUNSW: 5 tasks
+- MCAD-CIC-3x1: 3 tasks;
+- MCAD-CIC-3xN: 13 tasks
+Each scenario
+- Final set of tasks T ∗
+- A set of 6 orderings Π
+- Statistics and validation results
+- Available at HuggingFace
+Figure 1: Detailed overview of the proposed framework for transforming anomaly detection datasets
+into validated continual anomaly detection scenarios.
+tasks are learnable, non-redundant, and capable of exposing forgetting or transfer. This creates a
+specific benchmark-design problem. In tabular CAD, a chronological window or data source may
+appear to define a natural task, but such partitions do not necessarily correspond to meaningful
+changes. AnoShift [Dragoi et al., 2022] is an important positive example, showing that time-based
+partitioning can yield meaningful continual scenarios when the temporal structure is sufficiently
+rich [Amalapuram et al., 2024b]. However, many commonly used intrusion-detection datasets, such
+as CICIDS2017 or CICIDS2018, cover much shorter collection periods and do not automatically
+provide the same level of validated time structure. This issue was illustrated by Amalapuram et al.
+[2023, 2024b], who observed that time-based splits can exhibit limited task diversity. A different
+approach was proposed by [Faber et al., 2024a], where clustering-based options were leveraged for
+constructing continual scenarios from originally non-continual data [Faber et al., 2024a]. However,
+this work does not provide any further validation of created tasks to guarantee challenging scenarios.
+These issues motivate the need for a more comprehensive framework in which task discovery is only
+one component, complemented by explicit filtering, ordering, and validation criteria. To this end,
+we propose a framework that addresses that gap by making scenario construction a principled and
+reproducible part of CAD evaluation. Moreover, we deliver five CAD benchmark scenarios from
+three large-scale intrusion detection datasets.
+3 A Framework for CAD Scenario Benchmark Design
+We propose a framework for transforming one or more existing tabular anomaly-detection datasets
+into validated continual anomaly detection (CAD) scenarios. Designed for datasets that were not
+originally collected as continual-learning benchmarks, the framework does not merely split a dataset
+into arbitrary tasks, it constructs CAD scenarios whose tasks are empirically meaningful, suitable
+for anomaly detection, and organized according to an explicit evaluation rationale. The framework
+supports both single-dataset and multi-dataset scenarios, enabling within-dataset regime shifts as
+well as cross-dataset continual adaptation. Its output is not an arbitrary split, but a set of reusable
+CAD scenarios with empirically validated task structure, principled orderings, task statistics, and
+validation results. A graphical overview of our framework is shown in Figure 1. To support the reader,
+we also provide a notation reference in Appendix A. Our code is available at: https://github.
+com/lifelonglab/CAD-Benchmarks-Framework. The benchmark scenarios are available at:
+https://huggingface.co/collections/lifelonglab/tabular-cad-benchmarks.
+3.1 Task discovery
+Task discovery generates candidate task sets from one or more preprocessed tabular anomaly-detection
+datasets. Let D = {D(1), . . . , D(R)} denote the available datasets, where each D(r) = {(xi, yi)}Nr i=1
+and yi ∈ {0, 1} indicates normal or anomalous samples. Each candidate task set Ti = {τ1, . . . , τK }
+is built on top of tasks consisting of a regime of normal data together with the anomaly samples
+in the test subset: τk =
+
+Dnorm k,train, Dnorm k,test, Danom k,test
+
+. The key requirement is that candidate tasks
+3
+
+===== PAGE 4 =====
+should correspond to materially distinct learning conditions rather than arbitrary slices of the dataset.
+Additional formal details and examples are provided in Appendix B.2.
+We consider three task-discovery mechanisms:
+- Natural split, applicable when the dataset provides an inherent temporal, contextual, or acquisition-
+based structure; for example, CICIDS2017 can be partitioned by capture day.
+- A family of clustering-based splits, where task structure is inferred from the data distribution. We
+consider three variants: jointly clustering normal and anomalous samples, clustering only normal
+samples and assigning anomalies to the nearest induced cluster, and clustering only normal samples
+while distributing anomalies randomly. We provide more details in Appendix B.4.
+- Multi-dataset option, constructing the scenario on top of multiple datasets, where each dataset can
+be treated as a single task or decomposed into multiple tasks.
+3.2 Tasks evaluation and selection
+Task discovery produces candidate task sets, but neither natural boundaries nor clustering-based
+partitions guarantee that the resulting tasks are meaningful for continual anomaly detection. We
+therefore evaluate each candidate task set to ensure that tasks are learnable, sufficiently distinct, and
+not redundant.
+Task evaluation We assess task heterogeneity through single-task experts (STEs). For each candidate
+task and each model f ∈ F , we train an STE on that task and evaluate it on all candidate tasks,
+yielding a cross-task performance matrix M f where M f i,j denotes training on task i and evaluation
+on task j. This empirical view exposes learnability, transfer, and redundancy directly. The models
+used at this stage are distinct from those used later in scenario validation (see Appendix B.5).
+Tasks Selection We define five filtering criteria (FCs) to exclude candidate tasks that could lead to
+misleading evaluation: tasks that are not learnable, tasks that are too easy because they are covered
+or dominated by many other tasks, and tasks whose transfer profiles are redundant. Because task
+removal changes the cross-task transfer structure, filtering is performed iteratively: at each pass, we
+recompute all criteria, remove the task flagged by the largest number of criteria, and stop only when
+no remaining task violates any criterion.
+FC1. Self-learnability - retaining only tasks that are individually learnable.
+A candidate task k is retained only if it is sufficiently learnable in isolation by at least one model f:
+∃f ∈ F M f k,k − bk > γl (1)
+where γl denotes the minimum acceptable gain above the random baseline defined as bk.
+FC2. Limited incoming transfer coverage - retaining only tasks posing a challenge for other STEs
+A task k should not be solvable by too many STEs trained on other tasks, as it would make the task k
+trivial. Since we consider multiple models, we first define the best specialist performance for task k
+across all models: S⋆ k = maxf ∈F M f k,k. Then, for each model f ∈ F , we require the number of tasks
+whose STEs cover task k at at least a fraction γt of that best specialist to be less than Pt. Formally:
+max
+f ∈F
+|Cf k | ≤ Pt, where Cf k =
+(
+i ∈ {1, . . . , K} \ {k}
+ M f i,k S⋆ k ≥ γt ) . (2)
+Here, γt is the retained-performance threshold (e.g., γt = 0.9 for 90% of the best specialist), and Pt
+is the maximum acceptable number of other tasks that may cover task k under any model.
+FC3. Limited outgoing transfer coverage - filtering tasks that lead to trivial scenario
+Learning task k should not lead to a model being able to solve too many tasks, as this would lead to a
+trivial scenario. To this end, an STE trained on task k should not achieve performance on other tasks
+i, i! = k similar to STE’s trained on the specific task i. More formally, we define:
+max
+f ∈F
+|Df k | ≤ Pd, where Df k =
+(
+i ∈ {1, . . . , K} \ {k}
+ M f k,i S⋆ i ≥ γd ) . (3)
+where γd is a relative dominance threshold and Pd is the maximum acceptable number of tasks that
+task k may dominate.
+FC4. Source profile redundancy - filtering tasks with nearly identical source transfer profile
+Two tasks k and j are considered redundant as sources if their transfer behavior across other tasks is
+4
+
+===== PAGE 5 =====
+similar:
+X
+f ∈F
+1
+K
+PK
+m=1 |M f k,m − M f j,m|
+|F | < δr , (4)
+where δr is the maximum allowed average difference between the two transfer profiles.
+FC5. Target profile redundancy - filtering tasks with nearly identical target transfer profile
+Similarly, two tasks k and j are considered redundant as targets if they are solved similarly by all
+models.
+X
+f ∈F
+1
+K
+PK
+m=1 |M f m,k − M f m,j |
+|F | < δr (5)
+3.3 Scenario orderings
+Task selection stage creates multiple scenario candidates S = {s1, . . . , sm}, where each scenario
+candidate si corresponds to the specific set of tasks Ti. While task selection determines the presence
+of a meaningful cross-task structure, ordering tasks within the scenario determines how this structure
+is exposed to the model, directly influencing the observed continual learning dynamics Faber et al.
+[2024b]. The same set of tasks can induce different amounts of forgetting, transfer, and adaptation
+difficulty depending on the sequence in which the model encounters them. To this end, we define a
+family of principled ordering strategies Π, each inducing different continual learning dynamics. We
+compute orderings independently for each model f , yielding model-specific ordering families Πf .
+Final benchmark orderings are obtained only after cross-model aggregation in the scenario selection
+stage, reducing dependence on any single detector’s inductive bias.
+1. Drift-based ordering: Given an STE task performance matrix M f , a smooth-drift ordering πf SD
+is obtained by minimizing the cumulative distance between consecutive tasks, whereas abrupt-drift
+ordering πf AD maximizes large shifts between consecutive tasks. More formally:
+πf SD = arg min π
+K−1X
+t=1
+Dπt ,πt+1 , πf AD = arg max π
+K−1X
+t=1
+Dπt ,πt+1 , where Di,j = 1 −
+M f i,j + M f j,i
+2 .
+(6)
+2. Curriculum ordering: Curriculum orderings present tasks by increasing or decreasing empirical
+difficulty, testing whether models benefit from structured task progression Faber et al. [2024b]. We
+use STE self-performance as a difficulty proxy, di = 1 − M f i,i, and define an ascending curriculum
+ordering πC and descending curriculum ordering πRC as:
+πf C : dπ1 ≤ dπ2 ≤ · · · ≤ dπK , πf RC : dπ1 ≥ dπ2 ≥ · · · ≥ dπK , (7)
+3. Generalization-based ordering: Generalization orderings rank tasks based on the ability of
+an STE trained on task i to generalize to other tasks. In contrast to curriculum ordering, which
+assesses the difficulty of the task, this criterion captures the overall usefulness of a task as a source of
+transferable knowledge across the entire task set. We define an ordering by increasing generalization
+πGI and decreasing generalization πGD leveraging the average off-diagonal performance of its STE
+gi:
+πf GI : gπ1 ≤ · · · ≤ gπK , πf GD : gπ1 ≥ · · · ≥ gπK , where gi = 1 K − 1
+KX
+j=1
+j̸=i
+M f i,j , (8)
+These ordering strategies allow the benchmark to separate different continual learning questions.
+Smooth-drift orderings test gradual adaptation, abrupt-drift orderings stress stability under large
+regime changes, curriculum orderings test whether methods benefit from increasing difficulty, and
+generalization-based orderings expose whether early broad tasks reduce or obscure later forgetting.
+3.4 Final scenario and ordering selection
+After the previous stages, we have scenario candidates s1, . . . , sm together with model-specific
+orderings Πf for each si. We then select the scenario whose ordering structure is most consistent
+across models and aggregate the resulting orderings into a final consensus.
+5
+
+===== PAGE 6 =====
+Scenario Selection via Cross-Model Rank Concordance. For each scenario candidate, we quantify
+cross-model agreement over the induced orderings using Kendall’s W [Field, 2005]. We then select
+the scenario whose ordering structure yields the highest mean concordance across the ordering
+families. Full details are provided in Appendix E.
+Final Consensus Ordering via Borda Count. Given the selected split s∗, we aggregate the per-
+model orderings using Borda count [Rothe, 2019]. This yields a single consensus ordering for each
+of six ordering families by ranking tasks according to their aggregate model ranks. Full details of this
+process are provided in Appendix E.
+3.5 Scenario Validation
+Scenario validation evaluates the complete task sequence after discovery, filtering, ordering, and
+scenario selection. Our purpose in this study is not to rank CAD methods exhaustively, but to verify
+that the accepted scenario is useful as a benchmark.
+We use four diagnostic reference strategies. Naive denotes sequential training without an explicit
+retention mechanism. Cumulative updates models using all data observed so far and serves as a non-
+continual reference with access to past data. MSTE is an oracle pool of single-task experts, one per
+task, and measures task-specific learnability limiting forgetting. Replay augments sequential training
+with stored samples from previous tasks and serves as a practical retention-based continual-learning
+reference. We analyze each scenario through aggregate performance across all tasks, using metrics
+such as ROC-AUC and normalized PR-AUC, together with the following criteria. More details about
+the evaluation protocol can be found in Appendix B.7. We do not define universal pass/fail thresholds,
+since the required levels of feasibility, non-triviality, and forgetting depend on the dataset, domain,
+and intended use. Users of the framework should therefore report these diagnostics explicitly and
+justify scenario acceptance based on the three criteria below.
+- Feasibility: A scenario should be learnable by at least one strong reference strategy, such as MSTE
+or Cumulative. This verifies that the tasks are not intrinsically degenerate and that meaningful
+detection performance is achievable when forgetting is controlled or past data are available.
+- Non-triviality: A valid continual scenario should not be solved by Naive sequential training alone.
+We assess this through the gap between Naive and stronger references such as Replay, Cumulative,
+and MSTE, verifying that the scenario is learnable yet still requires retention, adaptation, or task-
+specific specialization.
+- Forgetting: A meaningful continual scenario should induce measurable forgetting under Naive
+training. We assess this using the Forgetting Measure (see Appendix B.7). Low forgetting may
+indicate that the scenario is too weak, redundant, or insufficiently demanding for continual-learning
+evaluation.
+4 Proposed Benchmark CAD Scenarios
+4.1 Benchmark scenarios
+We leverage the proposed framework to create five benchmark-ready CAD scenarios, which constitute
+one of the core artifacts of this work. The suite includes three single-dataset scenarios, CAD-
+CICIDS2017 [Sharafaldin et al., 2018], CAD-CICIDS2018 [Sharafaldin et al., 2018], and CAD-
+CICUNSW [Mohammadian et al., 2024], and two multi-dataset scenarios, MCAD-CIC-3x1 and
+MCAD-CIC-3xN. The single-dataset scenarios capture within-dataset regime changes, while the
+two multi-dataset variants extend the evaluation to cross-dataset continual adaptation. In particular,
+MCAD-CIC-3x1 treats each dataset as one task, whereas MCAD-CIC-3xN combines the discovered
+task structure across datasets into a longer and more heterogeneous sequence. Both multi-dataset
+scenarios are not manually defined, but are processed through all stages of our framework, including
+task selection and ordering. These scenarios are derived from three large-scale tabular cybersecurity
+datasets: CICIDS2017, CICIDS2018, and CIC-UNSW-NB15. CICIDS2017 and CICIDS2018
+contain diverse intrusion-detection traffic and attack behaviors collected across multiple periods
+[Sharafaldin et al., 2018], while CIC-UNSW-NB15 provides a complementary network-security
+setting with distinct traffic characteristics and attack types [Moustafa and Slay, 2015]. More details
+about the datasets can be found in Appendix B.6. While the proposed framework is domain-general,
+the released benchmark suite focuses on large-scale cybersecurity anomaly detection, where validated
+continual scenarios are particularly lacking [Amalapuram et al., 2024b].
+6
+
+===== PAGE 7 =====
+Table 1: Overview of the five released CAD scenarios, including number of tasks, total number of
+samples, and test anomaly ratio.
+Scenario # Tasks # Data samples Anomaly ratio (test)
+CAD-CICIDS2017 6 2,076,848 18.77%
+CAD-CICIDS2018 5 2,590,771 28.04%
+CAD-CICUNSW 5 1,084,928 12.76%
+MCAD-CIC-3x1 3 17,915,569 10.42%
+MCAD-CIC-3xN 13 3,581,792 27.36%
+The final scenarios differ substantially in scale, number of tasks, anomaly ratio, and task structure, as
+summarized in Table 1. The single-dataset scenarios isolate continual anomaly detection within a
+coherent source domain, whereas the multi-dataset scenarios increase distributional heterogeneity by
+combining concepts across datasets. As a result, the released assets cover several sources of practical
+difficulty, including class imbalance, imbalance between task sizes, small retained tasks. More details
+about per-task size and anomaly ratio can be found in Appendix F.
+For each scenario, we provide six orderings over the same validated task set: curriculum-up,
+curriculum-down, generalization-up, generalization-down, smooth drift, and abrupt drift. These
+orderings are designed to expose different aspects of continual learning behavior while reducing the
+risk that future conclusions are driven by a single favorable task sequence.
+The released artifacts therefore include not only the filtered tasks, but also standardized train/test splits,
+task metadata, exact orderings, and scenario definitions ready for evaluation. The scenarios are avail-
+able at https://huggingface.co/collections/lifelonglab/tabular-cad-benchmarks.
+The source code for our framework is available at hhttps://github.com/lifelonglab/
+CAD-Benchmarks-Framework. The Appendix J provides the full construction process for each
+scenario, including task candidate discovery process, filtering decisions and single-task expert valida-
+tion, task-level sample statistics.
+4.2 Experimental protocol
+Our experimental setup is organized into two phases. In the first phase, which corresponds to
+framework processing up to the scenario selection, where we rely on ROC-AUC as the main metric. At
+this stage, we use a compact yet diverse set of clustering algorithms (k-Means, spectral clustering, and
+Gaussian mixtures) and anomaly detection models (Autoencoder, Isolation Forest, and, AE1_SVM),
+in order to evaluate candidate splits and clustering-based task discovery procedures. The purpose of
+this phase is not to benchmark methods exhaustively, but to obtain sufficiently robust evidence for
+task feasibility, heterogeneity, and scenario structure. Appendix C provides an analysis of different
+hyperparameters in the filtering phase of the framework. In the second phase, which corresponds
+to scenario validation, we expand both the evaluation metrics and the set of models. In addition
+to ROC-AUC, we report normalized PR-AUC in order to better account for class imbalance and
+provide a complementary view of detection quality. We also consider a broader family of anomaly
+detection models, including Variational Autoencoder (VAE), Deep SVDD, DAGMM, and NeutralAD.
+This second phase is intended to assess whether the retained scenarios are not only feasible, but also
+non-trivial and capable of exposing meaningful continual learning dynamics across stronger and
+more diverse baselines. More information about data preprocessing, clustering methods, models,
+evaluation protocol and metrics, and execution metrics can be found in Appendix B, Finally, the
+hyperparameters and reproducibility info can be found in Appendix D.
+For comparability, future evaluations of the framework should report results for all six orderings. We
+recommend reporting ROC-AUC, normalized PR-AUC, FM, and per-task performance matrices, as
+well as filtering statistics (see Appendix J and Appendix F).
+4.3 Experimental validation of the scenarios
+We organize the discussion around the scenario-validation criteria introduced in Section 3.5. In
+particular, we analyze each scenario in terms of feasibility, non-triviality, and forgetting. It is
+noteworthy that in the validation phase we are using a different set of models (VAE, Deep SVDD,
+7
+
+===== PAGE 8 =====
+DAGMM, NeutralAD) than the scenario construction stage (Autoencoder, AE1SVM, IsolationForest).
+Table 2: ROC-AUC (mean ± std across orderings) on CAD-CICIDS2017, CAD-CICIDS2018, CAD-
+CICUNSW, MCAD-CIC-3x1, MCAD-CIC-3xN. FM↓: lower is better. Best per column in bold
+.
+Dataset Model Naive Replay Cumulative MSTE
+ROC↑ FM↓ ROC↑ FM↓ ROC↑ FM↓ ROC↑ FM↓
+CAD-CICIDS2017
+VAE 59.3±3.4 31.0±4.9 85.2±2.5 7.4±2.5 74.5±7.8 6.4±4.5 97.0±1.3 0.0±0.0
+Deep SVDD 54.8±4.1 30.1±5.5 70.0±7.1 8.3±1.5 73.7±7.7 8.9±3.0 91.0±2.7 0.0±0.0
+DAGMM 59.4±2.2 25.1±1.3 70.7±4.6 10.6±3.6 57.6±9.2 11.6±5.3 87.8±6.7 0.0±0.0
+NeutralAD 59.8±3.4 30.2±2.6 88.3±2.2 5.8±2.4 79.0±10.3 7.4±5.2 96.5±2.6 0.0±0.0
+CAD-CICIDS2018
+VAE 53.4±7.8 25.1±5.3 66.6±5.1 16.7±3.5 75.6±3.9 5.4±2.0 86.2±6.5 0.0±0.0
+Deep SVDD 54.2±3.7 24.1±4.9 67.2±5.1 14.2±3.2 62.0±5.9 10.7±3.6 83.9±1.6 0.0±0.0
+DAGMM 56.8±2.7 14.8±3.4 67.2±5.5 8.8±4.1 60.4±3.8 8.7±3.4 65.1±7.5 0.0±0.0
+NeutralAD 53.6±6.2 25.9±6.3 76.2±5.8 7.4±3.5 74.3±2.9 6.9±1.7 83.1±3.3 0.0±0.0
+CAD-CICUNSW
+VAE 54.5±11.5 34.4±9.5 83.0±3.3 9.8±2.3 84.4±3.4 3.2±1.3 96.3±1.4 0.0±0.0
+Deep SVDD 51.1±5.1 22.5±5.3 50.5±7.1 15.3±1.2 49.2±4.4 11.3±0.9 74.2±4.4 0.0±0.0
+DAGMM 55.0±4.7 26.3±7.0 60.5±6.8 14.5±5.3 61.6±7.3 11.0±6.6 88.4±6.2 0.0±0.0
+NeutralAD 56.6±3.4 29.7±3.3 82.1±4.3 9.1±2.5 68.9±9.1 10.9±3.9 92.8±2.2 0.0±0.0
+MCAD-CIC-3x1
+VAE 72.2±3.3 9.2±2.4 75.4±1.8 6.1±1.5 79.4±1.7 2.0±0.7 83.7±0.8 0.0±0.0
+Deep SVDD 63.3±3.5 2.6±2.6 63.5±2.0 3.4±3.0 60.3±3.5 2.2±1.8 65.8±2.6 0.0±0.0
+DAGMM 62.0±3.3 4.9±1.5 61.9±5.1 2.6±3.8 60.6±2.1 3.4±3.1 59.1±7.7 0.0±0.0
+NeutralAD 68.4±2.6 14.0±1.6 77.1±5.8 3.9±3.2 75.4±4.9 2.9±2.2 79.1±10.5 0.0±0.0
+MCAD-CIC-3xN
+VAE 42.9±6.9 46.7±8.5 82.6±2.8 9.5±2.4 75.9±4.7 9.1±1.6 95.6±2.4 0.0±0.0
+Deep SVDD 46.5±4.2 34.4±6.3 67.7±5.6 14.3±1.6 67.0±7.2 11.4±2.7 83.6±1.7 0.0±0.0
+DAGMM 51.1±2.3 31.7±3.8 68.2±6.3 15.8±2.2 63.6±4.1 17.6±3.8 82.2±4.6 0.0±0.0
+NeutralAD 49.5±3.1 39.9±4.3 88.3±2.1 6.2±0.6 82.1±5.6 7.7±1.6 94.3±2.5 0.0±0.0
+Table 2 supports our intended scenario properties along the three validation axes described in
+Section 3.5, while also showing that the five released scenarios cover different difficulty regimes.
+Feasibility: At least one strong reference strategy reaches a meaningful ROC-AUC (≥ 0.8) in every
+scenario, and MSTE usually provides the best performance. In single-dataset scenarios, MSTE
+reaches high ROC-AUC for most models. This indicates that retained tasks are not intrinsically
+degenerate and can be learned when task-specific specialization or stronger retention is available.
+The lowest best ROC-AUC occurs in MCAD-CIC-3x1 (83.7 with VAE), but this value still presents a
+significant margin over the random classifier (0.5). At the same time, the table illustrates that the
+datasets are intrinsically diverse. In MCAD-CIC-3x1, Deep SVDD and DAGMM reach only 65.8 and
+59.1 ROC-AUC with MSTE, which means that the scenario is not only challenging from a continual-
+learning perspective, but also difficult from a single-task anomaly detection perspective. Conversely,
+MCAD-CIC-3xN combines severe continual difficulty with strong task-specific learnability: VAE and
+NeutralAD achieve 95.6 and 94.3 ROC-AUC with MSTE, while Naive falls to 42.9 and 49.5. These
+contrasting cases are useful because they prevent our scenarios from representing only one type of
+difficulty. Interestingly, Cumulative achieves subpar performance, which may seem counter-intuitive
+given the full data availability. Our in-depth analysis revealed that this phenomenon is due to the
+highly imbalanced tasks in the scenario (see Appendix I.1 for a more detailed discussion).
+Non-triviality: Across most scenario–model combinations, Naive remains substantially below MSTE
+and often below Replay or Cumulative. This is the desired behavior for CAD validation: the scenarios
+are learnable, but simple sequential fine-tuning does not already solve them. Replay often improves
+over Naive, further indicating that the scenarios expose retention and adaptation challenges rather
+than only detector weakness. DAGMM is an exception in two cases, where MSTE performs worse
+than the other strategies, including Naive on MCAD-CIC-3x1. The low ROC-AUC values indicate
+that this detector struggles with the underlying tasks already in the single-task setting, rather than
+only because of continual-learning effects.
+Forgetting: All the scenarios exhibit clear forgetting, as Naive incurs large FM values on the
+single-dataset scenarios and particularly on MCAD-CIC-3xN, where FM reaches 46.7 for VAE
+and 39.9 for NeutralAD. FM for MSTE is zero or near-zero because MSTE evaluates task-specific
+8
+
+===== PAGE 9 =====
+t3 t4 t2 t1 t0
+t3t4t2t1t0
+Naive
+0.86
+0.25 0.91
+0.64 0.60 0.87
+0.33 0.33 0.09 0.85
+0.40 0.32 0.43 0.61 0.71
+Curr. 
+t0 t1 t2 t4 t3
+t0t1t2t4t3
+0.72
+0.44 0.85
+0.63 0.57 0.79
+0.31 0.58 0.14 0.89
+0.43 0.50 0.16 0.54 0.89
+Curr. 
+t4 t1 t0 t3 t2
+t4t1t0t3t2
+0.89
+0.36 0.79
+0.32 0.56 0.73
+0.68 0.58 0.42 0.90
+0.52 0.57 0.61 0.57 0.78
+Gen. 
+t2 t3 t0 t1 t4
+t2t3t0t1t4
+0.86
+0.15 0.87
+0.41 0.38 0.73
+0.04 0.29 0.43 0.85
+0.16 0.47 0.33 0.58 0.90
+Gen. 
+t2 t0 t1 t3 t4
+t2t0t1t3t4
+0.80
+0.30 0.69
+0.12 0.42 0.87
+0.16 0.44 0.49 0.84
+0.18 0.34 0.49 0.39 0.91
+Smooth
+t1 t2 t3 t0 t4
+t1t2t3t0t4
+0.85
+0.56 0.75
+0.52 0.16 0.85
+0.60 0.34 0.26 0.79
+0.47 0.14 0.43 0.33 0.86
+Abrupt
+t3 t4 t2 t1 t0
+t3t4t2t1t0
+Replay
+0.87
+0.72 0.90
+0.62 0.84 0.79
+0.88 0.54 0.81 0.82
+0.96 0.44 0.71 0.68 0.68
+t0 t1 t2 t4 t3
+t0t1t2t4t3
+0.76
+0.60 0.76
+0.57 0.62 0.81
+0.48 0.67 0.36 0.77
+0.56 0.64 0.71 0.51 0.98
+t4 t1 t0 t3 t2
+t4t1t0t3t2
+0.91
+0.61 0.86
+0.45 0.65 0.67
+0.46 0.60 0.53 0.98
+0.51 0.53 0.45 0.58 0.90
+t2 t3 t0 t1 t4
+t2t3t0t1t4
+0.72
+0.81 0.92
+0.76 0.83 0.70
+0.80 0.92 0.57 0.83
+0.25 0.49 0.43 0.66 0.83
+t2 t0 t1 t3 t4
+t2t0t1t3t4
+0.80
+0.74 0.76
+0.66 0.58 0.84
+0.69 0.65 0.79 0.98
+0.39 0.46 0.67 0.66 0.84
+t1 t2 t3 t0 t4
+t1t2t3t0t4
+0.84
+0.68 0.74
+0.73 0.74 0.96
+0.63 0.72 0.82 0.75
+0.65 0.35 0.61 0.47 0.81
+0.0
+0.2
+0.4
+0.6
+0.8
+1.0
+ROC-AUC
+CAD-CICIDS2018: ROC-AUC matrices by ordering and strategy (averaged across models)
+Figure 2: Validation results on CAD-CICIDS2018 across the six orderings. ROC-AUC is reported
+for the considered continual learning strategies, showing that Naive sequential training degrades
+substantially more than Replay.
+experts rather than a single sequentially updated model, while Cumulative and Replay usually reduce
+forgetting substantially. This separation is important: if Naive matched the stronger references while
+also showing negligible FM, the scenarios would likely be too weak or redundant. Instead, the
+combination of low Naive ROC-AUC and high Naive FM confirms that our benchmark scenarios
+contain genuine continual-learning pressure.
+Figure 2 provides a qualitative confirmation of the forgetting behavior already summarized in Table 2.
+In particular, the Naive trajectories show a clear degradation on previously observed tasks as training
+progresses, whereas stronger reference strategies preserve substantially more performance across
+the scenario. This visual pattern is consistent with the high FM values reported for Naive and
+supports the interpretation that the scenario induces genuine forgetting rather than uniformly weak
+task learnability.
+Overall, the validation results show that the final scenarios are not interchangeable variants of the same
+setting. Some are highly learnable but harshly continual, some are intrinsically harder even for single-
+task experts, and the multi-dataset scenarios introduce additional cross-domain heterogeneity. This
+diversity is precisely the intended outcome of the framework: a set of principled CAD scenarios that
+can support future benchmarking without relying on a single narrow notion of difficulty. We report
+more results in terms of both ROC-AUC and Normalized PR-AUC in Appendix H and Appendix G.
+5 Conclusions
+This paper introduced a framework for constructing continual anomaly detection (CAD) scenarios
+from tabular anomaly detection datasets not originally designed for continual learning. Instead of
+treating task sequences as an experimental detail, we make scenario construction explicit, reproducible,
+and empirically justified. The resulting benchmark suite contains five scenarios, each with six
+principled ordering families. Validation shows that the retained scenarios are feasible under strong
+references, non-trivial for naive sequential training, and capable of inducing measurable forgetting.
+Limitations: The benchmark suite is built on top of only cybersecurity datasets, so its conclusions
+should not be assumed to transfer directly to other tabular domains. Second, the constructed scenarios
+depend on design choices in task discovery, filtering, ordering, and validation. Third, the framework
+is computationally demanding because it requires extensive single-task expert training and cross-
+task evaluation. These limitations motivate future work on broader domains, additional sensitivity
+analyses, while positioning the present work as a methodological foundation rather than a definitive,
+domain-complete CAD benchmark.
+Broader Impact. More principled CAD scenario construction can improve the reliability of anomaly-
+detection research by reducing the risk of overstated claims caused by weak or misleading benchmarks.
+At the same time, deployed anomaly detectors can still cause harms through false alarms, unnecessary
+investigations, privacy risks, or unfair treatment of benign but unusual behavior. The scenarios
+9
+
+===== PAGE 10 =====
+introduced here should therefore be treated as evaluation assets, not as evidence of deployment
+readiness without domain-specific validation and governance.
+Acknowledgments and Disclosure of Funding
+The research presented in this paper was supported by funds from: i) the Polish Ministry of Science
+and Higher Education allocated to the AGH University of Krakow; ii) SOCCER project (grant
+agreement no. 101128073), with the support of the European Cybersecurity Competence Centre
+(ECCC), and co-funded by the Polish Ministry of Science and Higher Education under the programme
+"Co-funded International Projects."
+References
+Suresh Kumar Amalapuram, Sumohana Channappayya, and Bheemarjuna Reddy Tamma. Augmented memory
+replay-based continual learning approaches for network intrusion detection. In A. Oh, T. Naumann, A. Glober-
+son, K. Saenko, M. Hardt, and S. Levine, editors, Advances in Neural Information Processing Systems, vol-
+ume 36, pages 17156–17169. Curran Associates, Inc., 2023. URL https://proceedings.neurips.cc/
+paper_files/paper/2023/file/3755a02b1035fbadd5f93a022170e46f-Paper-Conference.pdf.
+Suresh Kumar Amalapuram, Shreya Kumar, Bheemarjuna Reddy Tamma, and Sumohana Channappayya. Soul:
+A semi-supervised open-world continual learning method for network intrusion detection. arXiv preprint
+arXiv:2412.00911, 2024a.
+Suresh Kumar Amalapuram, Bheemarjuna Reddy Tamma, and Sumohana S Channappayya. Spider: A semi-
+supervised continual learning-based network intrusion detection system. In IEEE INFOCOM 2024-IEEE
+Conference on Computer Communications, pages 571–580. IEEE, 2024b.
+Akshatha Arodi, Margaux Luck, Jean-Luc Bedwani, Aldo Zaimi, Ge Li, Nicolas Pouliot, Julien Beaudry,
+and Gaetan Marceau Caron. Cableinspect-ad: An expert-annotated anomaly detection dataset. In
+Advances in Neural Information Processing Systems, 2024. URL https://proceedings.neurips.cc/
+paper_files/paper/2024/hash/76d9dd096d9469d6b7e732f0cddb51b3-Abstract-Datasets_
+and_Benchmarks_Track.html. Datasets and Benchmarks Track.
+Matthew Chin and Roberto Corizzo. Continual semi-supervised malware detection. Machine Learning and
+Knowledge Extraction, 6(4):2829–2854, 2024.
+Marius Dragoi, Elena Burceanu, Emanuela Haller, Andrei Manolache, and Florin Brad. Anoshift: A dis-
+tribution shift benchmark for unsupervised anomaly detection. In Advances in Neural Information Pro-
+cessing Systems, 2022. URL https://proceedings.neurips.cc/paper_files/paper/2022/hash/
+d3bcbcb2a7b0b4716bf24ce4b2ea8d60-Abstract-Datasets_and_Benchmarks.html. Datasets and
+Benchmarks Track.
+Kamil Faber, Roberto Corizzo, Bartlomiej Sniezynski, and Nathalie Japkowicz. Vlad: Task-agnostic vae-based
+lifelong anomaly detection. Neural Networks, 165:248–273, 2023.
+Kamil Faber, Roberto Corizzo, Bartlomiej Sniezynski, and Nathalie Japkowicz. Lifelong continual learning for
+anomaly detection: New challenges, perspectives, and insights. IEEE Access, 12:41364–41380, 2024a.
+Kamil Faber, Dominik Zurek, Marcin Pietron, Nathalie Japkowicz, Antonio Vergari, and Roberto Corizzo. From
+mnist to imagenet and back: benchmarking continual curriculum learning. Machine Learning, 113(10):
+8137–8164, 2024b.
+Andy P Field. K endall’s coefficient of concordance. Encyclopedia of statistics in behavioral science, 2005.
+Songqiao Han, Xiyang Hu, Hailiang Huang, Minqi Jiang, and Yue Zhao. Adbench:
+Anomaly detection benchmark. In Advances in Neural Information Processing Sys-
+tems, 2022. URL https://proceedings.neurips.cc/paper_files/paper/2022/hash/
+cf93972b116ca5268827d575f2cc226b-Abstract-Datasets_and_Benchmarks.html. Datasets
+and Benchmarks Track.
+Lei Hu, Zhiyong Gan, Ling Deng, Jinglin Liang, Lingyu Liang, Shuangping Huang, and Tianshui Chen.
+Replaycad: Generative diffusion replay for continual anomaly detection. arXiv preprint arXiv:2505.06603,
+2025.
+Maurice G Kendall. A new measure of rank correlation. Biometrika, 30(1-2):81–93, 1938.
+10
+
+===== PAGE 11 =====
+Geonu Lee, Yujeong Oh, Geonhui Jang, Soyoung Lee, Jeonghyo Song, Sungmin Cha, and YoungJoon Yoo.
+Continual-mega: A large-scale benchmark for generalizable continual anomaly detection. arXiv preprint
+arXiv:2506.00956, 2025.
+Zhiqiu Lin, Jia Shi, Deepak Pathak, and Deva Ramanan. The clear benchmark: Continual learning on real-
+world imagery. In Proceedings of the Neural Information Processing Systems Track on Datasets and
+Benchmarks, 2021. URL https://datasets-benchmarks-proceedings.neurips.cc/paper_files/
+paper/2021/file/2838023a778dfaecdc212708f721b788-Paper-round2.pdf.
+Jiaqi Liu, Kai Wu, Qiang Nie, Ying Chen, et al. Unsupervised continual anomaly detection with contrastively-
+learned prompt. In Proceedings of the AAAI conference on artificial intelligence, volume 38, pages 3639–3647,
+2024.
+Tianyuan Lu, Lei Wang, and Xiaoyong Zhao. Review of anomaly detection algorithms for data streams. Applied
+Sciences, 13(10):6353, 2023.
+Hesamodin Mohammadian, Arash Habibi Lashkari, and Ali A Ghorbani. Poisoning and evasion: Deep learning-
+based nids under adversarial attacks. In 2024 21st Annual international conference on privacy, security and
+trust (PST), pages 1–9. IEEE, 2024.
+Nour Moustafa and Jill Slay. Unsw-nb15: A comprehensive data set for network intrusion detection systems
+(UNSW-NB15 network data set). In 2015 Military Communications and Information Systems Conference,
+2015.
+Guansong Pang, Chunhua Shen, Longbing Cao, and Anton Van Den Hengel. Deep learning for anomaly
+detection: A review. ACM computing surveys (CSUR), 54(2):1–38, 2021.
+German I Parisi, Ronald Kemker, Jose L Part, Christopher Kanan, and Stefan Wermter. Continual lifelong
+learning with neural networks: A review. Neural networks, 113:54–71, 2019.
+Jörg Rothe. Borda count in collective decision making: A summary of recent results. In Proceedings of the
+AAAI Conference on Artificial Intelligence, volume 33, pages 9830–9836, 2019.
+Iman Sharafaldin, Arash Habibi Lashkari, and Ali A. Ghorbani. Toward generating a new intrusion detec-
+tion dataset and intrusion traffic characterization. In Proceedings of the 4th International Conference on
+Information Systems Security and Privacy, 2018.
+Liyuan Wang, Xingxing Zhang, Hang Su, and Jun Zhu. A comprehensive survey of continual learning: Theory,
+method and application. IEEE transactions on pattern analysis and machine intelligence, 46(8):5362–5383,
+2024.
+Zhizhong Zhang, Guchu Zou, Chengwei Chen, Zhenyi Qi, et al. A task-aware parameter decoupling framework
+for continual anomaly detection. IEEE Transactions on Industrial Informatics, 2025.
+A Notation
+Table 3 provides a notation reference for our framework.
+11
+
+===== PAGE 12 =====
+Table 3: Notation used throughout the framework.
+Symbol Meaning
+Task discovery
+D Input tabular dataset.
+N Number of observations in D.
+X Observation (feature) space.
+xi The i-th observation (sample) in D, i ∈ {1, . . . , N }.
+yi Label of xi; 0 for normal, 1 for anomalous.
+X, Y Random variables for an observation and its label, with realizations xi, yi.
+K Number of candidate tasks discovered from D.
+T Set of candidate tasks.
+τk The k-th candidate task.
+Dnorm k Normal samples assigned to task k.
+Danom k Anomalous samples assigned to task k.
+Z Set of natural boundaries in D (e.g., days, users).
+g Boundary mapping X → Z used for natural-boundary task discovery.
+h Mapping X → {1, . . . , K} used for clustering-based task discovery.
+t A boundary , t ∈ Z.
+Pt(X, Y ) Joint distribution over observations and labels under boundary t.
+Pt(X | Y = 0) Distribution of normal observations under boundary t.
+Task evaluation
+F Pool of single-task expert (STE) models used in task evaluation.
+f A single model, f ∈ F .
+|F | Number of models in F .
+M f Cross-task STE performance matrix for model f, of size K × K.
+M f i,j Performance of f trained on task i and evaluated on task j.
+bk Random-baseline performance on task k (e.g., 0.5 for ROC-AUC).
+S⋆ k Best self-performance on task k across models, maxf ∈F M f k,k .
+Task selection
+γl Minimum gain over bk required for self-learnability.
+γt Retained-performance fraction of S⋆ k used to count covering tasks.
+Pc Maximum allowed number of other tasks that cover task k (FC2).
+Cf k Set of tasks whose STE under f covers task k above γtS⋆ k .
+γd Relative dominance threshold over S⋆ i .
+Pd Maximum allowed number of tasks dominated by task k.
+Of k Set of tasks dominated by task k under model f.
+δr Maximum allowed average difference between two tasks profiles.
+Task ordering
+S Set of scenario candidates produced by task selection.
+si A scenario candidate, si ∈ S.
+m Number of scenario candidates in S.
+Π Family of ordering strategies considered by the framework.
+Πf Orderings produced for model f on a given scenario.
+π A single ordering of the K tasks in a scenario.
+πf SD Smooth-drift ordering for model f.
+πf AD Abrupt-drift ordering for model f.
+πf C Curriculum (easy-to-hard) ordering for model f.
+πf RC Reverse-curriculum (hard-to-easy) ordering for model f.
+πf GI Increasing-generalization ordering for model f.
+πf GD Decreasing-generalization ordering for model f.
+Di,j Cross-task dissimilarity used by drift orderings.
+di Difficulty of task i used by curriculum orderings, di = 1 − M f i,i.
+gi Generalization score of task i used by generalization orderings.
+Final scenario
+and ordering selection
+s⋆ Selected scenario after cross-model concordance, s⋆ ∈ S.
+Πf,s Orderings produced for model f on scenario s.
+l Index over the six ordering families (SD, AD, C, RC, GI, GD).
+Wπ Kendall’s coefficient of concordance for ordering family π across the models in F , Wπ ∈ [0, 1].
+Π⋆ Set of final consensus orderings, one per family.
+π⋆ l Final consensus ordering for family l, obtained by Borda count on s⋆.
+rl,f (t) Rank of task t in the ordering πl produced by model f.
+Bl(t) Borda score of task t in family l, Bl(t) = P f ∈F rl,f (t).
+P Task-by-task performance matrix; Pt,k is the performance on task k after training up to task t.
+12
+
+===== PAGE 13 =====
+B Additional descriptions
+B.1 Detailed framework overview
+Figure 3 provides the full version of the framework overview shown compactly in the main paper.
+B.2 Task discovery details
+Task discovery aims to identify candidate tasks from the full dataset. Each candidate task should
+correspond to a coherent regime of normal behavior together with the anomalies used to evaluate
+detection performance within that regime.
+More formally, let the fully preprocessed dataset be denoted by D = {(xi, yi)}N i=1, where xi ∈ X is
+an observation and yi ∈ {0, 1} indicates whether the observation is normal (yi = 0) or anomalous
+(yi = 1). The goal of task discovery is to partition or group D into a collection of candidate
+tasks T = {τ1, τ2, . . . , τK }, where each task τk corresponds to a coherent regime of normality
+together with the anomalies used to evaluate detection under that regime. More precisely, each
+task can be written as τk =
+ 
+Dnorm k , Danom k  , with Dnorm k ⊆ {(xi, yi) ∈ D : yi = 0} and
+Danom k ⊆ {(xi, yi) ∈ D : yi = 1}.
+The framework supports multiple task discovery mechanisms because the relevant source of task
+structure is inherently dataset-dependent. In some cases, tasks may be induced by natural boundaries,
+such as days, users, or operating conditions. If such metadata are available, one may define a mapping
+g : X → Z, where Z is a set of boundary labels, and construct tasks from the level sets of g. In other
+datasets, however, no such explicit structure exists, and tasks must instead be inferred from the data
+through a grouping rule h : X → {1, . . . , K}, for example via clustering, change-point detection, or
+other similarity-based procedures.
+Importantly, the mere existence of natural boundaries does not imply that they define meaningful
+continual learning tasks. A boundary-induced partition is only justified if it corresponds to a
+substantive change in the underlying data-generating distribution. Formally, if Pt(X, Y ) denotes
+the distribution associated with boundary t, then distinct boundaries t ̸= t′ are not automatically
+informative when Pt(X, Y ) ≈ Pt′ (X, Y ), or, more specifically in the anomaly detection setting,
+when Pt(X | Y = 0) ≈ Pt′ (X | Y = 0). For example, data collected on different days may still
+represent essentially the same normal regime.
+Accordingly, task discovery seeks to identify a sequence of tasks τ1, τ2, . . . , τK such that each task is
+meaningful from a continual learning standpoint, regardless of whether it coincides with the original
+dataset boundaries. In particular, the objective is to construct tasks that induce sufficiently distinct
+and non-trivial learning conditions. A newly introduced task τk should therefore not be reducible
+to a trivial recombination of previous tasks {τ1, . . . , τk−1}, but should require genuine adaptation
+because its associated normal regime and evaluation anomalies differ in a material way from those
+previously encountered.
+We note that, in some circumstances, task discovery may be optionally skipped in our framework.
+For instance, a practitioner may want to extract a multi-dataset scenario with one concept per dataset.
+In that context, task discovery would not be appropriate since it represents an unnecessary filtering
+stage.
+B.3 Preprocessing
+For tabular data, this includes removing unusable columns, handling missing values, encoding
+categorical variables, scaling numerical attributes when required by the downstream model, and
+preserving any metadata that may define a natural task boundary. Before attempting to create
+a continual scenario, we also perform a dataset-level feasibility check. The purpose is to avoid
+constructing elaborate scenarios from a dataset that cannot be solved by the candidate anomaly
+detectors even as a single task. If no reasonable detector can separate normal and anomalous examples
+under a non-continual protocol, then failures in the continual setting would not be informative about
+forgetting or adaptation.
+13
+
+===== PAGE 14 =====
+1 Task Discovery
+Generate task candidates
+T
+Natural splits
+Time, data source, additional metadata
+Clustering-based discovery
+3 methods on top of clustering algorithms
+Multiple datasets
+Tasks on top of multiple datasets
+Output: multiple candidate
+task sets T = {τ1 , . . . , τK }
+2 Task Evaluation
+Learnability and heterogeneity
+M f
+Evaluate T with multiple AD models creat-
+ing cross-task performance matrix
+Cross-task performance matrix
+M f i,j train model f on task i test on task j
+Learnability, transfer, overlap, diversity
+Output: M f for each candi-
+date tasks set and model f
+3 Task Selection
+Filter unsuitable tasks
+S
+FC1. Self-learnability
+Reject tasks that no model can learn
+FC2, FC3. Transfer coverage
+Limit excessive transfer coverage
+FC4, FC5. Redundancy
+Avoid redundant tasks
+Output: A set of scenario candidates
+S = {s1 , s2 , . . . , }
+4 Scenario Orderings
+Define principled orderings
+Π
+Drift-based
+Smooth drift; abrupt drift
+Curriculum-based
+Easy to hard; Hard to easy
+Generalization
+Low-to-high; high-to-low transfer
+Output: A set of orderings
+Π = {πSD , πAD , πC , πRC , πGI , πGD }
+5 Scenario Selection
+Choose the final scenario and orderings
+S∗
+Input: A set of scenario candidates S and
+a set of orderings Π per model f and sce-
+nario candidate s ∈ S
+Scenario selection
+Cross-model concordance via Kendall’s W
+Ordering consensus across models
+Borda count over per-model rankings
+Output: Selected scenario s∗
+along with final set of orderings Π
+6 Scenario Validation
+Check meaningful continual-learning dynamics
+Validation across multiple AD models and
+learning strategies
+Feasibility Non- triviality Forgetting
+Output: Validated scenar-
+ios and experimental results
+7 Output Accepted CAD scenario suite ready for benchmarking
+Scenarios
+Single-dataset: i) CAD-CICIDS2017; ii) CAD-CICIDS2018; iii) CAD-CICUNSW
+Multi-dataset: i) MCAD-CIC-3x1; ii) MCAD-CIC-3xN
+Each scenario
+Final set of tasks T ∗
+A set of 6 orderings Π
+Statistics and validation results
+Figure 3: Detailed overview of the proposed framework for transforming anomaly detection datasets
+into validated continual anomaly detection scenarios.
+B.4 Clustering algorithms for task discovery
+We use three clustering-based strategies to derive candidate tasks:
+• Both Classes (BC): the clustering algorithm c is applied to normal and anomalous samples
+jointly, so that candidate tasks reflect the structure of both classes.
+• Random Anomalies (RA): the clustering algorithm c is applied only to normal samples,
+after which anomalous samples are distributed randomly across the resulting tasks.
+• Closest Anomalies (CA): the clustering algorithm c is applied only to normal samples,
+after which each anomalous sample is assigned to the task with the nearest normal-cluster
+centroid.
+In our experiments, we leverage three clustering algorithms c:
+• Gaussian Mixture Models, which provide a soft probabilistic partition of the feature space
+and can capture ellipsoidal clusters with different covariance structures.
+• k-means, which provides a simple centroid-based partition and acts as a scalable baseline
+for inducing compact normal-behavior regimes.
+• Spectral Clustering, which uses graph structure to recover non-convex groupings that may
+not be well represented by centroid- or Gaussian-based assumptions.
+Combining these algorithms with BC, RA, and CA yields a diverse pool of candidate task decompo-
+sitions. The subsequent STE-based filtering stage then determines which decompositions produce
+learnable, non-redundant, and non-dominating tasks.
+B.5 Leveraged models
+We use different anomaly detectors during scenario construction and final scenario validation. During
+task evaluation, the goal is not to benchmark anomaly detection methods, but to obtain a robust signal
+14
+
+===== PAGE 15 =====
+about task learnability and cross-task transfer. We therefore use a compact and heterogeneous pool:
+an Autoencoder, AE1SVM from PyOD, and Isolation Forest. This combines reconstruction-based,
+representation-plus-boundary, and tree-ensemble perspectives while keeping the construction phase
+computationally manageable.
+During scenario validation, we evaluate the retained scenarios with a broader set of neural anomaly
+detectors: DAGMM, Deep SVDD, VAE, and NeutralAD. These models are intentionally distinct
+from the construction-stage pool, which reduces the risk that the final validation merely confirms
+biases of the models used to select tasks. Hyperparameters are reported in Appendix D.
+B.6 Datasets
+The released scenarios are derived from three public tabular cybersecurity datasets. CICIDS2017 and
+CSE-CIC-IDS2018 contain network-flow records collected by the Canadian Institute for Cybersecu-
+rity and include benign traffic together with multiple attack categories [Sharafaldin et al., 2018]. They
+provide large-scale intrusion-detection settings with heterogeneous attack behavior and substantial
+sample-size imbalance across candidate regimes. CIC-UNSW-NB15, used in our CAD-CICUNSW
+scenario, provides an additional network-intrusion dataset with different traffic-generation conditions
+and attack families [Moustafa and Slay, 2015, Mohammadian et al., 2024].
+These datasets were selected because they are large enough to support multiple retained tasks after
+filtering, contain meaningful anomaly labels, and differ in size, anomaly prevalence, and distributional
+structure. The framework uses them as source assets, but the contribution of this paper is the resulting
+set of validated CAD scenarios, task splits, and orderings derived from them.
+B.7 Evaluation protocol
+We evaluate each final scenario by training a model sequentially over the ordered tasks and measuring
+performance on all tasks after each training step. This produces a task-by-time performance matrix P ,
+where Pt,k denotes the performance on task k after training has progressed through task t. Aggregate
+performance for metric is computed across the tasks in the scenario
+LAGG = 2 K(K + 1)
+KX
+t=1
+tX
+j=1
+Pt,j . (9)
+Where K corresponds to the number of tasks in the scenario.
+We use ROC-AUC as the primary ranking-based anomaly detection metric. Because all scenarios are
+imbalanced, we also report normalized PR-AUC, which provides a complementary view of detection
+quality under skewed anomaly prevalence. Normalized PR-AUC rescales PR-AUC relative to the
+task-specific anomaly prior, making results more comparable across tasks with different class ratios.
+nPR-AUC = PR-AUC − π 1 − π ,
+where π is the anomaly prevalence in the corresponding test set. A value of 0 corresponds to the
+expected PR-AUC of a random ranking under the task-specific anomaly prior.
+For continual-learning behavior, we report the Forgetting Measure (FM). For each task, forgetting
+is computed as the gap between the best performance achieved on that task after it was learned and
+the final performance on the same task after subsequent training. FM is then averaged across tasks.
+Higher FM indicates stronger loss of previously acquired performance, while lower FM indicates
+better retention. First, we assess FM′ that corresponds to forgetting measured after learning a single
+new task k:
+FM′ k = 1 k − 1
+k−1X
+j=1
+
+max
+t∈{j,...,k}
+Pt,j − Pk,j
+
+(10)
+And then we compute the final measure FM as an average in induced forgetting in the scenario:
+FM = 1 K
+KX
+k=2
+FM′ k (11)
+15
+
+===== PAGE 16 =====
+B.8 Continual learning strategies
+We evaluate four diagnostic training strategies. Naive trains sequentially on the current task without
+any explicit retention mechanism and therefore serves as the standard lower reference for forgetting.
+Replay augments sequential training with a fixed-size buffer of samples from previous tasks, provid-
+ing a practical retention-based continual-learning strategy. Cumulative retrains or updates using all
+data observed so far, which is not a realistic continual setting but is useful as a strong reference with
+full past-data access. MSTE uses a pool of multiple single-task experts, one per task, and therefore
+separates task-specific learnability from forgetting. Together, these strategies allow us to distinguish
+scenarios that are unlearnable, scenarios that are trivially solved by naive adaptation, and scenarios
+that create genuine retention pressure.
+C Filtering thresholds sensitivity analysis
+Figures 4–6 report a one-at-a-time sensitivity analysis of the filtering thresholds used in the task-
+selection stage. For each candidate split, we vary one threshold while keeping the others fixed at
+their default values, and we measure how many tasks are removed by the corresponding filtering rule.
+The red curve shows the mean number of removed tasks across candidate splits, while the faint blue
+curves show split-specific behavior. The dashed green line marks the default threshold adopted in the
+main paper.
+Across all three datasets, the chosen defaults consistently lie in moderate operating regions rather
+than at pathological extremes. In particular, the self-learnability threshold γl = 0.75 is placed before
+the sharp rise in removed tasks that appears near the most restrictive values, which avoids discarding
+large portions of the scenario due to an overly strict learnability requirement. Similarly, the transfer
+thresholds γt = γd = 0.9 retain enough stringency to eliminate trivial or dominating tasks, but are
+not so severe as to collapse the candidate split space. The count thresholds Pt = Pd = 2 also fall near
+the transition between permissive and highly selective behavior, which is consistent with the intended
+goal of tolerating limited transfer while rejecting tasks that are broadly redundant or dominant.
+The redundancy thresholds δr = 0.1 for both row-wise and column-wise profiles show the expected
+monotonic behavior: larger values merge more tasks as increasingly dissimilar profiles are treated
+as redundant. Here again, the selected default remains in a conservative regime where redundancy
+filtering is active but not overwhelming. Overall, these plots support the threshold choices used in the
+main paper: they enforce meaningful filtering across datasets, yet avoid the unstable regions in which
+small parameter changes would lead to disproportionately large changes in the number of retained
+tasks.
+16
+
+===== PAGE 17 =====
+0.0 0.2 0.4 0.6 0.8 1.0
+self_learnability_threshold
+0
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10# tasks removed
+default = 0.75
+mean removed tasks
+0.5 0.6 0.7 0.8 0.9 1.0
+coverage_margin_pct
+0
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10# tasks removed
+default = 0.9
+mean removed tasks
+0 2 4 6 8 10
+coverage_max_models_no
+0
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10# tasks removed
+default = 2
+mean removed tasks
+0.5 0.6 0.7 0.8 0.9 1.0
+dominance_margin_pct
+0
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10# tasks removed
+default = 0.9
+mean removed tasks
+0 2 4 6 8 10
+dominance_max_tasks_no
+0
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10# tasks removed
+default = 2
+mean removed tasks
+0.0 0.1 0.2 0.3 0.4 0.5
+redundancy_threshold
+0
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10# tasks removed
+default = 0.1
+mean removed tasks
+0.0 0.1 0.2 0.3 0.4 0.5
+column_redundancy_threshold
+0
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10# tasks removed
+default = 0.1
+mean removed tasks
+OAT sensitivity: filtering parameter vs. # tasks removed  (10 splits)
+Figure 4: One-at-a-time sensitivity analysis of the filtering thresholds on CICIDS2017. The red curve
+reports the mean number of removed tasks across candidate splits, the blue curves show split-specific
+trajectories, and the dashed green line marks the default threshold used in the main paper.
+17
+
+===== PAGE 18 =====
+0.0 0.2 0.4 0.6 0.8 1.0
+self_learnability_threshold
+0
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10# tasks removed
+default = 0.75
+mean removed tasks
+0.5 0.6 0.7 0.8 0.9 1.0
+coverage_margin_pct
+0
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10# tasks removed
+default = 0.9
+mean removed tasks
+0 2 4 6 8 10
+coverage_max_models_no
+0
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10# tasks removed
+default = 2
+mean removed tasks
+0.5 0.6 0.7 0.8 0.9 1.0
+dominance_margin_pct
+0
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10# tasks removed
+default = 0.9
+mean removed tasks
+0 2 4 6 8 10
+dominance_max_tasks_no
+0
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10# tasks removed
+default = 2
+mean removed tasks
+0.0 0.1 0.2 0.3 0.4 0.5
+redundancy_threshold
+0
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10# tasks removed
+default = 0.1
+mean removed tasks
+0.0 0.1 0.2 0.3 0.4 0.5
+column_redundancy_threshold
+0
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10# tasks removed
+default = 0.1
+mean removed tasks
+OAT sensitivity: filtering parameter vs. # tasks removed  (10 splits)
+Figure 5: One-at-a-time sensitivity analysis of the filtering thresholds on CICIDS2018. The red curve
+reports the mean number of removed tasks across candidate splits, the blue curves show split-specific
+trajectories, and the dashed green line marks the default threshold used in the main paper.
+18
+
+===== PAGE 19 =====
+0.0 0.2 0.4 0.6 0.8 1.0
+self_learnability_threshold
+0
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10# tasks removed
+default = 0.75
+mean removed tasks
+0.5 0.6 0.7 0.8 0.9 1.0
+coverage_margin_pct
+0
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10# tasks removed
+default = 0.9
+mean removed tasks
+0 2 4 6 8 10
+coverage_max_models_no
+0
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10# tasks removed
+default = 2
+mean removed tasks
+0.5 0.6 0.7 0.8 0.9 1.0
+dominance_margin_pct
+0
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10# tasks removed
+default = 0.9
+mean removed tasks
+0 2 4 6 8 10
+dominance_max_tasks_no
+0
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10# tasks removed
+default = 2
+mean removed tasks
+0.0 0.1 0.2 0.3 0.4 0.5
+redundancy_threshold
+0
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10# tasks removed
+default = 0.1
+mean removed tasks
+0.0 0.1 0.2 0.3 0.4 0.5
+column_redundancy_threshold
+0
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10# tasks removed
+default = 0.1
+mean removed tasks
+OAT sensitivity: filtering parameter vs. # tasks removed  (10 splits)
+Figure 6: One-at-a-time sensitivity analysis of the filtering thresholds on CICUNSW. The red curve
+reports the mean number of removed tasks across candidate splits, the blue curves show split-specific
+trajectories, and the dashed green line marks the default threshold used in the main paper.
+19
+
+===== PAGE 20 =====
+C.1 Execution times
+Dataset Model Time Naive Cumulative MSTE Replay
+CAD-CICIDS2017
+VAE Train 26m 42s 101m 46s 26m 47s 22m 11s Eval 1m 41s 1m 42s 1m 2s 1m 41s
+DAGMM Train 20m 46s 72m 58s 20m 36s 20m 5s Eval 23.0s 23.1s 14.5s 22.9s
+DeepSVDD Train 9m 15s 32m 55s 9m 19s 5m 23s Eval 4.8s 4.8s 3.2s 4.8s
+NeutralAD Train 21m 5s 52m 13s 16m 59s 19m 20s Eval 58.8s 58.9s 35.7s 59.3s
+CAD-CICIDS2018
+VAE Train 28m 45s 90m 8s 28m 50s 28m 37s Eval 1m 44s 1m 41s 1m 7s 1m 57s
+DAGMM Train 23m 14s 82m 10s 23m 37s 24m 9s Eval 24.7s 25.9s 17.2s 25.9s
+DeepSVDD Train 8m 10s 28m 8s 8m 15s 6m 47s Eval 5.2s 5.2s 3.7s 5.5s
+NeutralAD Train 44m 15s 62m 46s 43m 57s 45m 33s Eval 1m 9s 1m 8s 43.6s 1m 9s
+CAD-CICUNSW
+VAE Train 12m 45s 41m 11s 12m 43s 12m 15s Eval 39.1s 38.7s 24.2s 42.9s
+DAGMM Train 10m 55s 34m 50s 10m 57s 11m 16s Eval 10.4s 9.8s 6.4s 10.6s
+DeepSVDD Train 5m 51s 19m 1s 5m 54s 2m 39s Eval 2.0s 2.0s 1.4s 1.9s
+NeutralAD Train 23m 16s 54m 45s 23m 11s 25m 11s Eval 24.9s 25.0s 15.8s 25.0s
+MCAD-CIC-1xN
+VAE Train 182m 5s 376m 29s 183m 23s 163m 17s Eval 9m 46s 9m 45s 6m 57s 9m 46s
+DAGMM Train 188m 14s 339m 20s 176m 30s 163m 13s Eval 2m 40s 2m 25s 1m 51s 2m 38s
+DeepSVDD Train 50m 39s 130m 60s 50m 54s 53m 45s Eval 29.3s 29.7s 21.6s 30.0s
+NeutralAD Train 44m 40s 45m 5s 43m 44s 45m 33s Eval 6m 24s 6m 33s 4m 24s 6m 20s
+MCAD-CIC-3xN
+VAE Train 48m 25s 280m 46s 49m 48s 37m 40s Eval 7m 21s 6m 10s 4m 8s 6m 13s
+DAGMM Train 43m 16s 224m 41s 40m 30s 29m 53s Eval 1m 53s 1m 29s 59.0s 1m 30s
+DeepSVDD Train 17m 9s 82m 43s 13m 11s 8m 27s Eval 18.9s 18.6s 11.1s 18.5s
+NeutralAD Train 70m 1s 160m 5s 70m 25s 78m 44s Eval 4m 17s 4m 10s 2m 17s 4m 21s
+Table 4: Execution times (train and eval time separately, mean across orderings) on CAD-CICIDS2017,
+CAD-CICIDS2018, CAD-CICUNSW, MCAD-CIC-3x1, MCAD-CIC-3xN.
+It is noteworthy that just our validation phase of the scenarios includes 480 full experimental phases
+(5 scenarios x 6 orderings x 4 AD models x 4 CL strategies), which corresponds to over 3000 trainings
+of individual tasks. The overall number of experiments is significantly higher, due to the initial phase
+involving task selection.
+D Reproducibility
+D.1 Compute resources
+All experiments were executed on a high-performance computing (HPC) system whose full peak
+capacity is approximately 36 PFLOPS, with AMD EPYC 9654 and NVIDIA Grace CPUs and about
+300 TB of RAM. The experiments reported in this paper used only a subset of these resources. In
+20
+
+===== PAGE 21 =====
+particular, the GPU-based runs were executed on (in peak) 15 NVIDIA GH200 96GB GPUs, while
+the full system provides up to 440 nodes. This is reported to clarify both the scale of the underlying
+platform and the smaller portion of it effectively used for the results presented here.
+D.2 Datasets licensing
+The datasets used in this work are credited to their original creators and were used under the access
+conditions stated by their source providers. CICIDS2017 [Sharafaldin et al., 2018] is made publicly
+available by the Canadian Institute for Cybersecurity (University of New Brunswick) for research
+use. CSE-CIC-IDS2018 [Sharafaldin et al., 2018] is released by the same source with permission
+to redistribute, republish, and mirror the dataset. For the UNSW-NB15 dataset [Moustafa and Slay,
+2015] (used here through our CICUNSW scenario), UNSW Canberra states that free use for academic
+research is granted in perpetuity, while commercial use requires agreement from the authors.
+D.3 Hyperparameters
+Table 5: Hyperparameters of the anomaly detection models.
+Hyperparameter AE VAE Deep SVDD DAGMM NeuTraLAD AE1SVM IForest
+Training
+Epochs 20 20 20 20 20 20 —
+Batch size 128 128 128 128 128 128 —
+Optimizer Adam Adam Adam Adam Adam Adam —
+Learning rate 1e-3 1e-3 1e-3 1e-3 1e-3 1e-3 —
+Weight decay — 1e-5 0.1 — — 1e-5 —
+Architecture
+Encoder hidden [64, 16] [128, 64, 32] [64, 32] auto [100, 50] [64, 32] —
+Decoder hidden [16, 64] [32, 64, 128] — auto — [32, 64] —
+Latent dim 16 2 — 5 + ⌊d/20⌋ 128 32 —
+Activation ReLU ReLU ReLU Tanh LeakyReLU ReLU —
+Batch norm — — — — — ✓ —
+Dropout — 0.2 0.2 — — 0.2 —
+Model-specific
+β (KL weight) — 1.0 — — — — —
+GMM components K — — — 3 — — —
+λenergy — — — 0.1 — — —
+λcov — — — 0.005 — — —
+Transformations K — — — — 11 — —
+Transform type — — — — residual — —
+Temperature τ — — — — 0.1 — —
+RFF features — — — — — 512 —
+σ (RBF kernel) — — — — — 1.0 —
+ν (one-class SVM) — — — — — 0.1 —
+Estimators — — — — — — 100
+Max samples — — — — — — auto
+Table 6: Clustering algorithm hyperparameters. K is the number of clusters, set per dataset.
+Algorithm Hyperparameter Value
+KMeans n_clusters 10
+Gaussian Mixture
+n_components 10
+covariance_type diag
+reg_covar 10−3
+Spectral Clustering n_clusters 10 affinity nearest_neighbors
+Additional hyperparameters across the framework execution:
+• Minimal number of samples in clusters created during task discovery: i) normal = 1500; ii)
+anomalous = 1000
+21
+
+===== PAGE 22 =====
+Table 7: Hyperparameters of the STE filtering criteria. Each criterion iteratively removes concepts
+violating its condition; parameters define the decision boundaries.
+Criterion Parameter Value
+FC1. Self-learnability γl 0.75
+FC2. Limited incoming transfer coverage γt 0.90 Pt 2
+FC3. Limited outgoing transfer coverage γd 0.90 Pd 2
+FC4. Source profile redundancy δr 0.10
+FC5. Target profile redundancy δr 0.10
+• Minimal number of tasks candidates in the split: i) CAD-CICIDS2017 = 5 tasks; ii) CAD-
+CICIDS2018 = 5 tasks; iii) CAD-CICUNSW = 3 tasks; iv) MCAD-CIC-3x1 = 3 tasks; v)
+MCAD-CIC-3xN = 5 tasks.
+• Replay uses a fixed global buffer of 25,000 samples. At each training stage, the buffer budget
+is distributed uniformly over previously observed tasks. Samples are selected uniformly at
+random from each observed task.
+E Scenario selection details
+E.1 Scenario selection
+For scenario selection, we start from a set of scenario candidates S = {s1, . . . , sm} and the orderings
+induced by each model f on each scenario candidate si: Πf,si = {πSD , πAD , πC , πRC , πGI , πGD }.
+The rationale is that if multiple models with distinct inductive biases independently produce similar
+concept orderings, this agreement suggests the ordering reflects genuine structural properties of the
+concept space rather than model-specific behaviors.
+We quantify cross-model concordance using Kendall’s W [Kendall, 1938], a coefficient of concor-
+dance for |F | rankers (models f ∈ F ). For each task t, W compares the sum of ranks assigned by all
+models f against what would be expected under independent random rankings. It is normalized to
+[0, 1], where W = 1 indicates perfect agreement and E[W ] = 1 |F | under random rankings. Crucially,
+the normalization ensures W is comparable across scenarios with different numbers of tasks.
+Kendall’s W only measures whether models agree with each other, not what direction they agree in.
+If all models consistently rank task t early in ascending order, they also consistently rank it late in
+descending order. Due to this, we use only four ordering families for split selection: abrupt drift,
+smooth drift, curriculum ascending, and generalization ascending, omitting curriculum descending
+and generalization descending.
+Then, we select the scenario that maximizes the mean concordance:
+s∗ = arg max
+s ∈ S
+WπSD + WπAD + Wπc + WπG
+4 . (12)
+E.2 Final ordering for selected scenario
+For the final consensus ordering, given the selected scenario s∗, we aggregate per-model orderings
+Πf,s∗ into a single consensus Π∗ using Borda count [Rothe, 2019], by summing the rank assigned
+to each task across all models and sorting concepts by their total rank. Borda count naturally
+complements Kendall’s W : while W identifies splits with high cross-model agreement, Borda
+extracts the ordering that best reflects this agreement. By integrating rankings across models, it
+mitigates the influence of any single model and produces a stable consensus under moderate variability.
+Concepts consistently ranked early receive low aggregate scores and appear first, yielding an ordering
+that captures shared structure while preserving the interpretability of each ordering family.
+22
+
+===== PAGE 23 =====
+The final ordering π∗ l ∀πl ∈ Π∗ (where Π∗ consist of all orderings defined in the „Scenario orderings”
+step) is achieved by sorting concepts by ascending Borda score:
+Bℓ(t) =
+X
+f ∈F
+rℓ,f (t), π⋆ ℓ = argsortt∈Ts⋆ Bℓ(t). (13)
+where rℓ,f (t) denotes the rank assigned to task t by model f for ordering family ℓ.
+E.3 Kendall W
+Let m = |F | be the number of construction models and let K be the number of tasks in scenario
+candidate s. For ordering family ℓ, let rℓ,f (t) be the rank assigned to task t by model f . The rank
+sum is
+Rℓ(t) =
+X
+f ∈F
+rℓ,f (t), ¯R = m(K + 1) 2 .
+Kendall’s coefficient of concordance is
+Wℓ(s) = 12 P t∈Ts (Rℓ(t) − ¯R)2 m2(K 3 − K) .
+Under independent random rankings, the expected value is approximately 1/m, where m is the
+number of rankers. Values substantially exceeding this baseline indicate concordance beyond chance.
+The denominator m2(K 3 − K) ensures that Wℓ(s) ∈ [0, 1], making the coefficient comparable across
+scenario candidates with different numbers of tasks.
+F Detailed Specifications of Final Benchmark Scenarios
+This appendix provides detailed information about the final benchmark scenarios produced by our
+framework. For each scenario, we report the resulting sequence of tasks together with per-task
+statistics, including the number of normal and anomalous samples. We also provide the final
+task orderings used in the experiments. These details complement the main paper by making the
+constructed scenarios fully transparent and reproducible, and by allowing readers to inspect the scale,
+composition, and progression of each benchmark beyond the aggregate results reported in the main
+text.
+F.1 CAD-CICIDS2017
+Table 8: Task orderings for CAD-CICIDS2017
+Ordering Task sequence
+Curriculum (asc.) t5 → t2 → t0 → t3 → t4 → t1
+Curriculum (desc.) t1 → t4 → t3 → t0 → t2 → t5
+Generalization (desc.) t4 → t3 → t0 → t2 → t5 → t1
+Generalization (asc.) t1 → t5 → t2 → t0 → t3 → t4
+Smooth drift t5 → t1 → t4 → t0 → t2 → t3
+Abrupt drift t4 → t5 → t3 → t1 → t2 → t0
+Table 9: Per-task statistics for CAD-CICIDS2017
+Task ID Task Name Train Samples Test Samples Test Anomalies
+0 cicids2017_0 77,385 38,694 19,347
+1 cicids2017_1 1,434,082 411,738 53,217
+2 cicids2017_2 19,006 9,504 4,752
+3 cicids2017_3 8,392 4,196 2,098
+4 cicids2017_4 47,520 23,760 11,880
+5 cicids2017_5 1,713 858 429
+23
+
+===== PAGE 24 =====
+Tables 8 and 9 specify the retained CAD-CICIDS2017 scenario. The task statistics show a strongly
+imbalanced task-size distribution, with one dominant concept and several much smaller retained
+concepts. This imbalance is useful for stress-testing cumulative and replay-based strategies, because
+good scenario-level performance requires preserving smaller tasks rather than only fitting the dominant
+regime. The six orderings expose the same task set under curriculum, generalization, and drift
+assumptions, allowing the scenario to be reused without tying conclusions to one arbitrary sequence.
+F.2 CAD-CICIDS2018
+Table 10: Task orderings for CAD-CICIDS2018
+Ordering Task sequence
+Curriculum (asc.) t3 → t4 → t2 → t1 → t0
+Curriculum (desc.) t0 → t1 → t2 → t4 → t3
+Generalization (desc.) t2 → t3 → t0 → t1 → t4
+Generalization (asc.) t4 → t1 → t0 → t3 → t2
+Smooth drift t2 → t0 → t1 → t3 → t4
+Abrupt drift t1 → t2 → t3 → t0 → t4
+Table 11: Per-task statistics for CAD-CICIDS2018
+Task ID Task Name Train Samples Test Samples Test Anomalies
+0 cicids2018_0 251,873 67,807 4,855
+1 cicids2018_1 652,959 176,660 13,421
+2 cicids2018_2 642,521 316,606 158,303
+3 cicids2018_3 211,855 62,074 9,161
+4 cicids2018_4 166,025 42,391 907
+Tables 10 and 11 summarize the final CAD-CICIDS2018 scenario. Compared with CAD-
+CICIDS2017, the retained tasks are larger and more balanced in sample size, but the anomaly
+ratios still vary substantially across tasks. This makes the scenario complementary: it tests CAD
+behavior under a different balance of scale, anomaly prevalence, and ordering sensitivity while
+preserving enough task heterogeneity to avoid a trivial sequence.
+F.3 CAD-CICUNSW
+Table 12: Task orderings for CAD-CICUNSW
+Ordering Task sequence
+Curriculum (asc.) t4 → t1 → t3 → t2 → t0
+Curriculum (desc.) t0 → t2 → t3 → t1 → t4
+Generalization (desc.) t4 → t1 → t2 → t3 → t0
+Generalization (asc.) t0 → t3 → t2 → t1 → t4
+Smooth drift t4 → t2 → t1 → t3 → t0
+Abrupt drift t1 → t2 → t3 → t0 → t4
+Tables 12 and 13 describe the CAD-CICUNSW scenario. The retained split combines several large
+tasks with smaller high-anomaly tasks, yielding a setting where both task imbalance and distributional
+heterogeneity matter. This supports the role of CAD-CICUNSW as a complementary cybersecurity
+scenario rather than a simple variant of the CICIDS-derived tasks.
+24
+
+===== PAGE 25 =====
+Table 13: Per-task statistics for CAD-CICUNSW
+Task ID Task Name Train Samples Test Samples Test Anomalies
+0 cicunsw_0 180,512 54,078 8,950
+1 cicunsw_1 406,320 110,531 8,950
+2 cicunsw_2 240,550 69,088 8,950
+3 cicunsw_3 3,503 1,752 876
+4 cicunsw_4 12,396 6,198 3,099
+F.4 MCAD-CIC-3x1
+Table 14: Task orderings for MCAD-CIC-3x1
+Ordering Task sequence
+Curriculum (asc.) cicunsw → cicids2017 → cicids2018
+Curriculum (desc.) cicids2018 → cicids2017 → cicunsw
+Generalization (desc.) cicids2018 → cicunsw → cicids2017
+Generalization (asc.) cicids2017 → cicunsw → cicids2018
+Smooth drift cicids2018 → cicids2017 → cicunsw
+Abrupt drift cicids2017 → cicids2018 → cicunsw
+Table 15: Per-task statistics for MCAD-CIC-3x1
+Task ID Task Name Train Samples Test Samples Test Anomalies
+0 cicids2017 1,571,292 949,506 425,741
+1 cicids2018 7,923,578 3,992,560 1,351,367
+2 cicunsw 2,541,843 936,790 89,508
+Tables 14 and 15 define the coarse multi-dataset scenario in which each source dataset contributes
+one task. This setting is intentionally simple in number of tasks, but not necessarily easy: each task
+corresponds to a different dataset-level distribution, so the scenario emphasizes cross-dataset transfer
+and dataset-level domain shift.
+F.5 MCAD-CIC-3xN
+Tables 16 and 17 specify the fine-grained multi-dataset scenario. Unlike MCAD-CIC-3x1, this
+scenario retains multiple concepts from each source dataset and interleaves them through principled
+orderings. It is therefore the most heterogeneous scenario in the suite, combining within-dataset task
+variation with cross-dataset distribution shift.
+25
+
+===== PAGE 26 =====
+Table 16: Task orderings for MCAD-CIC-3xN: c17 corresponds to tasks from CICIDS2017, c18
+corresponds to tasks from CICIDS2018, cu corresponds to tasks from CICUNSW
+Ordering Task sequence
+Curriculum (asc.) cu3 → c171 → c174 → c170 → cu1 → c172 → c182 → c173 → cu0 → cu2 → c183 → c181 → c180
+Curriculum (desc.) c180 → c181 → c183 → cu2 → cu0 → c173 → c182 → c172 → cu1 → c170 → c174 → c171 → cu3
+Generalization (desc.) cu3 → cu1 → cu0 → c174 → cu2 → c180 → c182 → c171 → c181 → c173 → c172 → c170 → c183
+Generalization (asc.) c183 → c170 → c172 → c173 → c181 → c171 → c182 → c180 → cu2 → c174 → cu0 → cu1 → cu3
+Smooth drift c182 → c183 → cu0 → c181 → c174 → cu1 → cu3 → cu2 → c180 → c170 → c173 → c171 → c172
+Abrupt drift cu0 → c172 → cu3 → c171 → cu2 → c182 → c174 → c170 → cu1 → c173 → c181 → c183 → c180
+Table 17: Per-task statistics for MCAD-CIC-3xN
+Task ID Task Name Train Samples Test Samples Test Anomalies
+0 cicids2017_0 77,385 38,694 19,347
+1 cicids2017_1 19,006 9,504 4,752
+2 cicids2017_2 8,392 4,196 2,098
+3 cicids2017_3 47,520 23,760 11,880
+4 cicids2017_4 1,713 858 429
+5 cicids2018_0 652,959 176,660 13,421
+6 cicids2018_1 642,521 316,606 158,303
+7 cicids2018_2 211,855 62,074 9,161
+8 cicids2018_3 166,025 42,391 907
+9 cicunsw_0 180,512 54,078 8,950
+10 cicunsw_1 406,320 110,531 8,950
+11 cicunsw_2 240,550 69,088 8,950
+12 cicunsw_3 12,396 6,198 3,099
+G Validation results in terms of Normalized PR-AUC
+26
+
+===== PAGE 27 =====
+Table 18: PR-AUC (mean ± std across orderings) on CAD-CICIDS2017, CAD-CICIDS2018, CAD-
+CICUNSW, MCAD-CIC-3x1, MCAD-CIC-3xN. FM↓: lower is better. Best per column in bold.
+Dataset Model Naive Replay Cumulative MSTE
+PR↑ FM↓ PR↑ FM↓ PR↑ FM↓ PR↑ FM↓
+CAD-CICIDS2017
+VAE 64.7±3.3 34.6±2.9 83.1±2.9 10.0±2.5 79.1±6.9 6.0±4.1 94.7±2.8 0.0±0.0
+Deep SVDD 61.0±5.3 34.5±5.0 68.7±9.2 12.7±2.9 72.9±9.2 11.1±3.6 89.9±3.0 0.0±0.0
+DAGMM 59.9±5.1 30.6±3.6 71.2±7.1 11.1±4.2 60.0±11.9 13.4±4.6 83.3±9.0 0.0±0.0
+NeutralAD 62.8±5.4 32.2±5.2 86.4±2.8 6.3±3.3 78.3±11.2 7.5±5.8 91.1±5.9 0.0±0.0
+CAD-CICIDS2018
+VAE 35.2±5.4 34.6±10.1 43.0±10.6 26.3±11.3 46.3±9.6 13.4±9.3 64.8±8.5 0.0±0.0
+Deep SVDD 32.5±4.6 34.8±6.3 38.3±8.4 25.4±6.3 34.6±10.9 16.4±9.4 60.1±6.9 0.0±0.0
+DAGMM 32.1±7.4 19.9±8.4 39.0±8.0 13.5±10.9 35.3±6.9 13.2±6.6 36.2±3.4 0.0±0.0
+NeutralAD 35.4±3.3 40.7±3.8 53.9±12.9 16.9±11.1 50.3±7.6 15.2±2.8 65.9±3.4 0.0±0.0
+CAD-CICUNSW
+VAE 49.5±3.9 45.1±8.0 64.3±2.0 23.0±3.9 68.0±7.4 7.9±2.0 86.8±4.1 0.0±0.0
+Deep SVDD 43.6±2.7 28.1±4.7 41.4±9.8 18.0±4.4 39.3±5.6 15.2±3.3 62.8±5.6 0.0±0.0
+DAGMM 40.3±5.9 32.7±9.4 43.4±8.3 23.6±7.4 44.1±10.1 17.5±7.4 72.5±11.8 0.0±0.0
+NeutralAD 48.9±5.3 41.7±7.0 66.4±3.5 17.7±4.6 56.2±9.9 17.3±4.2 84.6±3.3 0.0±0.0
+MCAD-CIC-3x1
+VAE 52.9±5.2 16.3±2.7 56.5±6.0 10.3±2.4 57.9±3.4 3.7±1.9 64.8±3.9 0.0±0.0
+Deep SVDD 47.8±7.4 1.9±2.1 47.5±5.0 3.8±1.3 47.3±4.4 2.2±0.7 47.9±4.7 0.0±0.0
+DAGMM 45.5±8.0 6.6±2.5 46.1±5.3 5.7±5.9 48.4±2.8 4.9±4.4 44.0±5.6 0.0±0.0
+NeutralAD 56.1±4.1 27.6±4.3 61.8±9.1 11.2±6.3 62.8±6.8 6.3±4.9 68.3±9.6 0.0±0.0
+MCAD-CIC-3xN
+VAE 42.6±4.4 50.2±4.0 67.1±7.9 18.8±5.3 63.5±11.8 13.1±4.3 88.3±4.4 0.0±0.0
+Deep SVDD 43.0±6.4 35.6±4.6 56.8±10.1 18.6±4.2 56.4±11.1 14.0±3.2 73.6±4.7 0.0±0.0
+DAGMM 38.5±5.5 38.7±3.7 57.3±10.9 18.1±3.3 54.7±8.5 20.0±5.5 68.8±7.9 0.0±0.0
+NeutralAD 45.7±5.7 45.5±1.2 74.9±7.5 11.7±3.3 70.0±10.5 11.8±4.7 86.4±4.3 0.0±0.0
+H Per-Dataset Validation Results for Final Scenarios
+This appendix provides additional validation results for the final benchmark scenarios constructed
+by our framework. For each dataset, we report the performance obtained under the considered task
+orderings using ROC-AUC and normalized PR-AUC, enabling a more detailed comparison of how
+ordering affects anomaly detection performance. We further include heatmaps for each ordering
+and continual learning strategy, reported for both evaluation metrics. These results complement the
+aggregate analysis in the main paper by exposing the full per-dataset validation evidence, including
+task-level transfer patterns and ordering-specific performance differences.
+H.1 CICIDS2017
+Table 19: ROC-AUC (mean ± std across models) per ordering on CAD-CICIDS2017. FM↓: lower is
+better. Best strategy per ordering in bold.
+Ordering Metric Naive Cumulative MSTE Replay
+Curriculum (asc.) ROC-AUC↑ 54.7±5.5 82.3±9.9 96.1±3.7 81.5±6.4 FM↓ 51.4±11.2 12.1±7.7 0.0±0.0 12.4±5.3
+Curriculum (desc.) ROC-AUC↑ 61.5±2.1 65.2±10.5 89.3±8.1 76.3±15.0 FM↓ 36.2±4.5 5.6±5.4 0.0±0.0 7.8±3.2
+Generalization (asc.) ROC-AUC↑ 56.7±4.5 67.7±9.0 95.3±2.3 83.7±9.7 FM↓ 40.4±6.5 7.2±4.6 0.0±0.0 6.5±2.8
+Generalization (desc.) ROC-AUC↑ 58.7±1.1 83.5±8.0 95.0±4.5 79.9±6.8 FM↓ 37.2±3.1 6.9±3.2 0.0±0.0 10.7±1.4
+Smooth drift ROC-AUC↑ 56.0±2.5 66.8±8.2 93.4±5.7 81.9±9.9 FM↓ 44.8±5.2 18.9±3.1 0.0±0.0 14.7±6.9
+Abrupt drift ROC-AUC↑ 59.1±3.3 67.9±6.9 95.0±4.0 79.0±9.4 FM↓ 43.7±4.9 17.2±3.6 0.0±0.0 13.0±2.8
+27
+
+===== PAGE 28 =====
+Table 20: Normalized-PR-AUC (mean ± std across models) per ordering on CAD-CICIDS2017.
+FM↓: lower is better. Best strategy per ordering in bold.
+Ordering Metric Naive Cumulative MSTE Replay
+Curriculum (asc.) Normalized-PR-AUC↑ 35.1±5.5 72.8±14.6 93.3±5.7 70.7±9.3 FM↓ 70.9±13.5 16.7±10.0 0.0±0.0 18.1±6.1
+Curriculum (desc.) Normalized-PR-AUC↑ 35.8±4.6 41.1±19.1 79.2±12.3 54.9±24.6 FM↓ 55.5±3.2 9.7±10.3 0.0±0.0 14.5±6.2
+Generalization (asc.) Normalized-PR-AUC↑ 33.8±7.5 47.3±16.8 87.1±4.8 67.3±17.0 FM↓ 54.5±10.5 11.2±7.4 0.0±0.0 11.1±4.9
+Generalization (desc.) Normalized-PR-AUC↑ 35.3±4.3 73.5±13.0 90.8±7.4 66.4±11.3 FM↓ 57.9±3.2 11.1±5.6 0.0±0.0 17.6±3.2
+Smooth drift Normalized-PR-AUC↑ 32.1±3.7 46.0±18.0 85.4±10.5 65.4±16.5 FM↓ 64.2±4.8 27.1±7.9 0.0±0.0 22.5±8.9
+Abrupt drift Normalized-PR-AUC↑ 35.5±3.9 48.1±15.1 89.3±6.6 62.0±17.5 FM↓ 65.0±5.4 26.7±8.4 0.0±0.0 21.6±6.3
+t5 t2 t0 t3 t4 t1
+t5t2t0t3t4t1
+Naive
+0.99
+0.26 0.99
+0.16 0.47 0.94
+0.12 0.51 0.50 0.94
+0.14 0.79 0.61 0.46 0.93
+0.47 0.29 0.32 0.26 0.45 0.78
+Curr. 
+t1 t4 t3 t0 t2 t5
+t1t4t3t0t2t5
+0.87
+0.45 0.93
+0.29 0.57 0.94
+0.46 0.79 0.56 0.97
+0.53 0.62 0.61 0.57 0.99
+0.67 0.36 0.24 0.25 0.15 0.99
+Curr. 
+t1 t5 t2 t0 t3 t4
+t1t5t2t0t3t4
+0.85
+0.65 0.99
+0.53 0.16 0.94
+0.45 0.05 0.44 0.95
+0.31 0.07 0.56 0.52 0.95
+0.44 0.10 0.78 0.62 0.51 0.94
+Gen. 
+t4 t3 t0 t2 t5 t1
+t4t3t0t2t5t1
+0.93
+0.61 0.96
+0.75 0.58 0.95
+0.67 0.61 0.65 0.96
+0.38 0.26 0.29 0.19 0.99
+0.45 0.23 0.19 0.27 0.38 0.91
+Gen. 
+t5 t1 t4 t0 t2 t3
+t5t1t4t0t2t3
+0.99
+0.46 0.82
+0.06 0.43 0.94
+0.05 0.47 0.75 0.93
+0.13 0.47 0.62 0.59 0.96
+0.07 0.29 0.61 0.53 0.57 0.94
+Smooth
+t4 t5 t3 t1 t2 t0
+t4t5t3t1t2t0
+0.94
+0.41 0.99
+0.60 0.09 0.94
+0.48 0.46 0.28 0.89
+0.61 0.27 0.64 0.50 0.95
+0.74 0.12 0.53 0.47 0.49 0.92
+Abrupt
+t5 t2 t0 t3 t4 t1
+t5t2t0t3t4t1
+Replay
+0.99
+0.83 0.90
+0.95 0.91 0.94
+0.95 0.92 0.88 0.89
+0.84 0.92 0.87 0.75 0.91
+0.64 0.54 0.53 0.46 0.56 0.80
+t1 t4 t3 t0 t2 t5
+t1t4t3t0t2t5
+0.86
+0.79 0.79
+0.82 0.74 0.72
+0.79 0.73 0.67 0.88
+0.77 0.73 0.68 0.77 0.80
+0.81 0.65 0.67 0.71 0.75 0.77
+t1 t5 t2 t0 t3 t4
+t1t5t2t0t3t4
+0.85
+0.83 0.85
+0.84 0.91 0.88
+0.84 0.91 0.93 0.93
+0.80 0.83 0.75 0.79 0.76
+0.78 0.79 0.86 0.80 0.68 0.87
+t4 t3 t0 t2 t5 t1
+t4t3t0t2t5t1
+0.94
+0.93 0.90
+0.86 0.86 0.84
+0.90 0.85 0.91 0.91
+0.84 0.81 0.88 0.91 0.93
+0.51 0.50 0.50 0.52 0.54 0.84
+t5 t1 t4 t0 t2 t3
+t5t1t4t0t2t3
+0.99
+0.50 0.88
+0.83 0.87 0.84
+0.85 0.83 0.70 0.88
+0.91 0.84 0.77 0.82 0.84
+0.88 0.83 0.75 0.80 0.77 0.73
+t4 t5 t3 t1 t2 t0
+t4t5t3t1t2t0
+0.94
+0.86 0.95
+0.84 0.84 0.76
+0.48 0.70 0.47 0.85
+0.71 0.88 0.73 0.78 0.88
+0.71 0.86 0.70 0.82 0.80 0.90
+t5 t2 t0 t3 t4 t1
+t5t2t0t3t4t1
+Cumulative
+0.99
+0.91 0.93
+0.94 0.96 0.99
+0.85 0.87 0.98 0.86
+0.76 0.80 0.94 0.77 0.89
+0.51 0.70 0.65 0.57 0.57 0.75
+t1 t4 t3 t0 t2 t5
+t1t4t3t0t2t5
+0.77
+0.79 0.53
+0.83 0.58 0.48
+0.83 0.61 0.52 0.64
+0.83 0.55 0.54 0.68 0.57
+0.84 0.60 0.54 0.68 0.73 0.46
+t1 t5 t2 t0 t3 t4
+t1t5t2t0t3t4
+0.87
+0.86 0.71
+0.86 0.69 0.67
+0.84 0.53 0.62 0.66
+0.85 0.44 0.63 0.67 0.50
+0.84 0.40 0.62 0.72 0.56 0.59
+t4 t3 t0 t2 t5 t1
+t4t3t0t2t5t1
+0.93
+0.94 0.92
+0.92 0.89 0.94
+0.94 0.88 0.95 0.95
+0.91 0.79 0.95 0.82 0.71
+0.61 0.55 0.69 0.71 0.61 0.83
+t5 t1 t4 t0 t2 t3
+t5t1t4t0t2t3
+0.99
+0.61 0.82
+0.57 0.85 0.58
+0.59 0.85 0.54 0.61
+0.48 0.83 0.60 0.63 0.67
+0.44 0.82 0.57 0.64 0.65 0.57
+t4 t5 t3 t1 t2 t0
+t4t5t3t1t2t0
+0.94
+0.89 0.81
+0.93 0.87 0.89
+0.60 0.49 0.60 0.74
+0.48 0.48 0.53 0.74 0.52
+0.58 0.46 0.56 0.75 0.64 0.66
+t5 t2 t0 t3 t4 t1
+t5t2t0t3t4t1
+MSTE
+0.99
+0.99 0.99
+0.99 0.99 0.94
+0.99 0.99 0.94 0.93
+0.99 0.99 0.94 0.93 0.94
+0.99 0.99 0.94 0.93 0.94 0.70
+t1 t4 t3 t0 t2 t5
+t1t4t3t0t2t5
+0.73
+0.73 0.93
+0.73 0.93 0.93
+0.73 0.93 0.93 0.96
+0.73 0.93 0.93 0.96 0.99
+0.73 0.93 0.93 0.96 0.99 0.99
+t1 t5 t2 t0 t3 t4
+t1t5t2t0t3t4
+0.88
+0.88 0.99
+0.88 0.99 0.99
+0.88 0.99 0.99 0.95
+0.88 0.99 0.99 0.95 0.95
+0.88 0.99 0.99 0.95 0.95 0.93
+t4 t3 t0 t2 t5 t1
+t4t3t0t2t5t1
+0.93
+0.93 0.96
+0.93 0.96 0.94
+0.93 0.96 0.94 0.97
+0.93 0.96 0.94 0.97 0.99
+0.93 0.96 0.94 0.97 0.99 0.81
+t5 t1 t4 t0 t2 t3
+t5t1t4t0t2t3
+0.99
+0.99 0.82
+0.99 0.82 0.94
+0.99 0.82 0.94 0.95
+0.99 0.82 0.94 0.95 0.93
+0.99 0.82 0.94 0.95 0.93 0.96
+t4 t5 t3 t1 t2 t0
+t4t5t3t1t2t0
+0.93
+0.93 0.99
+0.93 0.99 0.93
+0.93 0.99 0.93 0.88
+0.93 0.99 0.93 0.88 0.98
+0.93 0.99 0.93 0.88 0.98 0.96
+0.0
+0.2
+0.4
+0.6
+0.8
+1.0
+ROC-AUC
+CAD-CICIDS2017: ROC-AUC matrices by ordering and strategy (averaged across models)
+Figure 7: Ordering-specific validation results on CAD-CICIDS2017 measured with ROC-AUC.
+The heatmaps compare Naive, Replay, Cumulative, and MSTE across the six retained orderings,
+highlighting the persistent performance gap between Naive and the stronger reference strategies.
+The ordering-specific results for CAD-CICIDS2017 confirm the aggregate findings from the main
+paper. Across the six retained orderings, Naive remains consistently below Replay, Cumulative, and
+MSTE, while forgetting remains clearly visible for sequential fine-tuning alone. This indicates that
+the continual-learning difficulty of the scenario is not tied to a single ordering, but persists across
+curriculum-, generalization-, and drift-based sequences. Figures 7 and 8 visualize this pattern under
+ROC-AUC and normalized PR-AUC.
+28
+
+===== PAGE 29 =====
+t5 t2 t0 t3 t4 t1
+t5t2t0t3t4t1
+Naive
+0.99
+0.01 0.99
+-0.160.27 0.90
+-0.220.40 0.30 0.91
+-0.140.70 0.45 0.20 0.88
+0.24-0.020.06-0.150.13 0.52
+Curr. 
+t1 t4 t3 t0 t2 t5
+t1t4t3t0t2t5
+0.65
+0.00 0.90
+-0.020.35 0.92
+0.01 0.57 0.27 0.94
+0.09 0.29 0.30 0.28 0.99
+0.35 0.02-0.18-0.04-0.270.99
+Curr. 
+t1 t5 t2 t0 t3 t4
+t1t5t2t0t3t4
+0.54
+0.34 0.99
+0.09-0.190.93
+-0.02-0.330.24 0.92
+-0.02-0.310.46 0.35 0.93
+0.00-0.240.66 0.48 0.27 0.90
+Gen. 
+t4 t3 t0 t2 t5 t1
+t4t3t0t2t5t1
+0.88
+0.43 0.94
+0.51 0.26 0.91
+0.40 0.34 0.39 0.93
+0.04-0.150.02-0.240.99
+0.13-0.19-0.11-0.020.17 0.67
+Gen. 
+t5 t1 t4 t0 t2 t3
+t5t1t4t0t2t3
+0.99
+0.28 0.59
+-0.32-0.010.90
+-0.33-0.010.51 0.88
+-0.180.05 0.26 0.26 0.95
+-0.31-0.030.42 0.36 0.47 0.90
+Smooth
+t4 t5 t3 t1 t2 t0
+t4t5t3t1t2t0
+0.90
+0.09 0.99
+0.43-0.300.91
+0.14 0.30-0.100.65
+0.25 0.02 0.38 0.10 0.93
+0.45-0.230.22 0.01 0.37 0.87
+Abrupt
+t5 t2 t0 t3 t4 t1
+t5t2t0t3t4t1
+Replay
+0.99
+0.80 0.85
+0.92 0.90 0.91
+0.92 0.88 0.75 0.82
+0.75 0.88 0.77 0.64 0.85
+0.52 0.32 0.25 0.16 0.26 0.58
+t1 t4 t3 t0 t2 t5
+t1t4t3t0t2t5
+0.62
+0.51 0.63
+0.52 0.55 0.59
+0.41 0.50 0.44 0.76
+0.40 0.52 0.46 0.59 0.68
+0.52 0.41 0.49 0.50 0.63 0.68
+t1 t5 t2 t0 t3 t4
+t1t5t2t0t3t4
+0.59
+0.58 0.76
+0.57 0.87 0.79
+0.47 0.85 0.89 0.87
+0.41 0.73 0.64 0.59 0.55
+0.50 0.63 0.80 0.65 0.53 0.76
+t4 t3 t0 t2 t5 t1
+t4t3t0t2t5t1
+0.90
+0.88 0.86
+0.77 0.76 0.75
+0.81 0.77 0.85 0.85
+0.67 0.66 0.75 0.86 0.90
+0.10 0.15 0.21 0.38 0.40 0.56
+t5 t1 t4 t0 t2 t3
+t5t1t4t0t2t3
+0.99
+0.32 0.62
+0.71 0.61 0.72
+0.79 0.49 0.47 0.77
+0.85 0.54 0.58 0.70 0.74
+0.78 0.47 0.54 0.62 0.70 0.61
+t4 t5 t3 t1 t2 t0
+t4t5t3t1t2t0
+0.89
+0.76 0.91
+0.69 0.75 0.64
+0.10 0.58 0.13 0.57
+0.51 0.82 0.50 0.46 0.77
+0.50 0.81 0.51 0.46 0.74 0.80
+t5 t2 t0 t3 t4 t1
+t5t2t0t3t4t1
+Cumulative
+0.99
+0.90 0.91
+0.92 0.95 0.99
+0.80 0.84 0.96 0.79
+0.69 0.75 0.89 0.66 0.79
+0.31 0.58 0.42 0.34 0.27 0.43
+t1 t4 t3 t0 t2 t5
+t1t4t3t0t2t5
+0.53
+0.49 0.26
+0.55 0.32 0.22
+0.55 0.36 0.25 0.45
+0.52 0.22 0.30 0.49 0.40
+0.54 0.35 0.32 0.49 0.65 0.27
+t1 t5 t2 t0 t3 t4
+t1t5t2t0t3t4
+0.58
+0.59 0.62
+0.63 0.58 0.57
+0.59 0.35 0.48 0.50
+0.56 0.21 0.47 0.46 0.21
+0.57 0.16 0.49 0.55 0.35 0.32
+t4 t3 t0 t2 t5 t1
+t4t3t0t2t5t1
+0.89
+0.90 0.89
+0.87 0.84 0.88
+0.89 0.82 0.90 0.94
+0.80 0.66 0.89 0.76 0.62
+0.34 0.32 0.49 0.62 0.42 0.57
+t5 t1 t4 t0 t2 t3
+t5t1t4t0t2t3
+0.99
+0.47 0.56
+0.40 0.58 0.36
+0.38 0.54 0.31 0.41
+0.30 0.58 0.36 0.46 0.59
+0.22 0.49 0.25 0.40 0.53 0.34
+t4 t5 t3 t1 t2 t0
+t4t5t3t1t2t0
+0.90
+0.80 0.72
+0.87 0.79 0.83
+0.32 0.25 0.38 0.45
+0.13 0.24 0.30 0.41 0.34
+0.28 0.26 0.35 0.46 0.51 0.43
+t5 t2 t0 t3 t4 t1
+t5t2t0t3t4t1
+MSTE
+0.99
+0.99 0.99
+0.99 0.99 0.90
+0.99 0.99 0.90 0.90
+0.99 0.99 0.90 0.90 0.90
+0.99 0.99 0.90 0.90 0.90 0.46
+t1 t4 t3 t0 t2 t5
+t1t4t3t0t2t5
+0.46
+0.46 0.89
+0.46 0.89 0.90
+0.46 0.89 0.90 0.93
+0.46 0.89 0.90 0.93 0.97
+0.46 0.89 0.90 0.93 0.97 0.99
+t1 t5 t2 t0 t3 t4
+t1t5t2t0t3t4
+0.64
+0.64 0.99
+0.64 0.99 0.99
+0.64 0.99 0.99 0.90
+0.64 0.99 0.99 0.90 0.92
+0.64 0.99 0.99 0.90 0.92 0.89
+t4 t3 t0 t2 t5 t1
+t4t3t0t2t5t1
+0.88
+0.88 0.94
+0.88 0.94 0.89
+0.88 0.94 0.89 0.95
+0.88 0.94 0.89 0.95 0.99
+0.88 0.94 0.89 0.95 0.99 0.53
+t5 t1 t4 t0 t2 t3
+t5t1t4t0t2t3
+0.99
+0.99 0.55
+0.99 0.55 0.90
+0.99 0.55 0.90 0.91
+0.99 0.55 0.90 0.91 0.91
+0.99 0.55 0.90 0.91 0.91 0.94
+t4 t5 t3 t1 t2 t0
+t4t5t3t1t2t0
+0.89
+0.89 0.99
+0.89 0.99 0.90
+0.89 0.99 0.90 0.63
+0.89 0.99 0.90 0.63 0.96
+0.89 0.99 0.90 0.63 0.96 0.94
+1.00
+0.75
+0.50
+0.25
+0.00
+0.25
+0.50
+0.75
+1.00
+Normalized-PR-AUC
+CAD-CICIDS2017: Normalized-PR-AUC matrices by ordering and strategy (averaged across models)
+Figure 8: Ordering-specific validation results on CAD-CICIDS2017 measured with normalized PR-
+AUC. The qualitative pattern matches ROC-AUC and confirms that the scenario remains non-trivial
+under an imbalance-aware metric.
+H.2 CICIDS2018
+Table 21: ROC-AUC (mean ± std across models) per ordering on CAD-CICIDS2018. FM↓: lower is
+better. Best strategy per ordering in bold.
+Ordering Metric Naive Cumulative MSTE Replay
+Curriculum (asc.) ROC-AUC↑ 55.2±4.0 71.8±12.3 84.2±9.5 75.5±6.4 FM↓ 40.0±9.8 12.3±7.7 0.3±0.7 15.1±6.7
+Curriculum (desc.) ROC-AUC↑ 56.6±2.1 66.2±7.3 82.8±8.3 65.9±4.4 FM↓ 27.8±4.3 9.7±2.4 0.0±0.0 18.1±6.0
+Generalization (asc.) ROC-AUC↑ 62.2±4.9 68.2±5.9 85.1±5.8 65.0±6.0 FM↓ 29.5±3.6 13.5±2.1 0.0±0.0 25.7±4.9
+Generalization (desc.) ROC-AUC↑ 50.0±3.6 72.8±9.2 79.3±13.7 70.6±2.3 FM↓ 45.1±13.1 7.4±2.3 0.1±0.3 13.2±5.4
+Smooth drift ROC-AUC↑ 50.1±5.0 70.1±7.3 77.7±10.5 70.6±5.8 FM↓ 37.8±14.2 11.6±5.6 0.0±0.0 16.0±2.1
+Abrupt drift ROC-AUC↑ 53.3±3.7 71.4±10.7 81.3±13.2 70.4±6.8 FM↓ 34.0±6.5 10.4±6.2 0.6±1.4 16.2±9.7
+CAD-CICIDS2018 exhibits a similar but somewhat more variable picture. Stronger strategies still
+dominate Naive overall, but the margins depend more visibly on the detector and on the ordering,
+which makes this dataset a useful complement to CICIDS2017. This reinforces the motivation for
+evaluating multiple principled sequences rather than relying on a single task order. Figures 9 and 10
+summarize these effects under both metrics.
+29
+
+===== PAGE 30 =====
+t3 t4 t2 t1 t0
+t3t4t2t1t0
+Naive
+0.86
+0.25 0.91
+0.64 0.60 0.87
+0.33 0.33 0.09 0.85
+0.40 0.32 0.43 0.61 0.71
+Curr. 
+t0 t1 t2 t4 t3
+t0t1t2t4t3
+0.72
+0.44 0.85
+0.63 0.57 0.79
+0.31 0.58 0.14 0.89
+0.43 0.50 0.16 0.54 0.89
+Curr. 
+t4 t1 t0 t3 t2
+t4t1t0t3t2
+0.89
+0.36 0.79
+0.32 0.56 0.73
+0.68 0.58 0.42 0.90
+0.52 0.57 0.61 0.57 0.78
+Gen. 
+t2 t3 t0 t1 t4
+t2t3t0t1t4
+0.86
+0.15 0.87
+0.41 0.38 0.73
+0.04 0.29 0.43 0.85
+0.16 0.47 0.33 0.58 0.90
+Gen. 
+t2 t0 t1 t3 t4
+t2t0t1t3t4
+0.80
+0.30 0.69
+0.12 0.42 0.87
+0.16 0.44 0.49 0.84
+0.18 0.34 0.49 0.39 0.91
+Smooth
+t1 t2 t3 t0 t4
+t1t2t3t0t4
+0.85
+0.56 0.75
+0.52 0.16 0.85
+0.60 0.34 0.26 0.79
+0.47 0.14 0.43 0.33 0.86
+Abrupt
+t3 t4 t2 t1 t0
+t3t4t2t1t0
+Replay
+0.87
+0.72 0.90
+0.62 0.84 0.79
+0.88 0.54 0.81 0.82
+0.96 0.44 0.71 0.68 0.68
+t0 t1 t2 t4 t3
+t0t1t2t4t3
+0.76
+0.60 0.76
+0.57 0.62 0.81
+0.48 0.67 0.36 0.77
+0.56 0.64 0.71 0.51 0.98
+t4 t1 t0 t3 t2
+t4t1t0t3t2
+0.91
+0.61 0.86
+0.45 0.65 0.67
+0.46 0.60 0.53 0.98
+0.51 0.53 0.45 0.58 0.90
+t2 t3 t0 t1 t4
+t2t3t0t1t4
+0.72
+0.81 0.92
+0.76 0.83 0.70
+0.80 0.92 0.57 0.83
+0.25 0.49 0.43 0.66 0.83
+t2 t0 t1 t3 t4
+t2t0t1t3t4
+0.80
+0.74 0.76
+0.66 0.58 0.84
+0.69 0.65 0.79 0.98
+0.39 0.46 0.67 0.66 0.84
+t1 t2 t3 t0 t4
+t1t2t3t0t4
+0.84
+0.68 0.74
+0.73 0.74 0.96
+0.63 0.72 0.82 0.75
+0.65 0.35 0.61 0.47 0.81
+t3 t4 t2 t1 t0
+t3t4t2t1t0
+Cumulative
+0.86
+0.73 0.91
+0.81 0.90 0.65
+0.81 0.64 0.54 0.68
+0.84 0.52 0.63 0.65 0.52
+t0 t1 t2 t4 t3
+t0t1t2t4t3
+0.74
+0.66 0.75
+0.59 0.69 0.76
+0.51 0.69 0.70 0.51
+0.52 0.67 0.59 0.58 0.88
+t4 t1 t0 t3 t2
+t4t1t0t3t2
+0.89
+0.77 0.77
+0.48 0.80 0.55
+0.52 0.80 0.56 0.91
+0.46 0.70 0.54 0.78 0.62
+t2 t3 t0 t1 t4
+t2t3t0t1t4
+0.79
+0.87 0.76
+0.79 0.93 0.68
+0.79 0.83 0.62 0.75
+0.50 0.83 0.52 0.71 0.47
+t2 t0 t1 t3 t4
+t2t0t1t3t4
+0.71
+0.80 0.68
+0.62 0.61 0.76
+0.75 0.61 0.76 0.94
+0.68 0.52 0.65 0.82 0.53
+t1 t2 t3 t0 t4
+t1t2t3t0t4
+0.87
+0.77 0.70
+0.71 0.81 0.81
+0.68 0.86 0.95 0.56
+0.68 0.46 0.72 0.50 0.55
+t3 t4 t2 t1 t0
+t3t4t2t1t0
+MSTE
+0.86
+0.86 0.91
+0.86 0.91 0.76
+0.86 0.91 0.76 0.79
+0.86 0.91 0.76 0.79 0.74
+t0 t1 t2 t4 t3
+t0t1t2t4t3
+0.73
+0.73 0.82
+0.73 0.82 0.94
+0.73 0.82 0.94 0.88
+0.73 0.82 0.94 0.88 0.85
+t4 t1 t0 t3 t2
+t4t1t0t3t2
+0.90
+0.90 0.87
+0.90 0.87 0.72
+0.90 0.87 0.72 0.87
+0.90 0.87 0.72 0.87 0.80
+t2 t3 t0 t1 t4
+t2t3t0t1t4
+0.74
+0.74 0.88
+0.74 0.88 0.71
+0.74 0.88 0.71 0.77
+0.74 0.88 0.71 0.77 0.88
+t2 t0 t1 t3 t4
+t2t0t1t3t4
+0.68
+0.68 0.77
+0.68 0.77 0.86
+0.68 0.77 0.86 0.82
+0.68 0.77 0.86 0.82 0.88
+t1 t2 t3 t0 t4
+t1t2t3t0t4
+0.81
+0.81 0.78
+0.81 0.78 0.84
+0.81 0.78 0.84 0.78
+0.81 0.78 0.84 0.78 0.87
+0.0
+0.2
+0.4
+0.6
+0.8
+1.0
+ROC-AUC
+CAD-CICIDS2018: ROC-AUC matrices by ordering and strategy (averaged across models)
+Figure 9: Ordering-specific validation results on CAD-CICIDS2018 measured with ROC-AUC. Com-
+pared with CAD-CICIDS2017, the results show somewhat stronger ordering and model sensitivity
+while preserving the overall advantage of stronger continual references over Naive.
+t3 t4 t2 t1 t0
+t3t4t2t1t0
+Naive
+0.72
+0.08 0.64
+0.57 0.00 0.60
+0.09 0.06 -0.35 0.60
+0.29 0.00 -0.02 0.12 0.22
+Curr. 
+t0 t1 t2 t4 t3
+t0t1t2t4t3
+0.24
+0.02 0.57
+0.05 0.03 0.54
+-0.03 0.06 -0.33 0.62
+-0.01 0.01 -0.28 0.00 0.75
+Curr. 
+t4 t1 t0 t3 t2
+t4t1t0t3t2
+0.70
+0.06 0.49
+-0.01 0.06 0.28
+0.01 0.01 -0.02 0.77
+0.00 0.02 0.05 0.44 0.54
+Gen. 
+t2 t3 t0 t1 t4
+t2t3t0t1t4
+0.61
+-0.29 0.72
+-0.11 0.21 0.26
+-0.38 0.13 -0.01 0.52
+-0.32 0.29 -0.03 0.05 0.63
+Gen. 
+t2 t0 t1 t3 t4
+t2t0t1t3t4
+0.52
+-0.24 0.25
+-0.31 -0.01 0.62
+-0.28 -0.01 0.00 0.71
+-0.31 -0.03 0.01 0.23 0.67
+Smooth
+t1 t2 t3 t0 t4
+t1t2t3t0t4
+0.53
+0.03 0.45
+0.00 -0.28 0.69
+0.10 -0.07 0.07 0.25
+0.01 -0.33 0.25 -0.03 0.57
+Abrupt
+t3 t4 t2 t1 t0
+t3t4t2t1t0
+Replay
+0.72
+0.44 0.59
+0.51 0.49 0.51
+0.83 0.18 0.52 0.48
+0.92 0.00 0.37 0.24 0.17
+t0 t1 t2 t4 t3
+t0t1t2t4t3
+0.28
+0.14 0.47
+0.10 0.14 0.60
+0.01 0.14 -0.18 0.24
+0.03 0.16 0.25 0.00 0.92
+t4 t1 t0 t3 t2
+t4t1t0t3t2
+0.70
+0.20 0.58
+0.01 0.12 0.15
+-0.01 0.08 0.01 0.96
+0.00 0.07 0.00 0.51 0.64
+t2 t3 t0 t1 t4
+t2t3t0t1t4
+0.36
+0.38 0.81
+0.35 0.79 0.21
+0.56 0.79 0.09 0.55
+-0.26 0.29 -0.01 0.16 0.31
+t2 t0 t1 t3 t4
+t2t0t1t3t4
+0.51
+0.38 0.20
+0.25 0.09 0.56
+0.20 0.14 0.29 0.93
+-0.15 0.01 0.15 0.50 0.35
+t1 t2 t3 t0 t4
+t1t2t3t0t4
+0.53
+0.14 0.48
+0.20 0.38 0.94
+0.25 0.36 0.76 0.25
+0.19 -0.11 0.54 0.00 0.29
+t3 t4 t2 t1 t0
+t3t4t2t1t0
+Cumulative
+0.73
+0.63 0.66
+0.75 0.64 0.15
+0.72 0.22 0.07 0.17
+0.69 0.01 0.16 0.20 0.03
+t0 t1 t2 t4 t3
+t0t1t2t4t3
+0.25
+0.21 0.41
+0.13 0.27 0.39
+0.07 0.25 0.20 0.01
+0.05 0.21 0.14 0.01 0.75
+t4 t1 t0 t3 t2
+t4t1t0t3t2
+0.61
+0.31 0.37
+0.01 0.39 0.09
+0.01 0.40 0.08 0.84
+0.01 0.20 0.05 0.64 0.20
+t2 t3 t0 t1 t4
+t2t3t0t1t4
+0.51
+0.63 0.71
+0.41 0.91 0.19
+0.39 0.72 0.16 0.29
+-0.05 0.74 0.05 0.21 0.01
+t2 t0 t1 t3 t4
+t2t0t1t3t4
+0.35
+0.57 0.16
+0.26 0.12 0.31
+0.37 0.18 0.31 0.92
+0.21 0.03 0.14 0.68 0.01
+t1 t2 t3 t0 t4
+t1t2t3t0t4
+0.55
+0.26 0.34
+0.26 0.46 0.69
+0.15 0.59 0.92 0.14
+0.18 0.02 0.58 0.05 0.01
+t3 t4 t2 t1 t0
+t3t4t2t1t0
+MSTE
+0.71
+0.71 0.62
+0.71 0.62 0.40
+0.71 0.62 0.40 0.51
+0.71 0.62 0.40 0.51 0.24
+t0 t1 t2 t4 t3
+t0t1t2t4t3
+0.23
+0.23 0.50
+0.23 0.50 0.82
+0.23 0.50 0.82 0.62
+0.23 0.50 0.82 0.62 0.68
+t4 t1 t0 t3 t2
+t4t1t0t3t2
+0.60
+0.60 0.54
+0.60 0.54 0.22
+0.60 0.54 0.22 0.72
+0.60 0.54 0.22 0.72 0.55
+t2 t3 t0 t1 t4
+t2t3t0t1t4
+0.42
+0.42 0.73
+0.42 0.73 0.24
+0.42 0.73 0.24 0.47
+0.42 0.73 0.24 0.47 0.63
+t2 t0 t1 t3 t4
+t2t0t1t3t4
+0.35
+0.35 0.23
+0.35 0.23 0.53
+0.35 0.23 0.53 0.67
+0.35 0.23 0.53 0.67 0.65
+t1 t2 t3 t0 t4
+t1t2t3t0t4
+0.51
+0.51 0.50
+0.51 0.50 0.71
+0.51 0.50 0.71 0.28
+0.51 0.50 0.71 0.28 0.66
+1.00
+0.75
+0.50
+0.25
+0.00
+0.25
+0.50
+0.75
+1.00
+Normalized-PR-AUC
+CAD-CICIDS2018: Normalized-PR-AUC matrices by ordering and strategy (averaged across models)
+Figure 10: Ordering-specific validation results on CAD-CICIDS2018 measured with normalized PR-
+AUC. The figure confirms that the scenario remains challenging under imbalance-aware evaluation
+and that ordering effects remain visible at the task-sequence level.
+30
+
+===== PAGE 31 =====
+Table 22: Normalized-PR-AUC (mean ± std across models) per ordering on CAD-CICIDS2018.
+FM↓: lower is better. Best strategy per ordering in bold.
+Ordering Metric Naive Cumulative MSTE Replay
+Curriculum (asc.) Normalized-PR-AUC↑ 24.5±5.4 39.3±17.3 57.3±20.0 47.1±14.2 FM↓ 49.3±13.8 17.4±9.8 0.5±1.0 23.7±12.2
+Curriculum (desc.) Normalized-PR-AUC↑ 15.4±4.6 22.9±10.8 50.7±13.5 22.4±5.4 FM↓ 36.0±8.7 11.2±5.3 0.0±0.0 26.0±8.1
+Generalization (asc.) Normalized-PR-AUC↑ 23.3±6.8 28.5±10.9 52.8±15.0 27.2±5.9 FM↓ 43.3±8.7 23.0±6.1 0.0±0.0 39.4±4.9
+Generalization (desc.) Normalized-PR-AUC↑ 15.7±3.7 39.6±12.4 49.1±23.1 36.5±5.8 FM↓ 57.1±17.8 13.7±6.0 0.0±0.0 20.1±10.9
+Smooth drift Normalized-PR-AUC↑ 12.7±3.1 31.2±9.4 42.4±19.5 29.9±8.9 FM↓ 48.9±22.4 18.8±9.6 0.0±0.0 24.1±6.2
+Abrupt drift Normalized-PR-AUC↑ 15.6±2.3 35.2±11.3 53.4±24.2 35.1±11.2 FM↓ 47.6±16.0 23.6±6.9 0.9±2.0 28.4±15.1
+H.3 CICUNSW
+Table 23: ROC-AUC (mean ± std across models) per ordering on CAD-CICUNSW. FM↓: lower is
+better. Best strategy per ordering in bold.
+Ordering Metric Naive Cumulative MSTE Replay
+Curriculum (asc.) ROC-AUC↑ 46.4±6.2 74.4±16.7 86.8±16.2 70.9±8.0 FM↓ 48.2±16.1 14.7±7.9 7.5±18.1 20.1±3.7
+Curriculum (desc.) ROC-AUC↑ 62.8±4.3 64.5±15.4 87.5±10.8 72.8±19.5 FM↓ 32.2±5.8 10.2±5.9 0.5±1.2 14.1±7.0
+Generalization (asc.) ROC-AUC↑ 61.1±4.7 67.3±12.9 88.1±9.7 68.4±20.1 FM↓ 34.2±5.2 11.7±4.7 0.3±0.7 15.5±4.1
+Generalization (desc.) ROC-AUC↑ 49.5±3.5 72.3±14.7 91.0±9.4 73.3±10.8 FM↓ 50.7±7.5 14.7±11.1 0.2±0.5 19.4±5.6
+Smooth drift ROC-AUC↑ 49.3±4.7 70.8±18.5 91.6±8.7 71.9±15.3 FM↓ 50.3±5.5 19.5±15.9 0.3±0.6 20.9±12.1
+Abrupt drift ROC-AUC↑ 55.1±2.3 68.3±16.2 87.5±11.9 72.5±18.2 FM↓ 43.5±13.0 8.2±5.1 0.4±0.9 16.3±2.5
+The CICUNSW scenario shows one of the clearest separations between naive sequential adaptation
+and stronger continual references. Across orderings, Naive exhibits both lower final performance
+and larger forgetting, while MSTE and, in many cases, Replay or Cumulative preserve substantially
+better performance. This makes CICUNSW particularly useful for stressing the framework under
+harder transfer and retention conditions. Figures 11 and 12 provide the corresponding ordering-wise
+summaries.
+31
+
+===== PAGE 32 =====
+t9 t2 t6 t3 t0
+t9t2t6t3t0
+Naive
+0.89
+0.47 0.95
+0.21 0.42 0.83
+0.41 0.17 0.04 0.78
+0.19 0.14 0.27 0.27 0.84
+Curr. 
+t0 t3 t6 t2 t9
+t0t3t6t2t9
+0.86
+0.49 0.79
+0.50 0.34 0.95
+0.68 0.38 0.19 0.91
+0.59 0.62 0.41 0.65 0.99
+Curr. 
+t0 t6 t3 t2 t9
+t0t6t3t2t9
+0.85
+0.52 0.94
+0.51 0.05 0.78
+0.69 0.20 0.31 0.93
+0.59 0.53 0.55 0.65 0.99
+Gen. 
+t9 t2 t3 t6 t0
+t9t2t3t6t0
+0.99
+0.47 0.91
+0.45 0.18 0.79
+0.30 0.32 0.38 0.95
+0.18 0.10 0.27 0.23 0.84
+Gen. 
+t9 t3 t2 t6 t0
+t9t3t2t6t0
+0.99
+0.39 0.76
+0.51 0.30 0.93
+0.22 0.22 0.37 0.95
+0.20 0.26 0.11 0.26 0.87
+Smooth
+t2 t3 t6 t0 t9
+t2t3t6t0t9
+0.91
+0.18 0.71
+0.43 0.31 0.95
+0.10 0.26 0.25 0.86
+0.67 0.53 0.46 0.56 0.99
+Abrupt
+t9 t2 t6 t3 t0
+t9t2t6t3t0
+Cumulative
+0.99
+0.94 0.91
+0.86 0.85 0.70
+0.64 0.79 0.49 0.73
+0.69 0.79 0.21 0.73 0.77
+t0 t3 t6 t2 t9
+t0t3t6t2t9
+0.87
+0.81 0.71
+0.70 0.63 0.46
+0.72 0.67 0.35 0.71
+0.73 0.62 0.42 0.64 0.55
+t0 t6 t3 t2 t9
+t0t6t3t2t9
+0.85
+0.84 0.69
+0.76 0.40 0.73
+0.77 0.37 0.70 0.69
+0.72 0.35 0.70 0.78 0.67
+t9 t2 t3 t6 t0
+t9t2t3t6t0
+0.99
+0.94 0.90
+0.71 0.70 0.69
+0.61 0.81 0.72 0.45
+0.60 0.78 0.71 0.38 0.77
+t9 t3 t2 t6 t0
+t9t3t2t6t0
+0.99
+0.60 0.70
+0.72 0.68 0.81
+0.72 0.67 0.66 0.42
+0.79 0.76 0.80 0.44 0.78
+t2 t3 t6 t0 t9
+t2t3t6t0t9
+0.91
+0.77 0.74
+0.78 0.72 0.36
+0.85 0.78 0.23 0.84
+0.78 0.73 0.35 0.77 0.57
+t9 t2 t6 t3 t0
+t9t2t6t3t0
+MSTE
+0.99
+0.97 0.93
+0.83 0.78 0.96
+0.98 0.90 0.80 0.76
+0.83 0.78 0.91 0.63 0.89
+t0 t3 t6 t2 t9
+t0t3t6t2t9
+0.86
+0.86 0.76
+0.86 0.76 0.95
+0.86 0.76 0.95 0.93
+0.86 0.76 0.95 0.93 0.99
+t0 t6 t3 t2 t9
+t0t6t3t2t9
+0.83
+0.83 0.95
+0.83 0.95 0.77
+0.83 0.95 0.77 0.94
+0.83 0.95 0.77 0.94 0.99
+t9 t2 t3 t6 t0
+t9t2t3t6t0
+0.99
+0.99 0.92
+0.99 0.92 0.73
+0.99 0.92 0.73 0.95
+0.99 0.92 0.73 0.95 0.86
+t9 t3 t2 t6 t0
+t9t3t2t6t0
+0.99
+0.99 0.79
+0.99 0.79 0.93
+0.99 0.79 0.93 0.95
+0.99 0.79 0.93 0.95 0.87
+t2 t3 t6 t0 t9
+t2t3t6t0t9
+0.92
+0.92 0.74
+0.92 0.74 0.94
+0.92 0.74 0.94 0.84
+0.92 0.74 0.94 0.84 0.99
+0.0
+0.2
+0.4
+0.6
+0.8
+1.0
+ROC-AUC
+CICUNSW: ROC-AUC matrices by ordering and strategy (averaged across models)
+Figure 11: Ordering-specific validation results on CAD-CICUNSW measured with ROC-AUC. The
+figure highlights the strong performance gap between Naive and stronger reference strategies across
+the retained orderings.
+t9 t2 t6 t3 t0
+t9t2t6t3t0
+Naive
+0.84
+0.14 0.80
+-0.16 0.22 0.75
+0.15 0.04 -0.37 0.38
+-0.09 0.00 -0.07 -0.05 0.62
+Curr. 
+t0 t3 t6 t2 t9
+t0t3t6t2t9
+0.61
+0.06 0.44
+0.13 0.03 0.93
+0.19 -0.03 -0.28 0.75
+0.16 0.05 0.03 0.36 0.98
+Curr. 
+t0 t6 t3 t2 t9
+t0t6t3t2t9
+0.59
+0.17 0.93
+0.08 -0.38 0.43
+0.19 -0.24 -0.05 0.80
+0.14 0.25 0.01 0.39 0.98
+Gen. 
+t9 t2 t3 t6 t0
+t9t2t3t6t0
+0.98
+0.11 0.80
+0.16 0.04 0.42
+-0.03 0.14 0.03 0.93
+-0.10 -0.02 -0.05 -0.16 0.60
+Gen. 
+t9 t3 t2 t6 t0
+t9t3t2t6t0
+0.99
+0.09 0.40
+0.22 -0.05 0.82
+-0.20 -0.05 0.12 0.93
+-0.08 -0.05 -0.02 -0.10 0.63
+Smooth
+t2 t3 t6 t0 t9
+t2t3t6t0t9
+0.72
+0.05 0.40
+0.19 -0.03 0.93
+-0.02 -0.05 -0.08 0.61
+0.31 0.01 0.07 0.14 0.98
+Abrupt
+t9 t2 t6 t3 t0
+t9t2t6t3t0
+Cumulative
+0.98
+0.89 0.82
+0.74 0.69 0.59
+0.45 0.52 0.17 0.32
+0.49 0.47 -0.17 0.22 0.43
+t0 t3 t6 t2 t9
+t0t3t6t2t9
+0.62
+0.45 0.29
+0.35 0.20 0.11
+0.37 0.18 0.01 0.40
+0.35 0.13 0.03 0.35 0.33
+t0 t6 t3 t2 t9
+t0t6t3t2t9
+0.63
+0.60 0.53
+0.41 0.01 0.30
+0.40 -0.03 0.17 0.37
+0.34 -0.08 0.19 0.44 0.49
+t9 t2 t3 t6 t0
+t9t2t3t6t0
+0.98
+0.89 0.80
+0.55 0.46 0.34
+0.38 0.44 0.23 0.10
+0.38 0.43 0.19 0.02 0.39
+t9 t3 t2 t6 t0
+t9t3t2t6t0
+0.99
+0.44 0.37
+0.55 0.32 0.48
+0.54 0.22 0.35 0.07
+0.67 0.23 0.45 0.10 0.41
+t2 t3 t6 t0 t9
+t2t3t6t0t9
+0.75
+0.48 0.35
+0.47 0.27 -0.03
+0.54 0.29 -0.20 0.48
+0.46 0.24 0.00 0.37 0.38
+t9 t2 t6 t3 t0
+t9t2t6t3t0
+MSTE
+0.99
+0.96 0.84
+0.77 0.67 0.94
+0.97 0.71 0.72 0.44
+0.77 0.67 0.84 0.31 0.69
+t0 t3 t6 t2 t9
+t0t3t6t2t9
+0.63
+0.63 0.39
+0.63 0.39 0.93
+0.63 0.39 0.93 0.83
+0.63 0.39 0.93 0.83 0.99
+t0 t6 t3 t2 t9
+t0t6t3t2t9
+0.59
+0.59 0.93
+0.59 0.93 0.42
+0.59 0.93 0.42 0.83
+0.59 0.93 0.42 0.83 0.99
+t9 t2 t3 t6 t0
+t9t2t3t6t0
+0.99
+0.99 0.83
+0.99 0.83 0.41
+0.99 0.83 0.41 0.93
+0.99 0.83 0.41 0.93 0.65
+t9 t3 t2 t6 t0
+t9t3t2t6t0
+0.99
+0.99 0.43
+0.99 0.43 0.81
+0.99 0.43 0.81 0.93
+0.99 0.43 0.81 0.93 0.63
+t2 t3 t6 t0 t9
+t2t3t6t0t9
+0.81
+0.81 0.39
+0.81 0.39 0.92
+0.81 0.39 0.92 0.59
+0.81 0.39 0.92 0.59 0.99
+1.00
+0.75
+0.50
+0.25
+0.00
+0.25
+0.50
+0.75
+1.00
+Normalized-PR-AUC
+CICUNSW: Normalized-PR-AUC matrices by ordering and strategy (averaged across models)
+Figure 12: Ordering-specific validation results on CAD-CICUNSW measured with normalized PR-
+AUC. The same general pattern as in ROC-AUC is preserved, confirming that the scenario remains
+challenging under imbalance-aware evaluation.
+32
+
+===== PAGE 33 =====
+Table 24: Normalized-PR-AUC (mean ± std across models) per ordering on CAD-CICUNSW. FM↓:
+lower is better. Best strategy per ordering in bold.
+Ordering Metric Naive Cumulative MSTE Replay
+Curriculum (asc.) Normalized-PR-AUC↑ 21.9±9.8 51.2±20.0 75.8±20.9 47.6±10.4 FM↓ 63.8±25.9 24.9±8.7 9.8±24.0 31.8±5.4
+Curriculum (desc.) Normalized-PR-AUC↑ 30.0±9.1 28.3±14.7 68.0±15.8 39.5±20.7 FM↓ 45.5±10.1 14.6±6.8 0.0±0.0 24.2±4.7
+Generalization (asc.) Normalized-PR-AUC↑ 29.1±6.9 32.3±11.6 71.2±13.9 35.4±22.7 FM↓ 50.4±10.1 20.2±7.4 0.0±0.0 27.8±5.5
+Generalization (desc.) Normalized-PR-AUC↑ 26.1±6.1 44.2±17.8 80.3±12.0 48.0±12.5 FM↓ 66.2±10.6 25.1±13.3 0.0±0.0 31.4±6.4
+Smooth drift Normalized-PR-AUC↑ 24.8±3.5 41.7±22.9 77.7±11.6 44.3±20.4 FM↓ 63.7±9.0 26.4±16.5 0.0±0.0 31.5±10.7
+Abrupt drift Normalized-PR-AUC↑ 28.8±7.7 32.9±18.6 70.9±16.2 39.8±21.7 FM↓ 49.9±18.0 16.0±5.0 0.0±0.0 30.9±9.9
+H.4 MCAD-CIC-3x1
+Table 25: ROC-AUC (mean ± std across models) per ordering on MCAD-CIC-3x1. FM↓: lower is
+better. Best strategy per ordering in bold.
+Ordering Metric Naive Cumulative MSTE Replay
+Curriculum (asc.) ROC-AUC↑ 64.3±6.5 71.5±9.7 79.1±9.6 69.4±9.4 FM↓ 17.8±7.6 7.4±4.2 0.0±0.0 12.8±4.4
+Curriculum (desc.) ROC-AUC↑ 66.1±5.3 68.9±13.0 70.7±13.8 70.1±8.3 FM↓ 9.4±7.5 5.0±1.7 0.0±0.0 3.2±4.3
+Generalization (asc.) ROC-AUC↑ 66.7±5.2 69.4±8.0 68.9±11.0 74.4±9.4 FM↓ 15.4±9.4 4.7±3.9 0.1±0.2 5.3±2.7
+Generalization (desc.) ROC-AUC↑ 64.8±5.3 68.5±11.0 74.1±16.4 67.5±5.1 FM↓ 13.7±9.6 4.7±5.7 0.0±0.0 7.7±6.3
+Smooth drift ROC-AUC↑ 67.4±5.5 67.0±11.0 72.0±11.0 66.4±9.8 FM↓ 11.6±9.3 3.0±1.1 0.0±0.0 7.2±6.5
+Abrupt drift ROC-AUC↑ 69.5±4.6 64.5±6.0 66.8±12.7 69.0±7.9 FM↓ 9.9±9.2 4.2±3.9 0.7±1.5 5.4±3.6
+33
+
+===== PAGE 34 =====
+Table 26: Normalized-PR-AUC (mean ± std across models) per ordering on MCAD-CIC-3x1. FM↓:
+lower is better. Best strategy per ordering in bold.
+Ordering Metric Naive Cumulative MSTE Replay
+Curriculum (asc.) Normalized-PR-AUC↑ 28.4±12.2 37.7±10.1 41.7±15.1 34.9±12.0 FM↓ 17.7±12.0 9.0±5.5 0.0±0.0 13.7±4.9
+Curriculum (desc.) Normalized-PR-AUC↑ 27.4±4.8 37.3±18.6 39.2±23.6 34.7±12.1 FM↓ 19.9±16.4 6.8±3.8 0.0±0.0 9.8±3.7
+Generalization (asc.) Normalized-PR-AUC↑ 33.1±4.3 35.2±8.9 34.5±14.2 42.3±14.1 FM↓ 23.2±20.9 7.1±7.2 0.0±0.0 9.0±5.3
+Generalization (desc.) Normalized-PR-AUC↑ 24.7±8.1 33.3±9.0 37.7±26.1 27.5±2.5 FM↓ 18.1±20.4 6.6±5.5 0.0±0.0 11.6±8.0
+Smooth drift Normalized-PR-AUC↑ 28.3±6.9 35.7±14.2 42.6±14.7 27.1±14.2 FM↓ 21.3±19.1 4.0±3.1 0.0±0.0 15.0±14.7
+Abrupt drift Normalized-PR-AUC↑ 37.3±4.3 34.9±7.0 34.6±16.6 36.7±10.8 FM↓ 17.6±14.3 3.5±1.6 0.6±1.2 8.1±4.7
+H.5 MCAD-CIC-3xN
+Table 27: ROC-AUC (mean ± std across models) per ordering on MCAD-CIC-3xN. FM↓: lower is
+better. Best strategy per ordering in bold.
+Ordering Metric Naive Cumulative MSTE Replay
+Curriculum (asc.) ROC-AUC↑ 46.1±6.1 78.3±9.4 92.0±6.5 80.7±8.0 FM↓ 56.8±9.9 12.6±7.5 0.0±0.1 12.2±5.6
+Curriculum (desc.) ROC-AUC↑ 50.6±1.1 66.5±8.4 87.3±6.9 70.7±13.0 FM↓ 38.9±5.6 16.1±3.9 0.5±1.0 16.9±6.3
+Generalization (asc.) ROC-AUC↑ 53.4±1.4 70.7±6.6 88.9±5.2 78.2±7.7 FM↓ 41.9±6.7 12.7±4.1 0.3±0.7 12.3±3.6
+Generalization (desc.) ROC-AUC↑ 42.9±5.9 71.7±12.9 88.9±8.0 75.9±12.0 FM↓ 54.1±9.9 18.4±8.7 0.2±0.3 16.2±8.0
+Smooth drift ROC-AUC↑ 46.7±3.4 68.4±11.0 86.0±9.1 74.8±13.3 FM↓ 43.3±7.1 17.4±7.2 1.1±2.1 14.2±7.6
+Abrupt drift ROC-AUC↑ 45.2±5.0 73.7±11.1 90.5±7.7 79.9±8.9 FM↓ 49.4±10.6 13.1±5.4 0.2±0.3 12.4±5.0
+The multi-dataset CAD-CIC-3xN scenario is substantially harder than the single-dataset cases. The
+ordering-wise results show that Naive degrades sharply and that even stronger continual baselines
+must operate under more severe distributional heterogeneity. This is consistent with the intended role
+of multi-dataset scenarios as a stress test for continual anomaly detection. Figures 13 and 14 illustrate
+this effect.
+34
+
+===== PAGE 35 =====
+t9
+t2
+t7
+t0
+t2
+t3
+t6
+t6
+t0
+t3
+t7
+t5
+t4
+t9t2t7t0t2t3t6t6t0t3t7t5t4
+Naive
+Curr. 
+t4
+t5
+t7
+t3
+t0
+t6
+t6
+t3
+t2
+t0
+t7
+t2
+t9
+t4t5t7t3t0t6t6t3t2t0t7t2t9
+Curr. 
+t7
+t0
+t3
+t6
+t5
+t2
+t6
+t4
+t3
+t7
+t0
+t2
+t9
+t7t0t3t6t5t2t6t4t3t7t0t2t9
+Gen. 
+t9
+t2
+t0
+t7
+t3
+t4
+t6
+t2
+t5
+t6
+t3
+t0
+t7
+t9t2t0t7t3t4t6t2t5t6t3t0t7
+Gen. 
+t6
+t7
+t0
+t5
+t7
+t2
+t9
+t3
+t4
+t0
+t6
+t2
+t3
+t6t7t0t5t7t2t9t3t4t0t6t2t3
+Smooth
+t0
+t3
+t9
+t2
+t3
+t6
+t7
+t0
+t2
+t6
+t5
+t7
+t4
+t0t3t9t2t3t6t7t0t2t6t5t7t4
+Abrupt
+t9
+t2
+t7
+t0
+t2
+t3
+t6
+t6
+t0
+t3
+t7
+t5
+t4
+t9t2t7t0t2t3t6t6t0t3t7t5t4
+Replay
+t4
+t5
+t7
+t3
+t0
+t6
+t6
+t3
+t2
+t0
+t7
+t2
+t9
+t4t5t7t3t0t6t6t3t2t0t7t2t9
+t7
+t0
+t3
+t6
+t5
+t2
+t6
+t4
+t3
+t7
+t0
+t2
+t9
+t7t0t3t6t5t2t6t4t3t7t0t2t9
+t9
+t2
+t0
+t7
+t3
+t4
+t6
+t2
+t5
+t6
+t3
+t0
+t7
+t9t2t0t7t3t4t6t2t5t6t3t0t7
+t6
+t7
+t0
+t5
+t7
+t2
+t9
+t3
+t4
+t0
+t6
+t2
+t3
+t6t7t0t5t7t2t9t3t4t0t6t2t3
+t0
+t3
+t9
+t2
+t3
+t6
+t7
+t0
+t2
+t6
+t5
+t7
+t4
+t0t3t9t2t3t6t7t0t2t6t5t7t4
+t9
+t2
+t7
+t0
+t2
+t3
+t6
+t6
+t0
+t3
+t7
+t5
+t4
+t9t2t7t0t2t3t6t6t0t3t7t5t4
+Cumulative
+t4
+t5
+t7
+t3
+t0
+t6
+t6
+t3
+t2
+t0
+t7
+t2
+t9
+t4t5t7t3t0t6t6t3t2t0t7t2t9
+t7
+t0
+t3
+t6
+t5
+t2
+t6
+t4
+t3
+t7
+t0
+t2
+t9
+t7t0t3t6t5t2t6t4t3t7t0t2t9
+t9
+t2
+t0
+t7
+t3
+t4
+t6
+t2
+t5
+t6
+t3
+t0
+t7
+t9t2t0t7t3t4t6t2t5t6t3t0t7
+t6
+t7
+t0
+t5
+t7
+t2
+t9
+t3
+t4
+t0
+t6
+t2
+t3
+t6t7t0t5t7t2t9t3t4t0t6t2t3
+t0
+t3
+t9
+t2
+t3
+t6
+t7
+t0
+t2
+t6
+t5
+t7
+t4
+t0t3t9t2t3t6t7t0t2t6t5t7t4
+t9
+t2
+t7
+t0
+t2
+t3
+t6
+t6
+t0
+t3
+t7
+t5
+t4
+t9t2t7t0t2t3t6t6t0t3t7t5t4
+MSTE
+t4
+t5
+t7
+t3
+t0
+t6
+t6
+t3
+t2
+t0
+t7
+t2
+t9
+t4t5t7t3t0t6t6t3t2t0t7t2t9
+t7
+t0
+t3
+t6
+t5
+t2
+t6
+t4
+t3
+t7
+t0
+t2
+t9
+t7t0t3t6t5t2t6t4t3t7t0t2t9
+t9 t2 t0 t7 t3 t4 t6 t2 t5 t6 t3 t0 t7
+t9t2t0t7t3t4t6t2t5t6t3t0t7
+t6 t7 t0 t5 t7 t2 t9 t3 t4 t0 t6 t2 t3
+t6t7t0t5t7t2t9t3t4t0t6t2t3
+t0 t3 t9 t2 t3 t6 t7 t0 t2 t6 t5 t7 t4
+t0t3t9t2t3t6t7t0t2t6t5t7t4
+0.0
+0.2
+0.4
+0.6
+0.8
+1.0
+ROC-AUC
+MCAD-CIC-3xN: ROC-AUC matrices by ordering and strategy (averaged across models)
+Figure 13: Ordering-specific validation results on CAD-CIC-3xN measured with ROC-AUC. Com-
+pared with the single-dataset scenarios, the multi-dataset setting induces substantially harsher
+continual-learning conditions.
+t9
+t2
+t7
+t0
+t2
+t3
+t6
+t6
+t0
+t3
+t7
+t5
+t4
+t9t2t7t0t2t3t6t6t0t3t7t5t4
+Naive
+Curr. 
+t4
+t5
+t7
+t3
+t0
+t6
+t6
+t3
+t2
+t0
+t7
+t2
+t9
+t4t5t7t3t0t6t6t3t2t0t7t2t9
+Curr. 
+t7
+t0
+t3
+t6
+t5
+t2
+t6
+t4
+t3
+t7
+t0
+t2
+t9
+t7t0t3t6t5t2t6t4t3t7t0t2t9
+Gen. 
+t9
+t2
+t0
+t7
+t3
+t4
+t6
+t2
+t5
+t6
+t3
+t0
+t7
+t9t2t0t7t3t4t6t2t5t6t3t0t7
+Gen. 
+t6
+t7
+t0
+t5
+t7
+t2
+t9
+t3
+t4
+t0
+t6
+t2
+t3
+t6t7t0t5t7t2t9t3t4t0t6t2t3
+Smooth
+t0
+t3
+t9
+t2
+t3
+t6
+t7
+t0
+t2
+t6
+t5
+t7
+t4
+t0t3t9t2t3t6t7t0t2t6t5t7t4
+Abrupt
+t9
+t2
+t7
+t0
+t2
+t3
+t6
+t6
+t0
+t3
+t7
+t5
+t4
+t9t2t7t0t2t3t6t6t0t3t7t5t4
+Replay
+t4
+t5
+t7
+t3
+t0
+t6
+t6
+t3
+t2
+t0
+t7
+t2
+t9
+t4t5t7t3t0t6t6t3t2t0t7t2t9
+t7
+t0
+t3
+t6
+t5
+t2
+t6
+t4
+t3
+t7
+t0
+t2
+t9
+t7t0t3t6t5t2t6t4t3t7t0t2t9
+t9
+t2
+t0
+t7
+t3
+t4
+t6
+t2
+t5
+t6
+t3
+t0
+t7
+t9t2t0t7t3t4t6t2t5t6t3t0t7
+t6
+t7
+t0
+t5
+t7
+t2
+t9
+t3
+t4
+t0
+t6
+t2
+t3
+t6t7t0t5t7t2t9t3t4t0t6t2t3
+t0
+t3
+t9
+t2
+t3
+t6
+t7
+t0
+t2
+t6
+t5
+t7
+t4
+t0t3t9t2t3t6t7t0t2t6t5t7t4
+t9
+t2
+t7
+t0
+t2
+t3
+t6
+t6
+t0
+t3
+t7
+t5
+t4
+t9t2t7t0t2t3t6t6t0t3t7t5t4
+Cumulative
+t4
+t5
+t7
+t3
+t0
+t6
+t6
+t3
+t2
+t0
+t7
+t2
+t9
+t4t5t7t3t0t6t6t3t2t0t7t2t9
+t7
+t0
+t3
+t6
+t5
+t2
+t6
+t4
+t3
+t7
+t0
+t2
+t9
+t7t0t3t6t5t2t6t4t3t7t0t2t9
+t9
+t2
+t0
+t7
+t3
+t4
+t6
+t2
+t5
+t6
+t3
+t0
+t7
+t9t2t0t7t3t4t6t2t5t6t3t0t7
+t6
+t7
+t0
+t5
+t7
+t2
+t9
+t3
+t4
+t0
+t6
+t2
+t3
+t6t7t0t5t7t2t9t3t4t0t6t2t3
+t0
+t3
+t9
+t2
+t3
+t6
+t7
+t0
+t2
+t6
+t5
+t7
+t4
+t0t3t9t2t3t6t7t0t2t6t5t7t4
+t9
+t2
+t7
+t0
+t2
+t3
+t6
+t6
+t0
+t3
+t7
+t5
+t4
+t9t2t7t0t2t3t6t6t0t3t7t5t4
+MSTE
+t4
+t5
+t7
+t3
+t0
+t6
+t6
+t3
+t2
+t0
+t7
+t2
+t9
+t4t5t7t3t0t6t6t3t2t0t7t2t9
+t7
+t0
+t3
+t6
+t5
+t2
+t6
+t4
+t3
+t7
+t0
+t2
+t9
+t7t0t3t6t5t2t6t4t3t7t0t2t9
+t9 t2 t0 t7 t3 t4 t6 t2 t5 t6 t3 t0 t7
+t9t2t0t7t3t4t6t2t5t6t3t0t7
+t6 t7 t0 t5 t7 t2 t9 t3 t4 t0 t6 t2 t3
+t6t7t0t5t7t2t9t3t4t0t6t2t3
+t0 t3 t9 t2 t3 t6 t7 t0 t2 t6 t5 t7 t4
+t0t3t9t2t3t6t7t0t2t6t5t7t4
+1.00
+0.75
+0.50
+0.25
+0.00
+0.25
+0.50
+0.75
+1.00
+Normalized-PR-AUC
+MCAD-CIC-3xN: Normalized-PR-AUC matrices by ordering and strategy (averaged across models)
+Figure 14: Ordering-specific validation results on CAD-CIC-3xN measured with normalized PR-
+AUC. The stronger degradation of Naive persists under imbalance-aware evaluation, reinforcing the
+difficulty of the multi-dataset setting.
+35
+
+===== PAGE 36 =====
+Table 28: Normalized-PR-AUC (mean ± std across models) per ordering on MCAD-CIC-3xN. FM↓:
+lower is better. Best strategy per ordering in bold.
+Ordering Metric Naive Cumulative MSTE Replay
+Curriculum (asc.) Normalized-PR-AUC↑ 19.4±4.8 61.1±13.1 83.4±10.8 64.3±10.7 FM↓ 78.2±9.6 18.0±9.8 0.0±0.1 18.5±6.7
+Curriculum (desc.) Normalized-PR-AUC↑ 15.6±3.8 31.9±8.1 67.8±14.5 36.1±14.9 FM↓ 54.2±8.2 24.2±3.2 0.8±1.5 27.9±6.7
+Generalization (asc.) Normalized-PR-AUC↑ 19.2±6.6 45.5±8.2 73.7±11.2 54.7±10.0 FM↓ 61.9±10.3 18.8±4.0 0.4±0.9 22.6±4.5
+Generalization (desc.) Normalized-PR-AUC↑ 14.7±7.0 46.8±16.9 73.1±13.4 51.1±14.7 FM↓ 70.5±8.2 24.6±11.6 0.0±0.0 25.9±5.5
+Smooth drift Normalized-PR-AUC↑ 16.1±3.2 39.3±13.1 67.4±15.4 48.7±15.7 FM↓ 58.1±6.9 24.3±7.5 0.9±1.7 23.0±6.4
+Abrupt drift Normalized-PR-AUC↑ 16.5±5.5 52.6±14.8 78.2±12.3 60.8±11.2 FM↓ 67.1±13.3 17.8±5.5 0.0±0.1 19.0±4.6
+I Additional results discussion
+I.1 Why can Cumulative underperform?
+The CICIDS2017 scenario provides a concrete example of why full access to past data does not
+necessarily make Cumulative the strongest continual reference. The cumulative strategy retrains on
+the union of all data observed so far. While this removes forgetting in principle, it also means that the
+effective optimization objective is heavily shaped by the empirical distribution of the retained tasks.
+If that distribution is strongly imbalanced, the model can become disproportionately tuned to a small
+number of dominant concepts, at the expense of smaller ones.
+The per-concept statistics (see Table 9) show that this imbalance is substantial in the final CICIDS2017
+scenario. In particular, concept cicids2017_1 contains 1,434,082 training samples and 411,738 test
+samples, whereas the smallest concepts contain only 1,713 or 8,392 training samples. Aggregated
+over the final task set, cicids2017_1 alone contributes roughly 88% of the training data and about
+81% of the test data. As a result, cumulative retraining without explicit task balancing or reweighting
+is dominated by the largest concept, while the optimization signal associated with smaller concepts
+becomes comparatively weak. Similar observations can be drawn for other datasets, as shown in
+Tables 11 and 13.
+This matters because our evaluation is scenario-oriented rather than distribution-oriented: we care
+about performance across all tasks, not only about performance on the dominant regime. A detector
+that improves strongly on the largest concept can still yield disappointing average task-level per-
+formance if it underfits smaller concepts or fails to preserve their specific decision boundaries. In
+this sense, more data is not automatically better when that data is concentrated in a single regime.
+The additional samples can bias the learned representation toward the dominant concept instead of
+improving balanced generalization across the scenario.
+This observation also clarifies why MSTE and Replay can behave more favorably. MSTE is unaffected
+by cross-task imbalance because each expert is trained independently on a single task. Replay, while
+still imperfect, partially limits domination by the largest concept because the replay buffer caps the
+amount of data that any one task can contribute during training. Cumulative, by contrast, inherits the
+raw imbalance of the scenario directly.
+The broader implication is methodological. In CAD, cumulative should not always be interpreted as
+a clean upper bound solely because it has access to all past data. Its behavior also depends on how
+the scenario distributes samples across tasks. This is precisely why explicit scenario characterization
+is necessary: baseline performance is shaped not only by the continual strategy itself, but also by
+structural properties such as task size imbalance.
+36
+
+===== PAGE 37 =====
+J Per-Dataset Scenario Construction Reports
+This appendix provides a dataset-level trace of how each final benchmark scenario was constructed
+using our framework. For each dataset, we report the intermediate outputs produced at successive
+stages of the pipeline, including the generation of candidate tasks, the results of the filtering criteria,
+and the scenario task evaluation (STE) scores obtained across different candidate task configurations.
+These reports complement the aggregate description in the main paper by making the scenario-
+construction process transparent, auditable, and reproducible for each dataset individually.
+For clarity, task identifiers used during framework execution may differ from the human-readable
+identifiers reported in the final scenario tables, as we rename them to keep the consistent incremental
+task ids (0, 1, 2)
+J.1 CICIDS2017
+Table 29: Scenario CAD-CICIDS2017: Task filtering results per task discovery configuration.
+BC = BothClasses, CA = Closest Anomalies, RA = Random Anomalies, GM = Gaussian Mixture,
+KM = K-Means, SC = Spectral Clustering.By Day = Split by day/part of the day
+Config IT. FC1 FC2 FC3 FC4 FC5 FT MT Final tasks.
+By Day 7 t1 t1, t2, t3, t4 t1, t3, t4 t0, t1, t2, t3, t4, t5 t0, t2, t3, t4 1 ✗ —
+BC / GM 7 — t4 — — — 6 ✓ t0, t1, t2, t3, t5, t6
+BC / KM 7 — t1, t5 t1, t5 — — 5 ✓ t0, t2, t3, t4, t6
+BC / SC 10 — t1, t4, t6, t7 t0, t7 t1, t6, t7 — 5 ✓ t2, t3, t5, t8, t9
+CA / GM 8 t2, t6 t0, t2, t5, t6 t5 — — 4 ✓ t1, t3, t4, t7
+CA / KM 8 — t0, t2, t4 t4 t0, t4 — 5 ✓ t1, t3, t5, t6, t7
+CA / SC 10 t2 t0, t1, t2, t3, t8 t0, t1, t2, t3, t6 t1, t6 — 4 ✓ t4, t5, t7, t9
+RA / GM 9 — — t4 t7 — 7 ✓ t0, t1, t2, t3, t5, t6, t8
+RA / KM 8 — — t5 t4 t4 6 ✓ t0, t1, t2, t3, t6, t7
+RA / SC 10 — t1 t6 t1, t4, t5, t6, t8, t9 t1, t5, t6 4 ✓ t0, t2, t3, t7
+The CICIDS2017 construction report shows that the final split is not the outcome of a single heuristic,
+but of sequential filtering based on learnability, transfer coverage, and redundancy. The filtering
+table identifies which candidate task configurations are rejected and why, while Figures 15 and 16
+visualize the corresponding STE transfer structure. The retained split exhibits the intended pattern of
+strong self-performance together with non-trivial off-diagonal variation, indicating that tasks are both
+learnable and sufficiently heterogeneous.
+37
+
+===== PAGE 38 =====
+t0 t1 t2 t3 t4 t5 t6
+t0t1t2t3t4t5t6
+cicids2017_by_day
+0.72 0.61 0.54 0.92 0.68 0.71 0.92
+0.68 0.59 0.61 0.94 0.73 0.74 0.93
+0.67 0.61 0.58 0.93 0.69 0.73 0.92
+0.67 0.32 0.51 0.93 0.64 0.72 0.91
+0.69 0.54 0.58 0.93 0.70 0.76 0.93
+0.67 0.46 0.58 0.94 0.64 0.75 0.92
+0.68 0.59 0.55 0.94 0.70 0.72 0.93
+IF
+t0 t1 t2 t3 t4 t5 t6
+t0t1t2t3t4t5t6
+0.91 0.93 0.70 0.94 0.73 0.75 0.97
+0.78 0.88 0.70 0.94 0.71 0.75 0.96
+0.78 0.92 0.74 0.94 0.68 0.78 0.96
+0.79 0.44 0.54 0.96 0.63 0.77 0.96
+0.77 0.93 0.71 0.95 0.77 0.80 0.96
+0.76 0.83 0.67 0.94 0.61 0.76 0.95
+0.79 0.88 0.71 0.95 0.58 0.69 0.97
+AE
+t0 t1 t2 t3 t4 t5 t6
+t0t1t2t3t4t5t6
+0.77 0.74 0.53 0.90 0.72 0.64 0.96
+0.72 0.71 0.56 0.94 0.74 0.56 0.96
+0.72 0.77 0.61 0.92 0.73 0.49 0.97
+0.73 0.65 0.49 0.94 0.68 0.56 0.96
+0.72 0.78 0.62 0.93 0.72 0.45 0.95
+0.72 0.66 0.56 0.94 0.75 0.60 0.96
+0.74 0.77 0.61 0.93 0.70 0.48 0.96
+AE1SVM
+t0 t1 t2 t3 t4 t5 t6
+t0t1t2t3t4t5t6
+BC / GM
+0.52 0.57 0.95 0.37 0.98 0.09 0.62
+0.30 0.78 0.18 0.07 0.91 0.71 0.42
+0.37 0.47 0.89 0.32 0.39 0.00 0.53
+0.22 0.05 0.85 0.92 1.00 0.00 0.67
+0.36 0.90 0.25 0.16 0.99 0.74 0.52
+0.48 0.44 0.73 0.11 0.26 0.98 0.52
+0.29 0.65 0.75 0.12 0.90 0.31 0.59
+t0 t1 t2 t3 t4 t5 t6
+t0t1t2t3t4t5t6
+0.80 0.55 0.91 0.68 0.92 0.58 0.72
+0.31 0.96 0.68 0.24 0.91 0.78 0.57
+0.22 0.38 0.99 0.38 0.91 0.80 0.58
+0.57 0.81 0.54 0.96 0.92 0.00 0.61
+0.25 0.82 0.55 0.25 1.00 0.51 0.49
+0.35 0.82 0.39 0.04 0.91 1.00 0.56
+0.52 0.82 0.81 0.25 1.00 0.62 0.77
+t0 t1 t2 t3 t4 t5 t6
+t0t1t2t3t4t5t6
+0.92 0.53 0.92 0.59 0.91 0.77 0.72
+0.36 0.87 0.91 0.32 0.91 0.80 0.57
+0.27 0.12 0.94 0.38 0.91 0.80 0.58
+0.69 0.72 0.53 0.99 1.00 0.38 0.46
+0.28 0.86 0.55 0.25 1.00 0.51 0.49
+0.23 0.18 0.36 0.39 0.00 1.00 0.30
+0.57 0.82 0.75 0.33 0.92 0.24 0.76
+t0 t1 t2 t3 t4 t5 t6
+t0t1t2t3t4t5t6
+BC / KM
+0.78 0.88 0.65 0.61 0.93 0.34 0.66
+0.48 0.94 0.21 0.90 0.93 0.31 0.71
+0.51 0.97 0.87 0.97 0.98 0.34 0.75
+0.71 0.62 0.24 0.94 0.32 0.72 0.33
+0.44 0.95 0.24 0.68 0.95 0.26 0.76
+0.57 0.16 0.37 0.72 0.46 0.97 0.44
+0.42 0.79 0.80 0.52 0.84 0.33 0.85
+t0 t1 t2 t3 t4 t5 t6
+t0t1t2t3t4t5t6
+0.86 0.28 0.75 0.79 0.98 0.60 0.55
+0.45 0.94 0.60 0.79 0.98 0.55 0.53
+0.54 0.75 0.90 0.98 0.98 0.38 0.70
+0.51 0.16 0.54 1.00 0.25 0.33 0.68
+0.47 0.84 0.23 0.80 0.98 0.32 0.73
+0.47 0.64 0.86 0.91 0.81 1.00 0.75
+0.48 0.59 0.89 0.92 0.64 0.96 0.99
+t0 t1 t2 t3 t4 t5 t6
+t0t1t2t3t4t5t6
+0.83 0.40 0.80 0.80 0.99 0.50 0.63
+0.46 0.91 0.60 0.80 0.98 0.98 0.56
+0.56 0.90 0.89 0.89 0.96 0.98 0.85
+0.55 0.12 0.44 1.00 0.06 0.57 0.48
+0.48 0.82 0.25 0.79 0.96 1.00 0.91
+0.47 0.65 0.85 0.82 0.72 1.00 0.95
+0.48 0.59 0.83 0.81 0.66 1.00 0.98
+t0 t1 t2 t3 t4 t5 t6 t7 t8 t9
+t0t1t2t3t4t5t6t7t8t9
+BC / SC
+t0 t1 t2 t3 t4 t5 t6 t7 t8 t9
+t0t1t2t3t4t5t6t7t8t9
+t0 t1 t2 t3 t4 t5 t6 t7 t8 t9
+t0t1t2t3t4t5t6t7t8t9
+t0 t1 t2 t3 t4 t5 t6 t7
+t0t1t2t3t4t5t6t7
+CA / GM
+t0 t1 t2 t3 t4 t5 t6 t7
+t0t1t2t3t4t5t6t7
+t0 t1 t2 t3 t4 t5 t6 t7
+t0t1t2t3t4t5t6t7
+t0 t1 t2 t3 t4 t5 t6 t7
+t0t1t2t3t4t5t6t7
+CA / KM
+t0 t1 t2 t3 t4 t5 t6 t7
+t0t1t2t3t4t5t6t7
+t0 t1 t2 t3 t4 t5 t6 t7
+t0t1t2t3t4t5t6t7
+t0 t1 t2 t3 t4 t5 t6 t7 t8 t9
+t0t1t2t3t4t5t6t7t8t9
+CA / SC
+t0 t1 t2 t3 t4 t5 t6 t7 t8 t9
+t0t1t2t3t4t5t6t7t8t9
+t0 t1 t2 t3 t4 t5 t6 t7 t8 t9
+t0t1t2t3t4t5t6t7t8t9
+t0 t1 t2 t3 t4 t5 t6 t7 t8
+t0t1t2t3t4t5t6t7t8
+RA / GM
+t0 t1 t2 t3 t4 t5 t6 t7 t8
+t0t1t2t3t4t5t6t7t8
+t0 t1 t2 t3 t4 t5 t6 t7 t8
+t0t1t2t3t4t5t6t7t8
+t0 t1 t2 t3 t4 t5 t6 t7
+t0t1t2t3t4t5t6t7
+RA / KM
+t0 t1 t2 t3 t4 t5 t6 t7
+t0t1t2t3t4t5t6t7
+t0 t1 t2 t3 t4 t5 t6 t7
+t0t1t2t3t4t5t6t7
+t0 t1 t2 t3 t4 t5 t6 t7 t8 t9
+t0t1t2t3t4t5t6t7t8t9
+RA / SC
+t0 t1 t2 t3 t4 t5 t6 t7 t8 t9
+t0t1t2t3t4t5t6t7t8t9
+t0 t1 t2 t3 t4 t5 t6 t7 t8 t9
+t0t1t2t3t4t5t6t7t8t9
+0.0
+0.2
+0.4
+0.6
+0.8
+1.0
+_ROC-AUC
+CAD-CICIDS2017 Single Task Expert results
+Figure 15: STE evaluation heatmaps for the CICIDS2017 candidate splits measured with ROC-AUC.
+Strong diagonal values indicate self-learnability, while the off-diagonal structure reveals transfer,
+dominance, and redundancy patterns used during filtering.
+38
+
+===== PAGE 39 =====
+t0 t1 t2 t3 t4 t5 t6
+t0t1t2t3t4t5t6
+cicids2017_by_day
+0.36 0.02 0.00 0.02 0.04 0.06 0.78
+0.17 0.02 0.02 0.04 0.06 0.08 0.82
+0.18 0.02 0.01 0.04 0.04 0.08 0.81
+0.15 -0.23 0.01 0.05 0.03 0.07 0.78
+0.17 -0.04 0.01 0.04 0.05 0.08 0.79
+0.15 -0.08 0.01 0.04 0.03 0.10 0.75
+0.16 0.01 0.00 0.05 0.05 0.06 0.79
+IF
+t0 t1 t2 t3 t4 t5 t6
+t0t1t2t3t4t5t6
+0.84 0.66 0.03 0.18 0.05 0.07 0.92
+0.51 0.51 0.03 0.27 0.05 0.07 0.93
+0.54 0.63 0.06 0.29 0.04 0.09 0.93
+0.56 -0.10 0.01 0.17 0.02 0.09 0.92
+0.49 0.63 0.05 0.30 0.07 0.11 0.92
+0.42 0.42 0.02 0.17 0.02 0.08 0.91
+0.60 0.54 0.04 0.25 0.01 0.05 0.94
+AE
+t0 t1 t2 t3 t4 t5 t6
+t0t1t2t3t4t5t6
+0.63 0.22 0.00 0.06 0.05 0.02 0.88
+0.41 0.17 0.00 0.06 0.05 0.00 0.89
+0.38 0.27 0.02 0.06 0.05 -0.01 0.90
+0.46 0.13 -0.00 0.18 0.03 0.01 0.91
+0.41 0.26 0.02 0.06 0.04 -0.02 0.88
+0.37 0.08 0.00 0.07 0.06 0.01 0.88
+0.44 0.24 0.01 0.06 0.04 -0.01 0.91
+AE1SVM
+t0 t1 t2 t3 t4 t5 t6
+t0t1t2t3t4t5t6
+BC / GM
+0.10 0.01 0.79 -0.11 0.80 -0.36 0.18
+-0.13 0.21 -0.31 -0.31 0.46 0.35 -0.06
+-0.12 -0.06 0.58 -0.24 0.00 -0.38 0.02
+-0.17 -0.16 0.51 0.73 0.99 -0.38 0.22
+-0.10 0.70 -0.17 -0.32 0.83 0.20 0.00
+-0.02 -0.05 0.33 -0.32 -0.04 0.95 0.03
+-0.14 0.22 0.28 -0.32 0.33 -0.24 0.22
+t0 t1 t2 t3 t4 t5 t6
+t0t1t2t3t4t5t6
+0.52 -0.01 0.85 0.28 0.35 0.09 0.34
+-0.15 0.76 0.24 -0.28 0.33 0.34 0.16
+-0.18 -0.09 0.96 -0.09 0.30 0.49 0.17
+0.03 0.39 0.07 0.96 0.35 -0.39 0.24
+-0.16 0.35 0.03 -0.27 1.00 -0.04 0.10
+-0.09 0.40 -0.14 -0.38 0.33 1.00 0.20
+0.00 0.38 0.48 -0.14 1.00 0.08 0.49
+t0 t1 t2 t3 t4 t5 t6
+t0t1t2t3t4t5t6
+0.74 -0.03 0.83 0.01 0.34 0.51 0.33
+-0.12 0.49 0.90 -0.11 0.37 0.50 0.16
+-0.10 -0.13 0.83 -0.05 0.37 0.50 0.17
+0.28 0.14 0.07 0.97 1.00 0.15 -0.03
+-0.10 0.54 0.04 -0.27 1.00 -0.04 0.11
+-0.17 -0.15 -0.19 0.17 -0.04 1.00 -0.00
+0.04 0.40 0.39 -0.10 0.41 -0.26 0.40
+t0 t1 t2 t3 t4 t5 t6
+t0t1t2t3t4t5t6
+BC / KM
+0.42 0.52 0.23 0.19 0.70 -0.21 0.10
+0.21 0.73 -0.06 0.76 0.72 -0.24 0.11
+0.22 0.83 0.38 0.86 0.88 -0.20 0.15
+0.25 0.03 -0.05 0.60 -0.21 0.22 -0.04
+0.13 0.77 -0.05 0.14 0.74 -0.27 0.17
+0.21 -0.33 -0.00 0.21 -0.13 0.83 -0.04
+0.06 0.31 0.33 0.04 0.51 -0.23 0.31
+t0 t1 t2 t3 t4 t5 t6
+t0t1t2t3t4t5t6
+0.66 -0.26 0.30 0.24 0.95 0.01 0.05
+-0.03 0.77 0.34 0.22 0.96 -0.03 0.03
+0.03 0.33 0.60 0.96 0.96 -0.15 0.10
+0.01 -0.32 0.01 1.00 -0.28 -0.23 0.20
+-0.01 0.47 -0.09 0.23 0.93 -0.22 0.12
+-0.01 0.06 0.40 0.62 0.33 1.00 0.14
+-0.01 0.01 0.51 0.71 0.04 0.91 0.89
+t0 t1 t2 t3 t4 t5 t6
+t0t1t2t3t4t5t6
+0.61 -0.19 0.46 0.31 0.97 -0.07 0.07
+0.01 0.73 0.42 0.30 0.96 0.93 0.06
+0.09 0.72 0.48 0.57 0.90 0.98 0.56
+0.04 -0.34 0.02 1.00 -0.36 -0.00 0.02
+0.03 0.49 -0.04 0.29 0.86 1.00 0.67
+0.01 0.17 0.40 0.38 0.15 1.00 0.79
+0.03 0.13 0.51 0.30 0.11 1.00 0.91
+t0 t1 t2 t3 t4 t5 t6 t7 t8 t9
+t0t1t2t3t4t5t6t7t8t9
+BC / SC
+t0 t1 t2 t3 t4 t5 t6 t7 t8 t9
+t0t1t2t3t4t5t6t7t8t9
+t0 t1 t2 t3 t4 t5 t6 t7 t8 t9
+t0t1t2t3t4t5t6t7t8t9
+t0 t1 t2 t3 t4 t5 t6 t7
+t0t1t2t3t4t5t6t7
+CA / GM
+t0 t1 t2 t3 t4 t5 t6 t7
+t0t1t2t3t4t5t6t7
+t0 t1 t2 t3 t4 t5 t6 t7
+t0t1t2t3t4t5t6t7
+t0 t1 t2 t3 t4 t5 t6 t7
+t0t1t2t3t4t5t6t7
+CA / KM
+t0 t1 t2 t3 t4 t5 t6 t7
+t0t1t2t3t4t5t6t7
+t0 t1 t2 t3 t4 t5 t6 t7
+t0t1t2t3t4t5t6t7
+t0 t1 t2 t3 t4 t5 t6 t7 t8 t9
+t0t1t2t3t4t5t6t7t8t9
+CA / SC
+t0 t1 t2 t3 t4 t5 t6 t7 t8 t9
+t0t1t2t3t4t5t6t7t8t9
+t0 t1 t2 t3 t4 t5 t6 t7 t8 t9
+t0t1t2t3t4t5t6t7t8t9
+t0 t1 t2 t3 t4 t5 t6 t7 t8
+t0t1t2t3t4t5t6t7t8
+RA / GM
+t0 t1 t2 t3 t4 t5 t6 t7 t8
+t0t1t2t3t4t5t6t7t8
+t0 t1 t2 t3 t4 t5 t6 t7 t8
+t0t1t2t3t4t5t6t7t8
+t0 t1 t2 t3 t4 t5 t6 t7
+t0t1t2t3t4t5t6t7
+RA / KM
+t0 t1 t2 t3 t4 t5 t6 t7
+t0t1t2t3t4t5t6t7
+t0 t1 t2 t3 t4 t5 t6 t7
+t0t1t2t3t4t5t6t7
+t0 t1 t2 t3 t4 t5 t6 t7 t8 t9
+t0t1t2t3t4t5t6t7t8t9
+RA / SC
+t0 t1 t2 t3 t4 t5 t6 t7 t8 t9
+t0t1t2t3t4t5t6t7t8t9
+t0 t1 t2 t3 t4 t5 t6 t7 t8 t9
+t0t1t2t3t4t5t6t7t8t9
+0.2
+0.0
+0.2
+0.4
+0.6
+0.8
+1.0
+_Normalized-PR-AUC
+CAD-CICIDS2017 Single Task Expert results
+Figure 16: STE evaluation heatmaps for the CICIDS2017 candidate splits measured with normalized
+PR-AUC. The same split-level structure remains visible under an imbalance-aware metric, supporting
+the robustness of the filtering decisions.
+39
+
+===== PAGE 40 =====
+J.2 CICIDS2018
+Table 30: Scenario CAD-CICIDS2018: Task filtering results per task discovery configuration.
+BC = BothClasses, CA = Closest Anomalies, RA = Random Anomalies, GM = Gaussian Mixture,
+KM = K-Means, SC = Spectral Clustering.By Day = Split by day/part of the day
+Config IT. FC1 FC2 FC3 FC4 FC5 FT MT Final tasks.
+By Day 10 t4, t9 t2, t4, t5, t6, t9 t0, t2, t4, t5, t6 t0, t2, t4, t5, t6, t7, t9 t2, t4, t5 3 ✓ t1, t3, t8
+BC / GM 9 t6 t8 t6 — — 7 ✓ t0, t1, t2, t3, t4, t5, t7
+BC / KM 9 t3, t6 t2, t3, t5, t6 t2, t3 t3 t3 5 ✓ t0, t1, t4, t7, t8
+BC / SC 8 t2 t2 t2, t3 — — 6 ✓ t0, t1, t4, t5, t6, t7
+CA / GM 9 t0 t2, t3, t8 t2, t3 — — 5 ✓ t1, t4, t5, t6, t7
+CA / KM 9 t3 t2, t3, t4, t7 t3, t4 t3 t3, t7 5 ✓ t0, t1, t5, t6, t8
+CA / SC 10 t0, t1, t7 t0, t1, t9 t0, t4, t9 t4, t9 t1 5 ✓ t2, t3, t5, t6, t8
+RA / GM 9 — t3 t2 — t3 7 ✓ t0, t1, t4, t5, t6, t7, t8
+RA / KM 9 — t3 t3 — t3 8 ✓ t0, t1, t2, t4, t5, t6, t7, t8
+RA / SC 10 — t4 t4, t8 t4, t8 t4, t8 8 ✓ t0, t1, t2, t3, t5, t6, t7, t9
+For CICIDS2018, the STE reports again show that not all candidate decompositions are equally
+suitable for CAD. Some splits exhibit stronger cross-task coverage or weaker self-learnability, whereas
+the selected configuration preserves a better balance between task solvability and heterogeneity.
+Figures 17 and 18 therefore provide direct evidence that the final scenario is grounded in observed
+task behavior rather than in arbitrary partitioning.
+40
+
+===== PAGE 41 =====
+t0 t1 t2 t3 t4 t5 t6 t7 t8 t9
+t0t1t2t3t4t5t6t7t8t9
+cicids2018_by_day
+IF
+t0 t1 t2 t3 t4 t5 t6 t7 t8 t9
+t0t1t2t3t4t5t6t7t8t9
+AE
+t0 t1 t2 t3 t4 t5 t6 t7 t8 t9
+t0t1t2t3t4t5t6t7t8t9
+AE1SVM
+t0 t1 t2 t3 t4 t5 t6 t7 t8
+t0t1t2t3t4t5t6t7t8
+BC / GM
+t0 t1 t2 t3 t4 t5 t6 t7 t8
+t0t1t2t3t4t5t6t7t8
+t0 t1 t2 t3 t4 t5 t6 t7 t8
+t0t1t2t3t4t5t6t7t8
+t0 t1 t2 t3 t4 t5 t6 t7 t8
+t0t1t2t3t4t5t6t7t8
+BC / KM
+t0 t1 t2 t3 t4 t5 t6 t7 t8
+t0t1t2t3t4t5t6t7t8
+t0 t1 t2 t3 t4 t5 t6 t7 t8
+t0t1t2t3t4t5t6t7t8
+t0 t1 t2 t3 t4 t5 t6 t7
+t0t1t2t3t4t5t6t7
+BC / SC
+t0 t1 t2 t3 t4 t5 t6 t7
+t0t1t2t3t4t5t6t7
+t0 t1 t2 t3 t4 t5 t6 t7
+t0t1t2t3t4t5t6t7
+t0 t1 t2 t3 t4 t5 t6 t7 t8
+t0t1t2t3t4t5t6t7t8
+CA / GM
+t0 t1 t2 t3 t4 t5 t6 t7 t8
+t0t1t2t3t4t5t6t7t8
+t0 t1 t2 t3 t4 t5 t6 t7 t8
+t0t1t2t3t4t5t6t7t8
+t0 t1 t2 t3 t4 t5 t6 t7 t8
+t0t1t2t3t4t5t6t7t8
+CA / KM
+t0 t1 t2 t3 t4 t5 t6 t7 t8
+t0t1t2t3t4t5t6t7t8
+t0 t1 t2 t3 t4 t5 t6 t7 t8
+t0t1t2t3t4t5t6t7t8
+t0 t1 t2 t3 t4 t5 t6 t7 t8 t9
+t0t1t2t3t4t5t6t7t8t9
+CA / SC
+t0 t1 t2 t3 t4 t5 t6 t7 t8 t9
+t0t1t2t3t4t5t6t7t8t9
+t0 t1 t2 t3 t4 t5 t6 t7 t8 t9
+t0t1t2t3t4t5t6t7t8t9
+t0 t1 t2 t3 t4 t5 t6 t7 t8
+t0t1t2t3t4t5t6t7t8
+RA / GM
+t0 t1 t2 t3 t4 t5 t6 t7 t8
+t0t1t2t3t4t5t6t7t8
+t0 t1 t2 t3 t4 t5 t6 t7 t8
+t0t1t2t3t4t5t6t7t8
+t0 t1 t2 t3 t4 t5 t6 t7 t8
+t0t1t2t3t4t5t6t7t8
+RA / KM
+t0 t1 t2 t3 t4 t5 t6 t7 t8
+t0t1t2t3t4t5t6t7t8
+t0 t1 t2 t3 t4 t5 t6 t7 t8
+t0t1t2t3t4t5t6t7t8
+t0 t1 t2 t3 t4 t5 t6 t7 t8 t9
+t0t1t2t3t4t5t6t7t8t9
+RA / SC
+t0 t1 t2 t3 t4 t5 t6 t7 t8 t9
+t0t1t2t3t4t5t6t7t8t9
+t0 t1 t2 t3 t4 t5 t6 t7 t8 t9
+t0t1t2t3t4t5t6t7t8t9
+0.0
+0.2
+0.4
+0.6
+0.8
+1.0
+_ROC-AUC
+CAD-CICIDS2018 Single Task Expert results
+Figure 17: STE evaluation heatmaps for the CICIDS2018 candidate splits measured with ROC-AUC.
+The selected split retains clear diagonal dominance without collapsing into uniformly high transfer
+across tasks.
+41
+
+===== PAGE 42 =====
+t0 t1 t2 t3 t4 t5 t6 t7 t8 t9
+t0t1t2t3t4t5t6t7t8t9
+cicids2018_by_day
+IF
+t0 t1 t2 t3 t4 t5 t6 t7 t8 t9
+t0t1t2t3t4t5t6t7t8t9
+AE
+t0 t1 t2 t3 t4 t5 t6 t7 t8 t9
+t0t1t2t3t4t5t6t7t8t9
+AE1SVM
+t0 t1 t2 t3 t4 t5 t6 t7 t8
+t0t1t2t3t4t5t6t7t8
+BC / GM
+t0 t1 t2 t3 t4 t5 t6 t7 t8
+t0t1t2t3t4t5t6t7t8
+t0 t1 t2 t3 t4 t5 t6 t7 t8
+t0t1t2t3t4t5t6t7t8
+t0 t1 t2 t3 t4 t5 t6 t7 t8
+t0t1t2t3t4t5t6t7t8
+BC / KM
+t0 t1 t2 t3 t4 t5 t6 t7 t8
+t0t1t2t3t4t5t6t7t8
+t0 t1 t2 t3 t4 t5 t6 t7 t8
+t0t1t2t3t4t5t6t7t8
+t0 t1 t2 t3 t4 t5 t6 t7
+t0t1t2t3t4t5t6t7
+BC / SC
+t0 t1 t2 t3 t4 t5 t6 t7
+t0t1t2t3t4t5t6t7
+t0 t1 t2 t3 t4 t5 t6 t7
+t0t1t2t3t4t5t6t7
+t0 t1 t2 t3 t4 t5 t6 t7 t8
+t0t1t2t3t4t5t6t7t8
+CA / GM
+t0 t1 t2 t3 t4 t5 t6 t7 t8
+t0t1t2t3t4t5t6t7t8
+t0 t1 t2 t3 t4 t5 t6 t7 t8
+t0t1t2t3t4t5t6t7t8
+t0 t1 t2 t3 t4 t5 t6 t7 t8
+t0t1t2t3t4t5t6t7t8
+CA / KM
+t0 t1 t2 t3 t4 t5 t6 t7 t8
+t0t1t2t3t4t5t6t7t8
+t0 t1 t2 t3 t4 t5 t6 t7 t8
+t0t1t2t3t4t5t6t7t8
+t0 t1 t2 t3 t4 t5 t6 t7 t8 t9
+t0t1t2t3t4t5t6t7t8t9
+CA / SC
+t0 t1 t2 t3 t4 t5 t6 t7 t8 t9
+t0t1t2t3t4t5t6t7t8t9
+t0 t1 t2 t3 t4 t5 t6 t7 t8 t9
+t0t1t2t3t4t5t6t7t8t9
+t0 t1 t2 t3 t4 t5 t6 t7 t8
+t0t1t2t3t4t5t6t7t8
+RA / GM
+t0 t1 t2 t3 t4 t5 t6 t7 t8
+t0t1t2t3t4t5t6t7t8
+t0 t1 t2 t3 t4 t5 t6 t7 t8
+t0t1t2t3t4t5t6t7t8
+t0 t1 t2 t3 t4 t5 t6 t7 t8
+t0t1t2t3t4t5t6t7t8
+RA / KM
+t0 t1 t2 t3 t4 t5 t6 t7 t8
+t0t1t2t3t4t5t6t7t8
+t0 t1 t2 t3 t4 t5 t6 t7 t8
+t0t1t2t3t4t5t6t7t8
+t0 t1 t2 t3 t4 t5 t6 t7 t8 t9
+t0t1t2t3t4t5t6t7t8t9
+RA / SC
+t0 t1 t2 t3 t4 t5 t6 t7 t8 t9
+t0t1t2t3t4t5t6t7t8t9
+t0 t1 t2 t3 t4 t5 t6 t7 t8 t9
+t0t1t2t3t4t5t6t7t8t9
+0.2
+0.0
+0.2
+0.4
+0.6
+0.8
+1.0
+_Normalized-PR-AUC
+CICIDS2018 Single Task Expert results
+Figure 18: STE evaluation heatmaps for the CICIDS2018 candidate splits measured with normalized
+PR-AUC. The retained split remains differentiated under imbalance-aware evaluation, which supports
+the consistency of the filtering stage.
+42
+
+===== PAGE 43 =====
+J.3 CICUNSW
+Table 31: Scenario CAD-CICUNSW: Task filtering results per task discovery configuration.
+BC = BothClasses, CA = Closest Anomalies, RA = Random Anomalies, GM = Gaussian Mix-
+ture, KM = K-Means, SC = Spectral Clustering.By Day = Split by day/part of the day
+Config IT. FC1 FC2 FC3 FC4 FC5 FT MT Final tasks.
+By Day 3 — — — t0, t1 t0, t1 1 ✗ —
+BC / GM 4 t0, t1, t2 t1 — t1 t1 1 ✗ —
+BC / SC 8 t7 t1, t4 t1 t1, t4 t4 5 ✓ t0, t2, t3, t5, t6
+CA / GM 9 t6 t2, t5, t6 t2, t6 t6 — 6 ✓ t0, t1, t3, t4, t7, t8
+CA / KM 5 — — — t3 — 4 ✓ t0, t1, t2, t4
+CA / SC 10 t6 t2, t4, t5, t6, t7, t8 t2, t4, t5, t6, t7 t5 t5 4 ✓ t0, t1, t3, t9
+RA / GM 9 — t5, t7 t5 t7 — 7 ✓ t0, t1, t2, t3, t4, t6, t8
+RA / KM 5 — — — t3 t3 4 ✓ t0, t1, t2, t4
+RA / SC 10 — t4, t5, t7, t8 t1, t4 t4, t5 t4, t5, t7 5 ✓ t0, t2, t3, t6, t9
+The CICUNSW construction report highlights a more demanding transfer structure. Compared
+with the CICIDS scenarios, several candidate tasks are more weakly connected, which increases the
+importance of excluding dead or overly dominant tasks before ordering. Figures 19 and 20 show that
+the retained split preserves learnability while still exhibiting the heterogeneity needed for meaningful
+continual evaluation.
+43
+
+===== PAGE 44 =====
+t0 t1 t2
+t0t1t2
+cicunsw_by_day
+0.89 0.87 0.88
+0.81 0.79 0.81
+0.82 0.80 0.82
+IF
+t0 t1 t2
+t0t1t2
+0.97 0.96 0.96
+0.90 0.90 0.90
+0.89 0.89 0.90
+AE
+t0 t1 t2
+t0t1t2
+0.90 0.87 0.89
+0.85 0.82 0.84
+0.84 0.82 0.84
+AE1SVM
+t0 t1 t2 t3
+t0t1t2t3
+BC / GM
+0.91 0.73 0.69 0.58
+0.46 0.47 0.53 0.58
+0.64 0.32 0.57 0.53
+0.60 0.26 0.65 0.58
+t0 t1 t2 t3
+t0t1t2t3
+0.97 0.68 0.42 0.50
+0.45 0.67 0.40 0.46
+0.57 0.52 0.57 0.56
+0.57 0.52 0.54 0.58
+t0 t1 t2 t3
+t0t1t2t3
+0.98 0.67 0.42 0.53
+0.45 0.69 0.40 0.46
+0.57 0.52 0.52 0.45
+0.57 0.52 0.52 0.43
+t0 t1
+t0t1
+BC / KM
+0.86 0.42
+0.60 0.70
+t0 t1
+t0t1
+0.96 0.43
+0.76 0.69
+t0 t1
+t0t1
+0.88 0.41
+0.59 0.64
+t0 t1 t2 t3 t4 t5 t6 t7
+t0t1t2t3t4t5t6t7
+BC / SC
+t0 t1 t2 t3 t4 t5 t6 t7
+t0t1t2t3t4t5t6t7
+t0 t1 t2 t3 t4 t5 t6 t7
+t0t1t2t3t4t5t6t7
+t0 t1 t2 t3 t4 t5 t6 t7 t8
+t0t1t2t3t4t5t6t7t8
+CA / GM
+t0 t1 t2 t3 t4 t5 t6 t7 t8
+t0t1t2t3t4t5t6t7t8
+t0 t1 t2 t3 t4 t5 t6 t7 t8
+t0t1t2t3t4t5t6t7t8
+t0 t1 t2 t3 t4
+t0t1t2t3t4
+CA / KM
+0.78 0.14 0.61 0.11 0.25
+0.46 0.95 0.49 0.93 0.71
+0.50 0.22 0.76 0.27 0.15
+0.48 0.93 0.62 0.99 0.80
+0.29 0.70 0.50 0.84 0.92
+t0 t1 t2 t3 t4
+t0t1t2t3t4
+0.91 0.44 0.63 0.52 0.44
+0.21 0.98 0.63 0.92 0.76
+0.76 0.48 0.76 0.57 0.56
+0.21 0.90 0.63 1.00 0.81
+0.18 0.63 0.63 0.91 0.94
+t0 t1 t2 t3 t4
+t0t1t2t3t4
+0.87 0.37 0.64 0.50 0.44
+0.23 0.97 0.63 0.91 0.72
+0.58 0.18 0.72 0.32 0.41
+0.22 0.88 0.63 0.99 0.78
+0.18 0.71 0.63 0.98 0.93
+t0 t1 t2 t3 t4 t5 t6 t7 t8 t9
+t0t1t2t3t4t5t6t7t8t9
+CA / SC
+t0 t1 t2 t3 t4 t5 t6 t7 t8 t9
+t0t1t2t3t4t5t6t7t8t9
+t0 t1 t2 t3 t4 t5 t6 t7 t8 t9
+t0t1t2t3t4t5t6t7t8t9
+t0 t1 t2 t3 t4 t5 t6 t7 t8
+t0t1t2t3t4t5t6t7t8
+RA / GM
+t0 t1 t2 t3 t4 t5 t6 t7 t8
+t0t1t2t3t4t5t6t7t8
+t0 t1 t2 t3 t4 t5 t6 t7 t8
+t0t1t2t3t4t5t6t7t8
+t0 t1 t2 t3 t4
+t0t1t2t3t4
+RA / KM
+0.83 0.01 0.23 0.00 0.01
+0.44 0.97 0.04 0.94 0.47
+0.54 0.08 0.98 0.05 0.10
+0.50 0.95 0.10 0.97 0.63
+0.36 0.54 0.07 0.46 0.93
+t0 t1 t2 t3 t4
+t0t1t2t3t4
+0.95 0.11 0.05 0.03 0.00
+0.25 0.99 0.09 0.88 0.69
+0.73 0.07 0.98 0.02 0.01
+0.24 0.96 0.09 1.00 0.77
+0.21 0.64 0.09 0.77 0.98
+t0 t1 t2 t3 t4
+t0t1t2t3t4
+0.90 0.10 0.05 0.04 0.00
+0.27 0.98 0.08 0.87 0.64
+0.57 0.03 0.98 0.02 0.01
+0.25 0.95 0.08 0.99 0.72
+0.22 0.73 0.08 0.97 0.97
+t0 t1 t2 t3 t4 t5 t6 t7 t8 t9
+t0t1t2t3t4t5t6t7t8t9
+RA / SC
+t0 t1 t2 t3 t4 t5 t6 t7 t8 t9
+t0t1t2t3t4t5t6t7t8t9
+t0 t1 t2 t3 t4 t5 t6 t7 t8 t9
+t0t1t2t3t4t5t6t7t8t9
+0.0
+0.2
+0.4
+0.6
+0.8
+1.0
+_ROC-AUC
+CICUNSW Single Task Expert results
+Figure 19: STE evaluation heatmaps for the CICUNSW candidate splits measured with ROC-AUC.
+The retained split combines diagonal learnability with sufficiently irregular off-diagonal structure to
+support non-trivial CAD dynamics.
+44
+
+===== PAGE 45 =====
+t0 t1 t2
+t0t1t2
+cicunsw_by_day
+0.14 0.35 0.40
+0.10 0.27 0.33
+0.11 0.28 0.34
+IF
+t0 t1 t2
+t0t1t2
+0.48 0.67 0.73
+0.27 0.56 0.60
+0.29 0.55 0.60
+AE
+t0 t1 t2
+t0t1t2
+0.26 0.44 0.52
+0.14 0.33 0.38
+0.15 0.33 0.40
+AE1SVM
+t0 t1 t2 t3
+t0t1t2t3
+BC / GM
+0.53 0.25 0.38 0.11
+-0.03 0.07 -0.01 0.08
+0.34 -0.23 0.15 0.09
+0.32 -0.25 0.20 0.13
+t0 t1 t2 t3
+t0t1t2t3
+0.80 0.12 -0.10 0.02
+-0.04 0.38 -0.08 -0.02
+0.05 0.10 0.20 0.09
+0.05 0.08 0.08 0.13
+t0 t1 t2 t3
+t0t1t2t3
+0.85 0.10 -0.05 0.05
+-0.05 0.22 -0.09 -0.02
+0.05 0.10 0.06 -0.07
+0.05 0.10 0.06 -0.10
+t0 t1
+t0t1
+BC / KM
+0.27 -0.05
+0.04 0.34
+t0 t1
+t0t1
+0.65 -0.06
+0.18 0.35
+t0 t1
+t0t1
+0.34 -0.06
+0.04 0.18
+t0 t1 t2 t3 t4 t5 t6 t7
+t0t1t2t3t4t5t6t7
+BC / SC
+t0 t1 t2 t3 t4 t5 t6 t7
+t0t1t2t3t4t5t6t7
+t0 t1 t2 t3 t4 t5 t6 t7
+t0t1t2t3t4t5t6t7
+t0 t1 t2 t3 t4 t5 t6 t7 t8
+t0t1t2t3t4t5t6t7t8
+CA / GM
+t0 t1 t2 t3 t4 t5 t6 t7 t8
+t0t1t2t3t4t5t6t7t8
+t0 t1 t2 t3 t4 t5 t6 t7 t8
+t0t1t2t3t4t5t6t7t8
+t0 t1 t2 t3 t4
+t0t1t2t3t4
+CA / KM
+0.06 -0.07 0.35 -0.30 -0.28
+-0.00 0.56 0.10 0.86 0.36
+-0.00 -0.06 0.53 -0.15 -0.32
+0.04 0.49 0.24 0.96 0.51
+-0.01 0.36 0.11 0.74 0.82
+t0 t1 t2 t3 t4
+t0t1t2t3t4
+0.24 -0.03 0.42 0.24 0.26
+0.04 0.83 0.31 0.86 0.36
+0.07 0.04 0.56 0.47 0.33
+0.04 0.38 0.31 0.99 0.57
+0.04 0.24 0.33 0.83 0.88
+t0 t1 t2 t3 t4
+t0t1t2t3t4
+0.15 -0.04 0.45 0.22 0.26
+0.04 0.69 0.32 0.84 0.40
+0.02 -0.06 0.47 0.08 0.23
+0.04 0.37 0.33 0.97 0.36
+0.04 0.28 0.32 0.92 0.86
+t0 t1 t2 t3 t4 t5 t6 t7 t8 t9
+t0t1t2t3t4t5t6t7t8t9
+CA / SC
+t0 t1 t2 t3 t4 t5 t6 t7 t8 t9
+t0t1t2t3t4t5t6t7t8t9
+t0 t1 t2 t3 t4 t5 t6 t7 t8 t9
+t0t1t2t3t4t5t6t7t8t9
+t0 t1 t2 t3 t4 t5 t6 t7 t8
+t0t1t2t3t4t5t6t7t8
+RA / GM
+t0 t1 t2 t3 t4 t5 t6 t7 t8
+t0t1t2t3t4t5t6t7t8
+t0 t1 t2 t3 t4 t5 t6 t7 t8
+t0t1t2t3t4t5t6t7t8
+t0 t1 t2 t3 t4
+t0t1t2t3t4
+RA / KM
+0.08 -0.39 -0.06 -0.39 -0.38
+0.05 0.85 -0.38 0.78 -0.13
+0.00 -0.36 0.98 -0.37 -0.35
+0.01 0.78 -0.29 0.86 0.04
+0.00 0.03 -0.36 0.04 0.75
+t0 t1 t2 t3 t4
+t0t1t2t3t4
+0.42 -0.34 -0.31 -0.37 -0.38
+0.07 0.98 -0.33 0.71 0.33
+0.08 -0.35 0.98 -0.36 -0.38
+0.07 0.88 -0.33 0.99 0.43
+0.07 0.33 -0.34 0.58 0.95
+t0 t1 t2 t3 t4
+t0t1t2t3t4
+0.29 -0.34 -0.31 -0.37 -0.38
+0.08 0.94 -0.35 0.68 0.27
+0.03 -0.36 0.97 -0.37 -0.36
+0.07 0.88 -0.35 0.97 0.21
+0.08 0.42 -0.35 0.89 0.92
+t0 t1 t2 t3 t4 t5 t6 t7 t8 t9
+t0t1t2t3t4t5t6t7t8t9
+RA / SC
+t0 t1 t2 t3 t4 t5 t6 t7 t8 t9
+t0t1t2t3t4t5t6t7t8t9
+t0 t1 t2 t3 t4 t5 t6 t7 t8 t9
+t0t1t2t3t4t5t6t7t8t9
+0.2
+0.0
+0.2
+0.4
+0.6
+0.8
+1.0
+_Normalized-PR-AUC
+CICUNSW Single Task Expert results
+Figure 20: STE evaluation heatmaps for the CICUNSW candidate splits measured with normalized
+PR-AUC. The qualitative structure is preserved, indicating that the filtering decisions are not an
+artifact of a single metric.
+45
+
+===== PAGE 46 =====
+J.4 MCAD-CIC-3x1
+Table 32: Scenario MCAD-CIC-3x1: Task filtering results
+Config IT. FT MT Final tasks.
+Datasets 3 3 ✓ t0, t1, t2
+The MCAD-CIC-3x1 setting provides a simpler multi-dataset construction report in which each
+source dataset acts as a single task. Even in this reduced setting, the STE structure is useful for
+verifying that the three resulting tasks are not trivially interchangeable. Figure 21 summarizes these
+cross-dataset relations.
+t0 t1 t2
+t0t1t2
+dataset
+0.82 0.38 0.54
+0.74 0.59 0.68
+0.71 0.28 0.85
+IF
+t0 t1 t2
+t0t1t2
+0.89 0.50 0.73
+0.65 0.78 0.63
+0.79 0.50 0.94
+AE
+t0 t1 t2
+t0t1t2
+0.85 0.49 0.55
+0.80 0.65 0.55
+0.68 0.59 0.86
+AE1SVM
+0.4
+0.6
+0.8
+_ROC-AUC
+MCAD-CIC-3x1 Single Task Expert results
+Figure 21: STE evaluation heatmaps for the MCAD-CIC-3x1 scenario measured with ROC-AUC.
+With one task per dataset, the figure highlights the cross-dataset transfer structure that motivates the
+multi-dataset continual setting.
+J.5 MCAD-CIC-3xN
+Table 33: Scenario MCAD-CIC-3xN: Task filtering results
+Config IT. FC2 FC3 FT MT Final tasks.
+Tasks from datasets 16 t3, t12 t2 13 ✓ t0, t1, t4, t5, t6, t7, t8, t9, t10, t11, t13, t14, t15
+The MCAD-CIC-3xN report illustrates the most complex task-construction case in the paper. Because
+this scenario mixes multiple datasets and multiple retained concepts per dataset, the STE heatmaps
+are particularly informative for showing where transfer is preserved and where regime shifts become
+severe. Figures 22 and 23 confirm that the resulting split is far from trivial and therefore suitable as
+a harder benchmark extension. The retained indices t0, t1, t4, . . . , t15 are remapped in Table 16 to
+dataset-prefixed identifiers c17i, c18i, and cui for readability.
+46
+
+===== PAGE 47 =====
+t0
+t1
+t2
+t3
+t4
+t5
+t6
+t7
+t8
+t9
+t10
+t11
+t12
+t13
+t14
+t15
+t0
+t1
+t2
+t3
+t4
+t5
+t6
+t7
+t8
+t9
+t10
+t11
+t12
+t13
+t14
+t15
+all
+IF
+t0
+t1
+t2
+t3
+t4
+t5
+t6
+t7
+t8
+t9
+t10
+t11
+t12
+t13
+t14
+t15
+t0
+t1
+t2
+t3
+t4
+t5
+t6
+t7
+t8
+t9
+t10
+t11
+t12
+t13
+t14
+t15
+AE
+t0
+t1
+t2
+t3
+t4
+t5
+t6
+t7
+t8
+t9
+t10
+t11
+t12
+t13
+t14
+t15
+t0
+t1
+t2
+t3
+t4
+t5
+t6
+t7
+t8
+t9
+t10
+t11
+t12
+t13
+t14
+t15
+AE1SVM
+0.0
+0.2
+0.4
+0.6
+0.8
+1.0
+_ROC-AUC
+MCAD-CIC-3xN Single Task Expert results
+Figure 22: STE evaluation heatmaps for the MCAD-CIC-3xN scenario measured with ROC-AUC.
+The figure reveals a richer and harsher transfer structure than in the single-dataset scenarios, consistent
+with the increased difficulty of the multi-dataset setting.
+t0
+t1
+t2
+t3
+t4
+t5
+t6
+t7
+t8
+t9
+t10
+t11
+t12
+t13
+t14
+t15
+t0
+t1
+t2
+t3
+t4
+t5
+t6
+t7
+t8
+t9
+t10
+t11
+t12
+t13
+t14
+t15
+all
+IF
+t0
+t1
+t2
+t3
+t4
+t5
+t6
+t7
+t8
+t9
+t10
+t11
+t12
+t13
+t14
+t15
+t0
+t1
+t2
+t3
+t4
+t5
+t6
+t7
+t8
+t9
+t10
+t11
+t12
+t13
+t14
+t15
+AE
+t0
+t1
+t2
+t3
+t4
+t5
+t6
+t7
+t8
+t9
+t10
+t11
+t12
+t13
+t14
+t15
+t0
+t1
+t2
+t3
+t4
+t5
+t6
+t7
+t8
+t9
+t10
+t11
+t12
+t13
+t14
+t15
+AE1SVM
+0.0
+0.5
+1.0
+_Normalized-PR-AUC
+MCAD-CIC-3xN Single Task Expert results
+Figure 23: STE evaluation heatmaps for the MCAD-CIC-3xN scenario measured with normalized
+PR-AUC. The same broad structure persists under imbalance-aware evaluation, further supporting
+the validity of the retained split.
+47

@@ -1,0 +1,958 @@
+# SOURCE: docs/papers/related_cad/arxiv_2603.21562.pdf
+# SOURCE_SHA256: 8955fe3365c1a71bb672636304edd84db608eb7747059993dc6bdde07c09f5e2
+# EXTRACTOR: pypdf 7.1.0 (PdfReader.extract_text, per page)
+# EXTRACTED: 2026-11-19
+# NOTE: machine extraction; equations/tables/unicode may be garbled. Cite the PDF, not this file.
+
+
+===== PAGE 1 =====
+Exploring Multimodal Prompts For Unsupervised Continuous
+Anomaly Detection
+Mingle Zhou
+Key Laboratory of Computing Power
+Network and Information Security,
+Ministry of Education, Shandong
+Computer Science Center (National
+Supercomputer Center in Jinan), Qilu
+University of Technology (Shandong
+Academy of Sciences)
+Jinan, China
+zhouml@qlu.edu.cn
+Jiahui Liu
+Key Laboratory of Computing Power
+Network and Information Security,
+Ministry of Education, Shandong
+Computer Science Center (National
+Supercomputer Center in Jinan), Qilu
+University of Technology (Shandong
+Academy of Sciences)
+Jinan, China
+10431240259@stu.qlu.edu.cn
+Jin Wan
+Shandong Provincial Key Laboratory
+of Computing Power Internet and
+Service Computing, Shandong
+Fundamental Research Center for
+Computer Science
+Jinan, China
+wanj@qlu.edu.cn
+Gang Li
+Key Laboratory of Computing Power
+Network and Information Security,
+Ministry of Education, Shandong
+Computer Science Center (National
+Supercomputer Center in Jinan), Qilu
+University of Technology (Shandong
+Academy of Sciences)
+Jinan, China
+Faculty of Data Science, City
+University of Macau
+Macau, China
+lig@qlu.edu.cn
+Min Li∗
+Faculty of Data Science, City
+University of Macau
+Macau, China
+Key Laboratory of Computing Power
+Network and Information Security,
+Ministry of Education, Shandong
+Computer Science Center (National
+Supercomputer Center in Jinan), Qilu
+University of Technology (Shandong
+Academy of Sciences)
+Jinan, China
+limin@qlu.edu.cn
+Abstract
+Unsupervised Continuous Anomaly Detection (UCAD) is gaining
+attention for effectively addressing the catastrophic forgetting and
+heavy computational burden issues in traditional Unsupervised
+Anomaly Detection (UAD). However, existing UCAD approaches
+that rely solely on visual information are insufficient to capture the
+manifold of normality in complex scenes, thereby impeding further
+gains in anomaly detection accuracy. To overcome this limitation,
+we propose an unsupervised continual anomaly detection frame-
+work grounded in multimodal prompting. Specifically, we introduce
+a Continual Multimodal Prompt Memory Bank (CMPMB) that pro-
+gressively distills and retains prototypical normal patterns from
+both visual and textual domains across consecutive tasks, yield-
+ing a richer representation of normality. Furthermore, we devise a
+Defect-Semantic-Guided Adaptive Fusion Mechanism (DSG-AFM)
+∗Corresponding author
+Permission to make digital or hard copies of all or part of this work for personal or
+classroom use is granted without fee provided that copies are not made or distributed
+for profit or commercial advantage and that copies bear this notice and the full citation
+on the first page. Copyrights for components of this work owned by others than the
+author(s) must be honored. Abstracting with credit is permitted. To copy otherwise, or
+republish, to post on servers or to redistribute to lists, requires prior specific permission
+and/or a fee. Request permissions from permissions@acm.org.
+MM ’25, Dublin, Ireland
+© 2025 Copyright held by the owner/author(s). Publication rights licensed to ACM.
+ACM ISBN 979-8-4007-2035-2/2025/10
+https://doi.org/10.1145/3746027.3755219
+that integrates an Adaptive Normalization Module (ANM) with a
+Dynamic Fusion Strategy (DFS) to jointly enhance detection accu-
+racy and adversarial robustness. Benchmark experiments on MVTec
+AD and VisA datasets show that our approach achieves state-of-
+the-art (SOTA) performance on image-level AUROC and pixel-level
+AUPR metrics.
+CCS Concepts
+• Computing methodologies → Visual inspection; Anomaly
+detection.
+Keywords
+Unsupervised Anomaly Detection, Continuous Learning, Multi-
+modal Prompts
+ACM Reference Format:
+Mingle Zhou, Jiahui Liu, Jin Wan, Gang Li, and Min Li. 2025. Exploring
+Multimodal Prompts For Unsupervised Continuous Anomaly Detection. In
+Proceedings of the 33rd ACM International Conference on Multimedia (MM
+’25), October 27–31, 2025, Dublin, Ireland. ACM, New York, NY, USA, 10 pages.
+https://doi.org/10.1145/3746027.3755219
+1 Introduction
+In the rapid advancement of industrial automation, anomaly detec-
+tion has emerged as an indispensable key technology in industrial
+manufacturing. It plays a crucial role in ensuring product quality,
+arXiv:2603.21562v1  [cs.CV]  23 Mar 2026
+
+===== PAGE 2 =====
+MM ’25, October 27–31, 2025, Dublin, Ireland Mingle Zhou et al.
+Unified Model
+Multimodal Continous Model
+ "Text Template " +   
+Learnable Prompt
+Model A
+ Model B Model C
+Output
+Input
+Output
+Input
+Unimodal Continous Model
+Output
+Input
+New objectold object New objectold object
+Input
+Output
+(C) Unimodal-Based Continuous 
+     Anomaly Detection Methods
+(B) One-for-All Anomaly     
+ Detection Methods
+(A) One-for-One Anomaly 
+    Detection Methods
+(D) Multimodal-Based Continuous 
+  Anomaly Detection Methods (Ours)
+Figure 1: Different frameworks in anomaly detection. (A) il-
+lustrates the prevalent One-for-One Anomaly Detection par-
+adigm [28, 29, 31]. (B) depicts the unified multiclass model,
+streamlining the anomaly detection process across multiple
+classes [42]. (C) showcases the integration of continual learn-
+ing into anomaly detection [27]. (D) represents our proposed
+multimodal continual anomaly detection model.
+enhancing production efficiency, and reducing costs. Traditional
+supervised anomaly detection methods [5, 18, 46] typically rely
+on extensive manually annotated data for training. However, ac-
+quiring large-scale labeled data in real-world scenarios is both
+costly and time-consuming. Consequently, unsupervised anom-
+aly detection (UAD) has become an ideal solution for addressing
+anomaly detection challenges in the absence of labeled data. UAD
+can effectively identify abnormal data that significantly deviates
+from normal samples by learning the characteristics of normal
+data alone. Nevertheless, current mainstream UAD approaches face
+various challenges. The one-for-one anomaly detection paradigm
+[28, 29, 31] achieves UAD exception detection by training sepa-
+rate models for each class. In this setup, sequential model learning
+imposes a heavy computational burden as the number of classes
+increases. Other methods [17, 43] focus on training uniform anom-
+aly detection models across multiple classes. However, in practice,
+sequential training is often required, making it impractical to train
+all classes simultaneously. Moreover, these methods cannot effec-
+tively retain previously learned knowledge in the face of frequent
+product changes, leading to catastrophic forgetting.
+To address these issues, Continuous Learning (CL) offers an effec-
+tive framework for retaining historical knowledge while learning
+new tasks, thereby mitigating the catastrophic forgetting problem
+experienced by unified models such as those in [43] under condi-
+tions of frequent product changes. Although recent work by Liu
+et al. [27] demonstrates the efficacy of CL in unsupervised anom-
+aly detection, their approach relies solely on visual information
+for anomaly detection, neglecting the complementary potential of
+multimodal data. This limitation has become a bottleneck to fur-
+ther performance improvements. Given the proven effectiveness of
+multimodal information in anomaly detection tasks, it is essential
+to explore the application of multimodal prompts in Unsupervised
+Continuous Anomaly Detection (UCAD) to overcome its current
+performance bottleneck.
+In this study, we propose an unsupervised continuous anomaly
+detection framework based on multimodal prompts. Our core inno-
+vation lies in the introduction of the Continuous Multimodal Cue
+Memory (CMPMB), which integrates learnable textual and visual
+prompts to refine normal feature representation while enabling
+lifelong knowledge retention progressively. CMPMB incorporates
+task-specific identification keys for rapid task recognition, adaptive
+multimodal prompts for cross-modal alignment, and a general fea-
+ture repository for mitigating forgetting. To enhance the integration
+of multimodal information and further improve the model’s segmen-
+tation performance, we design a defect semantics-guided adaptive
+fusion mechanism (DSG-AFM), which combines an adaptive nor-
+malization mechanism (ANM) and a dynamic fusion strategy (DFS)
+for context-aware multimodal feature fusion. Our contributions are
+summarized as follows:
+• We propose a multimodal continuous anomaly detection
+method that integrates text and visual prompts by construct-
+ing a continuous multimodal prompt memory Bank (CMPMB)
+to optimize normal feature representation and significantly
+improve cross-task generalization.
+• We propose a defect Semantics-guided fusion mechanism
+(DSG-AFM) that achieves effective fusion of multi-modal
+information by dynamically balancing multi-modal features
+through adaptive normalization and fusion strategy.
+• Our proposed method outperforms the previous state-of-the-
+art (SOTA) AD method by achieving a 4.4% higher accuracy
+in detection and a 14.8% higher accuracy in segmentation.
+2 Related Work
+2.1 Multimodal Anomaly Detection
+Multimodal cue learning has emerged as a critical advancement in
+anomaly detection, particularly through the application of cross-
+modal feature alignment techniques [17, 38, 39]. Notable contri-
+butions include SAA+ [4], which employs domain-expert multi-
+modal prompts to achieve zero-shot anomaly segmentation with
+improved localization accuracy, and MMRD [16], which proposes a
+multimodal dedistillation framework for robust multi-class anomaly
+detection. IPDN [7] mitigates cross-modal semantic ambiguity via
+multi-view semantic embedding and an instant perception decoder.
+Recent advancements [24, 26] further highlight the adaptability of
+multimodal prompts through flexible architectural designs.
+
+===== PAGE 3 =====
+Exploring Multimodal Prompts For Unsupervised Continuous Anomaly Detection MM ’25, October 27–31, 2025, Dublin, Ireland
+2.2 Unsupervised Anomaly Detection
+In unsupervised anomaly detection, methodologies are primarily
+categorized into feature-embedding and reconstruction-based ap-
+proaches. Feature-embedding methods include: 1) Teacher-student
+frameworks [40, 48] for knowledge distillation; 2) Single-class clas-
+sification methods [3, 28, 34]; 3) Pre-trained feature space map-
+ping [21, 36, 41]; and 4) Memory-enhanced architectures [32, 35].
+Reconstruction-based approaches utilize various network struc-
+tures, such as autoencoders [14, 49], GANs [13], Vision Transform-
+ers [2], and diffusion models [25]. Despite significant progress, these
+methods predominantly focus on single-modal inputs, neglecting
+the potential of multimodal data for feature complementarity.
+2.3 Continuous Anomaly Detection
+Continuous anomaly detection (CAD) confronts dual challenges in
+incremental knowledge retention and fine-grained anomaly seg-
+mentation. Traditional methods [15, 23, 47] mainly address intra-
+class anomalies, while recent work UCAD [27] introduces struc-
+tural contrastive learning but remains limited by unimodal visual
+inputs. To overcome these limitations, we propose a multimodal
+prompt-based CAD framework incorporating two key innovations:
+1) Continuous Multimodal Prompt Memory Bank (CMPMB) for pre-
+serving cross-modal knowledge, and 2) Defect Semantics-Guided
+Adaptive Fusion Mechanism (DSG-AFM) for pixel-level anomaly
+localization. This dual-level architecture enhances both interclass
+and intraclass detection at the classification level, enabling pre-
+cise anomaly segmentation through dynamic multimodal fusion
+and effectively addressing the performance bottlenecks of existing
+methods.
+3 Methodology
+3.1 Overview
+This paper introduces a continuous unsupervised anomaly detec-
+tion method leveraging multimodal prompts. As illustrated in 2,
+our approach incorporates a Continuous Multimodal Prompt Mem-
+ory Bank (CMPMB) that integrates learnable textual and visual
+prompts to progressively refine normal feature representations and
+enable continuous task knowledge updates. The CMPMB comprises
+task-specific keys for rapid task identification, adaptive multimodal
+prompts for cross-modal alignment, and a normal feature reposi-
+tory to mitigate catastrophic forgetting. The unified architecture
+synergistically balances plasticity and stability in lifelong anomaly
+detection. To enhance anomaly localization, we propose a defect
+semantics-guided adaptive fusion mechanism (DSG-AFM) with an
+adaptive normalization module (ANM) and dynamic fusion strategy
+(DFS) for context-aware multimodal feature fusion. This framework
+significantly improves the accuracy and robustness of anomaly de-
+tection.
+3.2 Continuous Multimodal Prompt Memory
+Bank
+In an industrial automation environment, tasks are typically exe-
+cuted in a sequential pipeline. Although traditional multi-category
+anomaly detection methods can identify multiple categories simul-
+taneously, they require all categories to be available for training
+at once, which is impractical in real-world applications. To ad-
+dress unsupervised multimodal anomaly detection in continuous
+learning scenarios, we propose the integration of learnable text
+prompts and refined visual prompts to construct a Continuous
+Multimodal Prompt Memory Bank (CMPMB). The CMPMB inte-
+grates task identification (𝐾), learnable text prompts (𝑃𝑇 ), refined
+visual prompts (𝑃𝑉 ), and a normal feature library (F) through the
+quadruple 𝑀 =(𝐾,𝑃𝑇,𝑃𝑉,𝐹), achieving collaborative optimization
+of modal features and efficient knowledge accumulation. For each
+task t, we construct a quadruple 𝑀𝑡 =(𝐾𝑡,𝑃𝑇 𝑡 ,𝑃𝑉 𝑡 ,𝐹𝑡) to implement
+unsupervised persistent anomaly detection.
+During the task adaptation phase, the task identifier Kt filters
+key embedders from patch-level features extracted from a frozen
+pre-trained visual backbone network using farthest point sampling
+(FPS) [12]. This process builds low-dimensional, high-discriminative
+task representations and stores them in Mt for task-agnostic predic-
+tions. Since task identities may not always be available in real-world
+scenarios, task-agnostic predictions are essential. In the task adap-
+tation stage, for the image set 𝑥∈ R𝑁𝑡×𝐶×𝐻×𝑊 of task t, where 𝑁𝑡
+is the number of images in task t, and 𝐶×𝐻×𝑊 represents the
+size of a single image, we extract task-related identity information
+𝐾𝑡 =𝑓𝑗(𝑥),𝐾𝑡 ∈ R𝑁𝑡×𝑁𝑝×𝐶 and 𝑁𝑝 is the number of patch features.
+𝐶 denotes the feature dimension. In this study, we use the fifth
+layer of features because mid-tier features provide both contextual
+and semantic information for task identifiers [27]. Define the set of
+tasks 𝑇 ={𝑡1,𝑡2,...,𝑡𝑛}, then the identity of task 𝐾 can be expressed
+as:
+𝐾 ={𝐾′ 𝑡1 ,𝐾′ 𝑡2 ,...,𝐾′ 𝑡𝑛},𝐾∈ R𝑁𝑓 ×𝐶 (1)
+={FPS(𝐾𝑡1 ), FPS(𝐾𝑡2 ),..., FPS(𝐾𝑡𝑛)}, (2)
+where n is the number of tasks, FPS is farthest point sampling. In the
+task reasoning stage, for an image 𝑥∈ R𝐶×𝐻×𝑊 , we extract identity
+information 𝑘′ through the frozen pre-trained visual backbone net-
+work and calculate the highest similarity between 𝑘′ and the task
+identifier 𝑘 to identify the task identity. Additionally, we use the
+fine-tuned pre-trained visual backbone network to extract normal
+features and form a normal feature library. Similar to task identifi-
+cation 𝐾, we employ coreset sampling (CSS) [32] to compress the
+extracted patch-level features, resulting in the final normal feature
+library 𝐹. Define the normal feature set 𝐹𝑠 𝑡 ={𝑓𝑠 1 ,𝑓𝑠 2 ,...,𝑓𝑠 𝑚}, where
+𝑚 is the number of normal patch features. Then 𝐹 can be expressed
+as follows:
+𝐹 ={𝐹′ 𝑡1 ,𝐹′ 𝑡2 ,...,𝐹′ 𝑡𝑛} (3)
+={CSS(𝐹𝑡1 ), CSS(𝐹𝑡2 ),..., CSS(𝐹𝑡𝑛)}, (4)
+CSS(𝐹𝑡𝑛) ={𝑓𝑐 1 ,𝑓𝑐 2 ,...,𝑓𝑐 𝑘 },𝑘≤𝑚 (5)
+= arg min
+𝐹𝑐 𝑡 ⊂𝐹𝑠 𝑡 max 𝑓𝑗∈𝐹𝑠 𝑡 min 𝑓𝑖∈𝐹𝑐 𝑡 ∥𝑓𝑗 −𝑓𝑖∥2, (6)
+where CSS is coreset sampling, 𝐹𝑡𝑛 ∈ R𝑁𝑔×𝐶, 𝑁𝑔 is the number
+of patch features in the core set of the normal feature 𝐹𝑠 𝑡 , and
+𝐹𝑐 𝑡 is the space of the core set of the normal feature 𝐹𝑠 𝑡 extracted
+during the task adaptation phase. The multimodal prompt mecha-
+nism is pivotal for achieving efficient and continuous unsupervised
+anomaly detection. This mechanism facilitates cross-modal feature
+alignment and task-adaptive guidance through the collaborative
+optimization of textual and visual prompts. Specifically, for text
+
+===== PAGE 4 =====
+MM ’25, October 27–31, 2025, Dublin, Ireland Mingle Zhou et al.
+Query
+Continuous Multimodal Prompt
+Memory Bank (CMPMB)
+Noise Generator
+Query
+Training Image
+Inference Image
+ "a photo of a {CLASS} with "    +   Text Encoder
+learnable prompt
+Image Encoder
+SAM
+Normal Features Bank
+Patch    Features
+GT
+Sampling
+KNN
+DSG-AFM
+Anomaly Map
+LossV
+LossT
+Element-wise AdditionCosine Similarity Training Inference 
+Task Key
+Normal Features Bank
+Vision Prompt
+Learnable Prompt
+Task Key
+Normal Features Bank
+Vision Prompt
+Learnable Prompt
+Task Key
+Normal Features Bank
+Vision Prompt
+Learnable Prompt
+ST
+SV
+Defect Semantic-guided Adaptive
+Fusion Mechanism (DSG-AFM)
+ST SV
+Gaussian Filter
+Bilinear Interpolation
+Adaption
+ Sigmoid
+Adaption 
+Sigmoid
+Adaptive Normalization
+Mechanism (ANM)
+Anomaly Map
+1 - α α
+Dynamic Fusion 
+Strategy (DFS)
+Figure 2: The architecture of our model consists of two core components. The Continuous Multimodal Prompts Memory Block
+(CMPMB) and the Defect Semantics-Guided Adaptive Fusion Mechanism (DSG-AFM). The CMPMB endows the model with
+continuous learning ability and facilitates unsupervised anomaly detection in continuous scenarios. The DSG-AFM further
+enhances anomaly detection accuracy by refining the anomaly map based on defect semantics and a dynamic normalization
+mechanism.
+prompts, we draw inspiration from the CLIP [30] multimodal align-
+ment framework by introducing a learnable prompt template S in
+the form "𝑎𝑝ℎ𝑜𝑡𝑜𝑜𝑓 𝑎[𝑐𝑙𝑎𝑠𝑠]𝑤𝑖𝑡ℎ[𝑃𝑇 𝑡 ]", where [𝑐𝑙𝑎𝑠𝑠] denotes a
+specific task category (e.g., "𝐵𝑜𝑡𝑡𝑙𝑒"), and 𝑃𝑇 𝑡 ∈ R𝑁𝑙×𝐶 represents
+a set of learnable vectors. In this study, 𝑁𝑙 is set to 5, with each
+𝑝𝑖(𝑖∈ 𝑁𝑙) initialized from a standard normal distribution N(0, 1),
+to encode the semantic distribution of normal samples. During the
+task adaptation phase, the learnable text prompt Pt is optimized via
+contrastive learning using noise-enhanced samples. To optimize
+the learnable text prompts, we employ the Mean Squared Error
+(MSE) as the loss function:
+𝐿𝑜𝑠𝑠𝑇 = 1 𝑁 𝑁∑︁ 𝑖=1 (𝑥𝑖 −𝑦𝑖)2, (7)
+where 𝑥𝑖 denotes the output of the model, 𝑦𝑖 represents the corre-
+sponding label value, and 𝑁 is the total number of samples. This
+approach enables the model to align the feature distribution of
+normal samples with the text prompt without requiring manual
+labeling, thereby facilitating the learning of normal patterns. For
+an image 𝑥 ∈ R𝐶×𝐻×𝑊 , Gaussian noise is added to generate an
+auxiliary image:
+𝑥𝑛𝑜𝑖𝑠𝑒 =𝑁𝑜𝑖𝑠𝑒𝐺𝑒𝑛𝑒𝑟𝑎𝑡𝑜𝑟(𝑥) (8)
+=𝑥+N(0,𝜎 2), (9)
+where N(0,𝜎 2)∈ R𝐶×𝐻×𝑊 , and in this paper, 𝜎 is set to 1. Inspired
+by Li et al. [27], we introduce a hierarchical refinement visual
+prompt 𝑃𝑉 𝑡 to guide unsupervised anomaly detection. The task-
+aware visual prompts 𝑃𝑉 𝑡 ∈ R𝑁𝑣×𝑙×𝐶 consist of 𝑁𝑣 learnable vectors
+with dimension 𝑙×𝐶, where 𝑙 denotes the prompt length (set to 2
+in our implementation) and 𝐶 represents the channel dimension.
+These visual prompts are initialized through uniform distribution
+𝑃𝑉 𝑡 ∼ 𝑈𝑛𝑖𝑓𝑜𝑟𝑚(0, 1). During the task adaptation and inference
+stages, we employ prefix tuning by integrating a visual prompt ˆ𝑃𝑉 𝑡 ∈
+R𝑙×𝐶 into the input features of each layer in the pre-trained visual
+backbone network. This process enables layer-wise propagation of
+task-specific information, formally expressed as:
+𝑥𝑖 =𝑓𝑖(𝑥𝑖−1 +𝑃𝑉 𝑖 ),𝑃𝑉 𝑖 ∈ R𝑙×𝐶, (10)
+where 𝑥𝑖 denotes the output features from the 𝑖-th layer of the back-
+bone network, 𝑥𝑖−1 represents the features from the (𝑖− 1)-th layer,
+and 𝑃𝑉 𝑖 indicates the visual prompt specifically learned for layer 𝑖 to
+facilitate fine-grained task adaptation. The detailed implementation
+of this visual prompt tuning process 𝑓𝑖(𝑥𝑖−1 +𝑣𝑖) is presented in
+Algorithm 1. To enhance feature compactness and optimize storage
+efficiency, we introduce a structured contrastive loss [27] for visual
+prompt optimization. The loss function is formulated as:
+𝐿𝑜𝑠𝑠𝑝𝑜𝑠 𝑉 =
+𝐻∑︁
+𝑖,𝑝=1
+𝑊∑︁
+𝑗,𝑞=1
+cos(𝐹𝑖𝑗,𝐺𝑝𝑞), (𝐹𝑖𝑗 =𝐺𝑝𝑞), (11)
+𝐿𝑜𝑠𝑠𝑛𝑒𝑔 𝑉 =
+𝐻∑︁
+𝑖,𝑝=1
+𝑊∑︁
+𝑗,𝑞=1
+cos(𝐹𝑖𝑗,𝐺𝑝𝑞), (𝐹𝑖𝑗 ≠𝐺𝑝𝑞), (12)
+𝐿𝑜𝑠𝑠𝑉 =𝜆𝛼𝐿𝑜𝑠𝑠𝑛𝑒𝑔 𝑉 −𝜆𝛽𝐿𝑜𝑠𝑠𝑝𝑜𝑠 𝑉 , (13)
+where 𝐹𝑖𝑗 represents the embedding of feature 𝐹 at the position
+of (𝑖,𝑗), and the shape is 𝐹𝑖𝑗 ∈ R1×1×𝑐, while 𝐺𝑝𝑞 represents the
+
+===== PAGE 5 =====
+Exploring Multimodal Prompts For Unsupervised Continuous Anomaly Detection MM ’25, October 27–31, 2025, Dublin, Ireland
+embedding of feature 𝐹𝑖𝑗 at the corresponding position in the seg-
+mentation result generated by SAM. Similarly, 𝐺𝑝𝑞 ∈ R1×1×𝑐. 𝜆𝛼
+and𝜆𝛽 both have the value of one.
+CMPMB achieves efficient task knowledge accumulation and
+migration through continuous iterative optimization of multimodal
+prompts. Textual prompts focus on semantic-level normal mode
+modeling, visual prompts strengthen local feature adaptation, and
+the two achieve cross-modal interactions by sharing task identifiers
+to form complementary feature representations. Experiments show
+that the design significantly improves the robustness and cross-task
+generalization ability of unsupervised anomaly detection.
+Algorithm 1 Vision Prompt-Tuned Process
+Require: 𝒙 𝒊−1 ∈ R𝐵×𝑁×𝐶, 𝒑𝑽 𝒊 ∈ R𝐵×𝑙×𝐶,ℎ
+Ensure: Output feature 𝒚
+1: Projection:
+2: 𝒒, 𝒌, 𝒗← Linear(𝒙 𝒊−1)
+3: Reshape 𝒒, 𝒌, 𝒗→[𝐵,ℎ,𝑁, 𝐶 ℎ]
+4: if 𝒑 𝒊 ≠∅ then
+5: Reshape 𝒑 𝒊→[2,𝐵,ℎ, 𝑙 2 , 𝐶 ℎ]
+6: Split 𝒑 𝒊 into 𝒌𝑝𝑖, 𝒗𝑝𝑖 ∈ R𝐵×ℎ×𝑙 2 ×𝐶 ℎ
+7: 𝒌← Concat([𝒌𝑝𝑖, 𝒌], dim = 2)
+8: 𝒗← Concat([𝒗𝑝𝑖, 𝒗], dim = 2)
+9: end if
+10: 𝑨← Softmax
+
+𝒒𝒌⊤ √
+𝑑
+
+11: 𝑨← Dropout(𝑨)
+12: 𝒚← Linear(𝑨𝒗)
+13: Reshape 𝒚→[𝐵,𝑁,𝐶]
+14: 𝒚← Dropout(𝒚)
+15: return 𝒚
+3.3 Adaptive Fusion Mechanism Based On
+Defect Semantic Guidance
+To fully leverage the complementary advantages of multi-modal
+information, this paper introduces an Adaptive Fusion Mechanism
+based on Defect Semantic Guidance (DSG-AFM) to enhance the
+segmentation performance in anomaly detection. This mechanism
+employs a two-branch cooperative reasoning approach combined
+with a dynamic normalization strategy for efficient fusion of visual
+and textual features. The DSG-AFM framework comprises visual
+and textual branches: In the visual branch, a pre-trained Vision
+Transformer (ViT) is utilized to extract visual features, specifically
+using the fifth layer features for their semantically balanced and
+information-rich characteristics, which are crucial for task identi-
+fication and anomaly detection. Initially, the sixth-layer features
+from the frozen vision backbone network calculate the highest
+similarity with the task identification stored in CMPMB to achieve
+rapid task identity matching. Subsequently, the task-associated vi-
+sual prompt guidance model generates task-related feature output
+𝐹𝑉 and calculates the nearest neighbor distance at the patch level
+with the normal feature library Ft stored in CMPMB, producing a
+preliminary patch-level anomaly score𝑆𝑉 .
+In the text branch, the last feature 𝐹𝑇 from the text encoder, rich
+in semantic information, and the visual feature 𝐹𝑉 are extracted
+under the guidance of the task-associated text prompt. Cross-modal
+cosine similarity is then calculated to obtain the text-guided anom-
+aly score 𝑆𝑇 . To enhance the discriminative robustness of anomaly
+scores and better adapt to cross-task distribution differences, we
+designed an adaptive normalization Mechanism (ANM). This mech-
+anism dynamically normalizes the anomaly score by adjusting the
+steepness and center position of the Sigmoid function through
+hyperparameters 𝑘 and 𝑏, optimizing the anomaly score. Given
+the significant computational burden of simultaneously optimizing
+𝑘 and 𝑏 using a greedy search strategy, 𝑘 is set as a fixed value
+of 1.5 in this study. Experimental results demonstrate that this
+configuration already achieves significant improvements in the
+segmentation task. Further ablation studies on the choice of 𝑘 val-
+ues will be conducted in Section 4.3. For hyperparameter 𝑏, our
+greedy search strategy can be described as follows: define the step
+set Δ ={0,±0.1,±0.5,±1,±3}. During each training iteration in
+the task adaptation phase, we generate the candidate value set
+𝑏𝑠 ={𝑏𝑜𝑙𝑑 +𝛿|𝛿∈ Δ}. For each candidate value 𝑏, the correspond-
+ing anomaly score is calculated, and the optimal candidate 𝑏𝑛𝑒𝑤 is
+selected by evaluating the detection performance on the validation
+set. The update rule is as follows:
+𝑏new = arg max 𝑏∈{𝑏old+𝛿} 𝑃(𝑏), (14)
+where P (b) represents the performance indicators of the verification
+set corresponding to the current candidate b. Further, the improved
+normalized function is defined as:
+𝜎(𝑥) = 1 1+𝑒−𝑘(𝑥−𝑏new ). (15)
+Through dynamically searching the center position of the Sigmoid
+function, ANM adaptively compresses the score interval of normal
+samples and magnifies the response difference of abnormal regions,
+thereby achieving more accurate anomaly location. Finally, 𝑆𝑉 and
+𝑆𝑇 are up-sampled to a 224×224 resolution via bilinear interpola-
+tion, and the anomaly fraction diagrams 𝑀𝑉 and 𝑀𝑇 are obtained.
+The final anomaly score map 𝑀𝑓𝑖𝑛𝑎𝑙 is then generated using the
+following dynamic fusion strategy (DFS):
+𝑀final =𝛼·𝑀𝑉 +(1−𝛼)·𝑀𝑇, (16)
+among them, the hyperparameter 𝛼 is used to balance the contri-
+bution of the two types of abnormal graphs, and . denotes matrix
+multiplication. See Section 4.3 for the ablation experiment of 𝛼.
+DSG-AFM not only makes full use of the local discriminant nature
+of visual features and the semantic guidance of text prompts but
+also alleviates the interference caused by the differences in data
+distribution across tasks through dynamic normalization. Ablation
+experiments (Table 6) validated a significant improvement in AUPR
+indicators.
+4 Experiments
+4.1 Experimental Setup
+In this study, we conducted experiments on two widely used indus-
+trial image anomaly detection datasets: MVTec AD [1] and VisA
+[50].MVTec AD contains 15 categories of normal and anomalous im-
+ages covering industrial products such as bottles, screws, and metal
+parts, and provides both image-level and pixel-level annotations,
+which are suitable for evaluating the performance of unsupervised
+
+===== PAGE 6 =====
+MM ’25, October 27–31, 2025, Dublin, Ireland Mingle Zhou et al.
+Table 1: Image-level AUROC ↑ and corresponding FM ↓ on MVTec AD dataset [1] after training on the last subdataset. Note that
+* signifies the usage of a cache pool for rehearsal during training, which may not be possible in real applications. The best
+results are highlighted in bold, and suboptimal results are highlighted in underline.
+Methods Bottle cable capsule carpet grid hazelnut leather metal_nut pill screw tile toothbrush transistor wood zipper average avg FM
+CFA 0.309 0.489 0.275 0.834 0.571 0.903 0.935 0.464 0.528 0.528 0.763 0.519 0.320 0.923 0.984 0.623 0.361
+CSFlow 0.129 0.420 0.363 0.978 0.602 0.269 0.906 0.220 0.263 0.434 0.697 0.569 0.432 0.802 0.997 0.539 0.426
+CutPaste 0.111 0.422 0.373 0.198 0.214 0.578 0.007 0.517 0.371 0.356 0.112 0.158 0.340 0.150 0.775 0.312 0.510
+DRAEM 0.793 0.411 0.517 0.537 0.799 0.524 0.480 0.422 0.452 1.000 0.548 0.625 0.307 0.517 0.996 0.595 0.371
+FastFlow 0.454 0.512 0.517 0.489 0.482 0.522 0.487 0.476 0.575 0.402 0.489 0.267 0.526 0.616 0.867 0.512 0.279
+FAVAE 0.666 0.396 0.357 0.610 0.644 0.884 0.406 0.416 0.531 0.624 0.563 0.503 0.331 0.728 0.544 0.547 0.102
+PaDiM 0.458 0.544 0.418 0.454 0.704 0.635 0.418 0.446 0.449 0.578 0.581 0.678 0.407 0.549 0.855 0.545 0.368
+PatchCore 0.163 0.518 0.350 0.968 0.700 0.839 0.625 0.259 0.459 0.484 0.776 0.586 0.341 0.970 0.991 0.602 0.383
+RD4AD 0.401 0.538 0.475 0.583 0.558 0.909 0.596 0.623 0.479 0.596 0.715 0.397 0.385 0.700 0.987 0.596 0.393
+SPADE 0.302 0.444 0.525 0.529 0.460 0.410 0.577 0.592 0.484 0.514 0.881 0.386 0.622 0.897 0.949 0.571 0.285
+STPM 0.329 0.539 0.610 0.462 0.569 0.540 0.740 0.456 0.523 0.753 0.736 0.375 0.450 0.779 0.783 0.576 0.325
+SimpleNet 0.938 0.560 0.519 0.736 0.592 0.859 0.749 0.710 0.701 0.599 0.654 0.422 0.669 0.908 0.996 0.708 0.211
+UniAD 0.801 0.660 0.823 0.754 0.713 0.904 0.715 0.791 0.869 0.731 0.687 0.776 0.490 0.903 0.997 0.774 0.229
+DNE 0.990 0.619 0.609 0.984 0.998 0.924 1.000 0.989 0.671 0.588 0.980 0.933 0.877 0.930 0.958 0.870 0.116
+PatchCore* 0.533 0.505 0.351 0.723 0.959 0.854 0.456 0.511 0.626 0.748 0.600 0.427 0.900 0.974 0.669 0.229 0.318
+UniAD* 0.997 0.701 0.765 0.998 0.896 0.936 1.000 0.964 0.895 0.554 0.989 0.928 0.966 0.982 0.987 0.904 0.076
+UCAD 1.000 0.751 0.866 0.965 0.944 0.994 1.000 0.988 0.894 0.739 0.998 1.000 0.874 0.995 0.938 0.930 0.010
+Ours 1.000 0.960 0.959 0.999 0.998 0.992 1.000 0.996 0.962 0.856 0.996 0.975 0.946 0.991 0.982 0.974 0.009
+Table 2: Pixel-level AUPR↑ and corresponding FM↓ on MVTec AD dataset [1] after training on the last subdataset.
+Methods Bottle cable capsule carpet grid hazelnut leather metal_nut pill screw tile toothbrush transistor wood zipper average avg FM
+CFA 0.068 0.056 0.050 0.271 0.004 0.341 0.393 0.255 0.080 0.015 0.155 0.053 0.056 0.281 0.573 0.177 0.083
+DRAEM 0.117 0.019 0.044 0.018 0.005 0.036 0.036 0.142 0.104 0.002 0.130 0.039 0.040 0.033 0.734 0.098 0.116
+FastFlow 0.044 0.021 0.013 0.013 0.005 0.028 0.007 0.090 0.029 0.003 0.060 0.015 0.036 0.037 0.264 0.044 0.214
+FAVAE 0.086 0.048 0.039 0.015 0.004 0.389 0.389 0.174 0.070 0.017 0.064 0.043 0.046 0.093 0.039 0.083 0.083
+PaDiM 0.072 0.037 0.030 0.023 0.006 0.183 0.039 0.155 0.044 0.014 0.065 0.044 0.049 0.080 0.452 0.086 0.366
+PatchCore 0.048 0.029 0.035 0.552 0.003 0.338 0.279 0.248 0.051 0.061 0.249 0.034 0.079 0.304 0.595 0.190 0.371
+RD4AD 0.055 0.040 0.064 0.212 0.005 0.384 0.116 0.247 0.051 0.061 0.193 0.034 0.059 0.097 0.562 0.143 0.425
+SPADE 0.122 0.052 0.044 0.117 0.004 0.512 0.264 0.181 0.060 0.020 0.096 0.043 0.050 0.172 0.531 0.151 0.319
+STPM 0.074 0.019 0.073 0.054 0.005 0.037 0.108 0.354 0.111 0.001 0.397 0.046 0.046 0.119 0.203 0.110 0.352
+SimpleNet 0.108 0.045 0.029 0.018 0.004 0.029 0.006 0.227 0.077 0.004 0.082 0.046 0.049 0.037 0.139 0.060 0.069
+UniAD 0.054 0.031 0.022 0.047 0.007 0.189 0.053 0.110 0.034 0.008 0.107 0.040 0.045 0.103 0.444 0.086 0.419
+PatchCore* 0.087 0.043 0.042 0.407 0.003 0.443 0.352 0.189 0.058 0.017 0.124 0.028 0.053 0.270 0.604 0.181 0.343
+UniAD* 0.734 0.232 0.313 0.517 0.204 0.378 0.360 0.587 0.346 0.035 0.428 0.398 0.542 0.378 0.443 0.393 0.086
+UCAD 0.752 0.290 0.349 0.622 0.187 0.506 0.333 0.775 0.634 0.214 0.549 0.298 0.398 0.535 0.398 0.456 0.013
+Ours 0.857 0.623 0.307 0.825 0.259 0.714 0.547 0.803 0.690 0.160 0.888 0.659 0.479 0.686 0.566 0.604 0.040
+Table 3: Image-level AUROC↑ and corresponding FM↓ on VisA dataset [50] after training on the last subdataset.
+Methods candle capsules cashew chewinggum fryum macaroni1 macaroni2 pcb1 pcb2 pcb3 pcb4 pipe_fryum average avg FM
+CFA 0.512 0.672 0.873 0.753 0.304 0.557 0.422 0.698 0.472 0.449 0.407 0.998 0.593 0.327
+RD4AD 0.380 0.385 0.737 0.539 0.533 0.607 0.487 0.437 0.672 0.343 0.187 0.999 0.525 0.423
+PatchCore 0.401 0.605 0.624 0.907 0.334 0.538 0.437 0.527 0.597 0.507 0.588 0.998 0.589 0.361
+SimpleNet 0.504 0.474 0.794 0.721 0.684 0.567 0.447 0.598 0.629 0.538 0.493 0.945 0.616 0.283
+UniAD 0.573 0.599 0.661 0.758 0.504 0.559 0.644 0.749 0.523 0.547 0.562 0.989 0.639 0.297
+DNE 0.486 0.413 0.735 0.585 0.691 0.584 0.546 0.633 0.693 0.642 0.562 0.747 0.610 0.179
+PatchCore* 0.647 0.579 0.669 0.735 0.431 0.631 0.624 0.617 0.534 0.479 0.645 0.999 0.633 0.349
+UniAD* 0.884 0.669 0.938 0.970 0.812 0.753 0.570 0.872 0.766 0.708 0.967 0.990 0.825 0.125
+UCAD 0.778 0.877 0.960 0.958 0.945 0.823 0.667 0.905 0.871 0.813 0.901 0.988 0.874 0.039
+Ours 0.944 0.822 0.909 0.965 0.945 0.910 0.830 0.847 0.864 0.874 0.905 0.997 0.901 0.042
+Table 4: Pixel-level AUPR↑ and corresponding FM↓ on VisA dataset [50] after training on the last subdataset.
+Methods candle capsules cashew chewinggum fryum macaroni1 macaroni2 pcb1 pcb2 pcb3 pcb4 pipe_fryum average avg FM
+CFA 0.017 0.005 0.059 0.243 0.085 0.001 0.001 0.013 0.006 0.008 0.015 0.592 0.087 0.184
+RD4AD 0.002 0.005 0.061 0.045 0.098 0.001 0.001 0.013 0.008 0.008 0.013 0.576 0.069 0.201
+PatchCore 0.012 0.007 0.055 0.315 0.082 0.000 0.000 0.008 0.004 0.007 0.010 0.585 0.090 0.311
+SimpleNet 0.001 0.004 0.017 0.007 0.047 0.000 0.000 0.013 0.003 0.004 0.009 0.058 0.014 0.016
+UniAD 0.006 0.013 0.040 0.185 0.087 0.002 0.002 0.015 0.005 0.015 0.013 0.576 0.080 0.218
+PatchCore* 0.018 0.010 0.047 0.202 0.081 0.003 0.001 0.008 0.004 0.008 0.010 0.443 0.070 0.327
+UniAD* 0.132 0.123 0.378 0.574 0.404 0.041 0.010 0.612 0.083 0.266 0.232 0.549 0.283 0.062
+UCAD 0.067 0.437 0.580 0.503 0.334 0.013 0.003 0.702 0.136 0.266 0.106 0.457 0.300 0.015
+Ours 0.119 0.351 0.655 0.730 0.309 0.021 0.006 0.689 0.100 0.383 0.260 0.754 0.365 0.041
+
+===== PAGE 7 =====
+Exploring Multimodal Prompts For Unsupervised Continuous Anomaly Detection MM ’25, October 27–31, 2025, Dublin, Ireland
+Original
+ Image
+ Ground 
+Truth
+UCADOurs
+Figure 3: Visualization and analysis of the model performance on the MVTec-AD and VisA Datasets.
+Table 5: Image-level AUROC and Pixel-level AUPR Perfor-
+mance on MVTec AD and VisA dataset with CMPMB and
+DSG-AFM.
+CMPMB DSG-AFM MVtec AD VisAText
+Prompts
+Vision
+Prompts DFS ANM
+X X X X 0.760/0.249 0.808/0.127
+✓ ✓ ✓ X 0.971/0.523 0.899/0.317
+X ✓ X ✓ 0.973/0.597 0.891/0.347
+✓ ✓ ✓ ✓ 0.974/0.604 0.901/0.365
+anomaly detection methods. VisA is currently the largest real in-
+dustrial anomaly detection dataset with pixel-level annotations,
+contains diverse industrial scenes, and is suitable for training and
+evaluating models that perform both image-level and pixel-level
+anomaly detection.
+Competing Methods and Baselines. Typical approaches from
+a variety of different paradigms are considered in this article to
+compare with our approach. These methods include CFA[20], CS-
+Flow [33], CutPaste [22], DNE [23], DRAEM [45], Fast-Flow [44],
+FAVAE [10], PaDiM [9], PatchCore [32], RD4AD [11], SPADE [8],
+STPM [37], SimpleNet [29], UniAD [43] and UCAD[27]. To com-
+prehensively evaluate the model performance, we use three main
+metrics. First, the image-level anomaly classification capability is
+evaluated using the area under the receiver operating characteristic
+curve with exact recall (AUROC). Second, the pixel-level anom-
+aly segmentation capability is evaluated using the area under the
+exact recall curve (AUPR). In addition, to assess the model’s capa-
+bility in continuous anomaly detection scenarios, we utilize the
+forgetting measure (FM) [6] to assess the model’s ability to prevent
+catastrophic forgetting. FM measures the amount of forgetting by
+calculating the amount of forgetting by the model for task j after
+completing k tasks.
+𝑎𝑣𝑔𝐹𝑀 = 1 𝑘− 1 𝑘−1∑︁ 𝑗 =1 max 𝑙∈{1,...,𝑘−1} (T𝑙,𝑗 − T𝑘,𝑗). (17)
+In this study, we used the pre-trained multimodal model CLIP
+[30] as the backbone network. In the prompt(prompt) training
+phase, we used a batch size of 8 and employed the Adam opti-
+mizer [19] with a learning rate of 0.00005 and a momentum of 0.9.
+The training process lasted for 50 epochs. Our persistent multi-
+modal prompting memory 𝑀 =(𝐾,𝑃𝑇,𝑃𝑉,𝐹) consists of an array
+of floating-point arrays with sizes (15, 196, 1024) floating-point
+array as task identity (𝐾), a floating-point array of size (15, 5, 512)
+as learnable textual prompts (𝑃𝑇 ), a floating-point array of size (15,
+5, 768) as fine-grained visual prompts (𝑃𝑉 ), and a floating-point
+array of size (15, 196, 1024) as a normal feature bank (𝐹 ).
+4.2 Comparison With Other Methods
+We conducted comprehensive evaluations of the aforementioned 14
+methods on the MVTec AD and VisA datasets. Among them, UCAD
+[8], as the benchmark for unsupervised continuous anomaly detec-
+tion (AD), is currently the state-of-the-art (SOTA) method. Patch-
+Core* and UniAD* are enhanced versions based on memory bank’s
+PatchCore [32] and unified paradigm’s UniAD [43], respectively,
+designed to simulate replay-based continuous anomaly detection.
+Quantitative Analysis: Tables 1-4 indicate that most AD meth-
+ods exhibit significant performance degradation under continuous
+learning settings. In contrast, our approach achieves substantial
+advantages without employing a replay mechanism: Compared to
+UniAD*, our method demonstrates improvements of +7% in image
+
+===== PAGE 8 =====
+MM ’25, October 27–31, 2025, Dublin, Ireland Mingle Zhou et al.
+Table 6: Pixel-level AUPR Performance on MVTec AD and
+VisA dataset with different configurations of𝛼.
+𝛼 MVTec AD VisA
+0.1 0.592 0.364
+0.3 0.601 0.361
+0.5 0.603 0.364
+0.7 0.603 0.364
+0.9 0.604 0.365
+Table 7: Image-level AUROC and Pixel-level AUPR Perfor-
+mance on MVTec AD and VisA dataset with different config-
+urations of ViT encoder layer.
+Layer MVTec AD VisA
+1 0.884/0.498 0.815/0.230
+3 0.956/0.603 0.881/0.361
+5 0.974/0.604 0.901/0.365
+7 0.969/0.578 0.901/0.379
+9 0.946/0.481 0.886/0.204
+AUROC and +21.1% in pixel AUPR on MVTec AD, and +7.6% in
+image AUROC and +8.2% in pixel AUPR on VisA. Additionally,
+compared to UCAD, which relies solely on visual information, our
+method significantly enhances discrimination ability, achieving per-
+formance improvements of +4.4% and +14.8% in image AUROC and
+pixel AUPR, respectively, on the MVTec AD dataset. On the more
+complex VisA dataset, we also achieved improvements of +2.7%
+and +6.5%, respectively. Notably, while the introduction of text
+information leads to a slight decrease in the model’s anti-forgetting
+rate (FM), the model generally still achieves sub-optimal or even
+optimal results. Given the significant performance enhancements
+in anomaly detection and segmentation from incorporating text
+information, this minor decline is deemed acceptable.
+Qualitative analysis: Fig.3 further underscores the advantages
+of our method in anomaly detection and segmentation. Compared
+with the previous SOTA method, UCAD, our approach exhibits
+superior detection performance. These findings highlight the frame-
+work’s excellent balance between precision and robustness.
+4.3 Ablation Study
+We conducted a series of ablation studies to further investigate the
+influence of each module on performance. Initially, we performed
+structural ablation experiments, with results presented in Table 5.
+In the first experiment, we removed the CMPMB and DSG-AFM
+modules, reverting to the most basic model configuration for anom-
+aly detection, where the normal feature database was reset after
+each task. Subsequently, we introduced multimodal prompts to
+guide unsupervised anomaly detection in continuous scenarios,
+which led to significant performance improvements. To evaluate
+the effectiveness of textual information, we conducted experiments
+using a model that relied solely on visual prompts. The results
+demonstrated that removing text prompts decreased segmentation
+accuracy, thereby validating the importance of text prompts in con-
+tinuous unsupervised anomaly segmentation tasks. Additionally,
+Original Image  Ground  TruthBackbone Backbone +CMPMB Backbone+CMPMB +DSG-AFM
+Figure 4: Visualization of anomaly segmentation under dif-
+ferent modules on the MVTec AD dataset.
+we examined the impact of ANM on model performance and found
+that its removal significantly reduced abnormal segmentation per-
+formance, underscoring the critical role of ANM in segmentation
+tasks. The visualized results of the structural ablation experiment
+shown in Fig.4 further illustrate the effectiveness of CMPMB and
+DSG-AFM. In addition, we conducted comprehensive ablation stud-
+ies to investigate the impacts of critical hyperparameters on model
+performance. First, we systematically evaluated the influence of
+the balancing coefficient 𝛼 in our DFS module. Table 6 clearly illus-
+trates a relationship between 𝛼 values and model performance, with
+optimal results achieved at 𝛼=0.9. Furthermore, we investigated
+the impact of feature extraction layers from our pre-trained visual
+backbone, as summarized in Table 7. Notably, the characteristics
+of different layers significantly impacted model performance. The
+experiments reveal that middle-layer features (specifically Layer
+5) achieve superior performance by optimally combining detailed
+spatial information with high-level semantic content and lower and
+higher layers, leading to substantial performance declines.
+5 Conclusion
+In this paper, we propose an unsupervised continuous anomaly
+detection method based on multi-modal prompts. By introducing a
+Continuous Multi-Modal Prompt Memory (CMPMB) and a Defect
+Semantics-Guided Adaptive Fusion Mechanism (DSG-AFM), this
+method successfully leverages multi-modal information for unsu-
+pervised persistent anomaly detection and segmentation, thereby
+enhancing its performance. Experimental results on the MVTec
+AD and VisA datasets demonstrate that our approach significantly
+outperforms existing unsupervised persistent anomaly detection
+methods, achieving state-of-the-art (SOTA) performance. Future
+research could further investigate the integration of additional
+modal information, such as sensor data and sound, to improve the
+performance and generalization of the model.
+
+===== PAGE 9 =====
+Exploring Multimodal Prompts For Unsupervised Continuous Anomaly Detection MM ’25, October 27–31, 2025, Dublin, Ireland
+6 Acknowledgments
+Acknowledgments
+This work is supported by Key R&D Program of Shandong Province,
+China(2023CXGC010112), National Natural Science Foundation of
+China(62401305), the Qilu Youth Innovation Team(2024KJH028) and
+Young Talent of Lifting engineering for Science and Technology in
+Shandong, China(SDAST2025QTA004).
+References
+[1] Paul Bergmann, Michael Fauser, David Sattlegger, and Carsten Steger. 2019.
+MVTec AD–A comprehensive real-world dataset for unsupervised anomaly de-
+tection. In Proceedings of the IEEE/CVF conference on computer vision and pattern
+recognition. 9592–9600.
+[2] Hu Cao, Yueyue Wang, Joy Chen, Dongsheng Jiang, Xiaopeng Zhang, Qi Tian, and
+Manning Wang. 2022. Swin-unet: Unet-like pure transformer for medical image
+segmentation. In European conference on computer vision. Springer, 205–218.
+[3] Tri Cao, Jiawen Zhu, and Guansong Pang. 2023. Anomaly detection under
+distribution shift. In Proceedings of the IEEE/CVF International Conference on
+Computer Vision. 6511–6523.
+[4] Yunkang Cao, Xiaohao Xu, Chen Sun, Yuqi Cheng, Liang Gao, and Weiming
+Shen. 2023. 2nd place winning solution for the CVPR2023 visual anomaly and
+novelty detection challenge: Multimodal prompting for data-centric anomaly
+detection. arXiv preprint arXiv:2306.09067 (2023).
+[5] Young-Jin Cha, Wooram Choi, Gahyun Suh, Sadegh Mahmoudkhani, and Oral
+Büyüköztürk. 2018. Autonomous structural visual inspection using region-based
+deep learning for detecting multiple damage types. Computer-Aided Civil and
+Infrastructure Engineering 33, 9 (2018), 731–747.
+[6] Arslan Chaudhry, Puneet K Dokania, Thalaiyasingam Ajanthan, and Philip HS
+Torr. 2018. Riemannian walk for incremental learning: Understanding forgetting
+and intransigence. In Proceedings of the European conference on computer vision
+(ECCV). 532–547.
+[7] Qi Chen, Changli Wu, Jiayi Ji, Yiwei Ma, Danni Yang, and Xiaoshuai Sun. 2025.
+IPDN: Image-enhanced Prompt Decoding Network for 3D Referring Expression
+Segmentation. arXiv preprint arXiv:2501.04995 (2025).
+[8] Niv Cohen and Yedid Hoshen. 2020. Sub-image anomaly detection with deep
+pyramid correspondences. arXiv preprint arXiv:2005.02357 (2020).
+[9] Thomas Defard, Aleksandr Setkov, Angelique Loesch, and Romaric Audigier.
+2021. Padim: a patch distribution modeling framework for anomaly detection
+and localization. In International conference on pattern recognition. Springer, 475–
+489.
+[10] David Dehaene and Pierre Eline. 2020. Anomaly localization by modeling
+perceptual features. CoRR abs/2008.05369 (2020). arXiv:2008.05369 https:
+//arxiv.org/abs/2008.05369
+[11] Hanqiu Deng and Xingyu Li. 2022. Anomaly detection via reverse distillation
+from one-class embedding. In Proceedings of the IEEE/CVF conference on computer
+vision and pattern recognition. 9737–9746.
+[12] Yuval Eldar, Michael Lindenbaum, Moshe Porat, and Yehoshua Y Zeevi. 1997.
+The farthest point strategy for progressive image sampling. IEEE transactions on
+image processing 6, 9 (1997), 1305–1315.
+[13] Qingqing Fang, Qinliang Su, Wenxi Lv, Wenchao Xu, and Jianxing Yu. 2025. Boost-
+ing Fine-Grained Visual Anomaly Detection with Coarse-Knowledge-Aware Ad-
+versarial Learning. In Proceedings of the AAAI conference on artificial intelligence.
+[14] Zheng Fang, Xiaoyang Wang, Haocheng Li, Jiejie Liu, Qiugui Hu, and Jimin Xiao.
+2023. Fastrecon: Few-shot industrial anomaly detection via fast feature recon-
+struction. In Proceedings of the IEEE/CVF International Conference on Computer
+Vision. 17481–17490.
+[15] Han Gao, Huiyuan Luo, Fei Shen, and Zhengtao Zhang. 2023. Towards total
+online unsupervised anomaly detection and localization in industrial vision.
+arXiv preprint arXiv:2305.15652 (2023).
+[16] Zhihao Gu, Jiangning Zhang, Liang Liu, Xu Chen, Jinlong Peng, Zhenye Gan,
+Guannan Jiang, Annan Shu, Yabiao Wang, and Lizhuang Ma. 2024. Rethinking
+reverse distillation for multi-modal anomaly detection. In Proceedings of the AAAI
+Conference on Artificial Intelligence, Vol. 38. 8445–8453.
+[17] Haoyang He, Jiangning Zhang, Hongxu Chen, Xuhai Chen, Zhishan Li, Xu Chen,
+Yabiao Wang, Chengjie Wang, and Lei Xie. 2024. A diffusion-based framework for
+multi-class anomaly detection. In Proceedings of the AAAI conference on artificial
+intelligence, Vol. 38. 8472–8480.
+[18] Bozhen Hu, Bin Gao, Wai Lok Woo, Lingfeng Ruan, Jikun Jin, Yang Yang, and
+Yongjie Yu. 2020. A lightweight spatial and temporal multi-feature fusion network
+for defect detection. IEEE Transactions on Image Processing 30 (2020), 472–486.
+[19] Diederik P Kingma and Jimmy Ba. 2014. Adam: A Method for Stochastic Opti-
+mization. arXiv e-prints (2014), arXiv–1412.
+[20] Sungwook Lee, Seunghyun Lee, and Byung Cheol Song. 2022. Cfa: Coupled-
+hypersphere-based feature adaptation for target-oriented anomaly localization.
+IEEE Access 10 (2022), 78446–78454.
+[21] Jiarui Lei, Xiaobo Hu, Yue Wang, and Dong Liu. 2023. Pyramidflow: High-
+resolution defect contrastive localization using pyramid normalizing flow. In
+Proceedings of the IEEE/CVF conference on computer vision and pattern recognition.
+14143–14152.
+[22] Chun-Liang Li, Kihyuk Sohn, Jinsung Yoon, and Tomas Pfister. 2021. Cutpaste:
+Self-supervised learning for anomaly detection and localization. In Proceedings of
+the IEEE/CVF conference on computer vision and pattern recognition. 9664–9674.
+[23] Wujin Li, Jiawei Zhan, Jinbao Wang, Bizhong Xia, Bin-Bin Gao, Jun Liu, Chengjie
+Wang, and Feng Zheng. 2022. Towards continual adaptation in industrial anomaly
+detection. In Proceedings of the 30th ACM International Conference on Multimedia.
+2871–2880.
+[24] Zijun Li, Zhipeng Cai, Bochun Yang, Xuelun Shen, Siqi Shen, Xiaoliang Fan,
+Michael Paulitsch, and Cheng Wang. 2024. ConDo: Continual Domain Expansion
+for Absolute Pose Regression. arXiv preprint arXiv:2412.13452 (2024).
+[25] Yufei Liang, Jiangning Zhang, Shiwei Zhao, Runze Wu, Yong Liu, and Shuwen
+Pan. 2023. Omni-frequency channel-selection representations for unsupervised
+anomaly detection. IEEE Transactions on Image Processing 32 (2023), 4327–4340.
+[26] Zhihang Lin, Mingbao Lin, Luxi Lin, and Rongrong Ji. 2024. Boosting multimodal
+large language models with visual tokens withdrawal for rapid inference. arXiv
+preprint arXiv:2405.05803 (2024).
+[27] Jiaqi Liu, Kai Wu, Qiang Nie, Ying Chen, Bin-Bin Gao, Yong Liu, Jinbao Wang,
+Chengjie Wang, and Feng Zheng. 2024. Unsupervised continual anomaly detec-
+tion with contrastively-learned prompt. In Proceedings of the AAAI conference on
+artificial intelligence, Vol. 38. 3639–3647.
+[28] Xinyue Liu, Jianyuan Wang, Biao Leng, and Shuo Zhang. 2024. Dual-modeling
+decouple distillation for unsupervised anomaly detection. In Proceedings of the
+32nd ACM International Conference on Multimedia. 5035–5044.
+[29] Zhikang Liu, Yiming Zhou, Yuansheng Xu, and Zilei Wang. 2023. Simplenet: A
+simple network for image anomaly detection and localization. In Proceedings of
+the IEEE/CVF conference on computer vision and pattern recognition. 20402–20411.
+[30] Alec Radford, Jong Wook Kim, Chris Hallacy, Aditya Ramesh, Gabriel Goh,
+Sandhini Agarwal, Girish Sastry, Amanda Askell, Pamela Mishkin, Jack Clark,
+et al. 2021. Learning transferable visual models from natural language supervision.
+In International conference on machine learning. PmLR, 8748–8763.
+[31] Tal Reiss, Niv Cohen, Liron Bergman, and Yedid Hoshen. 2021. Panda: Adapting
+pretrained features for anomaly detection and segmentation. In Proceedings of
+the IEEE/CVF conference on computer vision and pattern recognition. 2806–2814.
+[32] Karsten Roth, Latha Pemula, Joaquin Zepeda, Bernhard Schölkopf, Thomas Brox,
+and Peter Gehler. 2022. Towards total recall in industrial anomaly detection. In
+Proceedings of the IEEE/CVF conference on computer vision and pattern recognition.
+14318–14328.
+[33] Marco Rudolph, Tom Wehrbein, Bodo Rosenhahn, and Bastian Wandt. 2022. Fully
+convolutional cross-scale-flows for image-based defect detection. In Proceedings
+of the IEEE/CVF winter conference on applications of computer vision. 1088–1097.
+[34] Luc PJ Sträter, Mohammadreza Salehi, Efstratios Gavves, Cees GM Snoek, and
+Yuki M Asano. 2024. Generalad: Anomaly detection across domains by attending
+to distorted features. In Proceedings of the European conference on computer vision
+(ECCV). Springer, 448–465.
+[35] Long Tian, Hongyi Zhao, Ruiying Lu, Rongrong Wang, Yujie Wu, Liming Wang,
+Xiongpeng He, and Xiyang Liu. 2024. FOCT: Few-shot Industrial Anomaly
+Detection with Foreground-aware Online Conditional Transport. In Proceedings
+of the 32nd ACM International Conference on Multimedia. 6241–6249.
+[36] Fuyun Wang, Tong Zhang, Yuanzhi Wang, Yide Qiu, Xin Liu, Xu Guo, and Zhen
+Cui. 2025. Distribution Prototype Diffusion Learning for Open-set Supervised
+Anomaly Detection. In Proceedings of the IEEE/CVF conference on computer vision
+and pattern recognition.
+[37] Guodong Wang, Shumin Han, Errui Ding, and Di Huang. 2021. Student-teacher
+feature pyramid matching for anomaly detection. (2021).
+[38] Xiaolei Wang, Xiaoyang Wang, Huihui Bai, Eng Gee Lim, and Jimin Xiao. 2024.
+CNC: Cross-modal Normality Constraint for Unsupervised Multi-class Anomaly
+Detection. arXiv preprint arXiv:2501.00346 (2024).
+[39] Yue Wang, Jinlong Peng, Jiangning Zhang, Ran Yi, Yabiao Wang, and Chengjie
+Wang. 2023. Multimodal industrial anomaly detection via hybrid fusion. In
+Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition.
+8032–8041.
+[40] Qiangwei Wu, Hui Li, Chenyu Tian, Long Wen, and Xinyu Li. 2024. AEKD: Un-
+supervised auto-encoder knowledge distillation for industrial anomaly detection.
+Journal of Manufacturing Systems 73 (2024), 159–169.
+[41] Hongzuo Xu, Yijie Wang, Juhui Wei, Songlei Jian, Yizhou Li, and Ning Liu. 2023.
+Fascinating supervisory signals and where to find them: Deep anomaly detection
+with scale learning. In International Conference on Machine Learning. PMLR,
+38655–38673.
+[42] Zhiyuan You, Lei Cui, Yujun Shen, Kai Yang, Xin Lu, Yu Zheng, and Xinyi Le.
+2022. A unified model for multi-class anomaly detection. Advances in Neural
+Information Processing Systems 35 (2022), 4571–4584.
+
+===== PAGE 10 =====
+MM ’25, October 27–31, 2025, Dublin, Ireland Mingle Zhou et al.
+[43] Zhiyuan You, Lei Cui, Yujun Shen, Kai Yang, Xin Lu, Yu Zheng, and Xinyi Le.
+2022. A unified model for multi-class anomaly detection. Advances in Neural
+Information Processing Systems 35 (2022), 4571–4584.
+[44] Jiawei Yu, Ye Zheng, Xiang Wang, Wei Li, Yushuang Wu, Rui Zhao, and Liwei
+Wu. 2021. Fastflow: Unsupervised anomaly detection and localization via 2d
+normalizing flows. arXiv preprint arXiv:2111.07677 (2021).
+[45] Vitjan Zavrtanik, Matej Kristan, and Danijel Skočaj. 2021. Draem-a discrimi-
+natively trained reconstruction embedding for surface anomaly detection. In
+Proceedings of the IEEE/CVF international conference on computer vision. 8330–
+8339.
+[46] Zhaoyang Zeng, Bei Liu, Jianlong Fu, and Hongyang Chao. 2021. Reference-
+based defect detection network. IEEE Transactions on Image Processing 30 (2021),
+6637–6647.
+[47] Fenghua Zhang and Zhehan Chen. 2023. IDDM: An incremental dual-network
+detection model for in-situ inspection of large-scale complex product. Journal of
+Industrial Information Integration 33 (2023), 100463.
+[48] Xuan Zhang, Shiyu Li, Xi Li, Ping Huang, Jiulong Shan, and Ting Chen. 2023.
+Destseg: Segmentation guided denoising student-teacher for anomaly detec-
+tion. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern
+Recognition. 3914–3923.
+[49] Ximiao Zhang, Min Xu, and Xiuzhuang Zhou. 2024. Realnet: A feature selection
+network with realistic synthetic anomaly for anomaly detection. In Proceedings of
+the IEEE/CVF conference on computer vision and pattern recognition. 16699–16708.
+[50] Yang Zou, Jongheon Jeong, Latha Pemula, Dongqing Zhang, and Onkar Dabeer.
+2022. Spot-the-difference self-supervised pre-training for anomaly detection and
+segmentation. In European Conference on Computer Vision. Springer, 392–408.

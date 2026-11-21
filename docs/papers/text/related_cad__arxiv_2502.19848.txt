@@ -1,0 +1,1280 @@
+# SOURCE: docs/papers/related_cad/arxiv_2502.19848.pdf
+# SOURCE_SHA256: 7daa2dd44ca171b0fc12828b14400f1da6450fa746117c59b3367190e9476e4c
+# EXTRACTOR: pypdf 7.1.0 (PdfReader.extract_text, per page)
+# EXTRACTED: 2026-11-19
+# NOTE: machine extraction; equations/tables/unicode may be garbled. Cite the PDF, not this file.
+
+
+===== PAGE 1 =====
+One-for-More: Continual Diffusion Model for Anomaly Detection
+Xiaofan Li1, Xin Tan1, Zhuo Chen3, Zhizhong Zhang1†, Ruixin Zhang5, Rizen Guo6,
+Guannan Jiang7, Yulong Chen4, Yanyun Qu3,8, Lizhuang Ma1,4, Yuan Xie1,2‡
+1East China Normal University 2Shanghai Innovation Institute
+3Xiamen University 4Shanghai Jiao Tong University
+5Tencent YouTu Lab 6Tencent WeChatPay Lab33 7CATL
+8Key Laboratory of Multimedia Trusted Perception and Efficient Computing
+Ministry of Education of China
+{funzi}@stu.ecnu.edu.cn, {zzzhang, lzma, yxie}@cs.ecnu.edu.cn
+Abstract
+With the rise of generative models, there is a growing in-
+terest in unifying all tasks within a generative framework.
+Anomaly detection methods also fall into this scope and
+utilize diffusion models to generate or reconstruct normal
+samples when given arbitrary anomaly images. However,
+our study found that the diffusion model suffers from severe
+“faithfulness hallucination” and “catastrophic forgetting”,
+which can’t meet the unpredictable pattern increments. To
+mitigate the above problems, we propose a continual dif-
+fusion model that uses gradient projection to achieve sta-
+ble continual learning. Gradient projection deploys a reg-
+ularization on the model updating by modifying the gradi-
+ent towards the direction protecting the learned knowledge.
+But as a double-edged sword, it also requires huge memory
+costs brought by the Markov process. Hence, we propose
+an iterative singular value decomposition method based on
+the transitive property of linear representation, which con-
+sumes tiny memory and incurs almost no performance loss.
+Finally, considering the risk of “over-fitting” to normal im-
+ages of the diffusion model, we propose an anomaly-masked
+network to enhance the condition mechanism of the diffu-
+sion model. For continual anomaly detection, ours achieves
+first place in 17/18 settings on MVTec and VisA. Code is
+available at https://github.com/FuNz-0/One-for-More
+1. Introduction
+Anomaly detection (AD) [22, 42] has a wide array of ap-
+plications in both medical and industrial fields. Traditional
+methods typically operate on a one-to-one paradigm, where
+a customized model is trained for a specific category or a
+†Corresponding author
+‡Project leader
+Base 
+trained on 
+bottle
+ Continually 
+trained on 
+cable
+ControlNet
+ControlNet
+ControlNet
+CDAD
+CDAD
+CDAD
+base task 1 task 2 task 3 task 4 task 5
+&RQWLQXDOO\WUDLQHGWDVNV
+84
+86
+88
+90
+92
+94
+96
+98$$852&
+ControlNet (Pixel)
+CDAD (Piexl)
+base task 1 task 2 task 3 task 4 task 5
+&RQWLQXDOO\WUDLQHGWDVNV
+84
+86
+88
+90
+92
+94
+96
+98$$852&
+ControlNet (Image)
+CDAD (Image)
+Figure 1. Top: Results of ControlNet and CDAD on image/pixel-
+level anomaly detection as the number of tasks on the MVTec con-
+tinually increases. Bottom: “faithfulness hallucination” Problem
+in ControlNet for continuous anomaly detection.
+kind of industrial product. The one-for-one mode severely
+limits the generalization of the model. Instead, the one-
+for-all paradigm proposes that training a single model can
+perform anomaly detection across all classes. However,
+in real-world scenarios, the pattern increments are unpre-
+dictable, necessitating the model’s ability to learn continu-
+ously, which we refer to as the on-for-more paradigm. This
+paper focuses on the task of continuous anomaly detection
+and proposes a Continual Diffusion model for Anomaly
+Detection (CDAD).
+The diffusion model (DM) has been widely used in
+anomaly detection [9, 13, 43, 48]. Current DM-based meth-
+ods generate the normal images conditioned on anomaly
+images through the image-to-image mechanism. The differ-
+ence between the input and output of the diffusion model is
+used as the score of anomaly detection, which requires the
+diffusion model to reconstruct anomaly areas of the input
+image. However, our study found that the image-to-image
+arXiv:2502.19848v3  [cs.CV]  22 Jul 2025
+
+===== PAGE 2 =====
+diffusion model suffers from “catastrophic forgetting”[17]
+in continuously generating diverse samples. Taking Con-
+trolNet [47] as an example, as shown in Figure 1 (top), the
+performance on the base task (10 classes in MVTec [3]) is
+excellent but deteriorates seriously as the model continues
+to be trained on new tasks (new classes). Furthermore, as
+shown in Figure 1 (bottom), the ControlNet [47], after train-
+ing in the latest class, suffers from “faithfulness hallucina-
+tion” [16]. Specifically, the model’s output becomes incon-
+sistent with previously trained samples, leading to a failure
+in detecting anomalies. In this paper, we mitigate the above
+problem from two aspects: 1) use a stable parameter up-
+date strategy, and 2) strengthen the conditional mechanism
+of image-to-image generation.
+In this paper, we propose a continual diffusion model
+framework that projects the updating gradient of new tasks
+onto a subspace orthogonal to the significant representation
+of previous tasks [29, 34], thus eliminating the effect of the
+update gradient on the previous feature space. Since the sig-
+nificant representation is calculated through singular value
+decomposition (SVD) on the matrix unfolded by interme-
+diate features, the gradient projection operation requires a
+lot of memory. However, the Markov-based diffusion pro-
+cess significantly increases the memory overhead. Taking
+U-Net of stable diffusion [30] as an example, computing the
+significant representation of 10 images consumes almost an
+additional 157 GB of memory (see Table 1), and more im-
+ages need more memory. To address this issue, we propose
+an iterative singular value decomposition (iSVD) method
+based on linear transitivity theoretical property. Through
+the online iterative operation, iSVD only needs about 17
+GB memory consumption to calculate the significant rep-
+resentation of any number of images. This paper demon-
+strates and validates the effectiveness of iSVD from both
+theoretical and experimental perspectives.
+Another issue of DM-based anomaly detection methods
+[13, 48] is that these methods tend to “over-fitting” normal
+samples rather than focusing on “reconstructing” anoma-
+lous regions, which weakens the role of the image-to-image
+conditioning mechanism and aggravates the hallucination
+problem in continuous learning. To this end, we propose
+the anomaly-masked network. In it, we use a CNN to en-
+code the input image and match its size with the input of
+U-Net, and we also design a non-local encoder using a
+transformer [39] structure to perceive the global informa-
+tion. The neighbor-masked self-attention [44] and anomaly-
+masked loss are used to mask out abnormal features, which
+preserves normal features output by the local encoder. As a
+result, the diffusion model pays more attention to the recon-
+struction of abnormal regions while avoiding its overfitting
+to generate normal images. Figure 1 illustrates our great ad-
+vantages, compared with ControlNet [47], CDAD can well
+overcome the hallucination problem and effectively allevi-
+ate the forgetting of continuous anomaly detection.
+To summarize, the main contributions of this paper are:
+• We propose a continual diffusion framework by modify-
+ing the gradient to alleviate the issues of forgetting and
+hallucination caused by continual learning.
+• Iterative singular value decomposition is proposed, which
+can greatly reduce the memory consumption of the gradi-
+ent projection.
+• We propose the anomaly-masked network, which can en-
+hance the condition mechanism of image-to-image gener-
+ation to avoid the side effect of “over-fitting” in anomaly
+detection.
+• For image-level and pixel-level anomaly detection, our
+method achieves first place in 17/18 continual anomaly
+detection settings on MVTec [3] and VisA [49].
+2. Related Work
+Diffusion models have achieved significant advancements
+in the field of image generation [30, 33, 47],which aids other
+visual tasks [18, 21, 23, 24]. They are also widely used in
+anomaly detection tasks, with some methods [13, 43, 48]
+utilizing diffusion models to reconstruct anomalous regions
+of an image. Additionally, some approaches [15] use dif-
+fusion models to generate various types of defects, which
+then assist in training anomaly detection models.
+One-for-One Anomaly Detection is the classical anomaly
+detection framework, which trains a customized model for
+each class to detect anomalies. The feature embedding
+methods [6, 7, 22, 31, 32] extract the patch features of
+the normal image and store them as memory, then the dis-
+tance between the test image features and the memory is
+used as anomaly scores. The knowledge distillation meth-
+ods [2, 10, 35, 40] compute anomaly scores by the differ-
+ence between the teacher network and the student network.
+The reconstruction methods [8, 11] train the network to re-
+construct abnormal regions into normal regions, and then
+calculate the anomaly score by the difference. In addi-
+tion, some methods Chen et al. [5], Liu et al. [26], Schl¨uter
+et al. [36], Zavrtanik et al. [45] assist the model in identi-
+fying anomalies by generating anomalies. The one-for-one
+paradigm has achieved almost saturated performance, but
+the above methods are unsuitable for multi-class tasks.
+One-for-All Anomaly Detection is a recently emerging
+multi-class anomaly detection paradigm, which aims to
+train a model that can detect multiple classes. UniAD [44]
+is the pioneer method, which uses transformer architecture
+to reconstruct features and proposes neighbor-masked at-
+tention to alleviate the “identical shortcut” problem. Sub-
+sequently, many multi-class anomaly detection methods
+[12, 14, 27] have been proposed, which are based on the
+paradigm of feature reconstruction. DiAD [13] introduces
+the latent diffusion model [30] into multi-class anomaly de-
+tection, and proposes the semantic-guided network as the
+
+===== PAGE 3 =====
+Anomaly Masked Network (AMN)
+Continual Diffusion Model
+...
+Split
+SVD&k-rank 
+appoximation (S&K)
+S&K
+...
+S&K S&K
+Denoising × T 
+AMN
+AMN
+Transformer
+Continual updating of l-th layer
+Task 1
+Text 
+encoder
+latent variable 
+ Task 3Task 2
+Iterative Singular Value Decomposition (iSVD)
+ResnetBlock
+TrainingFrozen TrainingFrozen
+ TrainingFrozen
+cc cc
+...
+...
+l-th layer feature l-th layer feature l-th layer feature
+* *
+Patch perturbation
+Local 
+Encoder
+Non-local
+Encoder
+L2 loss
+Conv
+SiLU
+Convolutional layer Transformer layer
+×L c
+NMSA
+Feed 
+forward
+Feed 
+forward
+Q
+K
+V
+×L t
+NMSA
+Feed 
+forward
+Q
+K
+V
+×L t
+Patch perturbation
+Local 
+Encoder
+Non-local
+Encoder
+L2 loss
+Conv
+SiLU
+Convolutional layer Transformer layer
+×L c
+NMSA
+Feed 
+forward
+Q
+K
+V
+×L t
+iSVDiSVD
+iSVDiSVD
+iSVDiSVD
+Significant representation of previous tasks
+...
+cc
+Original gradient of task i+1 Projected gradient of task i+1
+Initial weight trained on task 1Element-wise sum
+Element-wise substract
+Concatenate Gradient projectionGradient projection
+Spanned space by
+VAE Encoder
+Diffusion × T
+Figure 2. Illustration of CDAD. Left is the overall framework of the continual diffusion model. Right is the proposed iterative singular
+value decomposition and anomaly-masked network.
+condition mechanism for the generation process. The above
+methods require all classes to be trained simultaneously,
+and their performance degrades as the number of classes
+increases.
+One-for-More Anomaly Detection is the focus of this pa-
+per, which enables models to continuously learn anomaly
+detection for new categories without backtracking on previ-
+ous tasks. DNE [20] and UCAD [25] propose using an ad-
+ditional memory bank to store the knowledge of old tasks.
+The most direct issue is that as tasks increase, the memory
+bank gradually expands. IUF [38] introduces a semantic
+compression loss to retain the knowledge of previous tasks,
+however, when one incremental step has many classes, it
+will still cause a large forgetting of the previous tasks.
+3. Method
+3.1. Overview
+An overview of our proposed CDAD is illustrated in Fig-
+ure 2, our goal is to design a continuously updated diffusion
+model via task-by-task training to generate or reconstruct
+various kinds of normal images and then measure the dif-
+ference between the generated normal image and the test
+image, to determine whether there exists a defect. The
+continual diffusion model is based on a pre-trained varia-
+tional auto-encoder (VAE) and controls the denoise process
+conditioned on input images. Note that the input of the
+text encoder is a space character. The continuous update
+is achieved by modifying the gradient with the direction
+that has less impact on previous tasks, such that we don’t
+require previous samples and there is no additional infer-
+ence cost. However, this projection process requires huge
+memory overhead of computing significant representation,
+so the iterative singular value decomposition (iSVD) is pro-
+posed. In addition, the anomaly-masked network is pro-
+posed masking out anomaly features while retaining normal
+features to serve as conditions for the U-Net.
+During the inference phase, a testing image xtest with
+unknown categories is first encoded into latent space vari-
+able by VAE encoder z0 = E(xtest) and perform the dif-
+fusion process zT = Dif f usion(z0). Then xtest is used
+as the input of AMN to control denoising processes ˆz =
+Denoise(zT , xtest). Finally, the image is reconstructed by
+VAE decoder ˜xtest = D(ˆz). Besides, the original image
+also reconstructed ˆxtest = D(E(xtest)). For anomaly local-
+ization and detection, we use pre-trained CNNs ϕ(·) to ex-
+tract intermediate-layer feature maps, the distance of ˆxtest
+and ˜xtest in position (h, w) of l-th layer feature maps can
+be calculated as:
+Ml h,w(ˆxtest, ˜xtest) = ϕl(ˆxtest) − ϕl(˜xtest) 2 2 . (1)
+Then, the anomaly score map for anomaly localization is:
+S =
+X
+l∈L
+U psample(Ml(ˆxtest, ˜xtest)) (2)
+Where L is the set of intermediate layers and U psample(·)
+is a bilinear interpolation that can upsample Ml from dif-
+ferent layers to the same size. The anomaly score is the max
+value of S for image-level detection.
+3.2. Continual Diffusion Model
+The proposed continual diffusion model (CDM) uses a pre-
+trained VAE to project the image into the latent space for the
+diffusion and denoising processes. Refer to latent diffusion
+model [30], the objective function is given by:
+LCDM = EE(x),˜x,ϵ∼N (0,I),t ∥ϵ − ϵθ (zt, t, τθ (˜x))∥2 2 , (3)
+
+===== PAGE 4 =====
+where ϵθ is U-net, τθ is the anomlay-masked network, E(·)
+is the encoder of VAE, zt is the encoded latent variable after
+t step diffusion, ˜x is the condition of U-net. Concretely, ˜x
+is the original image perturbed by random patches.
+Our study found that the diffusion model suffers from
+“catastrophic forgetting” during continual learning. As
+shown in Figure 2, the U-Net is mainly composed of
+ResnetBlock and Transformer, including the CNN and MLP
+layers. Since MLP and CNN can be represented as matrix
+multiplication, we can summarize the forgetting principle
+from the perspective of keeping the previous feature space
+unchanged after the gradient update. Taking layer l for ex-
+ample and omitting it, denote that X pre(i) ∈ Rn×d1 is the
+input feature for l-th layer of previous i tasks, X i ∈ Rm×d1
+is the input feature of task i, W pre ∈ Rd1 ×d2 is previous
+network parameters and Opre ∈ Rn×d2 is old output of
+previous tasks, which is obtained as:
+Opre(i) = X pre(i)W pre(i), (4)
+After training on the i + 1 task, the network parameters are
+updated, and the output of previous i tasks is as follows:
+ˆOpre(i) = X pre(i)W i+1 = Opre(i) − ηX pre(i)∇W i ,
+(5)
+where η ̸= 0 is the learning rate, ∇W i ∈ Rd1 ×d2 is
+the updating gradient of the task i + 1. After updating,
+ˆOpre ̸= Opre which leads to the occurrence of forget-
+ting. To solve this problem, as illustrated in Figure 2 the
+gradient projection is introduced to project ∇W i+1 into
+an orthogonal space of span(X pre(i)). To obtain this or-
+thogonal space, we first calculate the k-rank column basis
+ˆU i ∈ Rd1 ×k of the previous i tasks is as follows:
+ˆU i =
+ ˆC((X i)T ), i = 0,
+ˆC([ ˆU i−1, (X i)T ]), i > 0, (6)
+where [·] denotes concatenate operation, ˆC(M ) denotes k-
+rank column basis of M , calculated by SVD followed k-
+rank approximation. As shown in Figure 2, for stable con-
+tinual learning, CDM projects the original gradient of the
+task i + 1 onto the orthogonal space of span( ˆU i):
+∇orth W i = ∇W i − ( ˆU i)( ˆU i)T ∇W i , (7)
+where X pre(i)∇orth W i ≈ 0. The initial task is updated with
+the original gradient, and the incremental tasks are updated
+with the projected gradient. Thus, we can deduce that:
+ˆOpre(i) = X pre(i)W i − ηX pre(i)∇orth W i ≈ Opre(i), (8)
+where the updated model on the new task does not per-
+turb the output space of the previous task, thus ensuring the
+model retains the old knowledge.
+Algorithm 1 SVD followed by k-rank approximation
+# M: Feature matrix, d × m
+# th: Threshold
+def S_and_K(M, th):
+# U: d × d, S: d, Vh: m × m
+U, S, Vh = torch.linalg.svd(M)
+total = (S ** 2).sum()
+ratio = (S ** 2) / total
+k = (torch.cumsum(ratio) < th).sum()
+U_hat = U[:, :k]
+return U_hat
+3.3. Iterative Singular Value Decomposition
+The traditional SVD method used in Eq (6) needs the global
+calculation to calculate the significant representation, thus
+it requires enough memory to store intermediate features.
+However, the Markov-based denoising process greatly in-
+creases the size of intermediate features, according to our
+statistics, it requires almost 157 GB of memory to compute
+significant representation for only ten images (see Table 1),
+which is an unaffordable memory cost. Therefore, we pro-
+pose an iterative SVD (iSVD) method, which can used to
+calculate the significant representation of a large matrix and
+retain the original properties with a small memory over-
+head. Specifically, we denote the input matrix of Eq (6)
+as M ∈ Rd×Λ, where d and Λ denote the dimension and
+number of features and Λ ≫ d. As illustrated in Figure 2,
+M is split into {M 1, M 2, . . . , M n}, where M i ∈ Rd×m,
+m = Λ n . The significant representation ˆU 1 ∈ Rd×k of M 1
+is calculated by SVD followed by its k-rank approximation
+according to the threshold, γth:
+M 1 = U 1Σ1V T 1 , U 1 ∈ Rd×d, Σ1 ∈ Rd×m,
+(M 1)k = ˆU 1 ˆΣ1 ˆV T 1 , ˆU 1 ∈ Rd×k, ˆΣ1 ∈ Rk×k,
+s.t. ∥(M 1)k∥2 F ≥ γth ∥M 1∥2 F ,
+(9)
+where ∥·∥2 F denotes F -norm, U 1 = [u1, u2, . . . , ud], ui ∈
+Rd, and the significant representation ˆU 1 =
+[u1, u2, . . . , uk], selected by the k vectors with high-
+est singular values in U 1, the pytorch implementation is
+shown in Algorithm 1. Then, ˆU 1 is concatenated with M 2
+to continue S&K operation iteratively. Finally, the overall
+significant representation ˆU n is obtained to calculate
+the orthogonal gradient of the new task. Next, we will
+prove that ˆU n obtained through iSVD is a significant
+representation of M and give the memory saving rating.
+Lemma 1 linear transitivity: Given matrices S1, S2, and
+S3, if S1 can be linearly expressed by S2, and S2 can be
+linearly expressed by S3, then S1 can be linearly expressed
+by S3.
+Proof 1 For ease of understanding, we ignore the approx-
+imate information loss, assuming that the k-rank approxi-
+
+===== PAGE 5 =====
+mation picks all vectors with nonzero singular values:
+M 1 = U 1Σ1V T = [ ˆU 1U 0 1][ ˆΣ1 0 0 0 ]V T 1 , (10)
+where ˆU 1 ∈ Rd×k1 , ˆΣ1 ∈ Rk1 ×k1 , rank(M 1) = k1,
+and ˆU 1 is an orthonormal basis of M 1, thus M 1 can be
+linearly expressed by ˆU 1.
+[ ˆU 1M 2] = U 2Σ2V T 2 = [ ˆU 2U 0 2][ ˆΣ2 0 0 0 ]V T 2 , (11)
+where ˆU 2 ∈ Rd×k2 , ˆΣ2 ∈ Rk1 ×k1 , rank([ ˆU 1; M 2]) =
+k2, similarly, ˆU 1 and M 2 can be linearly expressed by ˆU 2.
+According to Lemma 1, M 1 can also be linearly expressed
+by ˆU 2.
+By the same reasoning, it can be proved that M =
+[M 1, M 2, . . . , M n] can be linearly expressed by ˆU n, thus
+ˆU n is a significant representation of M .
+Memory saving rate. Theoretically, the memory saving
+rate of iSVD over SVD is about n2 −1 n2 (see supplementary).
+Considering memory sharing and other factors, there are
+some changes in practice. Table 1 shows the actual mem-
+ory usage of SVD and iSVD for computing the significant
+representation of ten images. When n = 10 the memory
+is saved by 89.4%. In this paper, we set n to be the image
+number of the previous task. Therefore, the memory con-
+sumption of iSVD does not expand as the number of images
+increases.
+SVD iSVD
+n 1 2 5 10
+Memory 157.3GB 69.9GB 30.3GB 16.7GB
+Saving rate 0% 55.6% 80.7% 89.4%
+Table 1. Memory consumption and memory saving rate of iSVD
+with different number of split blocks n.
+3.4. Anomaly-Masked Network
+The image-to-image diffusion models in anomaly detection
+face the problems of ”identical shortcuts” and “overfitting”.
+To address the above two issues, we propose the anomaly-
+masked conditional network (AMN) to control anomaly-
+to-normal generation. As shown in Figure 2, AMN com-
+prises local and non-local encoders. The local encoder is
+CNNs with SiLU activation, which is used to encode the lo-
+cal features. Given an input image x ∈ RH×W ×3, H and
+W denote its height and width, the image is initially en-
+coded by local encoder ¯c = Elo(x), where ¯c ∈ R
+H
+f × W f ×D ,
+which downsamples by a factor of f and the shape of ¯c is
+consistent with the input shape of U-Net. The non-local
+encoder is composed of the transformer encoder layer and
+is used to mask out abnormal regions through the percep-
+tion of non-local features. The self-attention module is
+replaced by neighbor-masked self-attention (NMSA) [44],
+which aims to enhance the role of non-local features in fea-
+ture encoding. Concretely, the locally encoded feature map
+¯c is added with the sine positional embedding ep and then
+processed through the non-local encoder c = Eno(¯c + ep),
+where c ∈ R
+H
+f × W f ×D is the reprocessed ¯c. Patch pertur-
+bation is introduced to make the non-local encoder mask
+out abnormal features and retain normal features. We per-
+turb the original image x to obtain abnormal images ˜x, both
+of which are input to AMN and constrained by anomaly-
+masked loss:
+Lamn = Ex,˜x ∥Eno(Elo(˜x) + ep) − Elo(x)∥2 2 , (12)
+which can mask out the anomaly region and retain normal
+region features. So that the denoising process pays more
+attention to the reconstruction of anomaly regions.
+4. Experiments
+Dataset. In this paper, the datasets we use are MVTec [3]
+and VisA [49]. Both datasets contain multiple classes. In
+particular, MVTec contains 15 classes with 7002 − 9002
+pixels per image, and VisA contains 12 classes with roughly
+1.5K × 1K pixels per image. The training set contains only
+normal images, while the test set contains normal images
+and anomaly images with image-level and pixel-level anno-
+tations. These two datasets contain intricate instances that
+are widely acknowledged for their real-world applicability.
+Protocol. Referring to IUF[38], we conducted compara-
+tive experiments between our approach and the other meth-
+ods under different continual anomaly detection settings.
+Specifically, in MVTec-AD [3], we performed the subse-
+quent four settings: 14 – 1 with 1 step, 10 – 5 with 1 step,
+3 × 5 with 5 steps, and 10 – 1 × 5 with 5 steps. In VisA
+[49], we established three settings: 11 – 1 with 1 step, 8 –
+4 with 1 step, and 8 – 1 × 4 with 4 steps, . In addition, we
+completed the cross-dataset continuous anomaly detection,
+including the MVTec to VisA increment and the VisA to
+MVTec increment.
+Evaluation metrics. We follow the literature [3] in report-
+ing the Area Under the Receiver Operation Characteristic
+(AUROC) for both image-level and pixel-level anomaly de-
+tection. To measure the performance of the model in con-
+tinuous learning, referring to DNE [20], we calculated the
+average AUROC (A-AUROC) and the forgetting measure
+(FM) for N continual steps.
+Implementation details. CDAD is based on the pre-trained
+Stable Diffusion with a pre-trained VAE, and the VAE does
+not need further fine-tuning. The input images have all re-
+sized of 256 × 256, and the input to the text encoder is a
+space character. For the Anomaly-Masked Network, the
+depth of both the local encoder and the non-local encoder
+is 8. In the continuous learning process, the initial task is
+
+===== PAGE 6 =====
+Method 14 – 1 with 1 Step 10 – 5 with 1 Step 3 × 5 with 5 Steps 10 – 1 × 5 with 5 Steps
+A-AUROC (↑) FM (↓) A-AUROC (↑) FM (↓) A-AUROC (↑) FM (↓) A-AUROC (↑) FM (↓)
+UniAD[44] 85.7 / 89.6 18.3 / 13.3 86.7 / 91.5 14.9 / 10.6 81.3 / 88.7 7.4 / 10.6 76.6 / 82.3 21.1 / 17.3
+UniAD + EWC[17] 92.8 / 95.4 4.1 / 1.9 90.5 / 93.6 7.3 / 4.2 79.6 / 89.0 9.5 / 10.1 89.6 / 93.8 5.4 / 3.6
+UniAD + SI[46] 85.7 / 89.5 18.4 / 13.4 84.1 / 88.3 20.2 / 17.0 81.9 / 88.5 7.0 / 10.8 77.9 / 82.0 19.5 / 17.7
+UniAD + MAS[1] 85.8 / 89.6 18.1 / 13.3 86.8 / 91.0 14.9 / 11.6 81.5 / 89.0 7.2 / 10.2 77.9 / 82.0 19.5 / 17.7
+UniAD + LVT[41] 80.4 / 86.0 29.1 / 20.6 87.1 / 90.6 14.1 / 12.3 80.4 / 88.6 8.6 / 10.6 78.2 / 88.3 19.1 / 16.1
+UCAD∗[25] 93.8 / 95.7 1.8 / 0.3 88.7 / 93.1 5.2 / 3.7 84.8 / 90.1 10.3 / 9.2 91.2 / 94.0 6.3 / 3.0
+IUF[38] 96.0 / 96.3 1.0 / 0.6 92.2 / 94.4 9.3 / 4.3 84.2 / 91.1 10.0 / 8.4 94.2 / 95.1 3.2 / 1.0
+DiAD†[13] 93.5 / 96.5 1.7 / 0.1 91.9 / 93.9 3.2 / 3.9 80.5 / 89.0 11.8 / 7.2 83.3 / 92.7 12.2 / 3.6
+ControlNet†[47] 92.6 / 96.4 3.6 / 0.1 92.7 / 93.8 2.9 / 4.0 79.2 / 89.6 13.9 / 7.3 82.6 / 91.8 13.5 / 4.5
+CDAD† 96.4 / 96.6 -0.57 / -0.04 94.2 / 95.3 2.05 / 2.40 89.1 / 92.2 3.69 / 4.65 94.9 / 95.7 1.01 / 0.74
+Table 2. Image-level/pixel-level results of our method on MVTec under 4 continual anomaly detection settings. The best and second-best
+results are marked in blod and underline. † indicates DM-based methods, and ∗ indicates memory-limited.
+Method 11 – 1 with 1 Step 8 – 4 with 1 Step 8 – 1 × 4 with 4 Steps
+A-AUROC (↑) FM (↓) A-AUROC (↑) FM (↓) A-AUROC (↑) FM (↓)
+UniAD[44] 75.0 / 92.1 22.4 / 11.4 78.1 / 94.0 14.7 / 8.4 72.2 / 90.8 16.6 / 9.2
+UniAD + EWC[17] 78.7 / 95.4 14.9 / 4.8 80.5 / 95.4 10.0 / 5.3 72.3 / 92.3 16.5 / 7.3
+UniAD + SI[46] 78.1 / 92.0 16.9 / 11.5 69.8 / 88.5 9.2 / 8.3 69.8 / 88.5 19.8 / 12.0
+UniAD + MAS[1] 75.4 / 91.8 21.5 / 11.9 72.1 / 90.6 14.1 / 8.4 72.1 / 90.6 16.7 / 9.4
+UniAD + LVT[41] 77.5 / 92.3 17.3 / 10.9 70.8 / 91.4 13.4 / 8.1 70.8 / 94.4 18.3 / 8.4
+UCAD∗[25] 85.9 / 94.5 2.7 / 0.6 79.9 / 94.2 8.9 / 4.8 78.8 / 93.5 10.4 / 5.4
+IUF[38] 87.3 / 97.6 2.4 / 1.8 80.1 / 95.4 9.8 / 6.8 79.8 / 95.0 9.8 / 6.8
+DiAD†[13] 70.2 / 91.1 5.6 / 2.2 67.4 / 91.7 7.7 / 1.6 65.0 / 84.9 11.2 / 8.8
+ControlNet†[47] 82.4 / 92.3 2.6 / 0.2 76.3 / 91.8 5.8 / 0.4 70.0 / 88.7 13.8 / 5.8
+CDAD† 88.3 / 97.2 -1.28 / -0.06 85.3 / 97.1 1.39 / 0.29 83.4 / 95.8 3.79 / 1.49
+Table 3. Image-level/pixel-level results of our method on VisA under 3 continual anomaly detection settings. The best and second-best
+results are marked in blod and underline. † indicates DM-based methods, and ∗ indicates memory-limited.
+Method MVTec–VisA VisA–MVTec
+A-AUROC (↑) FM (↓) A-AUROC (↑) FM (↓)
+IUF 82.4 / 92.5 11.09 / 4.88 74.3 / 89.7 16.74 / 5.54
+DiAD 85.5 / 93.0 10.24 / 4.15 78.1 / 92.2 12.54 / 5.89
+ControlNet 85.3 / 91.7 10.35 / 4.73 78.9 / 86.2 12.07 / 10.68
+CDAD 90.0 / 94.9 4.71 / 1.78 84.2 / 94.1 6.90 / 3.45
+Table 4. Image-level/pixel-level results on cross-dataset continual
+anomaly detection.
+trained for 500 epochs, and each incremental task is trained
+for 100 epochs. During the inference phase, the Denois-
+ing Diffusion Implicit Model [37] (DDIM) is employed as
+the sampler with a default of 10 steps, and the pre-trained
+CNN we used to extract features is a ResNet50 pre-trained
+on ImageNet.
+4.1. Comparison Results
+The image/pixel-level experimental results of CDAD and
+current methods on continual anomaly detection are
+recorded in Table 2 3, where UniAD[44] and DiAD[13] are
+multi-class anomaly detection methods, EWC[17], SI[46],
+MAS[1] and LVT[41] are traditional continual learning
+method. IUF[38] and UCAD[25] are incremental frame-
+works for continual anomaly detection. We also replicate
+the results of DiAD[13] and ControlNet[47] on continual
+anomaly detection. As illustrated in Table 2 3, after in-
+corporating traditional continuous learning methods, the re-
+sults of UniAD showed some improvement but were still
+below the SOTA level, the DM-based methods achieve good
+results when the number of steps is small, while deterio-
+rate and suffer “catastrophic forgetting” when the number
+of steps is larger. Compared with the above methods, IUF
+has achieved better results overall, but in some tasks, such
+as setting 3 on MVTec and setting 6 on visa, it still suffers
+from forgetting problems. Regarding our method, CDAD
+achieved all the best results on MVTec, especially on set-
+ting 3, which increased by 4.3/1.1 compared to the second
+place, and the forgetting rate was also significantly reduced
+by 6.31/3.75. On the VisA dataset, in addition to the pixel
+level result of setting 5, CDAD achieves the best results on
+other settings and improves 5.2/1.7 and 3.6/0.8 compared
+to the SOTA level of setting 6 and setting 7, respectively.
+The recorded results indicate that CDAD exhibits excel-
+lent anomaly detection performance and a significant anti-
+forgetting capability. Notably, in MVTec setting 1 and VisA
+setting 5, CDAD not only mitigates the issue of forgetting
+but also demonstrates enhanced performance on previous
+tasks, which suggests that CDAD can improve the overall
+generalization of the model with a limited number of incre-
+mental tasks.
+
+===== PAGE 7 =====
+1-10
+ControlNet ControlNetDiADDiADCDAD CDADGT Input
+11 12 13 14 15
+1-10
+Figure 3. Qualitative comparison results under setting 4 of MVTec, the numbers represent continual training steps. The top is the
+reconstruction result of the anomaly image, and the bottom is the heat map of the anomaly location.
+4.2. Cross-Dataset Continual Learning
+Table 4 shows the results of cross-dataset continual anomaly
+detection, MVTec–VisA represents base training on MVTec
+followed by incremental training on VisA. Due to the
+memory efficiency, CDAD enables continual learning on
+large-scale datasets. As recorded, CDAD outperforms the
+second-best method by 4.5/1.9 and 5.3/1.9 on two cross-
+dataset settings, respectively. In addition, CDAD also
+achieves the optimal cross-dataset forgetting rate, which
+indicates its excellent stability for large-scale incremental
+training.
+4.3. Visualization Results
+Figure 3 shows the qualitative results. It can be seen that
+on the last task, all methods can show excellent anomaly
+reconstruction and anomaly location effects, however, Con-
+trolNet [47] and DiAD [13] have serious illusion on the
+reconstruction results of the previous task, and the results
+of anomaly localization also collapse, especially on the ob-
+ject class. Our method shows strong stability in continu-
+ous learning, which shows excellent anomaly reconstruc-
+tion and localization effects not only in the latest task but
+also in previous tasks. This indicates that our method effec-
+tively mitigates the hallucination problem caused by contin-
+ual learning in diffusion models.
+4.4. Ablation Study
+We verify the impact of different modules on the over-
+all performance of CDAD under setting 4 on MVTec [3].
+These include the continual diffusion model (CDM) and
+anomaly-masked network (AMN). To better verify the ef-
+fectiveness of our method, we use ControlNet [47] as the
+baseline for comparison. Results of the ablation study are
+recorded in Table 5.
+Continual Diffusion Model. The continual diffusion
+model (CDM) is proposed to better retain the model’s
+knowledge of previous tasks during continual learning,
+thereby alleviating the problem of forgetting. As shown
+in Table 5, after removing CDM, the performance of the
+model in the new task gradually decreases with the in-
+crease of steps, and the final forgetting rate also increases
+by 4.35/1.81. However, compared with ControlNet, the
+forgetting rate of the model without CMD (only use AMN)
+decreased by 8.1/1.9, which is a significant improvement.
+Anomaly-Masked Network. The anomaly-masked net-
+work (AMN) is proposed as a condition mechanism for the
+denoising process. In image-to-image tasks, the anomalous
+region in the input image is masked to retain the normal
+region, allowing the diffusion model to focus more effec-
+tively on reconstructing the abnormal area. As illustrated in
+Table 5, without AMN, the model’s results have a 1.1/1.8
+decrease on the initial step and a 0.6/1.7 decrease after 5
+
+===== PAGE 8 =====
+Step 1-10 11 12 13 14 15 FM
+ControlNet 95.8 / 97.8 92.4 / 95.8 93.2 / 96.2 87.4 / 91.0 86.9 / 91.2 82.6 / 91.8 13.46 / 4.46
+w/o AMN 94.7 / 96.3 94.9 / 96.3 94.7 / 96.3 93.8 / 94.0 94.0 / 93.6 94.3 / 94.0 1.69 / 1.55
+w/o CDM 95.8 / 98.1 93.2 / 96.6 93.1 / 96.4 87.9 / 92.4 88.3 / 91.4 90.6 / 93.5 5.36 / 2.55
+CDAD 95.8 / 98.1 95.8 / 97.3 95.3 / 97.4 94.0 / 95.5 94.3 / 95.1 94.9 / 95.7 1.01 / 0.74
+Table 5. Ablation study results (image-level/pixel-level A-AUROC (↑) and FM (↓) on setting 4 of MVTec.
+steps of continuous learning. and finally. Interestingly, the
+use of AMN reduces the forgetting rate of the Model by
+0.68/0.81, suggesting that AMN not only enhances the per-
+formance of diffusion models in anomaly detection but also
+better combats forgetting.
+-0.05 0.00 0.05
+9DOXH
+0.0
+0.2
+0.8
+1.0
+&RXQWH
+1e6 2ULJLQDO
+-0.05 0.00 0.05
+9DOXH
+0.0
+0.2
+0.8
+1.0
+&RXQWH
+1e6 69'
+-0.05 0.00 0.05
+9DOXH
+0.0
+0.2
+0.8
+1.0
+&RXQWH
+1e6 L69'
+n=10n=5n=1
+Figure 4. Value distribution of original matrix. Value distribution
+after projected by SVD and iSVD. n is the number of split blocks.
+4.5. Validation Experiments of iSVD
+We complete the experiments to verify the effectiveness of
+iSVD. Specifically, we expand an intermediate feature map
+of U-Net into a matrix, using SVD and iSVD to project this
+matrix into its orthogonal space. Figure 4 illustrates the
+value distribution of the matrix before and after projection,
+the matrix size is 1280 × 50000 and the threshold for k-rank
+approximate is 0.98. It can be seen that the distribution of
+features is relatively uniform before projection, and after
+SVD projection, the distribution of values is concentrated
+around 0. iSVD shows almost the same performance as
+SVD, which verifies that the significant representation cal-
+culated by iSVD is effective. In addition, we also find that
+with the increase of the number of split blocks, the effect
+of iSVD becomes worse, this is because the k-rank approx-
+imate is performed at each iteration, which loses part of the
+information. However, continuous learning can not project
+gradients 100% into the orthogonal space of the previous
+task, which will harm the model’s plasticity to new tasks,
+so the information loss of iSVD is acceptable.
+4.6. Hyper-parameter Analysis
+We complete the effect of the threshold γth of k-rank ap-
+proximation. γth is the threshold for selecting the signifi-
+cant representation in the unitary matrix, used to control the
+amount of information retained from previous tasks. Figure
+4 illustrates the effect of γth under setting 2 of MVTec. As
+shown, when γth = 0, the model experiences significant
+forgetting and performance degradation. As γth increases,
+     
+γth
+
+
+
+
+
+
+
+
+
+LPDJH$$852& SL[HO$$852& LPDJH)0 SL[HO)0
+Figure 5. Impact of γth on A-AUROC (↑) and FM (↓) under set-
+ting 2 of MVTec.
+both the forgetting rate and performance improve. When
+γth = 1.0, although the forgetting rate is minimal, perfor-
+mance drops due to the model retaining all column bases
+from previous tasks, which interferes with learning new
+tasks. Even when γth = 0.999, the selected vectors are only
+a small subset of the unitary matrix, preserving the core
+knowledge of previous tasks while maintaining the model’s
+plasticity to new tasks. Therefore, we set γ = 0.999.
+5. Conclusion
+In this paper, we propose a continual diffusion model for
+anomaly detection termed CDAD, which continually learns
+anomaly detection for new tasks. First, we introduce a
+continual diffusion model framework that uses significant
+representation to project the training gradient of the new
+task to a direction having less influence on the previous
+tasks, to ensure the stability of the model. Second, we
+propose the iterative singular value decomposition, which
+greatly alleviates the memory pressure of computing the
+significant representation for diffusion models. Finally, an
+anomaly-masked network is proposed as a control mech-
+anism for the diffusion model. The experimental results
+show that both the anomaly detection performance and
+anti-forgetting capability of our method are state-of-the-art.
+Acknowledgments This work is supported by the
+National Natural Science Foundation of China
+No.62222602, 62176092, U23A20343, 62106075,
+62302167, 62302296, 721928221, Shanghai Sailing
+Program (23YF1410500), Natural Science Founda-
+tion of Shanghai (23ZR1420400), Natural Science
+Foundation of Chongqing, China (CSTB2023NSCQ-
+JQX0007, CSTB2023NSCQ-MSX0137), CCF-Tencent
+RAGR20240122, and Development Project of Ministry of
+Industry and Information Technology (ZTZB.23-990-016).
+
+===== PAGE 9 =====
+References
+[1] Rahaf Aljundi, Francesca Babiloni, Mohamed Elhoseiny,
+Marcus Rohrbach, and Tinne Tuytelaars. Memory aware
+synapses: Learning what (not) to forget. In Proceedings
+of the European conference on computer vision, pages 139–
+154, 2018. 6
+[2] Kilian Batzner, Lars Heckler, and Rebecca K¨onig. Efficien-
+tad: Accurate visual anomaly detection at millisecond-level
+latencies. arXiv preprint arXiv:2303.14535, 2023. 2
+[3] Paul Bergmann, Michael Fauser, David Sattlegger, and
+Carsten Steger. Mvtec ad–a comprehensive real-world
+dataset for unsupervised anomaly detection. In Proceedings
+of the IEEE/CVF conference on computer vision and pattern
+recognition, pages 9592–9600, 2019. 2, 5, 7, 1
+[4] Paul Bergmann, Michael Fauser, David Sattlegger, and
+Carsten Steger. Uninformed students: Student-teacher
+anomaly detection with discriminative latent embeddings. In
+Proceedings of the IEEE/CVF conference on computer vi-
+sion and pattern recognition, pages 4183–4192, 2020. 1
+[5] Qiyu Chen, Huiyuan Luo, Chengkan Lv, and Zhengtao
+Zhang. A unified anomaly synthesis strategy with gradi-
+ent ascent for industrial anomaly detection and localization.
+arXiv preprint arXiv:2407.09359, 2024. 2
+[6] Niv Cohen and Yedid Hoshen. Sub-image anomaly detec-
+tion with deep pyramid correspondences. arXiv preprint
+arXiv:2005.02357, 2020. 2
+[7] Thomas Defard, Aleksandr Setkov, Angelique Loesch, and
+Romaric Audigier. Padim: a patch distribution modeling
+framework for anomaly detection and localization. In Inter-
+national Conference on Pattern Recognition, pages 475–489.
+Springer, 2021. 2
+[8] Zheng Fang, Xiaoyang Wang, Haocheng Li, Jiejie Liu, Qi-
+ugui Hu, and Jimin Xiao. Fastrecon: Few-shot indus-
+trial anomaly detection via fast feature reconstruction. In
+Proceedings of the IEEE/CVF International Conference on
+Computer Vision, pages 17481–17490, 2023. 2
+[9] Matic Fuˇcka, Vitjan Zavrtanik, and Danijel Skoˇcaj.
+Transfusion–a transparency-based diffusion model for
+anomaly detection. In Proceedings of the European confer-
+ence on computer vision, pages 91–108. Springer, 2025. 1
+[10] Zhihao Gu, Liang Liu, Xu Chen, Ran Yi, Jiangning Zhang,
+Yabiao Wang, Chengjie Wang, Annan Shu, Guannan Jiang,
+and Lizhuang Ma. Remembering normality: Memory-
+guided knowledge distillation for unsupervised anomaly de-
+tection. In Proceedings of the IEEE/CVF International Con-
+ference on Computer Vision, pages 16401–16409, 2023. 2
+[11] Hewei Guo, Liping Ren, Jingjing Fu, Yuwang Wang,
+Zhizheng Zhang, Cuiling Lan, Haoqian Wang, and Xinwen
+Hou. Template-guided hierarchical feature restoration for
+anomaly detection. In Proceedings of the IEEE/CVF Inter-
+national Conference on Computer Vision, pages 6447–6458,
+2023. 2
+[12] Haoyang He, Yuhu Bai, Jiangning Zhang, Qingdong He,
+Hongxu Chen, Zhenye Gan, Chengjie Wang, Xiangtai Li,
+Guanzhong Tian, and Lei Xie. Mambaad: Exploring state
+space models for multi-class unsupervised anomaly detec-
+tion. arXiv preprint arXiv:2404.06564, 2024. 2
+[13] Haoyang He, Jiangning Zhang, Hongxu Chen, Xuhai Chen,
+Zhishan Li, Xu Chen, Yabiao Wang, Chengjie Wang, and Lei
+Xie. A diffusion-based framework for multi-class anomaly
+detection. In Proceedings of the AAAI Conference on Artifi-
+cial Intelligence, pages 8472–8480, 2024. 1, 2, 6, 7, 3
+[14] Liren He, Zhengkai Jiang, Jinlong Peng, Liang Liu, Qian-
+gang Du, Xiaobin Hu, Wenbing Zhu, Mingmin Chi, Yabiao
+Wang, and Chengjie Wang. Learning unified reference rep-
+resentation for unsupervised multi-class anomaly detection.
+arXiv preprint arXiv:2403.11561, 2024. 2
+[15] Teng Hu, Jiangning Zhang, Ran Yi, Yuzhen Du, Xu Chen,
+Liang Liu, Yabiao Wang, and Chengjie Wang. Anomalyd-
+iffusion: Few-shot anomaly image generation with diffusion
+model. In Proceedings of the AAAI Conference on Artificial
+Intelligence, pages 8526–8534, 2024. 2
+[16] Lei Huang, Weijiang Yu, Weitao Ma, Weihong Zhong,
+Zhangyin Feng, Haotian Wang, Qianglong Chen, Weihua
+Peng, Xiaocheng Feng, Bing Qin, et al. A survey on
+hallucination in large language models: Principles, tax-
+onomy, challenges, and open questions. arXiv preprint
+arXiv:2311.05232, 2023. 2
+[17] James Kirkpatrick, Razvan Pascanu, Neil Rabinowitz, Joel
+Veness, Guillaume Desjardins, Andrei A Rusu, Kieran
+Milan, John Quan, Tiago Ramalho, Agnieszka Grabska-
+Barwinska, et al. Overcoming catastrophic forgetting in neu-
+ral networks. Proceedings of the national academy of sci-
+ences, 114(13):3521–3526, 2017. 2, 6
+[18] Xia Kong, Zuodong Gao, Xiaofan Li, Ming Hong, Jun Liu,
+Chengjie Wang, Yuan Xie, and Yanyun Qu. En-compactness:
+Self-distillation embedding & contrastive generation for gen-
+eralized zero-shot learning. In Proceedings of the IEEE/CVF
+Conference on Computer Vision and Pattern Recognition,
+pages 9306–9315, 2022. 2
+[19] Chun-Liang Li, Kihyuk Sohn, Jinsung Yoon, and Tomas
+Pfister. Cutpaste: Self-supervised learning for anomaly de-
+tection and localization. In IEEE Conference on Computer
+Vision and Pattern Recognition, CVPR 2021, virtual, June
+19-25, 2021, pages 9664–9674. Computer Vision Founda-
+tion / IEEE, 2021. 1
+[20] Wujin Li, Jiawei Zhan, Jinbao Wang, Bizhong Xia, Bin-Bin
+Gao, Jun Liu, Chengjie Wang, and Feng Zheng. Towards
+continual adaptation in industrial anomaly detection. In Pro-
+ceedings of the 30th ACM International Conference on Mul-
+timedia, pages 2871–2880, 2022. 3, 5, 1
+[21] Xiaofan Li, Yachao Zhang, Shiran Bian, Yanyun Qu, Yuan
+Xie, Zhongchao Shi, and Jianping Fan. Vs-boost: Boosting
+visual-semantic association for generalized zero-shot learn-
+ing. In Proceedings of the Thirty-Second International Joint
+Conference on Artificial Intelligence, IJCAI 2023, 19th-25th
+August 2023, Macao, SAR, China, pages 1107–1115. ij-
+cai.org, 2023. 2
+[22] Xiaofan Li, Zhizhong Zhang, Xin Tan, Chengwei Chen,
+Yanyun Qu, Yuan Xie, and Lizhuang Ma. Promptad: Learn-
+ing prompts with only normal samples for few-shot anomaly
+detection. In Proceedings of the IEEE/CVF Conference on
+
+===== PAGE 10 =====
+Computer Vision and Pattern Recognition, pages 16838–
+16848, 2024. 1, 2
+[23] Zechao Li, Jinhui Tang, and Tao Mei. Deep collaborative
+embedding for social image understanding. IEEE transac-
+tions on pattern analysis and machine intelligence, 41(9):
+2070–2083, 2018. 2
+[24] Zechao Li, Yanpeng Sun, Liyan Zhang, and Jinhui Tang. Ct-
+net: Context-based tandem network for semantic segmenta-
+tion. IEEE Transactions on Pattern Analysis and Machine
+Intelligence, 44(12):9904–9917, 2021. 2
+[25] Jiaqi Liu, Kai Wu, Qiang Nie, Ying Chen, Bin-Bin
+Gao, Yong Liu, Jinbao Wang, Chengjie Wang, and Feng
+Zheng. Unsupervised continual anomaly detection with
+contrastively-learned prompt. In Proceedings of the AAAI
+Conference on Artificial Intelligence, pages 3639–3647,
+2024. 3, 6, 2
+[26] Zhikang Liu, Yiming Zhou, Yuansheng Xu, and Zilei Wang.
+Simplenet: A simple network for image anomaly detection
+and localization. In Proceedings of the IEEE/CVF Confer-
+ence on Computer Vision and Pattern Recognition, pages
+20402–20411, 2023. 2
+[27] Ruiying Lu, YuJie Wu, Long Tian, Dongsheng Wang, Bo
+Chen, Xiyang Liu, and Ruimin Hu. Hierarchical vector
+quantized transformer for multi-class unsupervised anomaly
+detection. Advances in Neural Information Processing Sys-
+tems, 36:8487–8500, 2023. 2
+[28] Patrick P´erez, Michel Gangnet, and Andrew Blake. Poisson
+image editing. In Seminal Graphics Papers: Pushing the
+Boundaries, Volume 2, pages 577–582. 2023. 1
+[29] Jingyang Qiao, Xin Tan, Chengwei Chen, Yanyun Qu, Yong
+Peng, Yuan Xie, et al. Prompt gradient projection for con-
+tinual learning. In The Twelfth International Conference on
+Learning Representations, 2023. 2
+[30] Robin Rombach, Andreas Blattmann, Dominik Lorenz,
+Patrick Esser, and Bj¨orn Ommer. High-resolution image
+synthesis with latent diffusion models. In Proceedings of
+the IEEE/CVF conference on computer vision and pattern
+recognition, pages 10684–10695, 2022. 2, 3
+[31] Karsten Roth, Latha Pemula, Joaquin Zepeda, Bernhard
+Sch¨olkopf, Thomas Brox, and Peter Gehler. Towards to-
+tal recall in industrial anomaly detection. In Proceedings of
+the IEEE/CVF Conference on Computer Vision and Pattern
+Recognition, pages 14318–14328, 2022. 2
+[32] Marco Rudolph, Bastian Wandt, and Bodo Rosenhahn. Same
+same but differnet: Semi-supervised defect detection with
+normalizing flows. In IEEE Winter Conference on Applica-
+tions of Computer Vision, WACV 2021, Waikoloa, HI, USA,
+January 3-8, 2021, pages 1906–1915. IEEE, 2021. 2
+[33] Nataniel Ruiz, Yuanzhen Li, Varun Jampani, Yael Pritch,
+Michael Rubinstein, and Kfir Aberman. Dreambooth: Fine
+tuning text-to-image diffusion models for subject-driven
+generation. In Proceedings of the IEEE/CVF conference
+on computer vision and pattern recognition, pages 22500–
+22510, 2023. 2
+[34] Gobinda Saha, Isha Garg, and Kaushik Roy. Gradient
+projection memory for continual learning. arXiv preprint
+arXiv:2103.09762, 2021. 2
+[35] Mohammadreza Salehi, Niousha Sadjadi, Soroosh
+Baselizadeh, Mohammad H Rohban, and Hamid R Ra-
+biee. Multiresolution knowledge distillation for anomaly
+detection. In Proceedings of the IEEE/CVF confer-
+ence on computer vision and pattern recognition, pages
+14902–14912, 2021. 2
+[36] Hannah M Schl¨uter, Jeremy Tan, Benjamin Hou, and Bern-
+hard Kainz. Natural synthetic anomalies for self-supervised
+anomaly detection and localization. In Proceedings of the
+European conference on computer vision, pages 474–489.
+Springer, 2022. 2, 1
+[37] Jiaming Song, Chenlin Meng, and Stefano Ermon.
+Denoising diffusion implicit models. arXiv preprint
+arXiv:2010.02502, 2020. 6
+[38] Jiaqi Tang, Hao Lu, Xiaogang Xu, Ruizheng Wu, Sixing Hu,
+Tong Zhang, Tsz Wa Cheng, Ming Ge, Ying-Cong Chen, and
+Fugee Tsung. An incremental unified framework for small
+defect inspection. In European Conference on Computer Vi-
+sion, pages 307–324. Springer, 2025. 3, 5, 6, 2
+[39] Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszko-
+reit, Llion Jones, Aidan N Gomez, Łukasz Kaiser, and Illia
+Polosukhin. Attention is all you need. Advances in neural
+information processing systems, 30, 2017. 2
+[40] Guodong Wang, Shumin Han, Errui Ding, and Di Huang.
+Student-teacher feature pyramid matching for anomaly de-
+tection. arXiv preprint arXiv:2103.04257, 2021. 2
+[41] Zhen Wang, Liu Liu, Yiqun Duan, Yajing Kong, and
+Dacheng Tao. Continual learning with lifelong vision trans-
+former. In Proceedings of the IEEE/CVF Conference on
+Computer Vision and Pattern Recognition, pages 171–181,
+2022. 6
+[42] Yao Wu, Mingwei Xing, Yachao Zhang, Yuan Xie, Zongze
+Wu, and Yanyun Qu. Perturbed progressive learning for
+semisupervised defect segmentation. IEEE Transactions on
+Neural Networks and Learning Systems, 35(5):6118–6132,
+2023. 1
+[43] Hang Yao, Ming Liu, Haolin Wang, Zhicun Yin, Zifei Yan,
+Xiaopeng Hong, and Wangmeng Zuo. Glad: Towards bet-
+ter reconstruction with global and local adaptive diffusion
+models for unsupervised anomaly detection. arXiv preprint
+arXiv:2406.07487, 2024. 1, 2
+[44] Zhiyuan You, Lei Cui, Yujun Shen, Kai Yang, Xin Lu,
+Yu Zheng, and Xinyi Le. A unified model for multi-class
+anomaly detection. Advances in Neural Information Pro-
+cessing Systems, 35:4571–4584, 2022. 2, 5, 6
+[45] Vitjan Zavrtanik, Matej Kristan, and Danijel Skoˇcaj. Draem-
+a discriminatively trained reconstruction embedding for sur-
+face anomaly detection. In Proceedings of the IEEE/CVF
+International Conference on Computer Vision, pages 8330–
+8339, 2021. 2
+[46] Friedemann Zenke, Ben Poole, and Surya Ganguli. Contin-
+ual learning through synaptic intelligence. In International
+conference on machine learning, pages 3987–3995. PMLR,
+2017. 6
+[47] Lvmin Zhang, Anyi Rao, and Maneesh Agrawala. Adding
+conditional control to text-to-image diffusion models. In
+Proceedings of the IEEE/CVF International Conference on
+Computer Vision, pages 3836–3847, 2023. 2, 6, 7, 3
+
+===== PAGE 11 =====
+[48] Xinyi Zhang, Naiqi Li, Jiawei Li, Tao Dai, Yong Jiang,
+and Shu-Tao Xia. Unsupervised surface anomaly detection
+with diffusion probabilistic model. In Proceedings of the
+IEEE/CVF International Conference on Computer Vision,
+pages 6782–6791, 2023. 1, 2
+[49] Yang Zou, Jongheon Jeong, Latha Pemula, Dongqing Zhang,
+and Onkar Dabeer. Spot-the-difference self-supervised pre-
+training for anomaly detection and segmentation. In Pro-
+ceedings of the European conference on computer vision,
+pages 392–408. Springer, 2022. 2, 5, 1
+
+===== PAGE 12 =====
+One-for-More: Continual Diffusion Model for Anomaly Detection
+Supplementary Material
+A. Experimental details
+Data pre-processing. We employ the data pre-processing
+pipeline specified in DiAD [13] for both the MVTec [3] and
+VisA [49] datasets to mitigate potential train-test discrep-
+ancies. This involves channel-wise standardization using
+precomputed mean [0.485, 0.456, 0.406] and standard devi-
+ation [0.229, 0.224, 0.225] after normalizing each RGB im-
+age to [0, 1].
+Patch perturbation. We adopt the method proposed by
+NSA [36] for patch perturbation on the original images.
+The NSA method builds upon the Cut-paste technique [19]
+and enhances it by incorporating the Poisson image edit-
+ing method [28] to alleviate the discontinuities caused by
+pasting image patches. The cut-paste method is commonly
+used in the anomaly detection domain to generate simu-
+lated anomalous images. It involves randomly cropping a
+patch from one image and pasting it onto a random loca-
+tion in another image, thus creating a simulated anomaly.
+The Poisson-based pasting method seamlessly blends the
+cloned object from one image into another by solving Pois-
+son partial differential equations, thereby better simulating
+a realistic anomalous region. In this paper, the number of
+patches is set as a random value from 1 to 4, and the patch
+size is a random value from 0.03 to 0.4 of the original im-
+age size. The visualization of patch perturbation is shown
+in Figure 6.
+Original imagePatch perturbation
+Figure 6. Qualitative results of logical anomaly detection.
+Evaluation metrics. We follow the literature [3] in report-
+ing the Area Under the Receiver Operation Characteristic
+(AUROC) for both image-level and pixel-level anomaly de-
+tection. To measure the performance of the model in con-
+tinuous learning, referring to DNE [20], we calculated the
+average AUROC (A-AUROC) and the forgetting measure
+(FM) for N continual steps. Specially, we define Apix N,i and
+Aimg N,i as the test AUROC of task i after training on task N .
+A-AUROC =
+(
+1
+N
+PN −1
+i=1 Apix N,i
+1
+N
+PN −1
+i=1 Aimg N,i , (13)
+FM =
+
+
+
+1
+N −1
+PN −1
+i=1 maxb∈{1,··· ,N −1}
+
+Apix b,i − Apix N,i
+
+1
+N −1
+PN −1
+i=1 maxb∈{1,··· ,N −1}
+
+Aimg b,i − Aimg N,i
+
+(14)
+In addition to the results for the AUROC documented in
+the body of the paper, We also supplement the image-level
+Precision-Recall (AUPR) results and pixel-level Per-region-
+overlap (PRO) [3, 4] results. Referring to Equation (13) and
+Equation (14), we calculate A-AUPR, A-PRO, and their FM
+to evaluate our method. The results are shown in Table 6 7
+9 10. Our method still achieves an advanced level in the
+above metrics.
+B. Memory Analysis of iSVD
+In Section 3.2, considering the storage of the original matrix
+and U , Σ, V during SVD, the memory overhead of SVD is
+dΛ + d2 + Λ2 + min(d, Λ), while iSVD uses a memory
+overhead of d(m + k) + d2 + (m + k)2 + min(d, m + k).
+It is known that Λ ≫ d, m > d > k and Λ = mn, thus, the
+memory saving rate of iSVD is about:
+dΛ + d2 + Λ2 + d − [d(m + k) + d2 + (m + k)2 + d]
+dΛ + d2 + Λ2 + d
+= dΛ + Λ2 − d(m + k) − (m + k)2
+Λ2 / dΛ + d2 + Λ2 + d Λ2
+= d Λ + 1 − d(m + k) Λ2 − (m + k)2 Λ2
+≈1 − m2 + 2mk + k2
+m2n2
+=1 − 1 n2 − 2k mΛ − k2 Λ2 ≈ n2 − 1 n2 . (15)
+In practice, the actual memory saving rate differs from the
+theoretical value due to factors such as memory sharing.
+Taking the intermediate features of ten images as an ex-
+ample, Figure 7 shows the actual and theoretical memory
+saving rate of splitting the feature matrix into n blocks for
+iSVD. Although there are some differences between the the-
+oretical value and the actual value, the general trend is con-
+sistent.
+
+===== PAGE 13 =====
+Method 14 – 1 with 1 Step 10 – 5 with 1 Step 3 × 5 with 5 Steps 10 – 1 × 5 with 5 Steps
+A-AUPR (↑) FM (↓) A-AUPR (↑) FM (↓) A-AUPR (↑) FM (↓) A-AUPR (↑) FM (↓)
+UCAD* [25] 95.8 0.26 95.0 0.98 93.1 2.02 95.5 0.07
+IUF [38] 97.8 0.25 95.4 1.92 91.1 2.86 95.3 0.16
+ControlNet [47] 97.2 1.55 96.7 1.76 86.7 6.40 89.0 7.43
+DiAD [13] 97.4 0.71 96.4 1.85 89.1 4.31 91.4 4.83
+CDAD 98.4 0.08 98.3 0.55 95.8 1.88 98.4 0.02
+Table 6. Image-level A-AUPR of our method on MVTec under 4 continual anomaly detection settings. The best and second-best results
+are marked in blod and underline. ∗ indicates memory limited.
+Method 14 – 1 with 1 Step 10 – 5 with 1 Step 3 × 5 with 5 Steps 10 – 1 × 5 with 5 Steps
+A-PRO (↑) FM (↓) A-PRO (↑) FM (↓) A-PRO (↑) FM (↓) A-PRO (↑) FM (↓)
+UCAD [25] 86.3 1.16 80.7 2.89 71.1 7.48 80.8 1.19
+IUF [38] 88.6 0.62 85.0 3.22 72.9 5.79 84.3 2.41
+ControlNet [47] 88.5 1.75 85.8 4.70 71.5 10.0 77.9 7.11
+DiAD [13] 88.9 0.85 87.4 3.91 72.1 9.23 83.1 2.93
+CDAD 89.8 0.47 88.9 2.57 83.8 4.05 89.2 1.16
+Table 7. Pixel-level A-PRO of our method on MVTec under 4 continual anomaly detection settings. The best and second-best results are
+marked in blod and underline. ∗ indicates memory limited.
+1 2 5 10
+1XPEHURIVSOLWEORFNVQ
+0
+20
+40
+60
+80
+1000HPRU\VDYLQJUDWLQJ
+Theoretical
+Actual
+Figure 7. The theoretical and actual values of the memory saving
+ratio when the different number of split blocks is used.
+In this paper, we determine the number of blocks n ac-
+cording to the number of images of the old task. Specifi-
+cally, we first sample the old task dataset, randomly retain
+10% of the images, and then group according to the num-
+ber of sampled images (denoted as Nimg ). The number of
+groups in iSVD is n = Nimg e . In this paper, e is set to 1 by
+default, that is, the intermediate features of each image are
+divided into a separate group for iSVD operation.
+In addition, we analyze the impact of different e on the
+model and the time and memory overhead. Table 8 records,
+for setting different e, the anomaly detection results of our
+model on MVTec setting 2, as well as the time and mem-
+ory overhead for computing the significant representation of
+the old task. When e is set to different values, the anomaly
+A-AUROC FM Memory Times
+e=1 94.2 / 95.3 2.05 / 2.40 16.7GB 33.5h
+e=2 94.1 / 95.4 2.10 / 2.32 30.3GB 28.3h
+e=4 94.4 / 95.6 1.95 / 2.21 57.9GB 22.6h
+e=6 94.5 / 95.7 1.91 / 2.23 85.9GB 20.2h
+Table 8. The impact of different e on the model and the time and
+memory overhead of iSVD under MVTec Setting 2.
+detection results and forgetting rate of the model will not
+have much influence. Although we discussed in Section 4.5
+that the large number of split blocks will affect the perfor-
+mance of iSVD, it will not impair its representation abil-
+ity of core information, so it can still ensure the continu-
+ous learning ability of the model. Table 8 also shows that
+with the increase of e, the memory consumption increases,
+but the time cost decreases, which indicates that although
+iSVD can greatly alleviate the pressure of memory, it will
+bring extra time cost.
+C. Qualitative Results
+We supplement the qualitative results on MVTec and VisA
+datasets, which show the localization image reconstruction
+results and anomaly localization results for the seven tasks,
+respectively, as shown in Figure 8-14. Our method not only
+overcomes the “faithfulness hallucination” problem of the
+diffusion model but also shows excellent anomaly localiza-
+tion results.
+
+===== PAGE 14 =====
+Method 11 – 1 with 1 Step 8 – 4 with 1 Step 8 – 1 × 4 with 4 Steps
+A-AUROC (↑) FM (↓) A-AUROC (↑) FM (↓) A-AUROC (↑) FM (↓)
+UCAD* [25] 88.1 0.29 83.2 5.17 82.9 2.16
+IUF [38] 91.6 -0.04 83.4 7.51 83.0 6.87
+ControlNet [47] 85.2 2.38 78.8 6.25 72.4 4.56
+DiAD [13] 74.9 5.42 70.1 12.29 59.5 9.55
+CDAD 89.4 -0.77 85.3 3.1 84.7 1.83
+Table 9. Image-level A-AUPR of our method on VisA under 3 continual anomaly detection settings. The best and second-best results are
+marked in blod and underline. ∗ indicates memory limited.
+Method 11 – 1 with 1 Step 8 – 4 with 1 Step 8 – 1 × 4 with 4 Steps
+A-PRO (↑) FM (↓) A-PRO (↑) FM (↓) A-PRO (↑) FM (↓)
+UCAD* [25] 80.4 2.02 72.4 7.46 70.5 9.83
+IUF [38] 82.0 1.04 63.9 20.8 57.0 23.95
+ControlNet [47] 62.3 2.45 61.0 1.81 51.7 10.38
+DiAD [13] 69.9 4.33 67.7 8.29 55.0 11.74
+CDAD 81.6 -0.22 78.9 1.59 77.7 1.66
+Table 10. Pixel-level A-PRO of our method on VisA under 3 continual anomaly detection settings. The best and second-best results are
+marked in blod and underline. ∗ indicates memory limited.
+1-14 15
+InputOutputHeatmapGT
+Figure 8. Qualitative comparison results under setting 1 of MVTec, the numbers represent continual training classes.
+1-15
+InputOutputHeatmapGT
+14-15
+Figure 9. Qualitative comparison results under setting 2 of MVTec, the numbers represent continual training classes.
+
+===== PAGE 15 =====
+1-3
+InputOutputHeatmapGT
+4-6 7-9 10-12 13-15
+Figure 10. Qualitative comparison results under setting 3 of MVTec, the numbers represent continual training classes.
+1-10 11 12 13 14 15
+InputOutputHeatmapGT
+Figure 11. Qualitative comparison results under setting 4 of MVTec, the numbers represent continual training classes.
+1-11 12
+InputOutputHeatmapGT
+Figure 12. Qualitative comparison results under setting 5 of VisA, the numbers represent continual training classes.
+
+===== PAGE 16 =====
+1-8
+InputOutputHeatmapGT
+9-12
+Figure 13. Qualitative comparison results under setting 6 of VisA, the numbers represent continual training classes.
+1-8
+InputOutputHeatmapGT
+9
+ 10 11 12
+Figure 14. Qualitative comparison results under setting 7 of VisA, the numbers represent continual training classes.

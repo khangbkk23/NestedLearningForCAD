@@ -1,0 +1,983 @@
+# SOURCE: docs/papers/related_cad/arxiv_2605.24251.pdf
+# SOURCE_SHA256: 92b581523a2cf925c585c058876f9f7f4b8c1d2d64807cbcf39e8db12b20f39c
+# EXTRACTOR: pypdf 7.1.0 (PdfReader.extract_text, per page)
+# EXTRACTED: 2026-11-19
+# NOTE: machine extraction; equations/tables/unicode may be garbled. Cite the PDF, not this file.
+
+
+===== PAGE 1 =====
+Rethinking Continual Anomaly Detection on the Edge:
+Benchmarking Under Realistic Industrial Conditions
+Chad Weatherly, Sen Lin
+University of Houston
+Abstract. Continual anomaly detection (CAD) addresses the need for industrial inspection systems to
+adapt to evolving production conditions, yet existing methods share three critical gaps: unrealistic eval-
+uation, no systematic comparison, and no consideration of edge deployment constraints. We introduce
+a unified benchmark combining discrete-task evaluation on structural and logical anomalies, a novel
+continuous drift protocol, the first head-to-head comparison of all published CAD methods, and com-
+putational efficiency profiling on edge hardware. Our results reveal that existing CAD methods do not
+consistently outperform traditional approaches with simple experience replay. Thus motivated, we pro-
+pose DINOSaur, a training-free method combining a frozen DINOv3 backbone with spatially-indexed
+coreset memory and neighborhood-restricted anomaly scoring. DINOSaur achieves zero forgetting by
+construction, outperforms all evaluated methods on every protocol except geometric drift (where all
+methods collapse to chance), and runs at sub-100ms inference on an NVIDIA Jetson Orin Nano, with
+on-device adaptation to new tasks in under 30 seconds.
+Keywords: Continual Learning · Anomaly Detection · Industrial Inspection · Benchmark · Edge De-
+ployment
+1 Introduction
+The rise of Industry 4.0 has brought increased automation to manufacturing, including the adoption of AI-
+driven quality control. In production environments, poor quality control can be extremely costly, and missed
+defects can result in warranty claims, product recalls, and significant reputational damage [11]. Anomaly
+detection (AD), which identifies defective products using models trained primarily on normal samples, has
+emerged as a natural fit for automated visual inspection [7] in industrial environments.
+However, real-world manufacturing processes are never truly static. Environmental conditions fluctuate,
+tools wear and degrade, material batches vary, and production parameters drift over time. These factors cause
+the distribution of normal product appearances to shift continuously, posing a fundamental challenge for AD
+systems trained under the assumption of a fixed data distribution. When the normal distribution changes, a
+previously deployed AD model may either miss genuine defects or flag normal variations as anomalous, both
+of which carry significant economic consequences. Continual learning (CL) offers a framework that enables
+models to adapt to new data while retaining knowledge of previously learned distributions [32]. Several recent
+works have proposed methods for continual anomaly detection (CAD), combining AD architectures with CL
+strategies to maintain performance as data evolves across sequential tasks [19,23,31].
+Despite this progress, we identify three critical gaps in the current CAD literature:
+(1) Computational feasibility ignored. Industrial AD systems typically run on edge devices with lim-
+ited compute, often requiring multiple inference passes per second to keep pace with production throughput.
+Recent CAD methods employ large-scale architectures built on vision-language models (VLMs), diffusion
+models, or large vision transformers, with no analysis of whether these models could feasibly be deployed in
+the constrained environments [13,20,33,40]. While recent work studies efficient anomaly detection on edge
+hardware [3,4], it targets static or single-backbone replay settings. Our feasibility concern is with dedicated
+CAD methods, whose added machinery for sequential learning and task identification has not been examined
+for edge deployment.
+(2) Unrealistic and narrow evaluation. Existing CAD benchmarks treat each product categories
+as distinct tasks, creating sharp and discrete boundaries (e.g., bottle to cable). In reality, industrial drift is
+gradual—the same product changes appearance over time due to process variations. No existing benchmark
+captures this continuous drift scenario. Moreover, evaluation is limited to structural anomalies (surface
+arXiv:2605.24251v2  [cs.LG]  29 Jun 2026
+
+===== PAGE 2 =====
+2 Weatherly, Lin
+defects), ignoring logical anomalies (missing components, incorrect arrangements) [6]—a significant unsolved
+challenge that no CAD method has been evaluated on.
+(3) Lack of systematic comparison. The three published CAD methods, i.e., DNE [19], IUF [31], and
+UCAD [23], were each evaluated independently against different baselines and under different experimental
+conditions. The three methods have never been comprehensively evaluated against one another, making it
+impossible to understand their relative strengths and weaknesses, let alone their feasibility in real-world
+scenarios.
+To address these gaps, this paper makes the following contributions:
+– We introduce a unified evaluation framework for CAD that, for the first time, combines a head-to-
+head comparison of all published CAD methods, a novel continuous drift protocol, evaluation on logical
+anomalies, and computational efficiency profiling on edge hardware.
+– Our evaluation reveals that dedicated CAD methods do not consistently outperform traditional
+baselines with simple experience replay. Motivated by this finding, we propose DINOSaur1, a training-
+free method that outperforms all evaluated approaches at a fraction of the computational cost, enabling
+practical edge deployment.
+2 Related Work
+Anomaly Detection in Industrial Settings. Industrial anomaly detection (IAD) methods broadly fall
+into two paradigms. Distribution-based methods [10,25,27] model the distribution of normal-sample fea-
+tures and flag out-of-distribution test samples as anomalous, using techniques such as nearest-neighbor
+scoring, multivariate Gaussian fitting, or learned normality scores. Reconstruction-based methods [35,36]
+train encoder-decoder networks on normal images and use high reconstruction error as an anomaly signal.
+Unified or multi-class AD [35] handles multiple categories simultaneously but assumes access to all data at
+once, unlike CAD’s sequential constraint.
+Large-Scale Models for Anomaly Detection. Recent work has applied large foundation models to AD,
+including LLM-based reasoning [13], vision-language prompting [40], in-context learning [41], and diffusion
+models [20,33]. While these achieve strong benchmark results, they require billions of parameters and GPU-
+class hardware with inference latencies measured in seconds per image—fundamentally incompatible with
+edge deployment where throughput of several images per second is required. Moreover, these large models
+are not immune to catastrophic forgetting: adapting vision-language models such as CLIP to sequential tasks
+causes significant degradation in zero-shot transfer ability [39], and multimodal LLMs similarly fail to retain
+their pre-trained visual understanding after fine-tuning [38]. This dual challenge—computational infeasibility
+and susceptibility to forgetting—further motivates our focus on lightweight, training-free approaches for
+edge-deployed CAD.
+Continual Learning. CL addresses the problem of learning from a sequence of tasks {D1, D2, . . . , DT },
+subject to the constraint that when training on task t, only dataset Dt is accessible (data from D1, . . . , Dt−1
+is unavailable). Each task is a unique set of data, Dt = {xt, yt} for t ∈ [1, 2, . . . , T ]. Under the CL framework,
+we aim to build a model that can continuously learn new tasks with minimum Catastrophic Forgetting of
+the knowledge learned from previous tasks [32].
+Existing CL strategies fall into three broad families. Regularization-based methods add penalty terms to
+the loss function that restrict weight updates in order to preserve the important knowledge for previous
+tasks. Elastic Weight Consolidation (EWC) [17] uses Fisher information to identify important parameters,
+Synaptic Intelligence (SI) [37] tracks parameter importance online, and Memory Aware Synapses (MAS) [1]
+computes importance based on output sensitivity. Architecture-based methods allocate dedicated parameters
+or sub-networks for different tasks, as in Progressive Neural Networks [28]. Memory-based methods store
+information about previous tasks and modify the new task learning to leverage this information, which can
+be further divided into rehearsal-based methods and gradient projection based methods. The former stores raw
+exemplars or feature representations from previous tasks and replay them during training on new tasks, such
+as Experience Replay [26] and Dark Experience Replay [9]. The latter [21,22,29] stores gradient information
+of previous tasks in this memory and uses this to modify the gradient direction for the new task. Empirically,
+1 Code and data: https://github.com/Continue-Edge-AI-Lab/Rethinking-Continual-AD
+
+===== PAGE 3 =====
+Rethinking Continual Anomaly Detection 3
+memory-based methods consistently achieve the strongest performance across CL benchmarks [32], as they
+most directly address forgetting by maintaining access to past information.
+Continual Anomaly Detection. To date, three published methods have specifically addressed the problem
+of CAD in realistic industrial settings. DNE [19] stores per-task embedding statistics from a Vision Trans-
+former (ViT) backbone and scores anomalies via Mahalanobis distance at image-level only. IUF [31] uses a
+ViT encoder-decoder with regularized latent space separation and constrained gradient updates.UCAD [23]
+combines contrastive learning with SAM [16] for texture decomposition and a task-specific knowledge bank.
+Detailed architectural descriptions of each method are provided in Sec. A.
+Several benchmarks for CAD have emerged very recently, but don’t compare CAD methods directly.
+Bugarin et al. [8] introduce a pixel-level CAD benchmark on MVTec-AD, evaluating off-the-shelf AD meth-
+ods (PatchCore, CFA, STFPM, EfficientAD, FastFlow, among others) wrapped with standard replay or
+memory-bank strategies. Pezzè et al. [24] similarly benchmark existing AD methods under replay, con-
+tributing a compressed-replay strategy that reduces memory via super-resolution but with no new detection
+architecture. Continual-MEGA [18] offers a large-scale benchmark and evaluates zero-shot generalization; its
+evaluated methods are CAD methods and CLIP-based VLMs, though it proposes a CLIP-based baseline with
+mixture-of-expert adapters specifically to mitigate forgetting in large models. A common thread across all
+three is reliance on generic CL strategies, predominantly replay, applied to conventional AD backbones, with-
+out methods designed around the specific constraints of continual anomaly detection (e.g., non-stationary
+normality, unsupervised, or edge deployment). Closest to our edge focus, Barusco et al. reduce the cost of
+static AD on edge hardware [3] and study continual VAD on the edge with compressed replay [4], but both
+apply generic replay to a single static backbone and do not compare dedicated CAD methods, continuous
+drift, or logical anomalies. Our benchmark differs in several further respects: we are the first to include a
+continuous drift protocol (rather than only discrete category shifts), the first to evaluate CAD on logical
+anomalies via MVTec-LOCO, and the first to profile computational efficiency on actual edge hardware.
+3 A Unified Benchmark for Continual Anomaly Detection
+3.1 Motivation
+The central motivation for our benchmark is the disconnect between how CAD methods are currently eval-
+uated and how industrial AD systems actually operate. In a real manufacturing environment, an inspection
+system monitors the same product over time. The product’s visual appearance changes gradually as en-
+vironmental conditions shift (temperature, humidity, lighting), tools degrade, material batches change, or
+production processes drift. These changes create a continuous evolution of the normal data distribution—not
+the sharp, categorical shifts simulated by existing IAD datasets. For example, a factory inspecting magnetic
+tiles for surface defects will experience gradual sensor degradation, seasonal lighting shifts, and material
+batch variation—all of which alter what “normal” looks like, yet the system must continue detecting gen-
+uine defects throughout. This is fundamentally different from a system that must suddenly transition from
+inspecting bottles to inspecting cables.
+Beyond the distribution drift problem, existing CAD evaluations are also narrow in scope. Industrial
+defects are not limited to surface-level structural anomalies; logical anomalies, such as missing components
+and incorrect arrangements, are equally prevalent and require fundamentally different detection strategies,
+yet no published CAD method has been evaluated on them.
+Our benchmark therefore evaluates CAD methods along three axes corresponding to the identified gaps:
+(1) evaluation realism and scope, covering both the standard discrete task protocol and a novel continuous
+drift protocol alongside logical anomaly evaluation via MVTec-LOCO; (2) systematic comparison of all
+existing CAD methods against each other and against traditional AD baselines; and (3) computational
+efficiency profiling for edge deployment feasibility.
+3.2 Discrete Task Protocol
+For our discrete task protocol, we used the standard datasets for both AD and CAD [34]:
+MVTec-AD. MVTec-AD [7] contains 15 object categories spanning textures and objects, each treated
+as a separate task learned sequentially. Only normal samples are used during training (unsupervised setting),
+
+===== PAGE 4 =====
+4 Weatherly, Lin
+reflecting the practical reality that anomalous samples are scarce in manufacturing. This protocol serves as
+our baseline for direct comparison with existing methods.
+MVTec-LOCO. MVTec-LOCO [6] contains 5 categories that include both structural and logical anoma-
+lies—defects requiring global scene understanding. The sequential protocol mirrors MVTec-AD, with each
+category as a task.
+3.3 Continuous Drift Protocol
+To simulate realistic industrial data drift, we design a protocol based on the Magnetic Tile Defects (MTD)
+dataset [14]. MTD contains a single product category (magnetic tiles) with multiple defect types (blowhole,
+crack,break,fray,uneven),makingitidealforstudyingwithin-productdistributionshiftratherthanbetween-
+product category changes.
+Drift Simulation via Progressive Augmentation. We construct a sequence of T = 10 tasks from the MTD
+dataset by applying image augmentations of progressively increasing intensity. Let A(x, α) denote an aug-
+mentation function applied to image x with intensity α. For task t ∈ {1, . . . , T }, the intensity is greater for
+each successive task:
+αt > αt−1 ∀ t > 1. (1)
+The data for each task is:
+Dt = {A(x, αt) | x ∈ DMTD}, (2)
+where DMTD is the original MTD dataset. As t increases, images undergo more severe distortion, simulating
+gradual environmental or process drift.
+Augmentation Types. We run three separate experimental tracks, each simulating a different category of
+real-world drift:
+– Color distortion: simulates lighting changes and material batch variation via progressive hue, satura-
+tion, brightness, and contrast shifts.
+– Gaussian blur: simulates sensor degradation and focus drift via increasing kernel size and standard
+deviation.
+– Geometric distortion: simulates orientation changes and camera misalignment via progressive per-
+spective transforms, rotations, and warping.
+Each augmentation type maps to documented sources of variation in industrial environments [12], pro-
+viding interpretable and physically motivated drift scenarios rather than arbitrary distribution shifts. We
+empirically evaluated the intensity ranges to ensure that the magnetic tile objects were still visible. The
+exact parameter values for all 10 intensity levels of each drift type are provided in Sec. C.3 and illustrated
+in Figure 1.
+3.4 Evaluation Metrics
+Image-level anomaly scores are obtained by taking the maximum patch-level score. We evaluate all methods
+using the following metrics:
+Image-level AUROC (Area Under the ROC Curve) measures threshold-independent discrimination
+between normal and anomalous images. We report the final AUROC averaged across all tasks after training
+on the last task.
+Image-level Accuracy provides a threshold-dependent measure of classification performance on both
+normal and anomalous samples.
+Recall (Sensitivity) specifically measures the fraction of anomalous samples correctly identified, which
+is critical in industrial settings where missed defects (false negatives) carry higher costs than false positives.
+Accuracy and recall use a fixed threshold (97.5th percentile of training scores); details on threshold selection
+are in Sec. B. Since AUROC is threshold-independent, it remains our primary metric.
+Pixel-level AUROC measures localization of the defect region, complementing image-level detection.
+In distribution-based methods like DINOSaur and PatchCore, pixel-level anomaly maps are derived directly
+
+===== PAGE 5 =====
+Rethinking Continual Anomaly Detection 5
+Original
+w=[0.00, 0.05]
+Task 1
+w=[0.10, 0.15]
+Task 3
+w=[0.20, 0.25]
+Task 5
+w=[0.30, 0.35]
+Task 7
+w=[0.45, 0.50]
+Task 10
+k=1, =0.5
+ k=5, =1.5
+ k=9, =2.5
+ k=13, =3.5
+ k=19, =5.0
+=2°, s=0.01
+ =6°, s=0.03
+ =10°, s=0.05
+ =14°, s=0.07
+ =20°, s=0.10
+Color Distortion
+Gaussian Blur
+Geometric Distortion
+Increasing Drift Intensity
+Fig. 1: Progressive augmentation on MTD across tasks for each drift type. Top: Color distortion (brightness, contrast,
+saturation). Middle: Gaussian blur (increasing kernel size and σ). Bottom: Geometric distortion (rotation, translation,
+scale, shear). Intensity increases from left (Task 1, minimal distortion) to right (Task 10, maximum distortion). Defect
+masksareunchangedunderblurandcoloraugmentation,andaretransformedidenticallytotheimageundergeometric
+augmentation.
+from the same patch-level scores used for image-level prediction, where the image score is the maximum over
+patch scores. We therefore expect the two to be tightly coupled, and we verify this in Sec. 5.3: across the
+protocols where pixel scoring is meaningful (excluding geometric drift, where transform padding dominates)
+they correlate at r=0.945 and preserve the ranking of the top methods, confirming that they are corollaries.
+Image-level AUROC remains our primary metric, as it matches the binary pass/fail decision common in
+industrial inspection, while pixel-level AUROC shows that our conclusions are not an artifact of metric
+choice.
+Forgetting Measure. To quantify catastrophic forgetting, we adopt the standard Forgetting Measure
+(FM) [32]. Let at,j denote the performance on task j after the model has been trained on task t. The
+forgetting for task j after training on the final task T is:
+fj = max t∈{1,...,T −1} at,j − aT,j , (3)
+and the average Forgetting Measure is:
+FM = 1 T − 1
+T −1X
+j=1
+fj . (4)
+A positive FM indicates performance degradation (catastrophic forgetting), while an FM of zero indicates
+zero forgetting of previous tasks.
+Computational Efficiency. We report model size (total parameters), inference latency (ms/image),
+and peak memory usage, which directly determine edge deployment feasibility on hardware such as NVIDIA
+Jetson and Raspberry Pi.
+
+===== PAGE 6 =====
+6 Weatherly, Lin
+Fig. 2: Overview of the DINOSaur architecture. Top: During training, a frozen DINOv3 ViT-S/16 extracts CLS and
+patch tokens, which are stored in a task-specific memory bank via CLS prototyping and greedy coreset selection.
+Bottom: During inference, the test image’s CLS token is compared to stored prototypes for task routing, and patch
+tokens are scored against the selected memory bank using neighborhood-restricted nearest-neighbor search.
+4 DINOSaur: DINO Spatial Anomaly Unsupervised Recognition
+4.1 Motivation
+Existing CAD methods employ increasingly complex architectures—UCAD incorporates SAM [16], IUF
+trains a full ViT encoder-decoder, and DNE requires task-specific distribution estimation—yet, as we demon-
+strate in Sec. 5, this complexity does not consistently translate into superior performance. Memory-based
+CL mechanisms consistently achieve the strongest results [32], and in industrial settings long-term storage
+is rarely a constraint even on edge devices. We therefore hypothesize that a powerful frozen feature extrac-
+tor paired with a non-parametric memory bank is sufficient: it yields competitive performance with zero
+forgetting by construction, since no model weights are updated. Thus motivated, we propose DINOSaur: a
+minimal baseline combining a frozen feature extractor with spatially-structured memory and neighborhood-
+based anomaly scoring, designed for edge deployment. An overview is shown in Figure 2.
+4.2 Feature Extraction with DINOv3
+DINOSaur uses a frozen DINOv3 ViT-S/16 [30] as its feature backbone—the smallest variant in the DINOv3
+family, with only 21M parameters—to demonstrate that strong CAD performance does not require large
+backbones. Larger variants (ViT-B/16, ViT-L/16) would likely improve detection quality at the cost of
+higher inference latency and memory usage; we deliberately select the smallest backbone to establish a lower
+bound representative of edge deployment constraints. We also chose to use the ViT version, as the CLS Token
+is necessary for task identification and routing. DINOv3 is a self-supervised vision transformer trained with
+student-teacher distillation and Gram anchoring, producing both a global CLS token and spatially distinctive
+patch-level features, considered current state of the art in producing embedding vectors with hierarchical
+conceptual understanding.
+Given an input image x ∈ RH×W ×3, the frozen DINOv3 encoder Φ produces a set of patch-level feature
+vectors:
+{p1, p2, . . . , pN } = Φ(x), pi ∈ Rd, (5)
+where N = (H/s) × (W/s) is the number of patches determined by the patch size s, and d is the feature
+dimension. We extract features from the final layer of the transformer, as these features contain descriptive,
+hierarchical and semantic understanding of the image patch.
+Using a frozen backbone eliminates weight updates—the primary source of catastrophic forgetting—while
+DINOv3’s self-supervised features provide strong semantic representations without task-specific adaptation.
+
+===== PAGE 7 =====
+Rethinking Continual Anomaly Detection 7
+4.3 Spatially-Indexed Memory Bank
+Rather than aggregating all patch features into a single flat memory bank, DINOSaur maintains a novel
+spatially-indexed memory where each patch location has its own independent coreset. Given D training
+images from the current task, we collect, for each spatial location (i, j) in the
+√
+N ×
+√
+N patch grid, the set
+of all feature vectors observed at that position across the task training set:
+Pi,j = {p(k) i,j | k = 1, . . . , D}, |Pi,j | = D. (6)
+We then apply greedy coreset selection [27] independently at each location, iteratively choosing the point
+farthest from the current coreset, ensuring we have a representative set of location-specific feature vectors
+while also minimizing our memory bank size. This yields a per-location coreset Ci,j of size M = max(20, ⌊D ·
+ρ⌋), where ρ is the coreset ratio, a hyperparameter in the range (0, 1]. The full memory bank for a task
+is the spatially-structured tensor M ∈ R
+√
+N ×
+√
+N ×M ×e, where e is the embedding dimension of the feature
+vectors. This structure preserves the spatial layout of the image in the memory bank, which is essential for
+the neighborhood-based scoring described below.
+4.4 Neighborhood-Restricted Anomaly Scoring
+During inference, a test image must first be routed to the appropriate task-specific memory bank (described
+in Sec. 4.5). Given the selected memory bank M, we compute the anomaly score for each test patch by
+comparing it only to memory features within a local spatial neighborhood. Given a test patch at location
+(i, j) with feature vector ptest i,j , we define the neighborhood memory as the union of patch coresets within a
+radius r:
+N r i,j = [
+i′ ∈[i−r,i+r]
+j′ ∈[j−r,j+r]
+Ci′ ,j′ . (7)
+The patch-level anomaly score is then:
+si,j = min c∈N r i,j ∥ptest i,j − c∥2, (8)
+and the image-level score is the maximum over all patch locations:
+S(xtest) = max (i,j) si,j . (9)
+This neighborhood restriction enforces spatial consistency—anomalies are detected based on what should
+appear at a given location—and reduces computation from N · M to at most (2r + 1)2 · M comparisons per
+patch, a 4× reduction for our default r = 3 on a 14 × 14 grid.
+4.5 Continual Learning via Task-Specific Memory
+DINOSaur handles continual learning through two complementary mechanisms: task-specific memory
+banks and CLS token prototypes for unsupervised task identification.
+1) Task-specific memory. Rather than accumulating all features into a single growing bank, DINOSaur
+maintains a separate, spatially-indexed memory bank M(t) for each task t. When a new task arrives, its nor-
+mal training images are processed through the frozen encoder, and a new per-location coreset is constructed
+and stored independently for that task, giving us a smaller memory footprint by using an optimal set of
+embedding vectors. Since the feature extractor Φ is never updated, the number of tasks able to be processed
+is limited mainly by memory and storage constraints, not model architecture.
+2)CLStokenprototypes.DINOv3alsoproducesaglobalCLStoken z ∈ Re perimage.Duringtraining
+on task t, we compute the mean CLS token µt across all training images as a compact task prototype. At
+test time, unsupervised task routing selects the closest prototype:
+t∗ = arg min
+t
+∥ztest − µt∥2, (10)
+and the selected task’s memory bank M(t∗ ) is used for scoring. This requires no task labels at inference—only
+a single distance computation per stored task.
+
+===== PAGE 8 =====
+8 Weatherly, Lin
+5 Experiments
+5.1 Experimental Setup
+Evaluated Methods. We evaluate the following methods:
+– CAD methods: DNE [19], IUF [31], and UCAD [23]—the three published continual anomaly detection
+methods.
+– Traditional AD baselines with replay: PatchCore [27] and EfficientAD [5]—augmented with expe-
+rience replay [26]. Replay budget and augmentation strategy details are in Sec. B.2.
+– DINOSaur (ours)—the proposed baseline described in Sec. 4.
+For all methods, we use official implementations where available and faithfully reimplement otherwise,
+matching reported hyperparameters. All methods are trained for 300 epochs per task.
+Training Protocol. All experiments use the unsupervised setting, where only normal samples are available
+during training, reflecting real industrial scenarios. Models are trained sequentially on each task without
+access to previous task data (the standard CL constraint), except for the generous replay buffer provided to
+PatchCore and EfficientAD. Task orderings for all protocols are provided in Sec. C. Training is conducted
+on a single NVIDIA RTX 4090. Edge inference profiling is performed on an NVIDIA Jetson Orin Nano and
+a Raspberry Pi 5, as detailed in Sec. 5.4.
+5.2 Main Results
+Table 1 presents the image-level AUROC, Accuracy, Recall, and Forgetting Measure (FM) for all evaluated
+methods on MVTec-AD and MVTec-LOCO. Key findings:
+– DINOSaur and PatchCore with replay dominate on both protocols; dedicated CAD methods fall short.
+– DNE and IUF collapse to predicting “normal” (zero recall on MVTec-AD), revealing fundamental archi-
+tectural limitations in the unsupervised setting.
+– Among dedicated CAD methods, only UCAD demonstrates meaningful learning, yet lags PatchCore by
+over 12 percentage points in AUROC on MVTec-AD.
+– DINOSaur and UCAD achieve zero forgetting; PatchCore’s modest forgetting shows that replay alone
+mitigates catastrophic forgetting.
+While DINOSaur and PatchCore both occupy the top tier, the two methods differ in fundamental ways.
+PatchCore aggregates all patch features into a single flat memory bank and scores test patches via global
+nearest-neighbor search, relying on experience replay (100 samples per previous task) to mitigate forgetting
+when new tasks arrive. DINOSaur, by contrast, requires no replay, and its spatially-indexed memory with
+neighborhood-restricted scoring (Sec. 4.4) enforces spatial consistency that a flat bank cannot. This archi-
+tectural difference translates directly to edge performance: DINOSaur is 23% faster than PatchCore on the
+Jetson (91.6 vs. 119ms; Tab. 4) while achieving higher AUROC on every protocol. Moreover, DINOSaur’s
+performance is tunable via the coreset ratio ρ: on smaller or less variable tasks, reducing ρ below the default
+10% would further decrease storage and latency with only modest AUROC loss (Tab. 5), giving practitioners
+an explicit efficiency–accuracy knob. We note that our PatchCore∗ baseline is mechanistically equivalent to
+PatchcoreCL [2]: both maintain persistent feature access without weight updates and use task-structured
+retrieval. Beyond the spatial indexing and neighborhood-restricted scoring above, DINOSaur further differs
+from both through explicit CLS-prototype task routing.
+The continuous drift results (Tab. 2) reveal distinct patterns across drift types. On color and blur drift,
+DINOSaur and PatchCore clearly separate from dedicated CAD methods, confirming that strong features
+matter more than specialized CL mechanisms under continuous shift. Notably, continuous drift is not uni-
+formly easier than discrete task shifts: DINOSaur and PatchCore achieve comparable or lower AUROC on
+MTD color and blur drift than on MVTec-AD, while the weaker CAD methods (DNE, IUF) show simi-
+lar near-chance performance regardless of protocol, suggesting their failures are fundamental architectural
+limitations rather than protocol-specific artifacts.
+
+===== PAGE 9 =====
+Rethinking Continual Anomaly Detection 9
+Table 1: Discrete-Task Results: Image-level AUROC (↑), Accuracy (↑), Recall (↑), and Forgetting Measure (↓) on
+MVTec-AD and MVTec-LOCO, averaged across all tasks. Methods marked with ∗ are augmented with experience
+replay. Best results per column are in bold.
+MVTec-AD MVTec-LOCO
+Method AUROC Acc Recall FM AUROC Acc Recall FM
+DNE [19] 0.500 0.277 0.000 0.012 0.500 0.368 0.000 −0.022
+IUF [31] 0.508 0.300 0.074 −0.066 0.572 0.436 0.234 0.002
+UCAD [23] 0.798 0.635 0.552 0.000 0.629 0.537 0.389 0.000
+PatchCore∗ [27] 0.925 0.808 0.804 0.023 0.743 0.655 0.521 0.038
+EfficientAD∗ [5] 0.529 0.310 0.071 0.051 0.485 0.384 0.053 0.025
+DINOSaur (ours) 0.968 0.829 0.991 0.000 0.768 0.709 0.845 0.000
+Table 2: Continuous Drift Results: Image-level AUROC (↑), Accuracy (↑), Recall (↑), and Forgetting Measure (↓)
+on MTD-Color, MTD-Geo, and MTD-Blur, averaged across all tasks. Methods marked with ∗ are augmented with
+experience replay. Best results per column are in bold.
+MTD-Color MTD-Geo MTD-Blur
+Method AUROC Acc Recall FM AUROC Acc Recall FM AUROC Acc Recall FM
+DNE [19] 0.520 0.529 0.308 0.021 0.480 0.517 0.342 0.032 0.555 0.573 0.062 −0.003
+IUF [31] 0.521 0.532 0.294 −0.008 0.525 0.588 0.048 0.002 0.516 0.567 0.042 0.001
+UCAD [23] 0.566 0.591 0.141 0.030 0.480 0.548 0.107 0.007 0.582 0.586 0.137 0.003
+PatchCore∗ [27] 0.836 0.710 0.530 −0.043 0.509 0.564 0.042 −0.008 0.832 0.751 0.685 −0.022
+EfficientAD∗ [5] 0.565 0.573 0.080 −0.007 0.510 0.567 0.050 −0.004 0.566 0.564 0.051 −0.010
+DINOSaur (ours) 0.928 0.836 0.861 0.000 0.519 0.567 0.050 0.013 0.891 0.810 0.676 −0.002
+Among drift types, geometric distortion is uniquely challenging—all methods collapse near chance. This
+is because geometric transformations fundamentally alter the spatial relationships between patch features,
+disrupting the very structure that distribution-based methods rely on. Color and blur distortions, by con-
+trast, modify appearance while preserving spatial structure, making them far more amenable to patch-based
+detection. This distinction has practical implications: industrial scenarios involving mechanical deformation
+or perspective changes (e.g., conveyor belt misalignment, camera drift) may require fundamentally different
+representations than those sufficient for photometric variations. DINOSaur maintains near-zero forgetting
+across all drift types (FM ≤0.013), and on color drift PatchCore actually exhibits negative FM (−0.043),
+indicating backward transfer—continued training on shifted data improves detection on earlier tasks.
+5.3 Pixel-level Evaluation
+Table 3 reports image- and pixel-level AUROC side by side. Across the protocols where pixel scoring is
+meaningful (MVTec-AD, MVTec-LOCO, MTD-color, MTD-blur), the two correlate at r=0.945 and preserve
+the ranking of the top methods, confirming that pixel-level performance is largely a corollary of image-level
+detection. DINOSaur retains its pixel-level lead on all four. We omit geometric pixel-AUROC, where the
+affine padding dominates the pooled metric. DNE has no spatial map, so its pixel entries are undefined.
+Table 3: Image- vs. pixel-level AUROC (↑), averaged across all tasks. Image-level numbers are reproduced from
+Tabs. 1 and 2. DNE has no spatial map (“—”). Under geometric drift, pixel-level scoring is unreliable because the
+affine padding dominates the pooled metric, so we omit it (“—”). Best pixel-level result per protocol is in bold.
+MVTec-AD MVTec-LOCO MTD-Color MTD-Geo MTD-Blur
+Method img pix img pix img pix img pix img pix
+DNE [19] 0.500 — 0.500 — 0.520 — 0.480 — 0.555 —
+IUF [31] 0.508 0.525 0.572 0.606 0.521 0.557 0.525 — 0.516 0.585
+UCAD [23] 0.798 0.822 0.629 0.651 0.566 0.564 0.480 — 0.582 0.537
+PatchCore∗ [27] 0.925 0.945 0.743 0.742 0.836 0.770 0.509 — 0.832 0.730
+EfficientAD∗ [5] 0.529 0.402 0.485 0.429 0.565 0.599 0.510 — 0.566 0.636
+DINOSaur (ours) 0.968 0.947 0.768 0.810 0.928 0.875 0.519 — 0.891 0.857
+
+===== PAGE 10 =====
+10 Weatherly, Lin
+Table 4: Computational efficiency on two edge platforms (NVIDIA Jetson Orin Nano, Raspberry Pi 5). Latency is
+mean ± std over 30 single-image runs. Storage is measured on-device per task; “—” marks weight-update methods
+with no task-indexed storage (DINOSaur storage shown for MVTec-AD). IUF exceeded the Jetson’s memory (OOM).
+FPS = frames per second; ∗ = experience replay. Best latency per platform in bold.
+Jetson Orin Nano Raspberry Pi 5
+Method Params (M) Storage/Task (MB) Inf. (ms) FPS Inf. (ms) FPS
+DNE [19] 86.6 2.3 60.7 ± 4.9 16.5 560.0 ± 6.1 1.8
+IUF [31] 631.1 — OOM — 3668.6 ± 69.6 0.3
+UCAD [23] 36.0 1.2 956.5 ± 7.3 1.0 1058.0 ± 15.4 0.9
+PatchCore∗ [27] 9.3 5.0 119.0 ± 2.4 8.4 1074.5 ± 7.9 0.9
+EfficientAD∗ [5] 8.1 — 34.7 ± 0.1 28.8 1318.2 ± 4.3 0.8
+DINOSaur (ours) 21.6 7.1 91.6 ± 9.6 10.9 630.6 ± 10.2 1.6
+5.4 Computational Efficiency
+Tab. 4 compares the computational requirements of all evaluated methods on two representative edge plat-
+forms. Industrial inspection systems typically require processing multiple images per second on hardware
+with limited GPU memory; a method that cannot meet these constraints is not a viable CAD solution
+regardless of its detection metrics.
+Among the dedicated CAD methods, IUF exceeds the Jetson’s GPU memory entirely and requires 3.7
+seconds per image on the Raspberry Pi. UCAD’s reliance on SAM [16] results in nearly 1 second per image
+on both devices. DNE is the most efficient method overall—fastest on the Raspberry Pi (560ms, 1.8 FPS)
+and competitive on the Jetson (60.7ms)—but achieves near-chance AUROC, making its speed advantage
+moot in practice.
+Among methods with meaningful detection, DINOSaur achieves sub-100ms inference on the Jetson
+(91.6ms, 10.9 FPS), faster than PatchCore (119ms). EfficientAD is faster (34.7ms) but collapses in de-
+tection under continual learning. On the CPU-only Raspberry Pi 5, DINOSaur (630.6ms) is second-fastest
+afterDNE.Per-taskstorage(7.1MBonMVTec-AD)scaleswith ρandtrainingsetsize;detailsareinSec.B.2.
+On-Device Training Feasibility. Training cost matters as much as inference for edge deployment.
+Gradient-based methods (DNE, IUF, UCAD, EfficientAD) require forward and backward passes over hun-
+dreds of epochs per task, with memory far exceeding inference. DINOSaur instead adapts to a new task with
+a single forward pass per image plus coreset selection, enabling autonomous on-device adaptation without
+cloud connectivity.
+5.5 Analysis and Discussion
+On the four protocols with meaningful signal, no dedicated CAD method achieves the top AUROC; DI-
+NOSaur leads all four, followed by PatchCore with replay. Under geometric drift every method, dedicated
+or not, sits at chance. This raises a fundamental question: are the performance gains reported in prior CAD
+papers genuine algorithmic advances, or artifacts of experimental protocol? We identify the unsupervised set-
+ting as a key factor. All of our experiments train on normal samples only, which is substantially harder than
+the supervised setting used in some prior evaluations of DNE and IUF, which use synthetic anomaly gener-
+ation. The near-chance performance of these methods suggests that their architectures may rely on anomaly
+examples during training to learn meaningful decision boundaries—a luxury that real industrial deployments
+rarely afford. When this crutch is removed, dedicated CL mechanisms provide no measurable benefit over
+simple replay, and the added architectural complexity yields no return on investment for edge-constrained
+deployment.
+Task Ordering Invariance. Because DINOSaur’s backbone is frozen and each task receives an independent
+memory bank, its final performance is completely invariant to task ordering—a structural guarantee no other
+evaluated method provides, since all others either update weights or replay across tasks. This eliminates a
+confound in CL evaluation and simplifies deployment. Extended analysis is in Sec. D.
+
+===== PAGE 11 =====
+Rethinking Continual Anomaly Detection 11
+Table 5: Hyperparameter sensitivity:
+average image-level AUROC across all
+five benchmark protocols for each core-
+set ratio (ρ) and neighborhood radius
+(r) combination. The selected configu-
+ration (ρ=10%, r=3) is bolded.
+Neighborhood radius r
+Coreset ratio ρ 0 1 2 3 4
+1% 0.771 0.773 0.773 0.780 0.778
+2.5% 0.765 0.770 0.775 0.776 0.782
+5% 0.771 0.775 0.777 0.781 0.785
+10% 0.787 0.790 0.794 0.801 0.798
+20% 0.803 0.816 0.819 0.816 0.822
+DINOSaur Hyperparameter Sensitivity. DINOSaur has two hyper-
+parameters: the coreset ratio ρ and the neighborhood radius r. We
+perform a grid search over ρ ∈ {1%, 2.5%, 5%, 10%, 20%} and r ∈
+{0, 1, 2, 3, 4}, reporting the average AUROC across all five protocols
+in Tab. 5. Performance increases monotonically with ρ but with di-
+minishing returns (1.5% gain from 10% to 20%), while r has a smaller
+but consistent effect. We select ρ=10% and r=3, balancing detection
+quality against edge efficiency (sub-100ms inference on the Jetson).
+The full per-dataset breakdown is in the appendix.
+6 Conclusion
+We introduced a unified CAD benchmark addressing three gaps in the
+literature, i.e., unrealistic evaluation, lack of systematic comparison,
+and neglect of edge constraints, and showed that existing CAD meth-
+ods do not consistently outperform traditional AD baselines with simple experience replay. Motivated by this
+finding, we proposed DINOSaur, which combines a frozen DINOv3 backbone with spatially-indexed core-
+set memory and task identification/routing to achieve state-of-the-art performance with zero forgetting by
+construction across four of the five benchmark protocols (every method collapses to chance under geometric
+drift). Its training-free design enables on-device adaptation in under 30 seconds on an NVIDIA Jetson Orin
+Nano, making it practical for autonomous industrial deployment.
+Future Work. Three directions remain open. First, geometric drift collapses every method to chance; ad-
+dressing it will likely require geometrically equivariant feature representations beyond what current frozen
+backbones provide. Second, DINOSaur’s neighborhood scoring is inherently local, so logical anomalies that
+require holistic scene understanding would benefit from added global reasoning alongside the spatial mem-
+ory. Finally, extending the benchmark to online streaming without explicit task boundaries would bring
+evaluation closer to real industrial deployment.
+References
+1. Aljundi, R., Babiloni, F., Elhoseiny, M., Rohrbach, M., Tuytelaars, T.: Memory aware synapses: Learning what
+(not) to forget. In: Ferrari, V., Hebert, M., Sminchisescu, C., Weiss, Y. (eds.) Computer Vision – ECCV 2018,
+vol. 11207, pp. 144–161. Springer International Publishing. https://doi.org/10.1007/978-3-030-01219-9_9,
+https://link.springer.com/10.1007/978-3-030-01219-9_9, series Title: Lecture Notes in Computer Science
+2. Barusco, M., Borsatti, F., Beda, N., Pezze, D.D., Susto, G.A.: Towards continual visual anomaly detection in
+the medical domain. In: Proceedings of the International Workshop on Personalized Incremental Learning in
+Medicine (PILM) (2025). https://doi.org/10.1145/3746259.3760434, https://arxiv.org/abs/2508.18013,
+arXiv:2508.18013
+3. Barusco, M., Borsatti, F., Pezze, D.D., Paissan, F., Farella, E., Susto, G.A.: PaSTe: Improving the efficiency of
+visual anomaly detection at the edge. In: 2025 IEEE/CVF Conference on Computer Vision and Pattern Recog-
+nition Workshops (CVPRW). IEEE (2025), https://openaccess.thecvf.com/content/CVPR2025W/VAND/html/
+Barusco_PaSTe_Improving_the_Efficiency_of_Visual_Anomaly_Detection_at_the_CVPRW_2025_paper.html
+4. Barusco, M., D’Antoni, L., Pezze, D.D., Borsatti, F., Susto, G.A.: Memory efficient continual learning for edge-
+based visual anomaly detection (2025), https://arxiv.org/abs/2503.02691, arXiv:2503.02691
+5. Batzner, K., Heckler, L., König, R.: EfficientAD: Accurate visual anomaly detection at millisecond-level latencies.
+pp. 128–138. https://openaccess.thecvf.com/content/WACV2024/html/Batzner_EfficientAD_Accurate_
+Visual_Anomaly_Detection_at_Millisecond-Level_Latencies_WACV_2024_paper.html
+6. Bergmann, P., Batzner, K., Fauser, M., Sattlegger, D., Steger, C.: Beyond dents and scratches: Logical constraints
+in unsupervised anomaly detection and localization 130(4), 947–969. https://doi.org/10.1007/s11263-022-
+01578-9, https://doi.org/10.1007/s11263-022-01578-9
+7. Bergmann, P., Fauser, M., Sattlegger, D., Steger, C.: MVTec AD — a comprehensive real-world dataset for
+unsupervised anomaly detection. In: 2019 IEEE/CVF Conference on Computer Vision and Pattern Recognition
+(CVPR). pp. 9584–9592. IEEE. https://doi.org/10.1109/CVPR.2019.00982, https://ieeexplore.ieee.org/
+document/8954181/
+
+===== PAGE 12 =====
+12 Weatherly, Lin
+8. Bugarin, N., Bugaric, J., Barusco, M., Pezze, D.D., Susto, G.A.: Unveiling the anomalies in an ever-changing
+world: A benchmark for pixel-level anomaly detection in continual learning. In: 2024 IEEE/CVF Conference on
+Computer Vision and Pattern Recognition Workshops (CVPRW). pp. 4065–4074. IEEE. https://doi.org/10.
+1109/CVPRW63382.2024.00410, https://ieeexplore.ieee.org/document/10678644/
+9. Buzzega, P., Boschini, M., Porrello, A., Abati, D., CALDERARA, S.: Dark experience for general
+continual learning: a strong, simple baseline. In: Advances in Neural Information Processing Systems.
+vol. 33, pp. 15920–15930. Curran Associates, Inc., https://proceedings.neurips.cc/paper/2020/hash/
+b704ea2c39778f07c617f6b7ce480e9e-Abstract.html
+10. Defard, T., Setkov, A., Loesch, A., Audigier, R.: PaDiM: A patch distribution modeling framework for anomaly
+detection and localization. In: Del Bimbo, A., Cucchiara, R., Sclaroff, S., Farinella, G.M., Mei, T., Bertini, M.,
+Escalante, H.J., Vezzani, R. (eds.) Pattern Recognition. ICPR International Workshops and Challenges. pp.
+475–489. Springer International Publishing. https://doi.org/10.1007/978-3-030-68799-1_35
+11. Dimitriou, E., Georgiou, A.: Automatic inspection systems cut quality control costs by 60% 2(1), 23–33, https:
+//theeducationjournals.com/index.php/NJQIBE/article/view/147
+12. Faber, K., Corizzo, R., Sniezynski, B., Japkowicz, N.: Lifelong continual learning for anomaly detection: New
+challenges, perspectives, and insights 12, 41364–41380. https://doi.org/10.1109/ACCESS.2024.3377690,
+https://ieeexplore.ieee.org/document/10473036/?arnumber=10473036, conference Name: IEEE Access
+13. Gu, Z., Zhu, B., Zhu, G., Chen, Y., Tang, M., Wang, J.: AnomalyGPT: Detecting industrial anomalies using
+large vision-language models 38(3), 1932–1940. https://doi.org/10.1609/aaai.v38i3.27963, https://ojs.
+aaai.org/index.php/AAAI/article/view/27963
+14. Huang, Y., Qiu, C., Yuan, K.: Saliency of magnetic tile surface defects 36(1), 85–96. https://doi.org/10.1007/
+s00371-018-1588-5, https://doi.org/10.1007/s00371-018-1588-5
+15. Huang, Y., Qiu, C., Yuan, K.: Surface defect saliency of magnetic tile. The Visual Computer 36(1), 85–96 (2020).
+https://doi.org/10.1007/s00371-018-1588-5
+16. Kirillov, A., Mintun, E., Ravi, N., Mao, H., Rolland, C., Gustafson, L., Xiao, T., Whitehead, S., Berg, A.C., Lo,
+W.Y., Dollar, P., Girshick, R.: Segment anything. pp. 4015–4026. https://openaccess.thecvf.com/content/
+ICCV2023/html/Kirillov_Segment_Anything_ICCV_2023_paper.html
+17. Kirkpatrick, J., Pascanu, R., Rabinowitz, N., Veness, J., Desjardins, G., Rusu, A.A., Milan, K., Quan, J., Ra-
+malho, T., Grabska-Barwinska, A., Hassabis, D., Clopath, C., Kumaran, D., Hadsell, R.: Overcoming catas-
+trophic forgetting in neural networks 114(13), 3521–3526. https://doi.org/10.1073/pnas.1611835114,
+https://pnas.org/doi/full/10.1073/pnas.1611835114
+18. Lee, G., Oh, Y., Jang, G., Lee, S., Song, J., Cha, S., Yoo, Y.: Continual-MEGA: A large-scale benchmark for
+generalizable continual anomaly detection. https://doi.org/10.48550/arXiv.2506.00956, http://arxiv.org/
+abs/2506.00956, version: 1
+19. Li, W., Zhan, J., Wang, J., Xia, B., Gao, B.B., Liu, J., Wang, C., Zheng, F.: Towards continual adaptation
+in industrial anomaly detection. In: Proceedings of the 30th ACM International Conference on Multimedia.
+pp. 2871–2880. MM ’22, Association for Computing Machinery. https://doi.org/10.1145/3503161.3548232,
+https://doi.org/10.1145/3503161.3548232
+20. Li, X., Tan, X., Chen, Z., Zhang, Z., Zhang, R., Guo, R., Jiang, G., Chen, Y., Qu, Y., Ma, L., Xie, Y.:
+One-for-more: Continual diffusion model for anomaly detection. pp. 4766–4775. https://openaccess.thecvf.
+com/content/CVPR2025/html/Li_One-for-More_Continual_Diffusion_Model_for_Anomaly_Detection_CVPR_
+2025_paper.html
+21. Lin, S., Yang, L., Fan, D., Zhang, J.: Beyond not-forgetting: Continual learning with backward knowl-
+edge transfer 35, 16165–16177, https://proceedings.neurips.cc/paper_files/paper/2022/hash/
+6728fcf94660c59c938319a6833a6073-Abstract-Conference.html
+22. Lin, S., Yang, L., Fan, D., Zhang, J.: TRGP: Trust region gradient projection for continual learning. In: Interna-
+tional Conference on Learning Representations (ICLR). https://openreview.net/forum?id=iEvAf8i6JjO
+23. Liu, J., Wu, K., Nie, Q., Chen, Y., Gao, B.B., Liu, Y., Wang, J., Wang, C., Zheng, F.: Unsupervised continual
+anomaly detection with contrastively-learned prompt 38(4), 3639–3647.https://doi.org/10.1609/aaai.v38i4.
+28153, https://ojs.aaai.org/index.php/AAAI/article/view/28153
+24. Pezze, D.D., Anello, E., Masiero, C., Susto, G.A.: Continual learning approaches for anomaly detection 16(4),
+111. https://doi.org/10.1007/s12530-025-09732-7, https://doi.org/10.1007/s12530-025-09732-7
+25. Reiss, T., Cohen, N., Bergman, L., Hoshen, Y.: PANDA: Adapting pretrained features for anomaly detection and
+segmentation. In: 2021 IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR). pp. 2805–
+2813. IEEE. https://doi.org/10.1109/CVPR46437.2021.00283, https://ieeexplore.ieee.org/document/
+9577693/
+26. Rolnick, D., Ahuja, A., Schwarz, J., Lillicrap, T., Wayne, G.: Experience replay for continual learning. In: Ad-
+vances in Neural Information Processing Systems. vol. 32. Curran Associates, Inc., https://papers.nips.cc/
+paper_files/paper/2019/hash/fa7cdfad1a5aaf8370ebeda47a1ff1c3-Abstract.html
+
+===== PAGE 13 =====
+Rethinking Continual Anomaly Detection 13
+27. Roth, K., Pemula, L., Zepeda, J., Scholkopf, B., Brox, T., Gehler, P.: Towards total recall in industrial anomaly
+detection. In: 2022 IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR). pp. 14298–
+14308. IEEE. https://doi.org/10.1109/CVPR52688.2022.01392, https://ieeexplore.ieee.org/document/
+9879738/
+28. Rusu, A.A., Rabinowitz, N.C., Desjardins, G., Soyer, H., Kirkpatrick, J., Kavukcuoglu, K., Pascanu, R., Hadsell,
+R.: Progressive neural networks. https://doi.org/10.48550/arXiv.1606.04671, http://arxiv.org/abs/1606.
+04671
+29. Saha, G., Garg, I., Roy, K.: Gradient projection memory for continual learning. In: International Conference on
+Learning Representations (ICLR). https://openreview.net/forum?id=3AOj0RCNC2
+30. Siméoni, O., Vo, H.V., Seitzer, M., Baldassarre, F., Oquab, M., Jose, C., Khalidov, V., Szafraniec, M., Yi, S.,
+Ramamonjisoa, M., Massa, F., Haziza, D., Wehrstedt, L., Wang, J., Darcet, T., Moutakanni, T., Sentana, L.,
+Roberts, C., Vedaldi, A., Tolan, J., Brandt, J., Couprie, C., Mairal, J., Jégou, H., Labatut, P., Bojanowski, P.:
+DINOv3. https://doi.org/10.48550/arXiv.2508.10104, http://arxiv.org/abs/2508.10104
+31. Tang, J., Lu, H., Xu, X., Wu, R., Hu, S., Zhang, T., Cheng, T.W., Ge, M., Chen, Y.C., Tsung, F.: An incremental
+unified framework for small defect inspection. In: Leonardis, A., Ricci, E., Roth, S., Russakovsky, O., Sattler, T.,
+Varol, G. (eds.) Computer Vision – ECCV 2024. pp. 307–324. Springer Nature Switzerland. https://doi.org/
+10.1007/978-3-031-72751-1_18
+32. Wang, L., Zhang, X., Su, H., Zhu, J.: A comprehensive survey of continual learning: Theory, method and ap-
+plication 46(8), 5362–5383. https://doi.org/10.1109/TPAMI.2024.3367329, https://ieeexplore.ieee.org/
+document/10444954
+33. Wyatt, J., Leach, A., Schmon, S.M., Willcocks, C.G.: AnoDDPM: Anomaly detection with denoising diffusion
+probabilistic models using simplex noise. pp. 650–656. https://openaccess.thecvf.com/content/CVPR2022W/
+NTIRE/html/Wyatt_AnoDDPM_Anomaly_Detection_With_Denoising_Diffusion_Probabilistic_Models_Using_
+Simplex_CVPRW_2022_paper.html
+34. Xie, G., Wang, J., Liu, J., Lyu, J., Liu, Y., Wang, C., Zheng, F., Jin, Y.: IM-IAD: Industrial image anomaly
+detection benchmark in manufacturing 54(5), 2720–2733. https://doi.org/10.1109/TCYB.2024.3357213,
+https://ieeexplore.ieee.org/document/10443076/, conference Name: IEEE Transactions on Cybernetics
+35. You, Z., Cui, L., Shen, Y., Yang, K., Lu, X., Zheng, Y., Le, X.: A unified model for multi-class
+anomaly detection 35, 4571–4584, https://proceedings.neurips.cc/paper_files/paper/2022/hash/
+1d774c112926348c3e25ea47d87c835b-Abstract-Conference.html
+36. Zavrtanik, V., Kristan, M., Skocaj, D.: DRÆM – a discriminatively trained reconstruction embedding for surface
+anomaly detection. In: 2021 IEEE/CVF International Conference on Computer Vision (ICCV). pp. 8310–8319.
+IEEE. https://doi.org/10.1109/ICCV48922.2021.00822, https://ieeexplore.ieee.org/document/9710329/
+37. Zenke, F., Poole, B., Ganguli, S.: Continual learning through synaptic intelligence. In: Proceedings of the 34th
+International Conference on Machine Learning. pp. 3987–3995. PMLR, https://proceedings.mlr.press/v70/
+zenke17a.html
+38. Zhai, Y., Tong, S., Li, X., Cai, M., Qu, Q., Lee, Y.J., Ma, Y.: Investigating the catastrophic forgetting in
+multimodal large language models. In: Conference on Parsimony and Learning, Proceedings of Machine Learning
+Research. vol. 234, pp. 202–227. https://proceedings.mlr.press/v234/zhai24a.html
+39. Zheng, Z., Ma, M., Wang, K., Qin, Z., Yue, X., You, Y.: Preventing zero-shot transfer degradation in continual
+learning of vision-language models. In: Proceedings of the IEEE/CVF International Conference on Computer
+Vision (ICCV). https://openaccess.thecvf.com/content/ICCV2023/papers/Zheng_Preventing_Zero-Shot_
+Transfer_Degradation_in_Continual_Learning_of_Vision-Language_Models_ICCV_2023_paper.pdf
+40. Zhou, Q., Pang, G., Tian, Y., He, S., Chen, J.: AnomalyCLIP: Object-agnostic prompt learning for zero-shot
+anomaly detection. https://openreview.net/forum?id=buC4E91xZE
+41. Zhu, J., Pang, G.: Toward generalist anomaly detection via in-context residual learning with few-shot sam-
+ple prompts. pp. 17826–17836. https://openaccess.thecvf.com/content/CVPR2024/html/Zhu_Toward_
+Generalist_Anomaly_Detection_via_In-context_Residual_Learning_with_Few-shot_CVPR_2024_paper.
+html
+
+===== PAGE 14 =====
+14 Weatherly, Lin
+This appendix provides supporting material referenced from the main text: extended method descriptions
+(Sec. A), detailed training procedures (Sec. B), per-task dataset specifications (Sec. C), extended analysis
+(Sec. D), and full algorithmic pseudocode for DINOSaur (Sec. E).
+A Extended Related Work
+This section expands on the method descriptions provided in the main text (Section 2). We discuss large-
+scale models for anomaly detection in the main text (Section 2.1); here we provide additional architectural
+details for the three dedicated continual anomaly detection methods.
+A.1 Continual Anomaly Detection Methods
+DNE (Distribution of Normal Embeddings) [19] introduced the first framework for CAD. During training
+on each task, DNE extracts feature embeddings using a vision transformer (ViT-B/16) backbone and stores
+the mean vector, shrunk covariance matrix, and sample count of the embedding distribution per task. During
+inference, a global distribution is reconstructed from the stored per-task statistics, and anomaly scores are
+computed via Mahalanobis distance. DNE operates at image-level only and does not produce pixel-level
+segmentation maps. Notably, the feature embeddings are not regularized to be task-specific, meaning the
+stored statistics may not accurately capture task-distinct distributions as the number of tasks grows.
+IUF (Incremental Unified Framework) [31] uses an encoder-decoder architecture with ViT components
+(embedding dimension 64, 4 attention heads, 4 layers), where the latent space is explicitly regularized to
+separate task-specific distributions into non-overlapping regions via a V-projection mechanism. Gradient
+updates are constrained to preserve important parameters for previous tasks through a weight regulariza-
+tion term (β = 0.5) that penalizes divergence from the previous task’s parameters. The training objective
+combines reconstruction loss, discriminator loss, and a singular value penalty to encourage low-rank latent
+representations.
+UCAD (Unsupervised Continual Anomaly Detection) [23] combines contrastive learning with a prompt-
+ing mechanism for task identification and adaptation. It leverages the Segment Anything Model (SAM) [16]
+to decompose image textures, then uses contrastive learning to store task-specific feature distributions in a
+knowledge bank for inference. UCAD maintains three memory components: a key memory (196 representa-
+tive patches via farthest point sampling), a knowledge memory (196 patches via greedy coreset selection),
+and a prompt memory (learned task-specific prompts). Task identification at inference time uses the key
+memory to route test images to the appropriate knowledge bank.
+B Training Procedures
+All experiments share a common training framework. We describe the shared configuration and per-method
+details below.
+B.1 Shared Configuration
+All methods are trained sequentially on tasks in a fixed order (see Sec. C for per-dataset task orderings).
+We use the Adam optimizer with a learning rate of 7.5 × 10−4 and weight decay of 10−4 across all meth-
+ods. The training batch size is 12 for all methods. Input images are resized to 224 × 224 pixels (except
+EfficientAD, which uses 256 × 256) and normalized with ImageNet statistics (µ = [0.485, 0.456, 0.406],
+σ = [0.229, 0.224, 0.225]). All training is performed on a single NVIDIA RTX 4090 GPU (24GB VRAM).
+For methods that support experience replay (PatchCore and EfficientAD), 100 nominal training samples
+from previous tasks are replayed during each new task’s training. No data augmentation is applied to replay
+samples. DINOSaur does not use experience replay; its frozen backbone and task-specific memory banks
+eliminate the need for replaying old data.
+B.2 Per-Method Training Details
+Tab. 6 summarizes the key training parameters for each method.
+
+===== PAGE 15 =====
+Rethinking Continual Anomaly Detection 15
+Table 6: Training hyperparameters and key architectural details for all evaluated methods. “Epochs” indicates the
+number of full passes over the training data per task. Methods marked with † require only a single forward pass for
+feature extraction (no gradient-based optimization), and thus complete training in one epoch.
+DNE IUF UCAD PatchCore∗ EfficientAD∗ DINOSaur
+Backbone ViT-B/16 Custom ViT Custom ViT ResNet-18 PDN DINOv3 ViT-S/16
+Backbone frozen No No Yes Yes Partially Yes
+Embed. dim. 768 64 768 512 384 384
+Epochs/task 300 300 300 1† 300 1†
+Loss CE Composite Contrastive — MSE (3-part) —
+Replay No No No Yes (100) Yes (100) No
+Trainable params (M) 85.98 631.07 Prompt only 0.79 5.38 0.00
+DNE. DNE fine-tunes a ViT-B/16 backbone (86.57M total parameters) with a linear classification head
+(768 → 2) using cross-entropy loss over 300 epochs per task. The classification head is frozen after the
+first task, and subsequent tasks only update the backbone. After training each task, DNE stores per-task
+statistics: a 768-dimensional mean vector and a 768 × 768 shrunk covariance matrix (shrinkage α = 0.5),
+yielding approximately 2.3MB of storage per task. At inference, a global distribution is reconstructed from
+all stored task statistics, and anomaly scores are computed via Mahalanobis distance. The anomaly threshold
+is set at the 97.5th percentile of training set anomaly scores.
+IUF. IUF trains an encoder-decoder architecture (631.07M parameters) with a composite loss function:
+LIUF = λ1Lrecon + λ2Ldisc + λ3Lsvd, (11)
+where λ1 = 1.0, λ2 = 0.5, and λ3 = 8.0. The singular value loss Lsvd encourages low-rank latent represen-
+tations by penalizing singular values beyond a cutoff t = 1. After each task, model weights are saved and a
+regularization term (β = 0.5) pulls parameters toward the previous task’s weights during subsequent train-
+ing. IUF operates only in the unsupervised setting; the supervised pathway was not used in our experiments.
+The anomaly threshold is set at the 97.5th percentile.
+UCAD. UCAD uses a frozen ViT backbone with a learnable prompt parameter of shape (5, 768) trained
+via contrastive loss:
+LUCAD = λαLneg − λβ Lpos, (12)
+where λα = λβ = 1.0 and the loss components use cosine similarity between patch features. After training
+each task for 300 epochs, UCAD updates three memory banks: key memory (196 patches via farthest point
+sampling), knowledge memory (196 patches via greedy coreset), and the learned prompt. At inference, the 5
+nearest neighbors in the knowledge bank determine patch-level anomaly scores, which are upsampled to the
+original image resolution. The anomaly threshold is set at the 97.5th percentile.
+PatchCore. PatchCore uses a frozen ResNet-18 backbone (9.33M parameters) and requires only a single
+epoch of feature extraction per task (no gradient updates). We deliberately select the smaller ResNet-18
+variant to establish a lower bound representative of edge deployment, consistent with our choice of ViT-
+S/16 for DINOSaur. Features from intermediate layers are concatenated and projected to 512 dimensions
+via a random linear projection, then pooled with an adaptive average pooling layer (kernel size 3, stride 1,
+padding 1), producing a 28 × 28 spatial feature map per image. A greedy coreset of 5% of the accumulated
+feature vectors is retained in the memory bank (minimum 500 samples). During inference, anomaly scores
+are computed as the distance to the nearest coreset entry, re-weighted by the 3 nearest neighbors of that
+match. The anomaly threshold is set at the 97.5th percentile.
+EfficientAD. EfficientAD trains a student Patch Description Network (PDN) and an autoencoder to distill
+knowledge from a pre-trained teacher PDN. The teacher is pre-trained on ImageNet with a separate optimizer
+(Adam, lr = 10−3) for 60,000 iterations at batch size 16, using ResNet34 features normalized via Welford’s
+
+===== PAGE 16 =====
+16 Weatherly, Lin
+Table 7: DINOSaur task storage at ρ = 10% for each benchmark dataset. D denotes the approximate number of
+training images per task. The minimum coreset size of 20 per location applies when ⌊D · ρ⌋ < 20. Storage values are
+measured on-device and include serialization overhead.
+Dataset Tasks D (approx.) M per loc. Total (MB)
+MVTec-AD 15 60–391 20–39 106.8
+MVTec-LOCO 5 357–572 35–57 35.6
+MTD (all drift types) 10 443 44 71.2
+running statistics (computed on 10,000 samples). The student and autoencoder are jointly trained for 300
+epochs per task with a three-part MSE loss:
+LEAD = LST + LAE + LSTAE, (13)
+where LST uses hard example mining (phard = 0.999), LAE distills teacher features into the autoencoder, and
+LSTAE aligns student and autoencoder outputs. The student outputs a 768-dimensional feature (two 384-dim
+halves), and the final anomaly map combines student-teacher and student-autoencoder discrepancies with
+equal weight (0.5 each). Input images are resized to 256 × 256 (student/teacher) and 512 × 512 (ResNet34
+feature extractor). The anomaly threshold is set at the 97.5th percentile.
+DINOSaur. DINOSaur uses a completely frozen DINOv3 ViT-S/16 backbone (21.6M parameters, 0 train-
+able) and requires only a single epoch of feature extraction per task. The backbone produces 196 patch tokens
+of dimension 384 on a 14 × 14 spatial grid plus a 384-dimensional CLS token. Per-location greedy coreset
+selection retains ρ = 10% of patch features (minimum 20 per location), and the CLS token mean is stored as
+the task prototype. At inference, the test image’s CLS token is compared against all stored prototypes for
+task routing, and patch anomaly scores are computed within a spatial neighborhood of radius r = 3 (yielding
+a 7 × 7 window). The image-level score is the maximum patch anomaly score. The anomaly threshold is set
+at the 97.5th percentile of training set scores. The coreset ratio ρ and neighborhood radius r were selected
+via grid search over ρ ∈ {1%, 2.5%, 5%, 10%, 20%} and r ∈ {0, 1, 2, 3, 4}; see the main text for details. Full
+algorithmic details are provided in Sec. E.
+Replay Strategy Details. For PatchCore and EfficientAD, we employ a generous replay budget of 100
+nominal training samples from previous tasks during each new task’s training. This replay budget was
+selected to give replay-augmented baselines a strong chance at retaining prior knowledge. On discrete-task
+benchmarks (MVTec-AD and MVTec-LOCO), the typical category contains 200–400 training images, such
+that 100 samples represents 25–50% of the original training set. No data augmentation is applied to replay
+samples. For the MTD continuous drift protocol, the augmentation parameter range is widened to encompass
+the distributions of previous task training data, providing traditional methods with access to ample past
+information and isolating the effect of dedicated CL mechanisms. DINOSaur does not use experience replay:
+because its backbone is frozen and each task receives an independent memory bank, there is no mechanism
+through which old data could influence the new task’s memory, and no forgetting to mitigate.
+DINOSaur Per-Task Storage. DINOSaur’s per-task storage depends on the training set size D and the
+coreset ratio ρ, since the memory bank stores M = max(20, ⌊D · ρ⌋) feature vectors of dimension 384 at each
+of the 196 spatial locations, plus a 384-dimensional CLS prototype. The theoretical per-task storage in bytes
+is 196 × M × 384 × 4 + 384 × 4 (using 32-bit floats), yielding approximately 5.8MB for M =20. We report
+the measured storage throughout the paper.
+At ρ = 10%,mostMVTec-ADcategories(with D < 200)aredominatedbytheminimumcoresetsizeof20,
+while larger categories (e.g., hazelnut with D=391, yielding M =39) and the MTD dataset (D=443, M =44)
+exceed this minimum. Larger coreset ratios or larger datasets would increase per-task storage proportionally.
+In deployment scenarios with thousands of training images per task, storage would grow accordingly, and
+practitioners should consider the tradeoff between coreset ratio and available RAM on the target edge device.
+
+===== PAGE 17 =====
+Rethinking Continual Anomaly Detection 17
+C Dataset and Task Specifications
+C.1 MVTec-AD
+MVTec-AD [7] comprises 15 industrial inspection categories spanning textures and objects. Each category
+is treated as a separate task, trained in alphabetical order: bottle, cable, capsule, carpet, grid, hazelnut,
+leather, metal_nut, pill, screw, tile, toothbrush, transistor, wood, zipper. Training sets contain only defect-
+free (nominal) images; test sets contain both nominal and defective images across multiple defect types
+per category. The discrete category boundaries represent the traditional evaluation paradigm for continual
+anomaly detection.
+C.2 MVTec-LOCO
+MVTec-LOCO [6] extends MVTec-AD with 5 categories specifically designed to evaluate logical and struc-
+tural anomalies that cannot be detected by purely local feature comparisons. Categories are trained in
+alphabetical order. This dataset tests whether methods can detect anomalies requiring global reasoning
+(e.g., missing or misplaced components) in addition to local texture anomalies.
+C.3 Augmented MTD
+The Magnetic Tile Defects (MTD) dataset [15] provides a single product category with multiple defect
+types. To simulate realistic continuous drift scenarios, we augment nominal training images with controlled
+distortions at 10 ascending intensity levels, each level defining a task. Tasks are trained in ascending order
+of distortion severity, simulating gradual environmental drift in an industrial setting.
+Color Drift. Color distortions are applied by randomly adjusting brightness, contrast, and saturation.
+Each task defines a narrow, non-overlapping intensity band, ensuring that successive tasks represent progres-
+sively stronger—but bounded—distortions without overlap. The 10 intensity bands are [0.0, 0.05], [0.05, 0.1],
+[0.1, 0.15], [0.15, 0.2], [0.2, 0.25], [0.25, 0.3], [0.3, 0.35], [0.35, 0.4], [0.4, 0.45], [0.45, 0.5]. For each training im-
+age, a perturbation magnitude is sampled uniformly within the task’s band, and applied as a multiplicative
+factor (1±v) to brightness, contrast, and saturation simultaneously, where v is the sampled value. This design
+ensures each task occupies a distinct region of the distortion space, preventing later tasks from producing
+near-identity images.
+Blur Drift. Gaussian blur is applied with 10 kernel-sigma pairs of increasing severity: (1, 0.5), (3, 1.0),
+(5, 1.5), (7, 2.0), (9, 2.5), (11, 3.0), (13, 3.5), (15, 4.0), (17, 4.5), (19, 5.0), where the first element is the kernel
+size and the second is the standard deviation.
+Geometric Drift. Geometric distortions combine rotation, translation, scale, and shear transformations ap-
+pliedsimultaneouslywithincreasingmagnitude.The10levelsusenominalparametertuples(rotation◦,trans-
+lation px, scale, shear◦): (2, 1, 0.01, 1), (4, 2, 0.02, 2), (6, 3, 0.03, 3), (8, 4, 0.04, 4), (10, 5, 0.05, 5), (12, 6, 0.06, 6),
+(14, 7, 0.07, 7), (16, 8, 0.08, 8), (18, 9, 0.09, 9), (20, 10, 0.10, 10). Rather than applying these nominal values
+directly, each task samples its actual parameters from a narrow window below the nominal: rotation from
+[nom−2,nom],translationfrom [nom−1,nom]peraxis,scalefrom [nom−0.01,nom],andshearfrom [nom−1,nom].
+These parameters are sampled once at task initialization and held fixed for all images within that task,
+mimicking a stable but shifted operating condition (e.g., gradual conveyor belt misalignment). This narrow-
+window design ensures each task occupies a bounded region of the geometric distortion space without over-
+lapping previous tasks.
+
+===== PAGE 18 =====
+18 Weatherly, Lin
+D Extended Analysis
+D.1 Detailed Forgetting Analysis
+MVTec-AD. DINOSaur and UCAD exhibit zero forgetting on MVTec-AD (FM=0.000), though for
+fundamentally different reasons: DINOSaur’s frozen backbone prevents catastrophic forgetting by design,
+while UCAD’s task-specific mechanisms isolate learned distributions. IUF shows strong backward transfer
+(−0.066), suggesting that continued training actually improves performance on earlier tasks—though this
+is less meaningful given IUF’s near-chance AUROC. PatchCore’s modest forgetting (0.023) demonstrates
+that experience replay effectively mitigates catastrophic forgetting even without dedicated CL components,
+particularly when the base method is strong.
+MVTec-LOCO. Forgetting on MVTec-LOCO is generally low across all methods, with DINOSaur and
+UCAD again showing zero forgetting, while PatchCore (0.038) and EfficientAD (0.025) exhibit modest degra-
+dation. DNE’s negative FM (−0.022) indicates backward transfer, though its near-chance AUROC limits the
+practical significance of this finding.
+Augmented MTD. The Forgetting Measures on MTD are uniformly lower than on the discrete-task
+benchmarks for all methods. On color and blur drift, PatchCore actually exhibits negative FM (−0.043
+and −0.022), indicating backward transfer—continued training on shifted data improves detection on earlier
+tasks. DINOSaur shows near-zero forgetting across all drift types (FM ≤0.013), consistent with its frozen-
+backbone design.
+D.2 Do CL Components Help? Extended Discussion
+Our most striking finding is that dedicated CL mechanisms do not consistently improve upon traditional AD
+methods augmented with simple experience replay. On MVTec-AD, DNE (0.500) and IUF (0.508) perform
+near chance level, while UCAD (0.798) shows meaningful learning but still falls well short of PatchCore with
+replay (0.925) and DINOSaur (0.968). On the continuous drift protocol, a similar pattern holds: DINOSaur
+and PatchCore dominate on color and blur drift, and on geometric drift—where all methods struggle—
+IUF marginally leads (0.525 vs. 0.519 for DINOSaur) but all methods remain at chance, so no method
+meaningfully leads there. On the four protocols with meaningful signal, no dedicated CAD method achieves
+the top AUROC.
+This raises a fundamental question: are the performance gains reported in prior CAD papers genuine
+algorithmic advances, or artifacts of experimental protocol? Several factors may contribute to this discrep-
+ancy:
+– Prior works may have benefited from extensive hyperparameter tuning on their specific evaluation pro-
+tocol.
+– The discrete MVTec-AD category protocol may not be the right testbed for evaluating CL capabilities,
+as the task shifts are so extreme that even modest CL mechanisms appear effective relative to a non-CL
+baseline.
+– Most critically, all of our experiments use the unsupervised setting—where only normal samples are
+available during training—which is substantially harder than the supervised setting used in some prior
+evaluations of DNE and IUF. The near-chance performance of these methods suggests that their ar-
+chitectures may rely on anomaly examples during training to learn meaningful decision boundaries, a
+luxury that real industrial deployments rarely afford.
+– When considering computational constraints for edge deployment, the complexity added by dedicated
+CL mechanisms provides no clear return on investment.
+D.3 Robustness to Drift Type: Extended Analysis
+Comparing the two evaluation paradigms reveals that continuous drift is not uniformly easier than discrete
+task shifts. Strong methods (DINOSaur, PatchCore) achieve comparable or lower AUROC on MTD color
+
+===== PAGE 19 =====
+Rethinking Continual Anomaly Detection 19
+Algorithm 1: DINOSaur Training (Task t)
+Input: Training set Dt = {x1, . . . , x|Dt |}, frozen encoder Φ, coreset ratio ρ
+Output: Memory bank M(t), CLS prototype µt
+/* Feature extraction (Eq. 4) */
+1 for each image xk ∈ Dt do
+2 {p(k) 1 , . . . , p(k) N }, z(k) ← Φ(xk )
+3 end
+/* CLS prototype computation */
+4 µt ← 1 |Dt | P|Dt | k=1 z(k)
+/* Spatially-indexed coreset selection (Eq. 5) */
+5 for each spatial location (i, j) in
+√
+N ×
+√
+N grid do
+6 Pi,j ← {p(k) i,j | k = 1, . . . , |Dt|}
+7 M ← max(20, ⌊|Dt| · ρ⌋)
+8 Ci,j ← GreedyCoreset(Pi,j , M)
+9 end
+10 M(t) ← {Ci,j }(i,j) ▷ Store spatially-indexed memory bank
+11 return M(t), µt
+and blur drift than on MVTec-AD, and all methods collapse near chance on geometric drift. The weaker
+CAD methods (DNE, IUF) show similar near-chance performance regardless of protocol, suggesting their
+failures are not protocol-specific but rather fundamental limitations of their architectures in the unsupervised
+setting.
+Among drift types, geometric distortion is the most challenging, likely because it fundamentally alters
+the spatial relationships between patch features. Color and blur distortions modify appearance but preserve
+spatial structure, making them more amenable to distribution-based detection approaches. This finding has
+practical implications: industrial scenarios involving mechanical deformation or perspective changes (e.g.,
+conveyor belt misalignment, camera drift) may require fundamentally different representations than those
+sufficient for photometric variations.
+E DINOSaur Algorithm
+WeprovidethecompleteDINOSaurtrainingandinferenceproceduresinAlgorithms1and2.Notationfollows
+the main text: Φ denotes the frozen DINOv3 ViT-S/16 encoder, pi,j a patch feature at spatial location (i, j),
+z the CLS token, M(t) the spatially-indexed memory bank for task t, Ci,j the coreset at location (i, j), µt
+the CLS prototype for task t, N r i,j the neighborhood memory within radius r, and ρ the coreset ratio.
+
+===== PAGE 20 =====
+20 Weatherly, Lin
+Algorithm 2: DINOSaur Inference
+Input: Test image xtest, frozen encoder Φ, memory banks {M(t)}T t=1, prototypes {µt}T t=1, neighborhood
+radius r
+Output: Image-level anomaly score S(xtest)
+/* Feature extraction */
+1 {ptest 1 , . . . , ptest N }, ztest ← Φ(xtest)
+/* Task routing via CLS prototypes (Eq. 9) */
+2 t∗ ← arg mint ∥ztest − µt∥2
+/* Neighborhood-restricted anomaly scoring (Eqs. 6–8) */
+3 for each spatial location (i, j) in
+√
+N ×
+√
+N grid do
+4 N r i,j ← S i′∈[i−r,i+r]
+j′ ∈[j−r,j+r]
+C(t∗ ) i′ ,j′ ▷ Neighborhood memory
+5 si,j ← minc∈N r i,j ∥ptest i,j − c∥2 ▷ Patch anomaly score
+6 end
+7 S(xtest) ← max(i,j) si,j ▷ Image-level score
+8 return S(xtest)

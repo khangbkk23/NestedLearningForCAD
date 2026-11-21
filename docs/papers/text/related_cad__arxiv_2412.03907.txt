@@ -1,0 +1,914 @@
+# SOURCE: docs/papers/related_cad/arxiv_2412.03907.pdf
+# SOURCE_SHA256: 1aafd1a51bd243e2e45272557034c97f8edda09db224623ddeffd6879b461666
+# EXTRACTOR: pypdf 7.1.0 (PdfReader.extract_text, per page)
+# EXTRACTED: 2026-11-19
+# NOTE: machine extraction; equations/tables/unicode may be garbled. Cite the PDF, not this file.
+
+
+===== PAGE 1 =====
+ONER: Online Experience Replay for Incremental Anomaly Detection
+Yizhou Jin, Jiahui Zhu, Guodong Wang, Shiwei Li, Jinjin Zhang, Xinyue Liu, Qingjie Liu*, Yunhong Wang
+1State Key Laboratory of Virtual Reality Technology and Systems, Beihang University, Beijing, China
+2Hangzhou Innovation Institute, Beihang
+Abstract
+Incremental anomaly detection aims to sequentially identify
+defects in industrial product lines but suffers from catas-
+trophic forgetting, primarily due to knowledge overwrit-
+ing during parameter updates and feature conflicts between
+tasks. In this work, We propose ONER (ONline Experience
+Replay), an end-to-end framework that addresses these
+issues by synergistically integrating two types of experi-
+ence: (1) decomposed prompts, which dynamically gener-
+ate image-conditioned prompts from reusable modules to
+retain prior knowledge thus prevent knowledge overwrit-
+ing, and (2) semantic prototypes, which enforce separa-
+bility in latent feature spaces at pixel and image levels to
+mitigate cross-task feature conflicts. Extensive experiments
+demonstrate the superiority of ONER, achieving state-of-
+the-art performance with +4.4% Pixel AUROC and +28.3%
+Pixel AUPR improvements on the MVTec AD dataset over
+prior methods. Remarkably, ONER achieves this with only
+0.019M parameters and 5 training epochs per task, con-
+firming its efficiency and stability for real-world industrial
+deployment.
+1. Introduction
+Anomaly detection (AD) in computer vision aims to iden-
+tify rare patterns or outliers that significantly deviate from
+the normal data distribution. By learning exclusively from
+normal data, AD plays a critical role in industrial applica-
+tions, where anomalies are rare, diverse, and costly to anno-
+tate.
+However, most existing AD methods [1, 3, 10, 15, 22,
+29, 34–36, 38, 41, 44, 46–49, 51, 52] focus on single-
+product scenarios, requiring separate models per product
+and specific product identity ahead of testing. Although ef-
+fective in a controlled setting, this product-specific design
+remains with two critical industrial limitations: 1) Inca-
+pability to handle multiple types of product on mixed
+production lines, and 2) Inflexibility to dynamic sched-
+*Corresponding Author.
+Figure 1. Comparison between a typical incremental AD method
+and ours: (a) Typical methods train task-specific prompts and re-
+quire task identification during inference. (b) We employ an end-
+to-end prompt for both training and inference, bypassing the need
+for task identification. This avoids staged processing, minimizes
+cumulative errors, and enables seamless adaptation to new tasks
+while preserving prior knowledge by leveraging past experience
+effectively.
+ule changes [40]. Furthermore, training separate mod-
+els per product introduces excessive training, deployment,
+and storage overheads, particularly in large-scale operations
+where resource efficiency is paramount. These limitations
+severely restrict deployment in dynamic industrial settings
+where product lines evolve rapidly. Thus, there is a pressing
+need for a model capable of rapid adaptation to new tasks,
+such as detecting new products, with high detection accu-
+racy while maintaining historical task performance.
+Training-free AD methods [5–7, 11–13, 19, 21, 27,
+32, 54] bypass task-specific parameter optimization, inher-
+ently avoiding catastrophic forgetting and reducing training
+overheads. Although these approaches achieve reasonable
+performance on average, they are unable to detect subtle
+arXiv:2412.03907v3  [cs.CV]  26 Mar 2025
+
+===== PAGE 2 =====
+anomalies due to the absence of task-specific knowledge,
+rendering them inadequate for real-world incremental in-
+dustrial applications.
+Recent research on AD has increasingly adopted incre-
+mental learning to meet the growing demand for adaptabil-
+ity in dynamic manufacturing environments.
+CAD [18] first proposes an incremental AD framework
+that uses a Gaussian distribution estimator. It proposes
+leveraging the feature distribution of normal training sam-
+ples from previous tasks to effectively alleviate catastrophic
+forgetting. However, incremental optimization in CAD is
+conducted on the classifier head, which enables anomaly
+classification but does not support pixel-level anomaly seg-
+mentation.
+Inspired by prompt-based approaches [42, 43] that uti-
+lize the generalization capabilities of pretrained vision
+transformers (ViTs) [8], UCAD [24] can adapt to incre-
+mental tasks by introducing a continual prompting mod-
+ule. Despite favorable results achieved, it suffers from no-
+table limitations, as shown in Fig. 1 (a). UCAD adopts
+a staged learning pipeline, training separate prompts for
+each task, and relying on a task-specific inference process.
+This process requires identifying the task associated with
+each input image before applying the corresponding prompt
+for AD. However, this dependence on task identification is
+prone to cumulative errors, as incorrect prompts can lead
+to complete detection failure. While the follow-up work
+IUF [39] avoids cumulative errors by introducing an end-to-
+end learning framework, it suffers from high training costs,
+e.g., 200 epochs per task, making it less feasible for real-
+world scenarios.
+To address these challenges, we propose an end-to-end
+ONline Experience Replay (ONER) approach, as illus-
+trated in Fig. 1 (b). ONER mitigates catastrophic forget-
+ting, a phenomenon primarily caused by knowledge over-
+writing during parameter updates [45] and feature conflicts
+between tasks [39]. Simultaneously, it adapts to new tasks
+with minimal training overheads through two key com-
+ponents: decomposed prompts and semantic prototypes,
+which jointly optimize model parameters and feature rep-
+resentations. Decomposed prompts reuse frozen parame-
+ters from prior tasks while introducing learnable parame-
+ters for new tasks, thereby preventing knowledge overwrit-
+ing. By generating end-to-end image-conditioned prompts,
+ONER avoids cumulative errors common in staged ap-
+proaches [24], ensuring stable anomaly detection. Semantic
+prototypes store pixel- and image-level features from histor-
+ical tasks, enforcing regularization by maximizing feature
+distances between past and current tasks. This mitigates
+feature conflicts and enhances discriminability both within
+and across tasks.
+In summary, our main contributions are listed as follows:
+• We propose ONER, an end-to-end online experience re-
+play framework that efficiently mitigates catastrophic for-
+getting while adapting to new tasks with minimal training
+oveerheads (0.019M learnable parameters, 5 epochs per
+task).
+• To address catastrophic forgetting caused by knowledge
+overwriting in parameter updates and cross-task feature
+conflicts, ONER incorporates two types of experience:
+decomposed prompts and semantic prototypes, jointly ad-
+dressing model parameter updates and feature optimiza-
+tion.
+• Extensive experiments demonstrate the superiority of
+ONER, achieving state-of-the-art performance with
++4.4% Pixel AUROC and +28.3% Pixel AUPR improve-
+ments on the MVTec AD dataset over prior methods.
+2. Related Work
+2.1. Anomaly Detection
+Existing methods for anomaly detection can generally be di-
+vided into two categories: reconstruction-based and feature-
+embedding [25]. Reconstruction-based methods utilize
+neural networks for data encoding and decoding, implicitly
+learning the normal sample distribution. During training,
+the network is trained on normal samples, which facilitates
+the identification of normal characteristics but may dimin-
+ish its efficacy in reconstructing anomalies. Anomalies are
+identified during the testing phase through a discrepancy
+analysis between the original input and the reconstructed
+output. Various network architectures, including autoen-
+coders [1, 3, 52], GANs [22, 38, 47], and diffusion models
+[10, 44, 49], are applied to the task of anomaly detection.
+Feature-embedding methods meticulously extract distinc-
+tive features, thereby amplifying detection precision by dis-
+carding extraneous attributes. One-class classification tech-
+niques [15, 29, 48, 51] employ hyperspheres to differenti-
+ate features. Distribution mapping strategies [34, 35, 46]
+project features onto Gaussian distributions, facilitating the
+evaluation of anomalies.
+2.2. Training-free Anomaly Detection
+A common strategy for training-free AD involves extract-
+ing normal product features via a robust pre-trained net-
+work and storing them in a memory bank. During infer-
+ence, anomalies are detected by comparing the features of
+the test image with the memory bank and calculating the
+spatial distances to the normal features. However, these
+methods [7, 12, 13, 32] remain task-specific, as they require
+separate memory banks for each category of products and
+explicit selection during testing. To overcome this limita-
+tion, some approaches [5, 11, 19, 21] integrate text encoders
+(e.g. CLIP [28]), performing anomaly detection by aligning
+visual features with predefined textual prompts (e.g. ”nor-
+mal” vs. ”abnormal”). Although this reduces product iden-
+
+===== PAGE 3 =====
+Pretrained ViT
+𝑥 ∈ 𝒯𝑡
+Image-conditioned prompt generation
+...
+...
+task 1
+task 2
+task t-1
+task t
+Image-level feature Pixel-level feature
+Semantic Prototypes: image-level Semantic Prototypes: pixel-level
+𝐢𝐭−𝟏
+𝐢1 𝐢𝟐
+𝐢t
+Ldist
+Lalign
+Intra-task
+LTSC
+𝐩1 𝐩𝟐
+𝐩𝐭−𝟏
+Inter-task
+...
+...
+...
+...
+Decomposed Prompts
+𝐪 𝐯𝐤
+𝐪2
+…
+𝐪t−1
+𝐪𝐭
+𝐪1
+𝐤2
+…
+𝐤t−1
+𝐤𝐭
+𝐤1
+𝐯2
+…
+𝐯t−1
+𝐯𝐭
+𝐯1
+𝑝 inserted
+LITC
+... 𝑝𝑥 MatMulcosine similarity Hadamard product
+Figure 2. This diagram illustrates the structure of ONER. Specifically, ONER incorporates two types of experience: decomposed prompts
+and semantic prototypes. Decomposed prompts, formed from learnable components, reuse previous knowledge to help the model learn
+new tasks. Semantic prototypes provide regularization at both pixel and image levels, preventing forgetting across tasks. The diagram
+shows the training process for step t, where both the decomposed prompts and semantic prototypes are updated after training.
+tity dependency, it struggles with granular anomalies due to
+semantic gaps between generic text prompts and domain-
+specific defects. Recent efforts [6, 27, 54] further fine-tune
+models with external multimodal datasets to enhance fine-
+grained visual-semantic alignment, but this compromises
+the training-free principle by reintroducing parameter up-
+dates.
+2.3. Incremental Anomaly Detection
+Incremental learning-based anomaly detection algorithms
+can adapt to novel tasks without retraining, and thus en-
+able the quick detection of emerging anomalies. Since ob-
+taining labeled dataset for unforeseen defects poses a sig-
+nificant challenge within the context of industrial manu-
+facturing, unsupervised anomaly detection with incremen-
+tal training is crucial. LeMO [9] follows traditional unsu-
+pervised anomaly detection but does not address inter-class
+incremental anomaly detection in rapidly expanding indus-
+trial product categories. To address this issue, CAD [17]
+introduces an unsupervised feature embedding task for con-
+tinuous learning. This approach recommends the encapsu-
+lation of multiple object features within a unified storage
+framework, with defect identification facilitated by a binary
+classification mechanism. However, this method is limited
+to classification and cannot be used for segmentation. IUF
+[39] combines a unified model for multiple objects with
+object incremental learning, enabling pixel-accurate defect
+inspection across different objects without feature storage
+in memory. However, this method lacks an explicit rep-
+resentation of the semantic space, hindering the measure-
+ment of the network’s ability in object incremental learning.
+UCAD [23] proposes continuous learning by establishing a
+key prompt knowledge memory space. However, UCAD re-
+quires separate training and storage for each category, and
+during testing, it confirms the category of the input image
+before testing, which is less efficient.
+3. Methods
+3.1. Problem Formulation
+In our incremental anomaly detection framework, the train-
+ing and testing datasets are divided into N distinct sub-
+sets, each corresponding to a distinct product category. The
+
+===== PAGE 4 =====
+training set T = {T1, T2, . . . , TN } contains normal samples
+only, whereas the test set T ′ = {T ′ 1 , T ′ 2 , . . . , T ′ N } includes
+mixed normal and anomalous samples.
+The model undergoes N sequential training steps, incre-
+mentally learning from each subset Tt, t ∈ [1, N ]. Unlike
+frameworks that employ sample replay, our model operates
+in a strict rehearsal-free manner, prohibited from revisiting
+training data from previous steps (i.e. steps 1 to t − 1). Af-
+ter full incremental training, the final model is evaluated on
+the entire test set T ′, performing anomaly detection without
+product identity priors.
+3.2. Overview
+In incremental learning, effectively leveraging experience
+from previous tasks is critical for mitigating catastrophic
+forgetting [31]. This phenomenon primarily stems from
+two factors: knowledge overwriting [45] during parame-
+ter updates and feature conflicts [39] between tasks. To
+address these challenges, our framework introduces two
+core experience components (shown in Fig. 2): decom-
+posed prompts D and semantic prototypes (I, P), which
+jointly optimize model parameters and feature representa-
+tions through a corresponding memory bank.
+Decomposed prompts D = {d1, d2, . . . , dN} enable
+parameter-efficient knowledge transfer by reusing frozen
+parameters from prior tasks while expanding learnable com-
+ponents for new tasks. Inspired by [37], each prompt di =
+{qi, ki, vi} consists of three learnable matrices: attention
+queries q ∈ RM ×d and keys k ∈ RM ×d for task-specific
+attention conditioning, while prompt values v ∈ RM ×Lp ×d
+storing prompt embeddings. Here d is the embedding di-
+mension, Lp the prompt length, and M = Mc × N the
+number of prompt components (Mc: new components per
+task). When task t arrives, Mc task-specific components
+dt∗ = {qt∗ , kt∗ , vt∗ } are added to the prompt bank Dt∗ ←
+Dt−1 ∪{dt∗ }, with prior components Dt−1 frozen. Only dt∗
+is optimized, preventing historical knowledge overwriting.
+Semantic prototypes preserve task-invariant representa-
+tions through two complementary banks. Image-level pro-
+totypes I = {i1, i2, . . . , iN} encode global normal pat-
+terns via incremental refinement. Pixel-level prototypes
+P = {p1, p2, . . . , pN} capture local discriminative fea-
+tures.
+As outlined in Algo. 1, training proceeds in N sequential
+steps. When task t arrives, the Image-level Prototypes
+Refinement (IPR) module process It−1 and Tt to generate
+it, updating the bank as It ← It−1 ∪ {it}. Concurrently, the
+prompt bank expands to Dt∗ , ensuring parameter stability.
+During training, a prompt p is synthesized for each im-
+age x ∈ Tt via attention-weighted aggregation:
+p = αv, α = γ (q(x), k) , q(x) = fθ (x) ⊙ q, (1)
+where γ computes cosine similarity and fθ is a pre-trained
+Algorithm 1 Training procedure
+# The overall training process is divided into N steps, for
+each step t ∈ [1, N ]:
+Input: Retrieved experience: Dt−1, It−1, Pt−1, training
+datasets Tt ∈ {T1, T2, . . . , TN }, pretrained ViT fθ
+Output: updated experience: Dt, It, Pt
+1: # Pre-stage:
+2: expand Dt∗ ← Dt−1 ∪ {dt∗ }
+3: it ← IPR(It−1, Tt) # refers to section 3.3
+4: update It ← It−1 ∪ {it}
+5: # Training stage:
+6: while training not converged do
+7: for batch x ∈ Tt do
+8: kI, kP ← fθ,Dt∗ (x)
+9: Lalign, LTSC, LITC ← ERO(It, kI, Pt−1, kP) #
+refers to section 3.4
+10: Ltotal = Lalign + LTSC + LITC
+11: Dt∗ ← BP(Ltotal)
+12: end for
+13: end while
+14: # Post-stage:
+15: fix Dt ← Dt∗
+16: pt ← ISPP(Tt, Dt, Pt−1) # refers to section 3.5
+17: update Pt ← Pt−1 ∪ {pt}
+18: Return: Dt, It, Pt
+ViT.
+The prompt p is injected into the layers of fθ , forming
+an adapted model fϕ(x) = fθ,D (x) to steer feature extrac-
+tion. The extracted features k are divided into image-level
+kI ∈ R1×d and pixel-level kP ∈ RNp ×d components, where
+Np is the number of patches. These features, along with
+It and retrieved Pt−1, are then processed by the Experi-
+ence Replay-based Optimization (ERO) module to opti-
+mize Dt∗ , yielding updated prompts Dt.
+Upon completing training for task t, the Incremental
+Selection of Pixel-level Prototypes (ISPP) module selects
+representative pixel-level prototypes pt from Tt, merging
+them into the global bank as Pt ← Pt−1 ∪ {pt}.
+This dual mechanism, as decomposed prompts for model
+optimization and semantic prototypes for feature repre-
+sentation, ensures progressive knowledge integration while
+systematically mitigating forgetting.
+3.3. Image-level Prototypes Refinement
+To address the challenge of mitigating interference among
+tasks while preserving historical knowledge, our approach
+dynamically refines the image-level prototype for each task.
+The process begins by computing an raw prototype iraw
+as the average feature extracted from the current task’s data
+using a pretrained model fθ . Prototypes stored from previ-
+ous tasks It−1 serve as reference anchors to guide the re-
+
+===== PAGE 5 =====
+finement of this raw representation.
+Refinement is achieved by optimizing the image-level
+prototype refinement loss function LIPR with two comple-
+mentary objectives:
+• Similarity Preservation Loss Lsim: Maximizes cosine
+similarity between the refined prototype it and the raw
+prototype iraw:
+Lsim = − cos (it, iraw) . (2)
+• Inter-Task Distinction Loss Ldist: Minimizes the maxi-
+mum cosine similarity between it and the historical pro-
+totypes It−1:
+Ldist = max i∈It−1 cos (it, i) . (3)
+The total loss LIPR = Lsim + Ldist is minimized using the L-
+BFGS optimizer [26]. This produces the refined prototype
+it, which updates the prototypes bank as It ← It−1 ∪ {it}.
+By balancing task-specific semantics and historical consis-
+tency, this dual-objective optimization mitigates interfer-
+ence across tasks.
+3.4. Experience Replay-based Optimization
+To address the dual challenges of cross-task feature conflicts
+(where overlapping semantics across tasks degrade discrim-
+inability) and ambiguous pixel-level representations (which
+hinder precise anomaly localization), we propose a unified
+experience replay based optimization framework integrat-
+ing inter-task separation and intra-task contrastive learning.
+For inter-task conflicts, we explicitly decouple task-
+specific features through two complementary losses:
+• Image-Level Prototype Alignment Loss Lalign:
+Lalign = ∥kI − it∥2 (4)
+minimizing the L2 distance between the current image-
+level feature kI and the refined prototype it ∈ It.
+• Inter-Task Contrastive Loss LITC:
+LITC =
+X
+i∈Np
+max
+p∈Pt−1
+cos (kP,i, p) , (5)
+reducing similarity between current patch features kP,i
+and historical pixel-level prototypes Pt−1.
+This dual objective explicitly separates task-specific fea-
+tures to prevent semantic overlap.
+To refine intra-task discriminability, the Task-Specific
+Contrastive Loss LTSC enforces class-aware constraints us-
+ing SAM [14] for patch-level class labels CP,i:
+Lpos =
+X
+i,j∈Np
+cos (kP,i, kP, j) , CP,i = CP,j ,
+Lneg =
+X
+i,j∈Np
+cos (kP, i, kP, j) , CP,i ̸= CP,j ,
+LTSC = Lpos − Lneg.
+(6)
+By maximizing intra-class similarity (Lpos) and minimizing
+inter-class similarity (Lneg), the model learns compact rep-
+resentations for accurate anomaly localization.
+3.5. Incremental Selection of Pixel-level Prototypes
+Existing prototype selection methods [24, 32] prioritize
+intra-task representativeness but neglect inter-task discrim-
+inability, leading to cross-task semantic overlap. To over-
+come this, our approach jointly optimizes intra-task cover-
+age and inter-task separation while maintaining storage ef-
+ficiency.
+After training task t, the pretrained model fϕ extracts
+pixel-level features from Tt, forming a feature matrix pall ∈
+RNI ×Np ×d, where NI is the number of training samples in
+Tt, and Np is the number of patches per image.
+To optimize storage and inference efficiency, we select
+Np prototypes (pt ∈ pall) through a two-step strategy:
+1. Coreset Selection: Prototypes are selected by minimiz-
+ing the maximum distance between any feature in pall
+and the nearest prototype in either the current coreset EC
+or historical prototypes Pt−1:
+pt = arg min EC ⊆pall max m∈pall min n∈EC ∪Pt−1 ∥m − n∥2. (7)
+2. Prototype Integration: The selected prototypes are
+merged into the global prototype bank:
+Pt ← Pt−1 ∪ {pt}. (8)
+By enforcing both intra-task representativeness and inter-
+task separation, the prototype bank P retains task-
+specific semantics while preventing cross-task contamina-
+tion, thereby enhancing incremental anomaly detection ro-
+bustness.
+4. Experiments
+4.1. Experimental setup
+Datasets: Our experiments are conducted on two public
+datasets: MVTec AD [2] and VisA [55]. MVTec AD in-
+cludes 15 subsets and is one of the most widely used bench-
+marks for industrial anomaly detection in images. VisA
+contains 12 subsets and is one of the largest real-world
+industrial anomaly detection datasets, featuring pixel-level
+annotations.
+Comparison methods: To comprehensively validate the
+effectiveness of our method, we conduct extensive compar-
+isons against a variety of anomaly detection approaches, in-
+cluding training-based ADs, training-free ADs, and special-
+ized incremental ADs.
+For training-based ADs, we compare our approach
+against both image reconstruction and feature embedding
+based methods: DRAEM [53] and BGAD [50]. To assess
+
+===== PAGE 6 =====
+Method Extra info Image-level ACC ↑ Image-level FM ↓ Pixel-level ACC ↑ Pixel-level FM ↓
+SR | TI AUROC AUPR AUROC AUPR AUROC AUPR AUROC AUPR
+Training-based ADs:
+DRAEM [ICCV21] × | × 57.7 78.7 39.4 20.0 61.6 11.7 34.3 53.6
+BGAD [CVPR23] × | × 51.8 73.9 42.1 22.6 50.5 6.6 46.0 48.0
+DRAEM-Replay ✓ | × 74.9 87.7 22.3 11.1 85.0 37.6 10.8 27.7
+BGAD-Replay ✓ | × 79.9 89.5 14.0 7.0 91.3 33.0 5.1 21.7
+DRAEM-CLS* ✓ | × 80.6 87.1 16.5 11.7 82.7 29.7 13.2 35.6
+BGAD-CLS* ✓ | × 83.4 89.3 10.5 7.2 84.8 24.5 11.7 30.1
+Training-free ADs:
+WinCLIP [CVPR23] × | ✓ 90.4 95.6 / / 82.3 18.2 / /
+SAA++ [Arxiv23] × | ✓ 63.1 81.4 / / 73.2 28.8 / /
+CLIP-Surgery [Arxiv23] × | ✓ 90.2 95.5 / / 83.5 23.2 / /
+FADE [BMVC24] × | ✓ 90.1 95.5 / / 89.2 39.8 / /
+SDP [IJCAI24] × | ✓ 90.9 95.8 / / 87.5 30.4 / /
+PatchCore* [CVPR22] × | × 90.4 94.9 0.7 0.3 89.7 22.1 3.8 19.3
+Incremental ADs:
+CAD [ACM MM23] × | × 87.1 93.3 1.9 1.7 / / / /
+CAD + PANDA × | × 47.8 74.1 36.0 18.5 / / / /
+CAD + CutPaste × | × 74.6 86.3 17.2 10.0 / / / /
+IUF [ECCV24] × | × 71.3 83.9 3.9 1.1 79.0 16.0 5.7 6.7
+UCAD* [AAAI24] × | × 90.7 95.3 1.8 0.9 90.1 21.4 6.1 24.2
+ONER (Ours) × | × 93.4 97.3 0.6 0.1 94.5 49.7 0.9 1.3
+Table 1. Comparison of Pixel-level and Image-level ACC and FM on the MVTec AD dataset (N = 15) after training on the last subset.
+Note that * signifies staged approaches. Bold and underline highlight the best and second-best results, respectively.
+Method Extra info Image-level ACC ↑ Image-level FM ↓ Pixel-level ACC ↑ Pixel-level FM ↓
+SR | TI AUROC AUPR AUROC AUPR AUROC AUPR AUROC AUPR
+Training-based ADs:
+DRAEM [ICCV21] × | × 45.1 55.1 49.3 41.0 56.7 3.9 37.2 30.6
+BGAD [CVPR23] × | × 49.1 53.5 45.0 41.6 53.7 4.2 45.3 36.7
+DRAEM-Replay ✓ | × 80.4 83.0 14.0 13,1 80.9 18.4 13.0 16.2
+BGAD-Replay ✓ | × 79.6 81.3 14.5 13.8 89.3 20.8 9.5 20.1
+DRAEM-CLS* ✓ | × 80.6 85.7 13.8 10.4 82.2 24.9 11.7 9.6
+BGAD-CLS* ✓ | × 81.3 82.8 12.8 12.3 87.7 18.9 11.1 22.0
+Training-free ADs:
+WinCLIP [CVPR23] × | ✓ 75.5 78.7 / / 73.2 5.4 / /
+SAA++ [Arxiv23] × | ✓ 71.1 77.3 / / 74.0 22.4 / /
+CLIP-Surgery [Arxiv23] × | ✓ 76.8 80.2 / / 85.0 10.3 / /
+FADE [BMVC24] × | ✓ 74.7 78.5 / / 91.0 10.0 / /
+SDP [IJCAI24] × | ✓ 78.6 81.5 / / 88.1 12.2 / /
+PatchCore* [CVPR22] × | × 78.7 82.7 1.0 0.8 88.7 15.9 2.2 9.1
+Incremental ADs:
+CAD [ACM MM23] × | × 64.7 70.7 13.8 11.3 / / / /
+CAD + PANDA × | × 55.6 65.9 19.3 12.8 / / / /
+CAD + CutPaste × | × 65.9 71.0 13.5 11.2 / / / /
+IUF [ECCV24] × | × 65.9 85.2 2.6 4.7 85.6 3.8 2.3 1.6
+UCAD* [AAAI24] × | × 75.7 79.2 10.8 8.9 86.9 10.1 5.9 19.8
+ONER (Ours) × | × 83.1 86.6 3.9 2.7 90.6 27.9 2.4 1.8
+Table 2. Comparison of Pixel-level and Image-level ACC and FM on the VisA dataset (N = 12) after training on the last subset. Note that
+* signifies staged approaches. Bold and underline highlight the best and second-best results, respectively.
+
+===== PAGE 7 =====
+Task 2 Task 3 Task 4 Task 5 Task 6 Task 7 Task 8 Task 9 Task 10 Task 11 Task 12 Task 13 Task 14 Task 15Task 1
+Ours
+GT
+Test 
+samples
+BGAD-
+Replay
+BGAD
+DRAEM-
+Replay
+DRAEM
+DRAEM-
+CLS
+BGAD-
+CLS
+Figure 3. Qualitative evaluation on the MVTec AD dataset after training on the last subset. Experiments demonstrate our method’s superior
+stability and knowledge retention over sample-replay (DRAEM-Replay, BGAD-Replay) and staged approaches (DRAEM-CLS, BGAD-
+CLS).
+sample replay’s impact on catastrophic forgetting, we im-
+plement DRAEM-Replay and BGAD-Replay, where mod-
+els are fine-tuned on the current task’s data and 5 replay
+samples per historical task. Inspired by staged approaches,
+we further design DRAEM-CLS and BGAD-CLS, integrat-
+ing incremental classifiers trained via DER [4] with task-
+specific models. For classifier training, we similarly retain
+5 samples per historical task (see Appendix for implemen-
+tation details). For training-free ADs, we compare our ap-
+proach with PatchCore [33], WinCLIP [11], FADE [20],
+SAA++ [5], CLIP-Surgery [19], SDP [6] and PatchCore,
+as a task-specific method, requires explicit memory bank
+selection during testing. To allow a fair comparison, we
+equip PatchCore with UCAD’s task identification mod-
+ule [24]. For incremental ADs, we compare our approach
+with UCAD [24], IUF [39] and CAD [17]. Notable, we ad-
+ditionally integrate PANDA [30] and CutPaste [16] in CAD.
+Evaluation metrics: We employ several metrics to com-
+prehensively evaluate our method’s performance. Specifi-
+cally, we use AUROC, and AUPR as the evaluation met-
+rics for both image-level and pixel-level anomaly detection.
+Notably, we report both Accuracy (ACC) and Forgetting
+Measure (FM) for each metric. The calculation of FM dif-
+fers between staged approaches and end-to-end methods, as
+each mode has distinct mechanisms to handle catastrophic
+forgetting. Details on FM computation for both modes are
+provided in the Appendix.
+Implementation Details: We utilize the vit-base-
+patch16-224 backbone pretrained on ImageNet for our
+method. During training, we employ a batch size of 8 and
+adapt Adam optimizer with a learning rate of 0.0005 and
+momentum of 0.9. The training process spanned 5 epochs.
+4.2. Incremental anomaly detection benchmark
+We conduct comprehensive evaluations of aforementioned
+methods on the MVTec AD and VisA datasets. Among
+them, DRAEM-REPLAY, BGAD-REPLAY, DRAEM-
+CLS, and BGAD-CLS employ sample replay (SR) to
+mitigate catastrophic forgetting. Additionally, WinCLIP,
+SAA++, CLIP-Surgergy, FADE and SDP leverage textual
+information (TI). These evaluations provide a thorough
+comparison across diverse methodologies, highlighting the
+strengths and limitations of each approach.
+
+===== PAGE 8 =====
+Method Learnable Parameters Epochs
+DRAEM [ICCV21] 97.42M 300
+BGAD [CVPR23] 3.39M 100
+DRAEM-Replay 97.42M 300
+BGAD-Replay 3.39M 100
+DRAEM-CLS* (97.42+8.40)M 300+10
+BGAD-CLS* (3.39+8.40)M 100+10
+CAD [ACM MM23] 85.21M 50
+IUF [ECCV24] 9.11M 200
+UCAD* [AAAI24] 0.021M 25
+ONER (Ours) 0.019M 5
+Table 3. Statistics of learnable parameters and training epochs per
+task for different methods on the MVTec AD dataset.
+4.2.1. Quantitative Analysis
+As shown in Tab. 1–2, our proposed method achieves state-
+of-the-art performance on both the MVTec AD and VisA
+datasets. On the MVTec AD, ONER surpasses all compet-
+ing methods, demonstrating substantial gains in pixel-level
+anomaly detection while maintaining minimal forgetting.
+We observe that sample replay significantly alleviates
+catastrophic forgetting, as evidenced by the improved per-
+formance of DRAEM-REPLAY and BGAD-REPLAY over
+their vanilla counterparts. However, this strategy requires
+the storage and replaying of historical data, rendering it im-
+practical for data-restricted real-world scenarios. Similarly,
+while staged approaches like DRAEM-CLS and BGAD-
+CLS achieve competitive results, they are prone to error ac-
+cumulation across tasks, resulting in unstable performance
+over time.
+On the challenging VisA dataset, PatchCore* achieves a
+lower image-level forgetting measure (FM) but fails to in-
+tegrate task-aware knowledge effectively, yielding a pixel-
+level AUPR of only 15.9%. Its staged design further exacer-
+bates error accumulation, causing unstable detection results.
+ver. Method Image-level Pixel-level
+AUROC AUPR AUROC AUPR
+1.0 Baseline 77.87 82.44 87.63 23.83
+2.0 1.0 + D + LTSC 79.11 81.94 88.44 24.89
+3.0 2.0 + Lalign 80.03 83.46 87.80 25.53
+3.1 3.0 + IPR 81.82 84.77 90.37 27.39
+4.0 3.1 + LITC 82.05 85.10 90.56 27.39
+4.1 4.0 + ISPP 83.14 86.61 90.58 27.87
+Table 4. Ablation study of our method on VisA Dataset. The table
+shows the impact of incrementally adding Experience replay by
+Decomposed Prompts (ver. 2.0), Image-level Prototypes (ver. 3.0-
+3.1), and Pixel-level Prototypes (ver. 4.0-4.1) on both image-level
+and pixel-level AUROC and AUPR.
+Incontrast, ONER achieves state-of-the-art results (83.1%
+image-level AUROC, 86.6% image-level AUPR and 27.9%
+pixel-level AUPR). Remarkably, this is accomplished with-
+out sample replay, while maintaining minimal training costs
+(only 0.019M learnable parameters and 5 training epochs
+per task, as shown in Tab. 3).
+In summary, ONER strikes an optimal balance between
+performance, efficiency, and stability, making it a practical
+solution for real-world industrial applications with dynamic
+and resource-constrained environments.
+4.2.2. Qualitative Analysis
+As shown in Fig. 3, our experiments demonstrate that
+sample replay effectively mitigates catastrophic forgetting,
+with DRAEM-REPLAY and BGAD-REPLAY outperform-
+ing their vanilla counterparts. In contrast, our method
+achieves better results with replaying only representative
+features, which is memory-efficient and privacy preserving
+while effectively resisting forgetting. Staged aproaches like
+DRAEM-CLS and BGAD-CLS, though competitive, ex-
+hibit critical instability: inaccurate task identification (e.g.,
+in Task 3 and Task 6) triggers substantial performance drops
+due to error accumulation, highlighting its unreliability. In
+contrast, our method directly processes input images, result-
+ing in more stable and reliable detection outcomes. Addi-
+tional examples are provided in the Appendix.
+4.2.3. Ablation Study
+An improvement in the model’s performance is noted with
+the incorporation of the decomposed prompt experience
+(ver. 2.0). However, the model may suffer from distribu-
+tion shift since the differences of inter-task feature are un-
+constrained, leading to a decline of image-level AUPR. The
+continuous improvement in model’s performance can be
+observed with the implementation of Lalign (ver. 3.0), IPR
+(ver. 3.1), LITC (ver. 4.0) and ISPP (ver. 4.1). The ablation
+study demonstrates the effectiveness of proposed key com-
+ponents in anomaly detection.
+5. Conclusion
+To conclude, our proposed ONER method effectively
+tackles the challenges of distribution shift and catastrophic
+forgetting in incremental anomaly detection. By performing
+experience replay with decomposed prompts and semantic
+prototypes, ONER preserves high accuracy across tasks
+while enhancing feature discriminability. Experimental re-
+sults validate that ONER not only achieves state-of-the-art
+performance but also demonstrates remarkable adaptability
+to new categories with minimal training overheads, making
+it a stable and efficient solution for real-world applications.
+
+===== PAGE 9 =====
+References
+[1] Julien Audibert, Pietro Michiardi, Fr´ed´eric Guyard,
+S´ebastien Marti, and Maria A. Zuluaga. USAD: unsuper-
+vised anomaly detection on multivariate time series. In KDD
+’20: The 26th ACM SIGKDD Conference on Knowledge Dis-
+covery and Data Mining, Virtual Event, CA, USA, August
+23-27, 2020, pages 3395–3404. ACM, 2020. 1, 2
+[2] Paul Bergmann, Michael Fauser, David Sattlegger, and
+Carsten Steger. Mvtec ad – a comprehensive real-world
+dataset for unsupervised anomaly detection. In CVPR, 2019.
+5
+[3] Paul Bergmann, Sindy L¨owe, Michael Fauser, David Sattleg-
+ger, and Carsten Steger. Improving unsupervised defect seg-
+mentation by applying structural similarity to autoencoders.
+In Proceedings of the 14th International Joint Conference on
+Computer Vision, Imaging and Computer Graphics Theory
+and Applications, 2019. 1, 2
+[4] Pietro Buzzega, Matteo Boschini, Angelo Porrello, Davide
+Abati, and Simone Calderara. Dark experience for general
+continual learning: a strong, simple baseline. NeurIPS, 33:
+15920–15930, 2020. 7
+[5] Yunkang Cao, Xiaohao Xu, Chen Sun, Yuqi Cheng, Zong-
+wei Du, Liang Gao, and Weiming Shen. Segment any
+anomaly without training via hybrid prompt regularization,
+2023. arXiv preprint arXiv:2305.10724. 1, 2, 7
+[6] Xuhai Chen, Jiangning Zhang, Guanzhong Tian, Haoyang
+He, Wuhao Zhang, Yabiao Wang, Chengjie Wang, and Yong
+Liu. Clip-ad: A language-guided staged dual-path model for
+zero-shot anomaly detection. In IJCAI, pages 17–33, 2024.
+3, 7
+[7] Niv Cohen and Yedid Hoshen. Sub-image anomaly detection
+with deep pyramid correspondences, 2020. arXiv preprint
+arXiv:2005.02357. 1, 2
+[8] Alexey Dosovitskiy. An image is worth 16x16 words: Trans-
+formers for image recognition at scale, 2020. arXiv preprint
+arXiv:2010.11929. 2
+[9] Han Gao, Huiyuan Luo, Fei Shen, and Zhengtao Zhang. To-
+wards total online unsupervised anomaly detection and lo-
+calization in industrial vision. CoRR, abs/2305.15652, 2023.
+3
+[10] Haoyang He, Jiangning Zhang, Hongxu Chen, Xuhai Chen,
+Zhishan Li, Xu Chen, Yabiao Wang, Chengjie Wang, and Lei
+Xie. A diffusion-based framework for multi-class anomaly
+detection. In AAAI, pages 8472–8480, 2024. 1, 2
+[11] Jongheon Jeong, Yang Zou, Taewan Kim, Dongqing Zhang,
+Avinash Ravichandran, and Onkar Dabeer. Winclip: Zero-
+/few-shot anomaly classification and segmentation. In
+CVPR, pages 19606–19616, 2023. 1, 2, 7
+[12] Donghyeong Kim, Chaewon Park, Suhwan Cho, and Sangy-
+oun Lee. Fapm: Fast adaptive patch memory for real-time
+industrial anomaly detection. In ICASSP, pages 1–5. IEEE,
+2023. 2
+[13] Jin-Hwa Kim, Do-Hyeong Kim, Saehoon Yi, and Tae-
+hoon Lee. Semi-orthogonal embedding for efficient un-
+supervised anomaly segmentation, 2021. arXiv preprint
+arXiv:2105.14737. 1, 2
+[14] Alexander Kirillov, Eric Mintun, Nikhila Ravi, Hanzi Mao,
+Chloe Rolland, Laura Gustafson, Tete Xiao, Spencer White-
+head, Alexander C Berg, Wan-Yen Lo, et al. Segment any-
+thing. In ICCV, pages 4015–4026, 2023. 5
+[15] Chun-Liang Li, Kihyuk Sohn, Jinsung Yoon, and Tomas
+Pfister. Cutpaste: Self-supervised learning for anomaly de-
+tection and localization. In CVPR, pages 9664–9674, 2021.
+1, 2
+[16] Chun-Liang Li, Kihyuk Sohn, Jinsung Yoon, and Tomas
+Pfister. Cutpaste: Self-supervised learning for anomaly de-
+tection and localization. In CVPR, pages 9664–9674, 2021.
+7
+[17] Wujin Li, Jiawei Zhan, Jinbao Wang, Bizhong Xia, Bin-Bin
+Gao, Jun Liu, Chengjie Wang, and Feng Zheng. Towards
+continual adaptation in industrial anomaly detection. In ACM
+MM, pages 2871–2880. ACM, 2022. 3, 7
+[18] Wujin Li, Jiawei Zhan, Jinbao Wang, Bizhong Xia, Bin-Bin
+Gao, Jun Liu, Chengjie Wang, and Feng Zheng. Towards
+continual adaptation in industrial anomaly detection. In ACM
+MM, pages 2871–2880, 2022. 2
+[19] Yi Li, Hualiang Wang, Yiqun Duan, and Xiaomeng Li. Clip
+surgery for better explainability with enhancement in open-
+vocabulary tasks, 2023. arXiv preprint arXiv:2304.10293. 1,
+2, 7
+[20] Yuanwei Li, Elizaveta Ivanova, and Martins Bruveris. Fade:
+Few-shot/zero-shot anomaly detection engine using large
+vision-language model. In BMVC, 2024. 7
+[21] Yuanwei Li, Elizaveta Ivanova, and Onfido London. Fade:
+Few-shot/zero-shot anomaly detection engine using large
+vision-language model. BMVC, 2024. 1, 2
+[22] Yufei Liang, Jiangning Zhang, Shiwei Zhao, Runze Wu,
+Yong Liu, and Shuwen Pan. Omni-frequency channel-
+selection representations for unsupervised anomaly detec-
+tion. IEEE TIP, 32:4327–4340, 2023. 1, 2
+[23] Jiaqi Liu, Kai Wu, Qiang Nie, Ying Chen, Bin-Bin
+Gao, Yong Liu, Jinbao Wang, Chengjie Wang, and Feng
+Zheng. Unsupervised continual anomaly detection with
+contrastively-learned prompt. In AAAI, pages 3639–3647.
+AAAI Press, 2024. 3
+[24] Jiaqi Liu, Kai Wu, Qiang Nie, Ying Chen, Bin-Bin
+Gao, Yong Liu, Jinbao Wang, Chengjie Wang, and Feng
+Zheng. Unsupervised continual anomaly detection with
+contrastively-learned prompt. In AAAI, pages 3639–3647,
+2024. 2, 5, 7
+[25] Jiaqi Liu, Guoyang Xie, Jin-Bao Wang, Shangnian Li,
+Chengjie Wang, Feng Zheng, and Yaochu Jin. Deep indus-
+trial image anomaly detection: A survey. Mach. Intell. Res.,
+21(1):104–135, 2024. 2
+[26] Philipp Moritz, Robert Nishihara, and Michael Jordan. A
+linearly-convergent stochastic l-bfgs algorithm. In Artificial
+Intelligence and Statistics, pages 249–258. PMLR, 2016. 5
+[27] Zhen Qu, Xian Tao, Mukesh Prasad, Fei Shen, Zhengtao
+Zhang, Xinyi Gong, and Guiguang Ding. Vcp-clip: A visual
+context prompting model for zero-shot anomaly segmenta-
+tion. In ECCV, pages 301–317. Springer, 2024. 1, 3
+[28] Alec Radford, Jong Wook Kim, Chris Hallacy, Aditya
+Ramesh, Gabriel Goh, Sandhini Agarwal, Girish Sastry,
+
+===== PAGE 10 =====
+Amanda Askell, Pamela Mishkin, Jack Clark, et al. Learning
+transferable visual models from natural language supervi-
+sion. In International conference on machine learning, pages
+8748–8763. PmLR, 2021. 2
+[29] Tal Reiss, Niv Cohen, Liron Bergman, and Yedid Hoshen.
+PANDA: adapting pretrained features for anomaly detection
+and segmentation. In CVPR, pages 2806–2814, 2021. 1, 2
+[30] Tal Reiss, Niv Cohen, Liron Bergman, and Yedid Hoshen.
+Panda: Adapting pretrained features for anomaly detection
+and segmentation. In CVPR, pages 2806–2814, 2021. 7
+[31] David Rolnick, Arun Ahuja, Jonathan Schwarz, Timothy Lil-
+licrap, and Gregory Wayne. Experience replay for continual
+learning. NeurIPS, 32, 2019. 4
+[32] Karsten Roth, Latha Pemula, Joaquin Zepeda, Bernhard
+Sch¨olkopf, Thomas Brox, and Peter Gehler. Towards to-
+tal recall in industrial anomaly detection. In CVPR, pages
+14318–14328, 2022. 1, 2, 5
+[33] Karsten Roth, Latha Pemula, Joaquin Zepeda, Bernhard
+Sch¨olkopf, Thomas Brox, and Peter Gehler. Towards to-
+tal recall in industrial anomaly detection. In CVPR, pages
+14318–14328, 2022. 7
+[34] Marco Rudolph, Bastian Wandt, and Bodo Rosenhahn. Same
+same but differnet: Semi-supervised defect detection with
+normalizing flows. In Proceedings of the IEEE/CVF winter
+conference on applications of computer vision, pages 1907–
+1916, 2021. 1, 2
+[35] Marco Rudolph, Tom Wehrbein, Bodo Rosenhahn, and Bas-
+tian Wandt. Fully convolutional cross-scale-flows for image-
+based defect detection. In WACV, pages 1088–1097, 2022.
+2
+[36] Mohammadreza Salehi, Niousha Sadjadi, Soroosh
+Baselizadeh, Mohammad H. Rohban, and Hamid R.
+Rabiee. Multiresolution knowledge distillation for anomaly
+detection. In CVPR, pages 14902–14912, 2021. 1
+[37] James Seale Smith, Leonid Karlinsky, Vyshnavi Gutta, Paola
+Cascante-Bonilla, Donghyun Kim, Assaf Arbelle, Rameswar
+Panda, Rogerio Feris, and Zsolt Kira. Coda-prompt: Contin-
+ual decomposed attention-based prompting for rehearsal-free
+continual learning. In CVPR, pages 11909–11919, 2023. 4
+[38] Jou Won Song, Kyeongbo Kong, Ye In Park, Seong Gyun
+Kim, and Suk-Ju Kang. Anoseg: Anomaly segmentation net-
+work using self-supervised learning. CoRR, abs/2110.03396,
+2021. 1, 2
+[39] Jiaqi Tang, Hao Lu, Xiaogang Xu, Ruizheng Wu, Sixing Hu,
+Tong Zhang, Tsz Wa Cheng, Ming Ge, Ying-Cong Chen, and
+Fugee Tsung. An incremental unified framework for small
+defect inspection. In ECCV, pages 307–324. Springer, 2024.
+2, 3, 4, 7
+[40] Denis R Towill, Gary N Evans, and P Cheema. Analysis and
+design of an adaptive minimum reasonable inventory con-
+trol system. Production Planning & Control, 8(6):545–557,
+1997. 1
+[41] Guodong Wang, Shumin Han, Errui Ding, and Di Huang.
+Student-teacher feature pyramid matching for anomaly de-
+tection. In BMVC, page 306, 2021. 1
+[42] Zifeng Wang, Zizhao Zhang, Sayna Ebrahimi, Ruoxi Sun,
+Han Zhang, Chen-Yu Lee, Xiaoqi Ren, Guolong Su, Vin-
+cent Perot, Jennifer Dy, et al. Dualprompt: Complementary
+prompting for rehearsal-free continual learning. In ECCV,
+pages 631–648. Springer, 2022. 2
+[43] Zifeng Wang, Zizhao Zhang, Chen-Yu Lee, Han Zhang,
+Ruoxi Sun, Xiaoqi Ren, Guolong Su, Vincent Perot, Jen-
+nifer Dy, and Tomas Pfister. Learning to prompt for continual
+learning. In CVPR, 2022. 2
+[44] Julian Wyatt, Adam Leach, Sebastian M. Schmon, and
+Chris G. Willcocks. Anoddpm: Anomaly detection with de-
+noising diffusion probabilistic models using simplex noise.
+In CVPR, pages 649–655, 2022. 1, 2
+[45] Kunlun Xu, Haozhuo Zhang, Yu Li, Yuxin Peng, and Ji-
+ahuan Zhou. Mitigate catastrophic remembering via con-
+tinual knowledge purification for noisy lifelong person re-
+identification. In ACM MM, pages 5790–5799, 2024. 2, 4
+[46] Ruiqing Yan, Fan Zhang, Mengyuan Huang, Wu Liu,
+Dongyu Hu, Jinfeng Li, Qiang Liu, Jingrong Jiang, Qian-
+jin Guo, and Linghan Zheng. Cainnflow: Convolutional
+block attention modules and invertible neural networks
+flow for anomaly detection and localization tasks. CoRR,
+abs/2206.01992, 2022. 1, 2
+[47] Xudong Yan, Huaidong Zhang, Xuemiao Xu, Xiaowei Hu,
+and Pheng-Ann Heng. Learning semantic context from nor-
+mal samples for unsupervised anomaly detection. In AAAI,
+pages 3110–3118, 2021. 2
+[48] Minghui Yang, Peng Wu, and Hui Feng. Memseg: A semi-
+supervised method for image surface defect detection using
+differences and commonalities. Eng. Appl. Artif. Intell., 119:
+105835, 2023. 2
+[49] Hang Yao, Ming Liu, Haolin Wang, Zhicun Yin, Zifei Yan,
+Xiaopeng Hong, and Wangmeng Zuo. Glad: Towards better
+reconstruction with global and local adaptive diffusion mod-
+els for unsupervised anomaly detection. ECCV, 2024. 1,
+2
+[50] Xincheng Yao, Ruoqi Li, Jing Zhang, Jun Sun, and
+Chongyang Zhang. Explicit boundary guided semi-push-
+pull contrastive learning for supervised anomaly detection.
+In CVPR, pages 24490–24499, 2023. 5
+[51] Jihun Yi and Sungroh Yoon. Patch SVDD: patch-level
+SVDD for anomaly detection and segmentation. In ACCV,
+pages 375–390. Springer, 2020. 1, 2
+[52] Vitjan Zavrtanik, Matej Kristan, and Danijel Skocaj. Dræm -
+A discriminatively trained reconstruction embedding for sur-
+face anomaly detection. In ICCV, pages 8310–8319. IEEE,
+2021. 1, 2
+[53] Vitjan Zavrtanik, Matej Kristan, and Danijel Skoˇcaj. Draem-
+a discriminatively trained reconstruction embedding for sur-
+face anomaly detection. In ICCV, pages 8330–8339, 2021.
+5
+[54] Qihang Zhou, Guansong Pang, Yu Tian, Shibo He, and Jim-
+ing Chen. Anomalyclip: Object-agnostic prompt learning for
+zero-shot anomaly detection. ICLR, 2024. 1, 3
+[55] Yang Zou, Jongheon Jeong, Latha Pemula, Dongqing Zhang,
+and Onkar Dabeer. Spot-the-difference self-supervised pre-
+training for anomaly detection and segmentation. In ECCV,
+pages 392–408. Springer, 2022. 5

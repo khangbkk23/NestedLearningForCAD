@@ -1,0 +1,3432 @@
+# SOURCE: docs/papers/related_cad/arxiv_2610.15032.pdf
+# SOURCE_SHA256: b285c4e2427b8a5a16ab3af194688c892fc8b747695a6adbae965e59a21aa176
+# EXTRACTOR: pypdf 7.1.0 (PdfReader.extract_text, per page)
+# EXTRACTED: 2026-11-19
+# NOTE: machine extraction; equations/tables/unicode may be garbled. Cite the PDF, not this file.
+
+
+===== PAGE 1 =====
+InCLAD: A Continual Learning Benchmark for
+Industrial Visual Anomaly Detection
+Łukasz Marcjan
+AGH University of Krakow
+Krakow, Poland
+lmarcjan@agh.edu.pl
+Dorota Wilk-Kołodziejczyk
+AGH University of Krakow
+Krakow, Poland
+dwilk@agh.edu.pl
+Roberto Corizzo
+American University
+Washington, DC, USA
+rcorizzo@american.edu
+Abstract
+Industrial anomaly detection benchmarks have advanced rapidly, yet they remain
+largely static and therefore underrepresent deployment settings in which inspection
+systems must be extended from one industrial component to another over time. In our
+setting, continualindustrialanomalydetectionisframedasatask-incrementalproblem:
+each component defines a task, while the learning objective remains semi-supervised.
+The goal extends beyond conventional anomaly detection, since models should preserve
+their performance on all components as they are sequentially exposed to new compo-
+nents. This framing is especially relevant because many existing industrial pipelines
+either assume fully supervised defect labels or study only isolated datasets, leaving
+open the question of how semi-supervised anomaly detectors behave across a sequence
+of heterogeneous components. We address this gap by organizing the benchmark as a
+sequence of related component-level tasks and by defining multiple scenarios, includ-
+ing random, easy-to-hard, and hard-to-easy. In addition to single-dataset continual
+scenarios, we propose challenging scenarios spanning across multiple datasets. We
+further evaluate continual performance from two complementary perspectives: image-
+level anomaly detection and pixel-level anomaly localization. By recasting industrial
+anomaly detection as a continual benchmark rather than a static train/test problem,
+our work establishes a concrete path toward studying knowledge retention, adaptation,
+and generalization in evolving industrial environments.
+1 Introduction
+Industrial anomaly detection has achieved strong results on standard benchmarks, yet most
+published settings remain static: one model is trained offline on a fixed distribution and
+then evaluated on a held-out split drawn from the same or closely related conditions. Real
+deployment is significantly more challenging. New components are introduced over time,
+and an inspection system that works well for one component often has to be extended to
+additional ones without retraining from scratch on the full historical data. A practical
+anomaly detector must therefore do more than generalize once; it must continually adapt
+while preserving previously acquired knowledge.
+This requirement exposes a gap between current industrial anomaly detection and con-
+tinual learning. In static anomaly detection, the dominant objective is to separate normal
+and anomalous patterns for one dataset at one time. In a continual setting considered here,
+1
+arXiv:2610.15032v1  [cs.LG]  10 Oct 2026
+
+===== PAGE 2 =====
+the objective changes: the model must absorb new component-specific normality patterns
+without degrading its performance on previously learned components. The central drawback
+is catastrophic forgetting, which is especially costly in industrial inspection because a sys-
+tem that forgets how to model earlier components can miss anomalies when those products
+reappear in production.
+Theneedforcontinualanomalydetectionisreinforcedbythestructureofindustrialdata.
+Indeed, in real-world settings, defective samples may be scarce, incomplete, or too costly
+to annotate comprehensively. As a result, many real-world anomaly-detection problems are
+inherently semi-supervised, in the sense that they do not assume availability of anomalies as
+training data, they train models only on normal samples, and detect deviations at test time.
+Under this normal-only setting, the continual problem is not to incrementally learn defect
+classes, but to adapt the notion of normality across a sequence of components. Methods
+that work well in a single static benchmark may still be brittle when they must preserve
+normal representations for earlier components while learning new ones.
+Motivated by this gap, we frame continual industrial anomaly detection as a benchmark
+problem in which each task corresponds to one component and the inspection objective
+remains fixed across the full sequence. The goal is then not just merely adaptation to multi-
+ple labeled defect categories. Instead, the model has to maintain strong anomaly detection
+on all components as it is sequentially exposed to new component distributions under a
+normal-only training regime. This perspective also makes it possible to study benchmark
+configurationsthathavereceivedlittleattentionincontinualanomalydetection: curriculum-
+style orderings that explicitly control task difficulty, and multi-dataset streams that combine
+component-level and dataset-level distribution shifts. In particular, we consider random or-
+derings, easy-to-hard and hard-to-easy curricula, and multi-dataset scenarios. In addition,
+we evaluate the continual setting from two complementary viewpoints: image-level anomaly
+detection and pixel-level anomaly localization.
+In summary, the main contributions of this paper are as follows:
+- We formulate continual industrial anomaly detection as a benchmark problem motivated
+by realistic production and inspection workflows, where each component defines a task
+challenging model adaptation and knowledge retention.
+- We focus on the semi-supervised setting, where models are exclusively trained with normal
+data, and the challenge is continual adaptation across components rather than incremental
+learning of multiple supervised defect classes.
+- We introduce principled benchmark scenarios that go beyond prior continual anomaly-
+detection studies by explicitly evaluating curriculum-based orderings (easy-to-hard and
+hard-to-easy) and multi-dataset streams, enabling a cohesive analysis across diverse datasets
+and task sequences.
+- We devise non-trivial continual adaptations of PatchCore, PaDiM, and CFA and per-
+form an extensive evaluation that considers state-of-the-art continual industrial anomaly
+detection models across two perspectives (image-level, pixel-level), providing a multi-faceted
+analysis.
+2 Related Works
+Industrial anomaly detection. Industrial anomaly detection research has been driven
+by datasets such as MVTec AD, MPDD, and VisA, which stress different aspects of visual
+defects, from structural surface anomalies to logical inconsistencies in object arrangement.
+These benchmarks established strong baselines for industrial visual inspection, but they
+usually assume a static train/test split and independent evaluation within each dataset.
+ADBench [Han et al., 2022] is a broad anomaly-benchmarking work that systematizes eval-
+uation across supervision regimes and dataset types, but it is not specific to industrial
+visual inspection and does not study sequential learning. In industrial vision, CableInspect-
+AD [Arodi et al., 2024] introduces a challenging expert-annotated benchmark for robotic
+2
+
+===== PAGE 3 =====
+1 Datasets
+industrial components yield a
+semi-supervised task pool
+MVTec VisA BTAD
+MPDD DAGM
+Multi-dataset
+within-dataset tasks plus
+a cross-dataset succession
+2 Scenarios
+exploiting curriculum orderings
+Easy → Hard
+Hard → Easy
+Random
+task ordering changes
+adaptation and forgetting
+dynamics
+3 Evaluation
+retention and adaptation
+Image-Level Pixel-Level
+NCL → CL
+ROC-AUC / BWT
+9 methodsreconstruction-based,
+feature and patch distri-
+bution, teacher-student
+distillation, flow-based
+Figure 1: Our InCLAD benchmark at a glance. Tasks are drawn from five industrial datasets
+plus a multi-dataset stream, then arranged as curriculum or random continual scenario
+orderings. We evaluate 9 methods under non-continual (NCL) and continual (CL) protocols
+from both the image-level and pixel-level perspectives using ROC-AUC and BWT.
+power-line inspection, emphasizing realistic anomalies, cross-validation, and few-shot to
+zero-shot evaluation. ReinAD [Wang et al., 2025] argues that existing industrial datasets
+are too controlled and proposes a contrastive benchmark with unaligned reference/test pairs
+from production lines. Although these works are highly relevant, they remain static bench-
+marks. In contrast, our benchmark focuses on task-incremental continual learning, where
+components arrive sequentially, models are trained only on normal samples, and evalua-
+tion explicitly measures retention, forgetting, and adaptation under alternative task or-
+derings, including multi-dataset streams. From a methodological perspective, recent re-
+search is also dominated by non-continual methods that assume a static deployment set-
+ting. Reconstruction-based methods model the appearance manifold of normal samples and
+flag anomalies through reconstruction mismatch or adversarially regularized feature space.
+GANomaly is the representative reconstruction baseline in our experiments, combining an
+encoder–decoder–encoder architecture with adversarial training for normality modeling [Ak-
+cay et al., 2018]. More recent reconstruction and restoration variants strengthen this idea
+with richer architectures and objectives, including semantic inpainting [Tao et al., 2022],
+masked-patch reconstruction [Jiang et al., 2023], multilevel feature restoration [Guo et al.,
+2024], and reconstruction regularization with memory or text guidance [Zhang et al., 2024,
+Qiang et al., 2025].
+Another major family relies on pretrained features, patchwise distributions, or memory-
+based matching rather than explicit image reconstruction. PatchCore [Roth et al., 2022]
+stores a coreset of representative normal patch embeddings and scores test patches by
+nearest-neighbordistance, andPaDiM[Defardetal.,2021]fitsGaussianmodelstopatchwise
+features at each spatial location. CFA [Lee et al., 2022] complements these memory- and
+distribution-based approaches by learning compact normal feature representations through
+a soft-boundary objective.
+Teacher–student and distillation-based methods form a further relevant thread.
+STFPM [Wang et al., 2021] aligns multiscale teacher and student feature pyramids so
+that anomalies emerge where the student fails to reproduce normal teacher activations.
+RD4AD [Deng and Li, 2022] reconstructs teacher embeddings from compressed one-class
+representations, EfficientAD [Batzner et al., 2024] retains the teacher–student intuition
+while targeting millisecond-level inference, and PaSTe [Barusco et al., 2025a] pushes this
+direction toward edge deployment.
+Finally, density estimation methods such as FastFlow [Yu et al., 2021] model the density
+of normal samples using normalizing flows and provides a complementary probabilistic per-
+spective to reconstruction, patch-memory, and teacher–student detectors. Recent work also
+extends industrial anomaly detection toward multimodal inspection, more realistic static
+benchmarks, and weakly supervised localization [Cheng et al., 2025, Wang et al., 2025,
+Sime et al., 2026].
+3
+
+===== PAGE 4 =====
+However, several gaps remain directly relevant to our work. First, even methods trained
+only on normal data are almost always evaluated in isolation on a single static benchmark.
+Second, this literature rarely studies how image-level detection and pixel-level localization
+behave together under sequential learning. Third, static evaluations do not measure reten-
+tion after a model encounters new industrial concepts. As a result, the non-continual state
+of the art provides strong static baselines but leaves open the task-incremental, normal-only,
+multi-dataset setting that we target.
+Continual learning for industrial inspection. Continual learning provides a natural
+framework for industrial settings where data arrive in stages and the target distribution
+evolves. Most continual learning benchmarks, however, focus on closed-set classification.
+Industrial anomaly detection differs in three ways: it is anomaly-centric, it is often trained
+only on normal samples, and it may require localization in addition to image-level decisions.
+These properties motivate a benchmark in which anomaly sensitivity and forgetting control
+are evaluated jointly. Direct continual anomaly-detection work is still rare, but the recent
+literature already suggests several distinct continual-learning strategies. A first line focuses
+on online updating and lightweight rehearsal. Gao et al. [2023] proposed LeMO, a fully
+online anomaly-detection and localization method that replaces offline pre-collection with a
+learnablememoryupdatedjointlywithfeatureextractionthroughacontrastiveobjective. Li
+et al. [2022] explicitly introduced continual anomaly detection for industrial inspection and
+proposed the distribution of normal embeddings, which summarizes previous tasks through
+normal-feature distributions and leverages synthetic anomalies so that anomaly detection
+can benefit from supervised continual-learning machinery. In a more deployment-oriented
+direction, Barusco et al. [2025b] studied continual anomaly detection on edge devices, show-
+ing that replay and compressed replay can make lightweight teacher–student models such
+as STFPM and PaSTe practical under strict memory budgets.
+Other studies pursue parameter-efficient adaptation or stronger generative mechanisms.
+Liu et al. [2024] proposed UCAD, where a key–prompt–knowledge memory bank and
+structure-based contrastive learning yield a prompt-based continual learner that separates
+task-specific normal knowledge from task-invariant anomaly cues. Tang et al. [2024] in-
+tegrated incremental learning into a unified reconstruction framework for small defect in-
+spection, using object-aware self-attention and semantic compression to reduce feature con-
+flicts without storing large feature banks. Diffusion-based methods have become especially
+prominent in recent work. Li et al. [2025] introduced One-for-More, a continual diffusion
+model that combines gradient projection, an iterative singular-value-decomposition scheme
+for memory reduction, and anomaly-masked conditioning to limit forgetting and halluci-
+nated reconstructions. Hu et al. [2025] then pushed replay further with ReplayCAD, where
+a pretrained diffusion model is used for generative replay to improve especially anomaly
+segmentation. Finally, continual anomaly detection is beginning to expand beyond 2D
+RGB inspection: Lu et al. [2025] proposed C3D-AD for 3D anomaly detection, combining
+kernel-attention feature normalization, a learnable advisor, and representation-preserving
+parameter perturbation to handle emerging point-cloud categories. A task-aware parameter
+decoupling framework proposed by Zhang et al. [2026] moves from one-model-per-category
+assumptions to a one-for-more setting through instance-aware prompt tuning and gradient-
+aware parameter decoupling.
+The current continual literature remains much narrower than the broader non-continual
+anomaly-detection landscape, but it already spans online memory learning, replay-based
+and generative-replay strategies, prompt-based adaptation, and architectural mechanisms
+for incremental reconstruction. However, important limitations remain. Several approaches
+still incorporate supervision such as synthetic anomalies or explicit defect-oriented signals,
+which weakens the match to purely normal-only industrial training. Moreover, existing
+continual studies are typically limited to one dataset or one scenario at a time, so they do
+not provide a cohesive analysis across diverse benchmarks, alternative task orderings, and
+cross-dataset streams. This leaves curriculum effects and multi-dataset continual anomaly-
+4
+
+===== PAGE 5 =====
+detection scenarios largely unexplored, even though both are central to understanding how
+task difficulty and broader domain shift affect forgetting. Finally, the literature does not yet
+systematically compare image-level and pixel-level continual anomaly detection within the
+same benchmark design. These gaps are precisely what motivate the benchmark proposed
+in this paper.
+3 The InCLAD Benchmark
+The proposed benchmark is defined within industrial visual inspection. Every task concerns
+anomaly detection in manufactured products or industrial scenes, but each task corresponds
+to a different inspected component or concept. In this task-incremental framing, distribution
+shift is driven primarily by component-specific normality rather than by supervised defect-
+class changes. This matches deployment settings in which inspection systems should absorb
+new product variants incrementally without losing competence on previous components.
+InCLAD is therefore a benchmark protocol rather than a raw-data collection effort:
+it builds on public industrial datasets and contributes a continual learning layer of task
+definitions, orderings, metrics, and evaluation artifacts over them.
+Task Definition: We consider a stream of tasks T1, T2, . . . , TN . Each task contains
+normal training samples, anomalous test samples (only in the test portion of the task), and,
+when available, pixel-level masks for anomalous regions. The benchmark is evaluated from
+two complementary perspectives: image-level anomaly detection, which asks whether an
+image is abnormal, and pixel-level anomaly localization, which asks where the anomalous
+region appears. The task identity is tied to the inspected component or concept rather
+than to a defect label. Across a stream, shifts may arise from new products, materials,
+or surface geometries; from different industrial datasets; from acquisition changes such as
+illumination, camera configuration, viewpoint, resolution, or background; or from temporal
+and batch evolution in production. The key property is that the inspection objective remains
+anomaly detection while the definition of normality changes over time.
+Single-Dataset Scenarios: We instantiate task streams through an empirical scenario-
+extraction procedure based on single-task anomaly-detection difficulty. The first stage starts
+from raw dataset concepts and converts each dataset into three continual-learning scenar-
+ios. For each concept, we train Single-Task Experts independently using three representative
+state-of-the-art methods: PatchCore [Roth et al., 2022], PaDiM [Defard et al., 2021], and
+CFA [Lee et al., 2022], and collect concept-level ROC-AUC scores. This verifies that can-
+didate tasks are learnable, with ROC-AUC values above the random-guessing level of 0.5,
+and provides a task-wise difficulty estimate that is independent of any continual-learning
+strategy. To avoid defining difficulty from a single detector, we rank concepts separately for
+PatchCore, PaDiM, and CFA, then average the ranks across the three methods. These aver-
+age ranks define the within-dataset curricula. The easy-to-hard sequence orders tasks from
+easiest to hardest, the hard-to-easy sequence reverses this order, and the random sequence
+provides a non-curriculum reference. This yields three within-dataset scenarios per dataset.
+The same scenario definitions are used for image-level and pixel-level evaluation, enabling a
+direct comparison between detection and localization under identical task streams.
+Figure 2 visualizes the first-stage evidence used to derive these scenarios. In each
+heatmap, rows correspond to concepts sorted by the consensus ordering induced by the
+average rank, cell values report the ROC-AUC obtained by each Single-Task Expert, and
+the final column reports the average ROC-AUC across PatchCore, PaDiM, and CFA. We use
+these three methods because they are competitive industrial anomaly detectors with distinct
+inductive biases: PatchCore uses memory-based nearest-neighbor retrieval, PaDiM models
+location-aware patch distributions with Gaussian statistics, and CFA enforces compactness
+of the normal feature space through hypersphere-based objectives. This reduces the risk
+that the scenario definition is dominated by one detector family. The exact hard-to-easy
+rankings and pairwise Spearman correlations are reported in Appendix E.
+5
+
+===== PAGE 6 =====
+patchcore
+padim
+cfa avg
+bottle
+leather
+wood
+tile
+metal_nut
+hazelnut
+cable
+toothbrush
+carpet
+transistor
+zipper
+grid
+capsule
+screw
+pill
+1.000 0.993 1.000 0.998
+0.989 0.978 1.000 0.989
+0.998 0.989 0.999 0.996
+0.947 0.962 1.000 0.970
+0.978 0.943 0.977 0.966
+1.000 0.775 0.994 0.923
+0.975 0.837 0.987 0.933
+0.972 0.953 0.950 0.958
+0.957 0.959 0.940 0.952
+0.973 0.813 0.972 0.919
+0.936 0.828 0.960 0.908
+0.896 0.918 0.939 0.918
+0.933 0.834 0.854 0.874
+0.966 0.728 0.684 0.793
+0.816 0.770 0.904 0.830
+0.0
+0.2
+0.4
+0.6
+0.8
+1.0
+MVTec AD
+patchcore
+padim
+cfa avg
+pcb4
+chewinggum
+pcb1
+cashew
+pipe_fryum
+fryum
+pcb2
+candle
+pcb3
+macaroni1
+macaroni2
+capsules
+0.989 0.938 0.977 0.968
+0.976 0.967 0.993 0.979
+0.963 0.868 0.894 0.908
+0.942 0.917 0.848 0.902
+0.988 0.777 0.954 0.906
+0.897 0.828 0.847 0.857
+0.905 0.809 0.794 0.836
+0.877 0.784 0.926 0.862
+0.920 0.635 0.775 0.776
+0.896 0.779 0.769 0.815
+0.672 0.657 0.593 0.641
+0.747 0.617 0.584 0.649
+0.0
+0.2
+0.4
+0.6
+0.8
+1.0
+VisA
+patchcore
+padim
+cfa avg
+Class4
+Class9
+Class6
+Class10
+Class7
+Class3
+Class2
+Class1
+Class5
+Class8
+1.000 1.000 0.957 0.986
+0.963 0.986 0.991 0.980
+0.952 0.949 0.997 0.966
+0.995 0.996 0.885 0.959
+0.999 0.931 0.939 0.957
+0.978 0.927 0.682 0.863
+0.892 0.903 0.783 0.859
+0.856 0.740 0.918 0.838
+0.816 0.816 0.831 0.821
+0.673 0.728 0.562 0.654
+0.0
+0.2
+0.4
+0.6
+0.8
+1.0
+DAGM
+patchcore
+padim
+cfa avg
+connector
+bracket_brown
+metal_plate
+bracket_white
+tubes
+bracket_black
+1.000 0.821 0.771 0.864
+0.948 0.762 0.775 0.829
+0.942 0.490 0.999 0.811
+0.731 0.853 0.677 0.754
+0.817 0.574 0.840 0.744
+0.847 0.641 0.549 0.679
+0.0
+0.2
+0.4
+0.6
+0.8
+1.0
+MPDD
+patchcore
+padim
+cfa avg
+03
+01
+02
+1.000 0.982 0.989 0.990
+0.946 0.987 0.971 0.968
+0.792 0.795 0.796 0.795
+0.0
+0.5
+1.0
+BTAD
+Figure 2: Single-task ROC-AUC heatmaps used to construct the benchmark scenarios. For
+each dataset, rows are ordered by the consensus curriculum induced by the average rank
+across PatchCore, PaDiM, and CFA, from easier concepts at the top to harder concepts at
+the bottom. The heatmap entries are Single-Task Expert ROC-AUC values, and the final
+column reports their average.
+Multi-Dataset Scenarios: Beyond within-dataset streams, we define a multi-dataset
+scenario in which the learner encounters tasks drawn from the full dataset pool. This setting
+combines task-level changes with dataset-level distribution shifts, making it a stress test for
+retention and adaptation under broader industrial variability. The multi-dataset stream is
+constructed from a balanced subset of tasks selected according to the Single-Task Expert
+difficulty estimates. For each dataset with more than six tasks, we retain six representative
+concepts using the average ROC-AUC column in the difficulty heatmaps: the two easiest
+tasks, the two hardest tasks, and two median-difficulty tasks. For datasets with six or
+fewer tasks, we retain all available tasks. This rule preserves both extremes of the difficulty
+spectrum while preventing the largest datasets from dominating the stream, and it yields a
+27-task multi-dataset scenario. After task selection, we define two cross-dataset orderings:
+easy-to-hard and hard-to-easy, obtained by sorting the retained tasks according to the same
+average-difficulty criterion.
+Evaluation Protocol: At step t, a model observes normal training data from task Tt
+and updates under a continual-learning constraint, meaning unrestricted access to all past
+data is not assumed. After training on Tt, the model is evaluated on the test sets of all tasks
+seen so far, T1, . . . , Tt. The goal is to adapt to the current visual regime while retaining
+anomaly-detection ability on earlier tasks. We report standard anomaly-detection metrics
+for both perspectives: image-level ROC-AUC for detection and pixel-level ROC-AUC when
+segmentation masks are available. Continual-learning behavior is summarized through final
+average performance and backward transfer (BWT). In particular, our continual ROC-AUC
+averages the ROC-AUC values obtained throughout the learner’s lifetime after each task
+6
+
+===== PAGE 7 =====
+Table 1: Overview of the proposed visual anomaly detection scenarios. Each scenario comes
+in two curriculum orderings (easy-to-hard, hard-to-easy). Single-dataset scenarios are also
+provided with one additional random ordering, leading to 17 scenarios in total.
+Scenario # Tasks # Data samples # Anomalies (test)
+BTAD 3 2,540 39.14%
+DAGM 10 15,054 13.09%
+MPDD 6 1,346 61.57%
+MVTec AD 15 5,354 72.93%
+VisA 12 10,821 55.50%
+MultiDataset 27 20,853 29.38%
+update, while BWT measures how later tasks change performance on previously learned
+tasks. Negative BWT therefore indicates forgetting, whereas positive BWT indicates ben-
+eficial backward transfer. Formal definitions are provided in Appendix B. This prevents
+benchmark progress from being reduced to current-task performance alone. To choose the
+detectors used for the multi-dataset scenario stress test, we average single-dataset perfor-
+mance across datasets, backbones, and orderings, then rank the 9 evaluated methods. We
+evaluate the three highest-performing methods under this aggregate criterion—CFA, PaSTe,
+and PaDiM—on the multi-dataset stream. This is a compute-aware stress test rather than
+cherry-picking: the selection rule is fixed before the multi-dataset evaluation and uses ag-
+gregate single-dataset performance across methods, backbones, and orderings.
+Table 1 summarizes our benchmark consisting of 17 scenarios with varying length, sam-
+ple count, and test-time anomaly ratio, from compact single-dataset streams to the 27-task
+multi-dataset scenario. The released artifacts include scenario manifests, code, task order-
+ings, split definitions, documentation, and Croissant plus RAI metadata. The scenarios
+are available at https://huggingface.co/datasets/lifelonglab/inclad-benchmark.
+The source code for our framework is available at https://github.com/LukaszMarcjan/
+InCLAD-benchmark.
+4 Experiments
+4.1 Experimental Setup
+All experiments use the benchmark protocol defined above. We evaluate each method on
+identical task streams, train/test splits, and ordering metadata, and compare naive non-
+continual baselines against their continual variants at both image and pixel level. Unless
+otherwise specified, continual versions use replay; PatchCore, PaDiM, and CFA require
+method-specific continual adaptations because their original formulations do not directly
+support replay-based updates. Detailed metric definitions, continual adaptations, execution-
+time measurements, and hyperparameter settings are provided in Appendices B, C, D.3,
+and D.
+4.2 Industrial Datasets
+We build our benchmark upon several public industrial datasets. DAGM [Weimer et al.,
+2016] is a long-standing industrial inspection benchmark built around visually subtle de-
+fects embedded in heavily textured backgrounds. Its value lies in separating weak defect
+cues from repetitive texture, which is relevant when anomalies are small relative to the back-
+ground structure. Following the protocol summarized in [Xu et al., 2025], we also consider
+MVTec AD [Bergmann et al., 2019], and VisA [Zou et al., 2022]. These benchmarks are
+complementary industrial anomaly-detection scenarios. MVTec AD contains 15 real-world
+categories and is a standard benchmark for structural anomaly localization. VisA covers 12
+7
+
+===== PAGE 8 =====
+object categories with both surface and structural defects under varying object configura-
+tions. BTAD [Mishra et al., 2021] is a real-world industrial anomaly benchmark introduced
+for manufacturing inspection and anomaly-detection research. It contains 2540 images of
+three product categories, commonly denoted as product_1, product_2, and product_3, to-
+gether with pixel-level annotations that can be interpreted as instance segmentation masks
+and transformed into semantic segmentation or object-detection labels. Of the 2540 images,
+2261 are unlabeled and 279 carry anomaly annotations, and the dataset can also be viewed
+through an ok/ko split with 2250 normal and 290 anomalous images. BTAD is useful be-
+cause it combines pixel-level localization with a semisupervised industrial setting in which
+only a limited subset of images is annotated. MPDD [Jezek et al., 2021] is a dataset for
+visual defect detection in industrial metal-parts manufacturing. It contains more than 1000
+images with pixel-precise defect masks and is explicitly designed to benchmark methods
+under realistic conditions for metal-part inspection. The dataset is divided into a training
+subset containing anomaly-free samples and a validation subset containing both normal and
+anomalous samples. MPDD is especially relevant here because it targets metallic industrial
+components, making it closer in spirit to materials-oriented quality-control problems than
+many consumer-object anomaly datasets.
+Dataset-license details and compute resources are reported in Appendix D.
+4.3 Anomaly Detection Methods
+Our experimental comparison includes representative non-continual baselines from the main
+method families reviewed in Related Works. Specifically, we consider nine methods: the
+reconstruction-based baseline GANomaly [Akcay et al., 2018]; pretrained-feature and
+patch-distribution methods PatchCore [Roth et al., 2022], PaDiM [Defard et al., 2021],
+and CFA [Lee et al., 2022]; teacher–student and distillation methods STFPM [Wang
+etal.,2021], RD4AD[DengandLi,2022], EfficientAD[Batzneretal.,2024], andPaSTe[Bar-
+usco et al., 2025a]; and the flow-based baseline FastFlow [Yu et al., 2021]. This set of
+methods is intended to cover the dominant non-continual design choices used in current
+industrial anomaly detection while keeping the comparison manageable across datasets and
+evaluation protocols.
+For the continual versions, six of the nine methods are adapted with the standard replay
+protocol: at each task, the model is updated using the current normal training samples
+together with samples retained from previous tasks. In contrast, PatchCore, PaDiM, and
+CFA require non-trivial algorithmic adaptations because their original formulations are not
+conventional parametric learners to which replay can be directly applied. PatchCore stores
+a coreset memory bank of normal patch embeddings; our continual version maintains task-
+specific patch banks, stores the current task at the native coreset resolution, compresses
+previous banks with a distance-weighted greedy coreset, and scores each test image against
+the closest task bank. PaDiM fits location-aware Gaussian statistics rather than training
+with gradient updates; our continual version therefore stores one Gaussian model per task
+and selects, at inference time, the task distribution that yields the lowest image-level Maha-
+lanobis anomaly score. CFA combines a trainable descriptor with a memory bank used by
+its soft-boundary objective. For its continual version, we train the descriptor on the current
+task plus replay samples, rebuild all per-task inference banks after each descriptor update so
+that they remain in the same embedding space, and select the bank with the lowest anomaly
+score for prediction. These adaptations allow the three memory- or statistics-based detec-
+tors to participate in the same continual benchmark without collapsing their task-specific
+normality models into a single mixed distribution. Additional notation and pseudocode for
+these adaptations are provided in Appendix C.
+8
+
+===== PAGE 9 =====
+Table 2: ROC-AUC and BWT averaged across methods and ResNet18/WideResNet back-
+bones. NCL denotes the naive baseline, while CL denotes the continual variant.
+Dataset Ordering Metric Image-level Pixel-level
+NCL CL NCL CL
+MVTec
+Easy-to-Hard ROC↑ 0.583 ± 0.095 0.784 ± 0.146 0.629 ± 0.128 0.842 ± 0.105 BWT↑ −0.039 ± 0.018 −0.017 ± 0.015 −0.035 ± 0.008 −0.010 ± 0.008
+Hard-to-Easy ROC↑ 0.557 ± 0.062 0.710 ± 0.117 0.623 ± 0.125 0.839 ± 0.103 BWT↑ −0.042 ± 0.016 −0.017 ± 0.015 −0.042 ± 0.010 −0.010 ± 0.006
+Random ROC↑ 0.593 ± 0.037 0.766 ± 0.124 0.679 ± 0.080 0.858 ± 0.090 BWT↑ −0.041 ± 0.009 −0.020 ± 0.016 −0.030 ± 0.007 −0.012 ± 0.010
+VisA
+Easy-to-Hard ROC↑ 0.549 ± 0.045 0.748 ± 0.109 0.784 ± 0.090 0.886 ± 0.081 BWT↑ −0.056 ± 0.019 −0.019 ± 0.021 −0.031 ± 0.013 −0.013 ± 0.015
+Hard-to-Easy ROC↑ 0.556 ± 0.023 0.677 ± 0.070 0.765 ± 0.092 0.866 ± 0.092 BWT↑ −0.046 ± 0.016 −0.017 ± 0.020 −0.026 ± 0.010 −0.009 ± 0.009
+Random ROC↑ 0.555 ± 0.040 0.703 ± 0.092 0.777 ± 0.079 0.877 ± 0.075 BWT↑ −0.049 ± 0.019 −0.022 ± 0.016 −0.035 ± 0.015 −0.009 ± 0.008
+BTAD
+Easy-to-Hard ROC↑ 0.666 ± 0.094 0.861 ± 0.148 0.773 ± 0.086 0.925 ± 0.080 BWT↑ −0.289 ± 0.133 −0.046 ± 0.093 −0.247 ± 0.039 −0.010 ± 0.014
+Hard-to-Easy ROC↑ 0.694 ± 0.129 0.772 ± 0.137 0.739 ± 0.090 0.869 ± 0.090 BWT↑ −0.145 ± 0.086 −0.031 ± 0.068 −0.216 ± 0.040 −0.021 ± 0.029
+Random ROC↑ 0.706 ± 0.054 0.828 ± 0.118 0.759 ± 0.080 0.883 ± 0.091 BWT↑ −0.185 ± 0.130 −0.025 ± 0.033 −0.200 ± 0.030 −0.010 ± 0.014
+MPDD
+Easy-to-Hard ROC↑ 0.541 ± 0.066 0.675 ± 0.136 0.797 ± 0.133 0.888 ± 0.079 BWT↑ −0.112 ± 0.052 −0.061 ± 0.048 −0.039 ± 0.017 −0.009 ± 0.008
+Hard-to-Easy ROC↑ 0.592 ± 0.035 0.687 ± 0.100 0.791 ± 0.142 0.892 ± 0.076 BWT↑ −0.095 ± 0.046 −0.038 ± 0.043 −0.042 ± 0.030 −0.008 ± 0.013
+Random ROC↑ 0.591 ± 0.058 0.681 ± 0.097 0.784 ± 0.144 0.891 ± 0.082 BWT↑ −0.108 ± 0.056 −0.057 ± 0.047 −0.080 ± 0.055 −0.010 ± 0.013
+DAGM
+Easy-to-Hard ROC↑ 0.557 ± 0.224 0.751 ± 0.151 0.631 ± 0.269 0.808 ± 0.166 BWT↑ −0.035 ± 0.019 −0.011 ± 0.014 −0.025 ± 0.015 −0.007 ± 0.007
+Hard-to-Easy ROC↑ 0.547 ± 0.213 0.694 ± 0.098 0.618 ± 0.245 0.779 ± 0.122 BWT↑ −0.037 ± 0.026 −0.013 ± 0.014 −0.027 ± 0.017 −0.006 ± 0.006
+Random ROC↑ 0.539 ± 0.210 0.713 ± 0.128 0.614 ± 0.248 0.795 ± 0.137 BWT↑ −0.034 ± 0.022 −0.015 ± 0.015 −0.028 ± 0.016 −0.007 ± 0.006
+MultiDataset
+Easy-to-Hard ROC↑ 0.526 ± 0.013 0.792 ± 0.026 0.711 ± 0.056 0.925 ± 0.019 BWT↑ −0.026 ± 0.002 −0.004 ± 0.005 −0.017 ± 0.004 −0.001 ± 0.001
+Hard-to-Easy ROC↑ 0.552 ± 0.018 0.785 ± 0.044 0.713 ± 0.044 0.904 ± 0.037 BWT↑ −0.023 ± 0.000 −0.006 ± 0.006 −0.023 ± 0.008 −0.003 ± 0.002
+4.4 Results Discussion
+Table 2 summarizes the benchmark at the dataset level. The single-dataset rows average
+over all 9 anomaly-detection models and the two backbones, whereas the MultiDataset
+rows average over the three strongest methods selected from the single-dataset study: CFA,
+PaSTe, and PaDiM. Across within-dataset streams, continual learning consistently improves
+both detection quality and retention. At the image level, the average ROC-AUC increases
+from 0.588 for NCL to 0.737 for CL, while BWT improves from −0.088 to −0.027. At the
+pixel level, the same pattern is observed: ROC-AUC increases from 0.718 to 0.860 and BWT
+improves from −0.074 to −0.010. Thus, the continual variants do not merely increase final
+detection performance; they also reduce forgetting.
+Effect of task ordering: Task ordering affects image-level performance more strongly
+than pixel-level performance. Easy-to-Hard gives the highest average CL ROC-AUC at the
+image level (0.764), followed by Random (0.738) and Hard-to-Easy (0.708). This suggests
+9
+
+===== PAGE 10 =====
+that starting from easier concepts can stabilize image-level anomaly scoring before harder
+conceptsareintroduced, whereasbeginningwithharderconceptsleadstoweakeradaptation.
+Pixel-level CL ROC-AUC is more stable across orderings, ranging from 0.849 to 0.870,
+indicating that localization quality is less sensitive to the curriculum direction once replay
+or method-specific continual mechanisms are used. BWT follows the same trend: continual
+learning makes forgetting consistently less negative for all orderings, with especially large
+gains under Easy-to-Hard.
+Adaptation versus retention: At the aggregate level of Table 2, the CL variants
+provide the best adaptation–retention balance. They improve ROC-AUC on every dataset
+and ordering while also moving BWT closer to zero, which indicates less interference with
+previously learned tasks. The effect is most pronounced on BTAD, where image-level BWT
+improves from −0.289 to −0.046 under Easy-to-Hard and pixel-level BWT improves from
+−0.247 to −0.010. MPDD remains challenging at the image level, with lower average CL
+ROC-AUC and more negative BWT than most datasets, but its pixel-level results remain
+strong. This gap suggests that some anomalies are easier to localize than to classify at
+the image level. Since the single-dataset rows average over all 9 methods, they support
+conclusions about the CL protocol as a class; method-specific rankings require the per-
+method breakdowns rather than this pooled summary.
+Multi-dataset streams: The MultiDataset rows in Table 2 show that cross-dataset
+streams are substantially more challenging for naive image-level detection, with NCL ROC-
+AUC near chance under both Easy-to-Hard and Hard-to-Easy orderings. Continual learning
+recovers much of this gap, improving image-level ROC-AUC to roughly 0.79 and pixel-
+level ROC-AUC above 0.90 while keeping BWT close to zero. This suggests that the top-
+performing continual methods can retain useful normality models even when task transi-
+tions cross dataset boundaries, although the multi-dataset setting remains a stronger stress
+test than most within-dataset streams. Appendix F provides the corresponding transition
+heatmaps and a finer-grained analysis of cross-dataset interference.
+The same appendix also complements the aggregate table for single-dataset streams. The
+heatmaps expose the per-task trajectory after each update, making it possible to inspect
+when forgetting occurs, whether it is localized to specific concepts, and how NCL and CL
+differ under the same ordering. They therefore provide the fine-grained evidence needed
+to interpret results beyond dataset-level averages. The key takeaway is that CL primarily
+improves retained-task performance, especially in off-diagonal heatmap cells, and this effect
+is more uniform for pixel-level localization.
+5 Conclusion
+This paper presents a benchmark for continual industrial anomaly detection under evolv-
+ing production conditions. Rather than treating industrial inspection as a static train/test
+problem, we cast it as a sequential setting in which models must retain anomaly-detection
+ability on previously seen components while adapting to new products, acquisition condi-
+tions, and dataset-level shifts. Through a large-scale evaluation across multiple industrial
+datasets, task orderings, anomaly-detection perspectives, and continual-learning strategies,
+the benchmark exposes how performance depends not only on the detector architecture,
+but also on the structure of the task stream. This framing makes catastrophic forgetting,
+backward transfer, and cross-dataset adaptation central evaluation targets.
+Limitations: Although the benchmark covers diverse datasets and ordering regimes, it
+remains limited by the scope of existing public industrial anomaly datasets, which only
+partially reflect the temporal, operational, and sensor-level variability of real production
+lines. The proposed tasks approximate continual deployment by sequencing components and
+datasets, but they do not capture every practical constraint, such as changing inspection
+hardware, evolving quality standards, or long-term label drift. Future work should extend
+the benchmark with richer temporal data, stronger cross-factory distribution shifts, and
+10
+
+===== PAGE 11 =====
+standardized compute and memory budgets.
+Broader Impacts: Continual industrial anomaly detection can have positive practical im-
+pactbymakingvisualinspectionsystemsmoreadaptabletochangingproductionconditions.
+Better retention across components, products, and acquisition settings may reduce unnec-
+essary retraining, improve quality control, and support earlier detection of manufacturing
+defects. In safety- or reliability-sensitive industrial domains, more robust anomaly detection
+can also help reduce waste and limit downstream failures caused by defective parts. At the
+same time, benchmark progress should not be interpreted as a guarantee of deployment
+readiness. Incorrect anomaly scores may lead to missed defects, false alarms, unnecessary
+product rejection, or misplaced trust in automated inspection. Continual systems can also
+accumulate errors over time if changes in production are not monitored carefully. These
+risks motivate human-in-the-loop validation, periodic auditing on recent production data,
+clear reporting of failure cases, and deployment-specific checks before using such models in
+operational decision-making.
+References
+SametAkcay, AmirAtapour-Abarghouei, andTobyP.Breckon. Ganomaly: Semi-supervised
+anomaly detection via adversarial training. In ACCV, pages 622–637. Springer, 2018. doi:
+10.1007/978-3-030-20893-6_39.
+Akshatha Arodi, Margaux Luck, Jean-Luc Bedwani, Aldo Zaimi, Ge Li, Nicolas Pouliot,
+Julien Beaudry, and Gaétan Marceau Caron. CableInspect-AD: An expert-annotated
+anomaly detection dataset. In Advances in Neural Information Processing Systems,
+volume 37, pages 64703–64716. Curran Associates, Inc., 2024. doi: 10.52202/079017-2064.
+URL https://proceedings.neurips.cc/paper_files/paper/2024/file/
+76d9dd096d9469d6b7e732f0cddb51b3-Paper-Datasets_and_Benchmarks_Track.pdf.
+NeurIPS 2024 Datasets and Benchmarks Track.
+Manuel Barusco, Francesco Borsatti, Davide Dalle Pezze, Francesco Paissan, Elisabetta
+Farella, and Gian Antonio Susto. PaSTe: Improving the efficiency of visual anomaly
+detection at the edge. In Proceedings of the IEEE/CVF Conference on Computer Vi-
+sion and Pattern Recognition Workshops, pages 4065–4074. IEEE, 2025a. doi: 10.1109/
+CVPRW67362.2025.00387.
+Manuel Barusco, Lorenzo D’Antoni, Francesco Borsatti, Davide Dalle Pezze, and Gian An-
+tonio Susto. Memory efficient continual learning for edge-based visual anomaly detection.
+IFAC-PapersOnLine, 59(26):85–90, 2025b. ISSN 2405-8963. doi: 10.1016/j.ifacol.2025.
+12.015. 7th IFAC Conference on Intelligent Control and Automation Sciences (ICONS
+2025).
+Kilian Batzner, Lars Heckler, and Rebecca König. EfficientAD: Accurate visual anomaly
+detection at millisecond-level latencies. In WACV, pages 128–138. IEEE, 2024. doi:
+10.1109/WACV57701.2024.00020.
+Paul Bergmann, Michael Fauser, David Sattlegger, and Carsten Steger. MVTec AD – A
+comprehensive real-world dataset for unsupervised anomaly detection. In CVPR, pages
+9592–9600. IEEE, 2019. doi: 10.1109/CVPR.2019.00982.
+Hao Cheng, Jiaxiang Luo, and Xianyong Zhang. Multimodal industrial anomaly detection
+via uni-modal and cross-modal fusion. IEEE Trans. Ind. Informatics, 21(6):5000–5010,
+2025. doi: 10.1109/TII.2025.3552723.
+Thomas Defard, Aleksandr Setkov, Angelique Loesch, and Romaric Audigier. PaDiM:
+A patch distribution modeling framework for anomaly detection and localization. In
+Pattern Recognition. ICPR International Workshops and Challenges, volume 12664 of
+11
+
+===== PAGE 12 =====
+Lecture Notes in Computer Science, pages 475–489. Springer, 2021. doi: 10.1007/
+978-3-030-68799-1_35.
+Hanqiu Deng and Xingyu Li. Anomaly detection via reverse distillation from one-class
+embedding. In CVPR, pages 9737–9746. IEEE, 2022. doi: 10.1109/CVPR52688.2022.
+00951.
+Natalia Díaz-Rodríguez, Vincenzo Lomonaco, David Filliat, and Davide Maltoni. Don’t
+forget, there is more than forgetting: New metrics for continual learning. CoRR,
+abs/1810.13166, 2018.
+Han Gao, Huiyuan Luo, Fei Shen, and Zhengtao Zhang. Towards total online unsupervised
+anomaly detection and localization in industrial vision. CoRR, abs/2305.15652, 2023. doi:
+10.48550/ARXIV.2305.15652.
+Yinghui Guo, Meng Jiang, Qianhong Huang, Yang Cheng, and Jun Gong. MLDFR: A
+multilevel features restoration method based on damaged images for anomaly detection
+and localization. IEEE Trans. Ind. Informatics, 20(2):2477–2486, 2024. doi: 10.1109/
+TII.2023.3292904.
+Songqiao Han, Xiyang Hu, Hailiang Huang, Minqi Jiang, and Yue Zhao. ADBench:
+Anomaly detection benchmark. In Advances in Neural Information Processing Systems,
+volume 35, pages 32142–32159. Curran Associates, Inc., 2022. doi: 10.52202/068431-2329.
+URL https://proceedings.neurips.cc/paper_files/paper/2022/file/
+cf93972b116ca5268827d575f2cc226b-Paper-Datasets_and_Benchmarks.pdf.
+NeurIPS 2022 Datasets and Benchmarks Track.
+Lei Hu, Zhiyong Gan, Ling Deng, Jinglin Liang, Lingyu Liang, Shuangping Huang, and
+Tianshui Chen. ReplayCAD: Generative diffusion replay for continual anomaly detec-
+tion. In Proceedings of the Thirty-Fourth International Joint Conference on Artificial
+Intelligence, pages 2946–2954, 2025. doi: 10.24963/ijcai.2025/328.
+StepanJezek, MartinJonak, RadimBurget, PavelDvorak, andMilosSkotak. Deeplearning-
+based defect detection of metal parts: Evaluating current methods in complex conditions.
+In 2021 13th International Congress on Ultra Modern Telecommunications and Control
+Systems and Workshops (ICUMT), pages 66–71. IEEE, 2021. doi: 10.1109/ICUMT54235.
+2021.9631567.
+Jielin Jiang, Jiale Zhu, Muhammad Bilal, Yan Cui, Neeraj Kumar, Ruihan Dou, Feng Su,
+and Xiaolong Xu. Masked swin transformer unet for industrial anomaly detection. IEEE
+Trans. Ind. Informatics, 19(2):2200–2209, 2023. doi: 10.1109/TII.2022.3199228.
+Sungwook Lee, Seunghyun Lee, and Byung Cheol Song. CFA: Coupled-hypersphere-based
+feature adaptation for target-oriented anomaly localization. IEEE Access, 10:78446–
+78454, 2022. doi: 10.1109/ACCESS.2022.3193699.
+Wujin Li, Jiawei Zhan, Jinbao Wang, Bizhong Xia, Bin-Bin Gao, Jun Liu, Chengjie Wang,
+and Feng Zheng. Towards continual adaptation in industrial anomaly detection. In
+Proceedings of the 30th ACM International Conference on Multimedia, pages 2871–2880,
+2022. doi: 10.1145/3503161.3548232.
+Xiaofan Li, Xin Tan, Zhuo Chen, Zhizhong Zhang, Ruixin Zhang, Rizen Guo, Guanna Jiang,
+YulongChen, YanyunQu, LizhuangMa, andYuanXie. One-for-more: Continualdiffusion
+model for anomaly detection. In Proceedings of the IEEE/CVF Conference on Computer
+Vision and Pattern Recognition, pages 4766–4775, 2025. doi: 10.1109/CVPR52734.2025.
+00449.
+12
+
+===== PAGE 13 =====
+Jiaqi Liu, Kai Wu, Qiang Nie, Ying Chen, Bin-Bin Gao, Yong Liu, Jinbao Wang, Chengjie
+Wang, and Feng Zheng. Unsupervised continual anomaly detection with contrastively-
+learned prompt. Proceedings of the AAAI Conference on Artificial Intelligence, 38(4):
+3639–3647, 2024. doi: 10.1609/aaai.v38i4.28153.
+David Lopez-Paz and Marc’Aurelio Ranzato. Gradient episodic memory for continual learn-
+ing. In Advances in Neural Information Processing Systems, pages 6467–6476, 2017.
+Haoquan Lu, Hanzhe Liang, Jie Zhang, Chenxi Hu, Jinbao Wang, and Can Gao. C3D-
+AD: Toward continual 3d anomaly detection via kernel attention with learnable advisor.
+CoRR, abs/2508.01311, 2025. doi: 10.48550/arXiv.2508.01311.
+Pankaj Mishra, Riccardo Verk, Daniele Fornasier, Claudio Piciarelli, and Gian Luca Foresti.
+VT-ADL: A vision transformer network for image anomaly detection and localization. In
+2021 IEEE 30th International Symposium on Industrial Electronics (ISIE), pages 01–06.
+IEEE, 2021. doi: 10.1109/ISIE45552.2021.9576231.
+Yuchen Qiang, Jiuxin Cao, Shiwei Zhou, Junyang Yang, Lijia Yu, and Bo Liu. tGARD:
+Text-guided adversarial reconstruction for industrial anomaly detection. IEEE Trans.
+Ind. Informatics, 21(12):9297–9308, 2025. doi: 10.1109/TII.2025.3598429.
+Karsten Roth, Latha Pemula, Joaquin Zepeda, Bernhard Schölkopf, Thomas Brox, and
+Peter Gehler. Towards total recall in industrial anomaly detection. In CVPR, pages
+14318–14328. IEEE, 2022. doi: 10.1109/CVPR52688.2022.01392.
+Dejene M. Sime, Nan Ouyang, Kai Sheng, Getu T. Fellek, Wenkang Wan, Adnan A. Qaseem,
+XiaojiangRen, andShehuiBu. Saliency-guidedtransformerattentionwithpixel-levelcon-
+trastive learning for weakly supervised defect localization. IEEE Trans. Ind. Informatics,
+22(4):3376–3387, 2026. doi: 10.1109/TII.2025.3648429.
+Jiaqi Tang, Hao Lu, Xiaogang Xu, Ruizheng Wu, Sixing Hu, Tong Zhang, Tsz Wa Cheng,
+Ming Ge, Ying-Cong Chen, and Fugee Tsung. An incremental unified framework for small
+defect inspection. In Computer Vision – ECCV 2024, volume 15089 of Lecture Notes in
+Computer Science, pages 307–324. Springer, 2024. doi: 10.1007/978-3-031-72751-1_18.
+Xian Tao, Dapeng Zhang, Wenzhi Ma, Zhanxin Hou, ZhenFeng Lu, and Chandranath Adak.
+Unsupervised anomaly detection for surface defects with dual-siamese network. IEEE
+Trans. Ind. Informatics, 18(11):7707–7717, 2022. doi: 10.1109/TII.2022.3142326.
+Guodong Wang, Shumin Han, Errui Ding, and Di Huang. Student-teacher feature pyramid
+matching for anomaly detection. In 32nd British Machine Vision Conference (BMVC).
+BMVA Press, 2021. doi: 10.5244/C.35.349. URL https://bmva-archive.org.uk/bmvc/
+2021/conference/papers/paper_1273.html. Article 306.
+Xu Wang, Jingyuan Zhuo, Zhiyuan You, Zhiyu Tan, Yikuan Yu, Siyu Wang, and
+Xinyi Le. ReinAD: Towards real-world industrial anomaly detection with a com-
+prehensive contrastive dataset. In Advances in Neural Information Processing
+Systems, volume 38. Curran Associates, Inc., 2025. doi: 10.52202/085713-0651.
+URL https://proceedings.neurips.cc/paper_files/paper/2025/file/
+1bdcb065d40203a00bd39831153338bb-Paper-Datasets_and_Benchmarks_Track.pdf.
+NeurIPS 2025 Datasets and Benchmarks Track.
+Daniel Weimer, Bernd Scholz-Reiter, and Moshe Shpitalni. Design of deep convolutional
+neural network architectures for automated feature extraction in industrial inspection.
+CIRP Annals, 65(1):417–420, 2016. doi: 10.1016/j.cirp.2016.04.072.
+MuhaoXu, CuipingZhu, GuangFeng, andSijieNiu. Multitaskhybridknowledgedistillation
+for unsupervised anomaly detection. IEEE Trans. Ind. Informatics, 21(7):5666–5676,
+2025. doi: 10.1109/TII.2025.3556083.
+13
+
+===== PAGE 14 =====
+Jiawei Yu, Ye Zheng, Xiang Wang, Wei Li, Yushuang Wu, Rui Zhao, and Liwei Wu. Fast-
+Flow: Unsupervised anomaly detection and localization via 2D normalizing flows. CoRR,
+abs/2111.07677, 2021. doi: 10.48550/arXiv.2111.07677.
+Ruifan Zhang, Hao Wang, Mingyao Feng, Yikun Liu, and Gongping Yang. Dual-constraint
+autoencoder and adaptive weighted similarity spatial attention for unsupervised anomaly
+detection. IEEE Trans. Ind. Informatics, 20(7):9393–9403, 2024. doi: 10.1109/TII.2024.
+3384583.
+Zhizhong Zhang, Guchu Zou, Chengwei Chen, Zhenyi Qi, Xiaoyang Yu, Jingwen Qi, Yongke
+Yao, Xiaofan Li, Yuan Xie, and Xin Tan. A task-aware parameter decoupling framework
+for continual anomaly detection. IEEE Trans. Ind. Informatics, 22(2):1118–1128, 2026.
+doi: 10.1109/TII.2025.3622997.
+Yang Zou, Jongheon Jeong, Latha Pemula, Dongqing Zhang, and Onkar Dabeer. SPot-the-
+Difference self-supervised pre-training for anomaly detection and segmentation. In ECCV
+(30), volume 13690 of Lecture Notes in Computer Science, pages 392–408. Springer, 2022.
+doi: 10.1007/978-3-031-20056-4_23.
+14
+
+===== PAGE 15 =====
+A Benchmark Comparison
+Table 3 positions InCLAD relative to representative anomaly-detection and industrial-
+inspection benchmarks. The comparison emphasizes that our contribution is not a new
+raw image corpus, but a continual-learning benchmark layer built on top of public indus-
+trial datasets. InCLAD combines normal-only training, image-level detection, pixel-level
+localization, curriculum-style task orderings, a multi-dataset stream, and forgetting-aware
+metrics within a single protocol.
+Table3: Comparisonwithrepresentativeanomaly-detectionbenchmarks. “Partial” indicates
+that the property is covered only for some datasets, tasks, or evaluation settings.
+Benchmark Industrial Continual Normal-only Image Pixel Curricula Multi-dataset BWT
+domain / task-inc. training eval. eval. orderings stream metrics
+MVTec AD [Bergmann et al., 2019] Yes No Yes Yes Yes No No No
+VisA [Zou et al., 2022] Yes No Yes Yes Yes No No No
+ADBench [Han et al., 2022] Partial No Partial No No No Yes No
+CableInspect-AD [Arodi et al., 2024] Yes No Partial Yes Yes No No No
+ReinAD [Wang et al., 2025] Yes No Yes Yes Yes No No No
+InCLAD (ours) Yes Yes Yes Yes Yes Yes Yes Yes
+B Benchmark Metrics
+Continual-learning metrics should characterize more than performance on the most recent
+task. Following prior work on lifelong-learning evaluation Lopez-Paz and Ranzato [2017],
+Díaz-Rodríguez et al. [2018], we evaluate whether a method can learn incoming tasks, re-
+tain knowledge of previously learned tasks, and transfer knowledge across the stream while
+operating under the memory constraints imposed by the benchmark protocol.
+Let T1, . . . , TN denote a task stream. During evaluation, we construct a results matrix
+R ∈ RN ×N , where Ri,j is the ROC-AUC obtained on the test set of task Tj after the learner
+has been trained up to task Ti. Entries with j > i are not used because future tasks have not
+yet been observed. The same definition is used independently for image-level and pixel-level
+evaluation: in the image-level case, Ri,j stores image-level ROC-AUC; in the pixel-level
+case, it stores pixel-level ROC-AUC when segmentation masks are available.
+Continual ROC-AUC. We report the lifetime average ROC-AUC over the lower tri-
+angular part of R, including the diagonal. This summarizes performance over the entire
+learning trajectory rather than only after the final task:
+ROC-AUCCL = 2 N (N + 1)
+NX
+i=1
+iX
+j=1
+Ri,j . (1)
+For readability, the experimental tables refer to ROC-AUCCL simply as ROC-AUC.
+Backward Transfer. BWT measures the average effect of learning later tasks on earlier
+tasks. It compares each post-update score Ri,j , with i > j, against the score obtained
+immediately after learning task Tj , namely Rj,j :
+BWT = 2 N (N − 1)
+NX
+i=2
+i−1X
+j=1
+(Ri,j − Rj,j ) . (2)
+Positive BWT indicates that subsequent tasks improve earlier-task performance, whereas
+negative BWT indicates forgetting. Strongly negative BWT corresponds to severe forgetting
+and is especially undesirable in industrial inspection, where a deployed system may revisit
+components learned earlier in the stream.
+15
+
+===== PAGE 16 =====
+C Continual Adaptations for PatchCore, PaDiM, and
+CFA
+ThisappendixdetailstheadaptationsusedtomakePatchCore, PaDiM,andCFAcompatible
+with our continual anomaly-detection protocol. Let T1, . . . , TK denote the task stream and
+let Xt = {x(t) i }nt i=1 be the normal training images for task Tt. At evaluation time, task
+identity is not used to select a model-specific memory. Instead, each method scores an input
+against the task-specific normality models accumulated so far and selects the one that best
+explains the input as normal.
+C.1 Continual PatchCore
+Standard PatchCore extracts patch embeddings with a fixed feature extractor and stores a
+coreset memory bank for nearest-neighbor anomaly scoring. A naive continual implemen-
+tation that simply merges all task banks would mix distinct normality distributions and
+make old tasks dominate memory as the stream grows. We therefore maintain separate task
+banks and use an explicit budget for previous tasks.
+Let f be the frozen feature extractor and let Zt = {z(t) i,p } be all patch embeddings
+extracted from Xt. For each new task, we first compute the native PatchCore coreset
+Ct = Coreset(Zt),
+using the same coreset ratio as the non-continual PatchCore baseline. The current task is
+kept at this native resolution. Previous task banks C1, . . . , Ct−1 are then compressed under
+a history budget Bt = ⌊ρ|Ct|⌋, where ρ is the previous-task budget ratio. Each previous
+task receives approximately bt = max(1, ⌊Bt/(t − 1)⌋) patches.
+Compression is distance-weighted. For a patch z in a previous bank Cj , we compute its
+distance to the current task,
+wt(z) = min c∈Ct ∥z − c∥2.
+Patches far from the current distribution are more task-specific and are kept preferentially.
+The weighted greedy coreset selects patches by
+z⋆ = arg max
+z∈Cj
+wt(z) min s∈S ∥z − s∥2,
+where S is the set of already selected patches for the compressed bank.
+PatchCore CL update.
+1. Extract patch embeddings Zt = f (Xt).
+2. Build the current native coreset Ct = Coreset(Zt).
+3. For every previous bank Cj , compute wt(z) and shrink Cj to bt patches using weighted
+greedy coreset selection.
+4. Store the list of task banks {C1, . . . , Ct} and calibrate the threshold on Xt.
+For an input image x, let Z(x) denote its patch embeddings. We compute nearest-
+neighbor patch distances to every task bank Cj , aggregate them into a task-level normality
+score, and select the closest bank:
+j⋆(x) = arg min
+j
+1
+|Z(x)|
+X
+z∈Z(x)
+dNN(z, Cj ).
+The final image score and anomaly map are then computed using Cj⋆ .
+16
+
+===== PAGE 17 =====
+C.2 Continual PaDiM
+PaDiM is not updated through gradient-based replay. It estimates a location-wise Gaussian
+distribution over patch embeddings for normal images. To avoid mixing heterogeneous
+components into one Gaussian model, we fit and store one PaDiM distribution per task.
+Let zp(x) be the selected PaDiM feature vector at spatial location p for image x. For
+task Tt, we estimate
+µt,p = 1 nt X x∈Xt zp(x), Σt,p = Cov{zp(x) : x ∈ Xt} + ϵI,
+for every spatial location p, and store Gt = {(µt,p, Σ−1 t,p )}p.
+PaDiM CL update.
+1. Extract PaDiM feature maps for normal images in Xt.
+2. Estimate one location-aware Gaussian model Gt for the current task.
+3. Append Gt to the list of task distributions {G1, . . . , Gt}.
+4. Calibrate the anomaly threshold on Xt using the task-selection rule.
+At inference time, each stored task distribution produces a Mahalanobis map:
+mj,p(x) =
+q
+(zp(x) − µj,p)⊤Σ−1 j,p (zp(x) − µj,p).
+Let Aj (x) be the image-level score obtained by aggregating {mj,p(x)}p. We select
+j⋆(x) = arg min
+j
+Aj (x),
+and report the image score and pixel-level map from Gj⋆ .
+C.3 Continual CFA
+CFA differs from PatchCore and PaDiM because it contains a trainable descriptor network
+and a memory bank used by the CFA soft-boundary objective. The memory bank used
+for training must remain compatible with the descriptor being updated, and old inference
+banks become stale after every descriptor update. Our continual CFA therefore separates
+the training bank from the inference banks.
+Let gθ be the CFA descriptor. At task t, let Rt denote replay samples from previous
+tasks and define Ut = Xt ∪ Rt. Before descriptor training, we initialize a training bank
+Btrain t = Bank(gθt−1 (Ut)),
+which serves as the fixed memory target for the CFA soft-boundary loss. We then update
+the descriptor parameters by minimizing the standard CFA training loss on Ut:
+θt = arg min θ LCFA(gθ (Ut), Btrain t ).
+After the descriptor update, all per-task inference banks are rebuilt using the current de-
+scriptor so that every bank lies in the same embedding space:
+Binf j = Bank(gθt (Xj )), j = 1, . . . , t.
+17
+
+===== PAGE 18 =====
+CFA CL update.
+1. Store the current task samples Xt for future bank reconstruction.
+2. Form Ut = Xt ∪ Rt from current data and replay samples.
+3. Initialize the training bank Btrain t from gθt−1 (Ut).
+4. Train the CFA descriptor on Ut with the fixed training bank.
+5. Rebuild every per-task inference bank Binf 1 , . . . , Binf t using the updated descriptor gθt .
+6. Calibrate the threshold on Xt and update the replay buffer.
+For prediction, CFA scores the image against each inference bank and selects the bank
+that yields the lowest image-level anomaly score:
+j⋆(x) = arg min
+j
+A(x; Binf j , gθt ).
+The final score and anomaly map are computed using B inf j⋆ . This avoids comparing em-
+beddings generated by different descriptor states and prevents old banks from becoming
+incompatible with the current CFA model.
+D Reproducibility Details
+D.1 Dataset Licenses and Scenario Release
+The continual scenarios are built on existing public datasets, and their release must respect
+the corresponding dataset licenses. MVTec AD is released under CC BY-NC-SA 4.0, VisA
+under CC BY 4.0, BTAD under CC BY-SA 4.0, MPDD under CC BY-NC-SA 4.0, and
+DAGM under CC BY 4.0. Because some of these licenses are non-commercial and share-
+alike, we do not redistribute the raw images or masks in our repository. Instead, we release
+code, configuration files, and scenario manifests containing dataset names, task orderings,
+relative file paths, split definitions, and random seeds. Practitioners are expected to obtain
+the raw datasets from the official sources, place them in a local directory, and run our
+scripts to materialize the continual scenarios. This keeps the benchmark reproducible while
+avoiding repackaging datasets under incompatible or more permissive repository terms.
+D.2 Computational Resources
+Experiments were run on an institutional Red Hat Enterprise Linux HPC system and on
+two local high-performance workstations. The HPC system includes one 2 TB big-memory
+node, one node equipped with two NVIDIA H100 GPUs with 80 GB of GPU memory each,
+and six nodes equipped with four NVIDIA L40 GPUs with 40 GB of GPU memory each.
+Each compute node has 512 GB of RAM and dual-socket Intel Xeon Platinum 8462Y+
+CPUs with 32 cores per socket.
+D.3 Empirical Time-Complexity
+Empirical time complexity is measured through wall-clock training and evaluation time for
+each method, dataset, task ordering, and anomaly-detection level. Tables 4 and 5 report
+training and evaluation times separately, averaged across available orderings. The mea-
+surements show that runtime is driven by both the dataset scale and the model family.
+Feature-bank methods such as PatchCore and PaDiM can have modest update costs but
+expensive evaluation, especially on larger streams such as VisA and DAGM, because test
+images must be compared against accumulated task-specific statistics or memory banks.
+18
+
+===== PAGE 19 =====
+Gradient-trained methods such as FastFlow, RD4AD, STFPM, PaSTe, and CFA instead
+concentrate more cost in training. Continual variants usually increase runtime relative to
+the naive setting because they include replay, accumulated task models, or repeated evalu-
+ation over previously seen tasks. The effect is most visible for evaluation-heavy methods on
+long streams, where retaining separate task-specific normality models improves continual
+behavior but also increases the cost of scoring.
+D.4 Hyperparameter Configurations
+Because runtime depends on training schedules, backbones, batch sizes, and memory-bank
+construction, we report the effective hyperparameters used in the visual anomaly-detection
+experiments. Tables 6 and 7 summarize the CL-specific and non-CL settings, respectively.
+The CL table covers the adapted PatchCore, PaDiM, and CFA variants: CFA is trained
+for multiple epochs, while PaDiM and PatchCore use fixed pretrained features followed by
+task-specific statistics or memory-bank updates. These settings provide the context needed
+to interpret the timing results in Appendix D.3.
+19
+
+===== PAGE 20 =====
+Table 4: Execution times (train and eval separately, mean ± population std across available
+orderings) for WideResNet-50-2-based models. Continual denotes CL for CFA, PaDiM,
+and PatchCore, and replay for the remaining models. When image and pixel results were
+produced as separate runs, their times are summed to reflect the total wall-clock cost of
+obtaining both modalities.
+Dataset Model Time Naive Continual
+MVTec
+CFA Train 6m32s (± 1m42s) 15m42s (± 10m57s) Eval 9m35s (± 1m40s) 52m7s (± 31m50s)
+PaDiM Train 6m19s (± 1m39s) 7m9s (± 1m18s) Eval 30m28s (± 3m22s) 65m24s (± 3m37s)
+PatchCore Train 3m26s (± 12.6s) 4m17s (± 10.2s) Eval 34m27s (± 3m58s) 49m49s (± 1m42s)
+FastFlow Train 112m29s (± 5m0s) 122m35s (± 1m59s) Eval 16m51s (± 7.9s) 16m12s (± 1m21s)
+PaSTe Train 19m33s (± 1m30s) 27m13s (± 7m40s) Eval 9m27s (± 10.9s) 11m4s (± 2m13s)
+RD4AD Train 57m11s (± 6.6s) 79m58s (± 22m31s) Eval 10m46s (± 25.5s) 11m47s (± 2m27s)
+STFPM Train 29m9s (± 6m1s) 26m3s (± 7m30s) Eval 14m5s (± 2m52s) 11m53s (± 1m30s)
+VisA
+CFA Train 39m22s (± 5m10s) 64m40s (± 13m51s) Eval 19m36s (± 2m35s) 102m38s (± 24m20s)
+PaDiM Train 11m11s (± 33.2s) 20m20s (± 5m14s) Eval 51m32s (± 17m21s) 105m0s (± 28m37s)
+PatchCore Train 29m40s (± 4m1s) 32m23s (± 2m55s) Eval 129m17s (± 19m19s) 181m7s (± 22m33s)
+FastFlow Train 283m25s (± 31m56s) 346m6s (± 52m30s) Eval 22m0s (± 2m55s) 20m36s (± 56.7s)
+PaSTe Train 59m20s (± 24m4s) 120m40s (± 29m47s) Eval 12m41s (± 4m19s) 21m29s (± 3m16s)
+RD4AD Train 253m25s (± 89m11s) 274m39s (± 146m15s) Eval 19m57s (± 6m57s) 18m17s (± 8m9s)
+STFPM Train 79m47s (± 20m39s) 105m24s (± 31m44s) Eval 16m32s (± 5m9s) 18m18s (± 4m22s)
+BTAD
+CFA Train 2m57s (± 3m22s) 3m31s (± 4m5s) Eval 1m11s (± 9.9s) 1m30s (± 36.1s)
+PaDiM Train 8m11s (± 3m56s) 10m38s (± 3m13s) Eval 10m10s (± 1m3s) 14m17s (± 56.6s)
+PatchCore Train 18m42s (± 55.7s) 20m27s (± 15.7s) Eval 21m32s (± 2m23s) 26m28s (± 1m1s)
+FastFlow Train 55m17s (± 7m55s) 62m46s (± 8m42s) Eval 1m37s (± 23.7s) 1m36s (± 20.8s)
+PaSTe Train 10m39s (± 3m14s) 12m5s (± 3m38s) Eval 1m3s (± 22.1s) 1m2s (± 22.0s)
+RD4AD Train 30m22s (± 9m6s) 34m28s (± 10m37s) Eval 1m5s (± 24.0s) 1m5s (± 24.4s)
+STFPM Train 11m56s (± 3.7s) 13m31s (± 3.1s) Eval 58.7s (± 1.2s) 58.4s (± 1.2s)
+MPDD
+CFA Train 3m3s (± 10.8s) 3m37s (± 17.2s) Eval 1m33s (± 5.0s) 2m54s (± 25.6s)
+PaDiM Train 10m5s (± 6m55s) 9m55s (± 1m6s) Eval 11m35s (± 42.5s) 30m12s (± 2m47s)
+PatchCore Train 2m38s (± 5.5s) 3m54s (± 1m5s) Eval 11m15s (± 2m19s) 14m2s (± 2m42s)
+FastFlow Train 21m36s (± 19.8s) 25m15s (± 37.3s) Eval 1m59s (± 7.7s) 2m1s (± 8.2s)
+PaSTe Train 6m34s (± 2.1s) 7m38s (± 5.9s) Eval 1m30s (± 2.3s) 1m31s (± 2.3s)
+RD4AD Train 16m24s (± 10.5s) 18m51s (± 12.4s) Eval 1m32s (± 2.1s) 1m32s (± 2.5s)
+STFPM Train 6m49s (± 9.0s) 7m59s (± 4.8s) Eval 1m54s (± 2.6s) 1m53s (± 2.6s)
+DAGM
+CFA Train 20m39s (± 17m42s) 30m44s (± 17m39s) Eval 33m38s (± 18m9s) 114m58s (± 61m21s)
+PaDiM Train 4m42s (± 2m47s) 10m55s (± 7m41s) Eval 69m55s (± 15m47s) 133m15s (± 35m49s)
+PatchCore Train 18m33s (± 6m6s) 20m40s (± 6m12s) Eval 185m22s (± 67m21s) 224m32s (± 69m37s)
+FastFlow Train 207m1s (± 15m13s) 283m59s (± 92m53s) Eval 44m14s (± 1m32s) 49m52s (± 14m32s)
+PaSTe Train 34m2s (± 1m22s) 41m12s (± 4m40s) Eval 24m32s (± 48.2s) 24m43s (± 1m53s)
+RD4AD Train 110m2s (± 16m3s) 112m44s (± 6m31s) Eval 26m28s (± 2m8s) 25m49s (± 1m54s)
+STFPM Train 50m34s (± 4m21s) 59m2s (± 4m14s) Eval 33m49s (± 2m52s) 32m46s (± 1m59s)
+20
+
+===== PAGE 21 =====
+E Scenario Ordering Details
+This appendix reports the exact concept orderings used to derive the structured continual
+scenarios in the first stage of the study (see Tables 8–13). The ordering tables serve two
+purposes. First, they make the scenario construction reproducible by listing the hard-to-
+easy sequence used for each dataset; the easy-to-hard curriculum is obtained by reversing
+the same sequence. Second, they show how stable the notion of task difficulty is across
+detector families. Table 8 reports the pairwise Spearman correlations among PatchCore,
+PaDiM, and CFA. High correlations indicate that the three Single-Task Experts agree on
+which concepts are easier or harder, while low or negative correlations indicate that difficulty
+is partly method-dependent. This is why the benchmark uses average rank rather than the
+score of a single detector to define curriculum orderings.
+The agreement patterns differ substantially across datasets. BTAD has only three con-
+cepts, but the models consistently identify product 02 as the hardest and product 03 as the
+easiest. VisA also shows strong agreement across all detector pairs, with capsules and mac-
+aroni variants near the hard end and chewinggum or pcb4 near the easy end. DAGM has
+generally high agreement between PatchCore and PaDiM, but weaker agreement involving
+CFA, showing that some synthetic texture classes favor different modeling biases. MVTec
+AD occupies an intermediate regime: the easiest concepts such as bottle, leather, and wood
+are consistently strong, while concepts such as pill, screw, and capsule form the hard end of
+the stream. MPDD is the clearest case where ordering cannot be inferred reliably from one
+detector alone. PaDiM and CFA are negatively correlated on MPDD, and concepts such as
+metal_plate are easy for CFA but difficult for PaDiM. The average-rank ordering therefore
+prevents the curriculum from being dominated by one method’s failure mode.
+These differences matter for interpreting continual-learning results. Datasets with strong
+agreement, such as VisA and BTAD, provide curricula where task difficulty is relatively
+stable across model families. Datasets with weaker agreement, especially MPDD and parts
+of MVTec AD, create more ambiguous streams: a task may be easy for memory-based
+retrieval but difficult for Gaussian statistics, or vice versa. Such streams are useful stress
+tests because forgetting and backward transfer are then affected not only by nominal task
+order, but also by how well a continual method’s inductive bias matches each concept.
+21
+
+===== PAGE 22 =====
+F Fine-grained Heatmap Results
+Figures 3–12 provide the task-transition heatmaps used to complement the aggregate re-
+sults in Table 2. Each triangular block corresponds to one ordering. Diagonal cells show
+performance when a task is first learned, whereas off-diagonal cells show whether that task
+is retained after subsequent updates. Across datasets, the main pattern is that NCL often
+preserves strong diagonal performance but loses intensity in off-diagonal cells. CL produces
+warmer and more uniform lower-triangular regions, indicating that the gains in the aggre-
+gate table are driven not only by better final scores but also by better retention of individual
+tasks.
+Ordering effects. Ordering effects are most visible in the off-diagonal cells. In NCL, the
+same task can perform well immediately after training and then degrade sharply after later
+tasksareintroduced. ThisisespeciallyvisibleinBTADandMPDDattheimagelevel, where
+several early-task cells become much darker after subsequent updates. Random streams
+usually fall between the two curriculum directions, confirming that the benchmark captures
+the interaction between task sequence and the update rule rather than only average dataset
+difficulty. CL reduces this ordering sensitivity: the color contrast between hard-to-easy,
+easy-to-hard, and random blocks becomes less severe, particularly for pixel-level evaluation.
+Thus, the heatmaps refine the aggregate result by showing that ordering effects are often
+task-local, with a small number of vulnerable concepts driving much of the forgetting signal.
+Adaptation versus retention. The NCL–CL contrast is strongest on retained-task en-
+tries rather than on newly learned diagonal entries. BTAD provides the clearest example:
+NCL includes high diagonal values, but retained performance on earlier tasks drops sub-
+stantially; CL raises many of those off-diagonal cells and makes the three ordering blocks
+more homogeneous. MPDD shows a related but more nuanced pattern. Image-level CL
+improves retention relative to NCL, but the heatmaps remain less uniform than their pixel-
+level counterparts, matching the main-paper observation that MPDD is harder for image-
+level detection than for localization. MVTec and VisA also show reduced contrast between
+newly learned and previously learned tasks under CL, although some low-intensity regions
+remain. DAGM exhibits more moderate gains and retains class-dependent variability, sug-
+gesting that continual adaptation reduces but does not eliminate concept-specific interfer-
+ence. Across datasets, pixel-level heatmaps are generally warmer and more stable than
+image-level heatmaps. This is particularly evident for MPDD, MVTec, and VisA, where CL
+produces high and relatively uniform localization scores across many task transitions. This
+separates two effects that are conflated in a single aggregate score: a model may preserve
+local defect evidence well while still struggling to convert that evidence into robust image-
+level anomaly scores. The heatmaps therefore explain why the main table can show strong
+pixel-level CL performance even when image-level BWT remains more negative for some
+datasets.
+Multi-dataset streams. Figures 13–20 and 21–28 extend the transition-matrix analy-
+sis to the 27-task multi-dataset stream for ResNet-18 and Wide ResNet-50-2, respectively.
+These heatmaps are averaged across the three strongest methods selected from the single-
+dataset study, CFA, PaDiM, and PaSTe, so they summarize behavior across multiple de-
+tector families rather than a single model. Compared with the within-dataset matrices, the
+multi-dataset heatmaps expose broader domain-shift effects: low-intensity bands are less
+tied to a single product category and more often appear around transitions between source
+datasets. This pattern is visible for both backbones, which indicates that the multi-dataset
+scenario introduces interference beyond ordinary within-dataset task ordering rather than
+an artifact of a particular feature extractor. The NCL–CL contrast remains clear in this
+harder setting. For both Hard-to-Easy and Easy-to-Hard streams, Figures 13 and 19 show
+22
+
+===== PAGE 23 =====
+that image-level NCL performance is fragile after cross-dataset transitions, whereas the cor-
+responding CL heatmaps in Figures 14 and 18 recover more of the off-diagonal mass. This
+supports the conclusion that continual adaptation is especially important when new tasks
+change not only the inspected component but also the dataset domain. Pixel-level results
+show the same qualitative pattern: CL produces warmer and more coherent retained-task
+regions than NCL in Figures 16, 20, 24, and 28, suggesting that localization is more ro-
+bust to cross-dataset heterogeneity once replay or method-specific continual mechanisms
+are used. The Wide ResNet-50-2 heatmaps reinforce this interpretation: despite changes
+in representation capacity, the same qualitative structure persists—NCL is most brittle in
+off-diagonal retained-task regions, whereas CL yields smoother lower-triangular blocks and
+better retention across dataset boundaries. Thus, the multi-dataset findings are not confined
+to the ResNet-18 backbone; they reflect a consistent benchmark-level stress pattern.
+23
+
+===== PAGE 24 =====
+0.00
+0.50
+1.00
+02 0.77
+01 0.52 0.96
+03 0.54 0.69 0.96
+02 01 03
+Hard->Easy
+03 0.99
+01 0.70 0.96
+02 0.43 0.39 0.77
+03 01 02
+Easy->Hard
+02 0.94
+01 0.37 0.78
+03 0.52 0.55 0.97
+02 01 03
+Random
+0.00
+0.50
+1.00
+02 0.77
+01 0.74 0.92
+03 0.70 0.92 0.91
+02 01 03
+Hard->Easy
+03 0.99
+01 0.91 0.97
+02 0.91 0.94 0.78
+03 01 02
+Easy->Hard
+02 0.90
+01 0.83 0.75
+03 0.87 0.78 0.93
+02 01 03
+Random
+0.00
+0.50
+1.00
+02 0.94
+01 0.55 0.92
+03 0.50 0.57 0.97
+02 01 03
+Hard->Easy
+03 0.99
+01 0.77 0.94
+02 0.55 0.63 0.94
+03 01 02
+Easy->Hard
+02 0.93
+01 0.59 0.94
+03 0.60 0.56 0.98
+02 01 03
+Random
+0.00
+0.50
+1.00
+02 0.91
+01 0.90 0.86
+03 0.89 0.83 0.92
+02 01 03
+Hard->Easy
+03 0.99
+01 0.97 0.94
+02 0.96 0.93 0.95
+03 01 02
+Easy->Hard
+02 0.88
+01 0.87 0.91
+03 0.86 0.90 0.93
+02 01 03
+Random
+Figure 3: BTAD, ResNet-18 : concept transition matrices across three orderings
+(Hard→Easy, Easy→Hard, Random): NCL (top) vs. CL (bottom), image-level and pixel-
+level.
+24
+
+===== PAGE 25 =====
+Table 5: Execution times (train and eval separately, mean ± population std across available
+orderings) for models without the two-backbone setup: GANomaly (default) and Efficien-
+tAD (small). When image and pixel results were produced as separate runs, their times are
+summed to reflect the total wall-clock cost of obtaining both modalities.
+Dataset Model Time Naive Continual
+MVTec
+GANomaly (default) Train 4m59s (± 0.7s) 5m56s (± 6.1s) Eval 9m38s (± 8.4s) 9m44s (± 7.1s)
+EfficientAD (small) Train – 80m15s (± 1m6s) Eval – 11m55s (± 1.4s)
+VisA
+GANomaly (default) Train 11m32s (± 10.5s) 13m23s (± 18.4s) Eval 10m44s (± 35.1s) 10m35s (± 41.3s)
+EfficientAD (small) Train 202m50s (± 50m42s) 293m14s (± 84m23s) Eval 15m57s (± 2m41s) 22m37s (± 8m48s)
+BTAD
+GANomaly (default) Train 3m7s (± 14.7s) 3m32s (± 17.1s) Eval 1m28s (± 2.6s) 1m30s (± 3.8s)
+EfficientAD (small) Train 24m57s (± 8.2s) 28m18s (± 11.0s) Eval 1m35s (± 5.4s) 1m36s (± 5.0s)
+MPDD
+GANomaly (default) Train 1m14s (± 5.5s) 1m23s (± 6.4s) Eval 1m39s (± 5.8s) 1m36s (± 2.7s)
+EfficientAD (small) Train 7m42s (± 4.7s) 8m55s (± 9.6s) Eval 1m43s (± 3.3s) 1m44s (± 5.0s)
+DAGM GANomaly (default) Train 10m50s (± 1m25s) 12m52s (± 1m41s) Eval 41m40s (± 9m42s) 45m0s (± 11m48s)
+Table 6: Effective hyperparameters of the CL-specific visual anomaly detection models used
+in our experiments. The runner passes epochs=50 to all CL jobs, but this setting is effective
+only for CFA.
+Hyperparameter CFA PaDiM PatchCore
+Training
+Backbone resnet18 / wide_resnet50_2 resnet18 / wide_resnet50_2 resnet18 / wide_resnet50_2
+Pretrained ✓ ✓ ✓
+Batch size 32 32 32
+Epochs 50 — —
+Learning rate 10−3 — —
+Weight decay 5 · 10−4 — —
+Architecture / scoring
+Input size (224, 224) (224, 224) (224, 224)
+Threshold quantile 0.99 0.99 0.99
+Freeze backbone ✓ ✓ ✓
+Model-specific
+k-neighbors 3 — —
+Repulsion neighbors 3 — —
+nfeatures — 100 —
+Covariance regularization — 0.01 —
+Coreset sampling ratio — — 0.1
+Coreset projection dim. — — 128
+Coreset starting points — — 10
+Neighbors at inference — — 1
+Previous-ratio (CL) — — 0.25
+25
+
+===== PAGE 26 =====
+Table 7: Effective hyperparameters of the non-CL visual anomaly detection models used
+in our experiments. When two backbones are listed, separate runs were executed for both
+settings.
+Hyperparameter FastFlow GANomaly PaSTe RD4AD STFPM EfficientAD
+Training
+Backbone resnet18 / wide_resnet50_2 — resnet18 / wide_resnet50_2 resnet18 / wide_resnet50_2 resnet18 / wide_resnet50_2 —
+Pretrained ✓ — ✓ ✓ ✓ —
+Batch size 8 16 32 16 32 1
+Epochs 200 15 100 200 100 50
+Learning rate 10−3 2 · 10−4 0.4 5 · 10−3 0.4 10−4
+Weight decay 0 0 10−4 0 10−4 10−5
+Architecture / scoring
+Input size (256, 256) (256, 256) (224, 224) (224, 224) (256, 256) (256, 256)
+Threshold quantile 0.99 0.99 0.99 0.99 0.99 0.99
+Score mode max — max max max max
+Model-specific
+Flow steps 8 — — — — —
+Hidden ratio 1.0 — — — — —
+Feature width nfeatures — 64 — — — —
+Latent vector size — 100 — — — —
+Student bootstrap layer — — 0 — — —
+Score smoothing kernel — — — 1 — —
+Model size — — — — — small
+Teacher out channels — — — — — 384
+Table 8: Pairwise Spearman rank correlations between the three Single-Task Expert models
+for each dataset. Higher values indicate stronger agreement on concept difficulty, while low
+or negative values indicate that the relative difficulty of concepts depends more strongly on
+the chosen detector.
+Dataset PatchCore vs PaDiM PatchCore vs CFA PaDiM vs CFA
+BTAD 0.500 1.000 0.500
+DAGM 0.855 0.455 0.648
+MPDD -0.029 0.200 -0.657
+MVTec AD 0.382 0.693 0.654
+VisA 0.622 0.797 0.748
+Table 9: BTAD hard-to-easy concept ordering derived from average rank across PatchCore,
+PaDiM, and CFA. The easy-to-hard scenario is the reverse of this table.
+Rank Concept Avg. ROC-AUC Avg. Rank PatchCore PaDiM CFA
+1 02 0.7947 1.00 0.7923 0.7955 0.7963
+2 01 0.9679 2.33 0.9456 0.9874 0.9708
+3 03 0.9903 2.67 0.9999 0.9819 0.9890
+Table10: DAGMhard-to-easyconceptorderingderivedfromaveragerankacrossPatchCore,
+PaDiM, and CFA.
+Rank Concept Avg. ROC-AUC Avg. Rank PatchCore PaDiM CFA
+1 Class8 0.6541 1.00 0.6729 0.7278 0.5616
+2 Class5 0.8210 3.00 0.8164 0.8160 0.8308
+3 Class2 0.8594 3.67 0.8920 0.9027 0.7835
+4 Class1 0.8380 3.67 0.8561 0.7395 0.9183
+5 Class3 0.8625 4.67 0.9776 0.9274 0.6825
+6 Class7 0.9565 7.33 0.9990 0.9310 0.9394
+7 Class10 0.9587 7.33 0.9946 0.9960 0.8854
+8 Class6 0.9660 7.33 0.9519 0.9489 0.9972
+9 Class9 0.9802 7.67 0.9630 0.9863 0.9912
+10 Class4 0.9857 9.33 1.0000 1.0000 0.9571
+26
+
+===== PAGE 27 =====
+Table11: MPDDhard-to-easyconceptorderingderivedfromaveragerankacrossPatchCore,
+PaDiM, and CFA.
+Rank Concept Avg. ROC-AUC Avg. Rank PatchCore PaDiM CFA
+1 bracket_black 0.6791 2.33 0.8471 0.6410 0.5492
+2 tubes 0.7435 3.00 0.8170 0.5738 0.8397
+3 bracket_white 0.7537 3.00 0.7311 0.8533 0.6767
+4 metal_plate 0.8106 3.67 0.9420 0.4902 0.9995
+5 bracket_brown 0.8286 4.33 0.9480 0.7624 0.7753
+6 connector 0.8643 4.67 1.0000 0.8214 0.7714
+Table 12: MVTec AD hard-to-easy concept ordering derived from average rank across Patch-
+Core, PaDiM, and CFA.
+Rank Concept Avg. ROC-AUC Avg. Rank PatchCore PaDiM CFA
+1 pill 0.8300 2.00 0.8161 0.7700 0.9037
+2 screw 0.7930 3.00 0.9664 0.7284 0.6842
+3 capsule 0.8738 3.67 0.9334 0.8337 0.8544
+4 grid 0.9176 4.67 0.8956 0.9181 0.9390
+5 zipper 0.9079 5.33 0.9362 0.8277 0.9598
+6 transistor 0.9193 7.00 0.9729 0.8129 0.9721
+7 carpet 0.9522 7.33 0.9575 0.9591 0.9402
+8 toothbrush 0.9583 8.00 0.9722 0.9528 0.9500
+9 cable 0.9333 9.00 0.9751 0.8373 0.9874
+10 metal_nut 0.9658 9.67 0.9780 0.9428 0.9765
+11 hazelnut 0.9231 9.67 1.0000 0.7754 0.9939
+12 tile 0.9698 10.33 0.9470 0.9625 1.0000
+13 wood 0.9956 13.00 0.9982 0.9895 0.9991
+14 leather 0.9890 13.33 0.9888 0.9783 1.0000
+15 bottle 0.9976 14.00 1.0000 0.9929 1.0000
+Table 13: VisA hard-to-easy concept ordering derived from average rank across PatchCore,
+PaDiM, and CFA.
+Rank Concept Avg. ROC-AUC Avg. Rank PatchCore PaDiM CFA
+1 capsules 0.6493 1.33 0.7465 0.6175 0.5840
+2 macaroni2 0.6407 2.00 0.6722 0.6567 0.5931
+3 macaroni1 0.8148 4.00 0.8965 0.7791 0.7687
+4 pcb3 0.7765 4.33 0.9196 0.6352 0.7746
+5 pcb2 0.8363 6.00 0.9055 0.8094 0.7941
+6 candle 0.8623 6.00 0.8770 0.7839 0.9259
+7 fryum 0.8574 6.33 0.8968 0.8282 0.8472
+8 cashew 0.9023 8.33 0.9420 0.9168 0.8482
+9 pipe_fryum 0.9063 8.33 0.9882 0.7768 0.9540
+10 pcb1 0.9082 8.67 0.9626 0.8681 0.8940
+11 chewinggum 0.9788 11.33 0.9764 0.9668 0.9932
+12 pcb4 0.9680 11.33 0.9892 0.9376 0.9770
+27
+
+===== PAGE 28 =====
+0.00
+0.50
+1.00
+02 0.82
+01 0.66 0.87
+03 0.59 0.52 0.86
+02 01 03
+Hard->Easy
+03 0.96
+01 0.63 0.98
+02 0.53 0.45 0.79
+03 01 02
+Easy->Hard
+01 0.93
+02 0.59 0.89
+03 0.59 0.45 0.94
+01 02 03
+Random
+0.00
+0.50
+1.00
+02 0.95
+01 0.70 0.88
+03 0.65 0.62 0.92
+02 01 03
+Hard->Easy
+03 0.99
+01 0.79 0.96
+02 0.59 0.58 0.95
+03 01 02
+Easy->Hard
+01 0.95
+02 0.69 0.96
+03 0.71 0.71 0.95
+01 02 03
+Random
+0.00
+0.50
+1.00
+02 0.76
+01 0.79 0.88
+03 0.78 0.81 0.86
+02 01 03
+Hard->Easy
+03 0.95
+01 0.88 0.97
+02 0.82 0.96 0.79
+03 01 02
+Easy->Hard
+01 0.94
+02 0.91 0.88
+03 0.86 0.82 0.91
+01 02 03
+Random
+0.00
+0.50
+1.00
+02 0.95
+01 0.96 0.89
+03 0.95 0.84 0.88
+02 01 03
+Hard->Easy
+03 0.99
+01 0.99 0.96
+02 0.98 0.95 0.94
+03 01 02
+Easy->Hard
+01 0.95
+02 0.95 0.93
+03 0.95 0.94 0.95
+01 02 03
+Random
+Figure 4: BTAD, Wide ResNet-50-2 : concept transition matrices: NCL (top) vs. CL
+(bottom), image-level and pixel-level.
+28
+
+===== PAGE 29 =====
+0.00
+0.50
+1.00
+Class8 0.56
+Class5 0.51 0.66
+Class1 0.51 0.54 0.76
+Class2 0.51 0.53 0.69 0.89
+Class3 0.52 0.60 0.65 0.52 0.77
+Class7 0.50 0.59 0.50 0.70 0.59 0.93
+Class10 0.49 0.57 0.57 0.56 0.54 0.54 0.87
+Class6 0.50 0.51 0.71 0.53 0.50 0.50 0.50 0.92
+Class9 0.53 0.61 0.63 0.51 0.60 0.52 0.48 0.84 0.89
+Class4 0.48 0.55 0.48 0.46 0.51 0.57 0.48 0.68 0.67 0.87
+Class8Class5Class1Class2Class3Class7Class10Class6Class9Class4
+Hard->Easy
+Class4 0.93
+Class9 0.49 0.84
+Class6 0.49 0.79 0.85
+Class10 0.47 0.72 0.71 0.91
+Class7 0.47 0.71 0.72 0.53 0.80
+Class3 0.48 0.81 0.79 0.48 0.52 0.75
+Class2 0.46 0.76 0.73 0.55 0.57 0.56 0.84
+Class1 0.48 0.80 0.73 0.56 0.52 0.58 0.62 0.70
+Class5 0.47 0.81 0.79 0.50 0.51 0.63 0.57 0.66 0.62
+Class8 0.47 0.75 0.72 0.48 0.50 0.68 0.52 0.59 0.55 0.53
+Class4Class9Class6Class10Class7Class3Class2Class1Class5Class8
+Easy->Hard
+Class8 0.70
+Class3 0.53 0.88
+Class2 0.68 0.57 0.90
+Class10 0.58 0.52 0.49 0.80
+Class4 0.48 0.52 0.45 0.49 0.87
+Class5 0.65 0.56 0.57 0.52 0.48 0.66
+Class7 0.64 0.57 0.62 0.48 0.52 0.54 0.91
+Class1 0.54 0.55 0.65 0.59 0.47 0.59 0.68 0.72
+Class9 0.60 0.55 0.51 0.62 0.48 0.58 0.66 0.52 0.72
+Class6 0.60 0.50 0.54 0.56 0.49 0.55 0.76 0.51 0.70 0.82
+Class8Class3Class2Class10Class4Class5Class7Class1Class9Class6
+Random
+0.00
+0.50
+1.00
+Class8 0.65
+Class5 0.51 0.77
+Class1 0.50 0.67 0.82
+Class2 0.49 0.62 0.72 0.94
+Class3 0.55 0.70 0.72 0.66 0.86
+Class7 0.53 0.66 0.61 0.84 0.76 0.88
+Class10 0.49 0.65 0.64 0.76 0.72 0.69 0.93
+Class6 0.49 0.62 0.68 0.65 0.58 0.56 0.60 0.87
+Class9 0.59 0.71 0.69 0.63 0.74 0.64 0.62 0.84 0.97
+Class4 0.49 0.63 0.58 0.60 0.67 0.67 0.75 0.75 0.91 0.94
+Class8Class5Class1Class2Class3Class7Class10Class6Class9Class4
+Hard->Easy
+Class4 0.99
+Class9 0.58 0.86
+Class6 0.59 0.80 0.79
+Class10 0.59 0.84 0.74 0.96
+Class7 0.55 0.83 0.75 0.76 0.79
+Class3 0.57 0.87 0.74 0.61 0.58 0.82
+Class2 0.61 0.82 0.68 0.75 0.67 0.71 0.93
+Class1 0.63 0.87 0.66 0.71 0.62 0.74 0.80 0.78
+Class5 0.62 0.88 0.76 0.68 0.63 0.76 0.76 0.71 0.71
+Class8 0.59 0.83 0.68 0.63 0.62 0.76 0.68 0.67 0.62 0.62
+Class4Class9Class6Class10Class7Class3Class2Class1Class5Class8
+Easy->Hard
+Class8 0.73
+Class3 0.50 0.92
+Class2 0.61 0.73 0.97
+Class10 0.58 0.64 0.64 0.85
+Class4 0.52 0.72 0.58 0.70 0.96
+Class5 0.63 0.68 0.71 0.69 0.63 0.75
+Class7 0.59 0.65 0.68 0.61 0.63 0.63 0.87
+Class1 0.54 0.76 0.81 0.77 0.66 0.70 0.78 0.77
+Class9 0.58 0.67 0.63 0.74 0.63 0.67 0.74 0.61 0.80
+Class6 0.55 0.64 0.67 0.71 0.63 0.67 0.79 0.56 0.79 0.93
+Class8Class3Class2Class10Class4Class5Class7Class1Class9Class6
+Random
+0.00
+0.50
+1.00
+Class8 0.52
+Class5 0.52 0.66
+Class1 0.53 0.65 0.78
+Class2 0.52 0.63 0.78 0.88
+Class3 0.51 0.65 0.77 0.84 0.77
+Class7 0.52 0.62 0.66 0.86 0.76 0.88
+Class10 0.52 0.62 0.69 0.84 0.72 0.78 0.87
+Class6 0.53 0.64 0.75 0.79 0.64 0.80 0.83 0.91
+Class9 0.53 0.67 0.76 0.77 0.69 0.77 0.77 0.90 0.85
+Class4 0.53 0.64 0.70 0.80 0.68 0.76 0.75 0.89 0.83 0.87
+Class8Class5Class1Class2Class3Class7Class10Class6Class9Class4
+Hard->Easy
+Class4 0.92
+Class9 0.87 0.82
+Class6 0.88 0.80 0.85
+Class10 0.84 0.83 0.84 0.91
+Class7 0.76 0.82 0.83 0.83 0.81
+Class3 0.75 0.83 0.83 0.82 0.74 0.76
+Class2 0.76 0.80 0.81 0.81 0.73 0.67 0.84
+Class1 0.77 0.82 0.79 0.82 0.69 0.68 0.81 0.71
+Class5 0.75 0.83 0.84 0.74 0.69 0.68 0.77 0.69 0.65
+Class8 0.76 0.78 0.82 0.72 0.68 0.74 0.79 0.65 0.62 0.53
+Class4Class9Class6Class10Class7Class3Class2Class1Class5Class8
+Easy->Hard
+Class8 0.70
+Class3 0.69 0.89
+Class2 0.71 0.85 0.92
+Class10 0.69 0.83 0.85 0.81
+Class4 0.71 0.80 0.86 0.83 0.87
+Class5 0.66 0.69 0.77 0.73 0.75 0.66
+Class7 0.69 0.75 0.79 0.74 0.80 0.60 0.90
+Class1 0.66 0.73 0.78 0.77 0.68 0.63 0.85 0.68
+Class9 0.66 0.77 0.78 0.78 0.70 0.64 0.86 0.65 0.74
+Class6 0.67 0.69 0.76 0.76 0.68 0.63 0.88 0.59 0.71 0.81
+Class8Class3Class2Class10Class4Class5Class7Class1Class9Class6
+Random
+0.00
+0.50
+1.00
+Class8 0.63
+Class5 0.60 0.76
+Class1 0.60 0.76 0.84
+Class2 0.60 0.76 0.82 0.93
+Class3 0.59 0.76 0.81 0.91 0.85
+Class7 0.60 0.76 0.76 0.91 0.84 0.87
+Class10 0.59 0.75 0.76 0.92 0.84 0.84 0.93
+Class6 0.59 0.75 0.78 0.88 0.80 0.84 0.90 0.87
+Class9 0.61 0.76 0.79 0.84 0.82 0.80 0.86 0.87 0.95
+Class4 0.59 0.75 0.76 0.88 0.82 0.81 0.88 0.87 0.94 0.92
+Class8Class5Class1Class2Class3Class7Class10Class6Class9Class4
+Hard->Easy
+Class4 0.99
+Class9 0.95 0.86
+Class6 0.95 0.86 0.78
+Class10 0.91 0.87 0.80 0.96
+Class7 0.86 0.86 0.79 0.91 0.81
+Class3 0.90 0.86 0.79 0.92 0.78 0.83
+Class2 0.89 0.85 0.78 0.91 0.77 0.80 0.91
+Class1 0.91 0.87 0.77 0.93 0.77 0.80 0.89 0.78
+Class5 0.88 0.87 0.78 0.89 0.75 0.80 0.86 0.75 0.74
+Class8 0.86 0.80 0.77 0.89 0.74 0.79 0.87 0.73 0.70 0.61
+Class4Class9Class6Class10Class7Class3Class2Class1Class5Class8
+Easy->Hard
+Class8 0.73
+Class3 0.72 0.92
+Class2 0.73 0.91 0.97
+Class10 0.72 0.90 0.94 0.86
+Class4 0.72 0.90 0.95 0.87 0.95
+Class5 0.69 0.83 0.87 0.82 0.88 0.77
+Class7 0.71 0.86 0.89 0.79 0.90 0.74 0.86
+Class1 0.70 0.85 0.91 0.84 0.84 0.76 0.86 0.77
+Class9 0.69 0.87 0.89 0.82 0.90 0.75 0.87 0.74 0.78
+Class6 0.70 0.85 0.88 0.80 0.85 0.74 0.89 0.71 0.76 0.87
+Class8Class3Class2Class10Class4Class5Class7Class1Class9Class6
+Random
+Figure 5: DAGM, ResNet-18 : concept transition matrices: NCL (top) vs. CL (bottom),
+image-level and pixel-level.
+29
+
+===== PAGE 30 =====
+0.00
+0.50
+1.00
+Class8 0.54
+Class5 0.51 0.74
+Class1 0.50 0.66 0.84
+Class2 0.51 0.58 0.75 0.91
+Class3 0.51 0.70 0.71 0.61 0.77
+Class7 0.50 0.59 0.65 0.72 0.54 0.93
+Class10 0.50 0.57 0.65 0.63 0.58 0.54 0.88
+Class6 0.50 0.65 0.76 0.66 0.55 0.55 0.57 0.93
+Class9 0.52 0.75 0.69 0.61 0.66 0.53 0.56 0.86 0.79
+Class4 0.51 0.57 0.67 0.61 0.58 0.63 0.51 0.84 0.64 0.90
+Class8Class5Class1Class2Class3Class7Class10Class6Class9Class4
+Hard->Easy
+Class4 0.87
+Class9 0.51 0.80
+Class6 0.52 0.75 0.83
+Class10 0.49 0.75 0.76 0.92
+Class7 0.49 0.64 0.73 0.52 0.87
+Class3 0.48 0.74 0.68 0.49 0.49 0.76
+Class2 0.49 0.70 0.72 0.52 0.53 0.57 0.86
+Class1 0.49 0.79 0.55 0.54 0.49 0.56 0.76 0.70
+Class5 0.52 0.78 0.85 0.50 0.51 0.60 0.70 0.64 0.74
+Class8 0.50 0.78 0.60 0.52 0.50 0.72 0.70 0.55 0.68 0.56
+Class4Class9Class6Class10Class7Class3Class2Class1Class5Class8
+Easy->Hard
+Class8 0.71
+Class3 0.56 0.91
+Class2 0.64 0.56 0.91
+Class10 0.59 0.55 0.68 0.83
+Class4 0.51 0.56 0.64 0.52 0.91
+Class5 0.56 0.53 0.68 0.56 0.52 0.78
+Class7 0.60 0.54 0.69 0.51 0.52 0.65 0.91
+Class1 0.49 0.54 0.81 0.57 0.50 0.64 0.61 0.81
+Class9 0.56 0.57 0.70 0.63 0.50 0.74 0.68 0.53 0.72
+Class6 0.54 0.52 0.69 0.58 0.52 0.69 0.72 0.53 0.66 0.86
+Class8Class3Class2Class10Class4Class5Class7Class1Class9Class6
+Random
+0.00
+0.50
+1.00
+Class8 0.73
+Class5 0.56 0.86
+Class1 0.54 0.77 0.85
+Class2 0.52 0.70 0.79 0.97
+Class3 0.62 0.80 0.83 0.72 0.88
+Class7 0.57 0.70 0.73 0.88 0.78 0.90
+Class10 0.52 0.67 0.77 0.83 0.75 0.70 0.96
+Class6 0.52 0.72 0.78 0.77 0.66 0.58 0.60 0.91
+Class9 0.62 0.80 0.79 0.74 0.80 0.66 0.60 0.88 0.97
+Class4 0.52 0.69 0.72 0.78 0.71 0.71 0.77 0.80 0.85 0.95
+Class8Class5Class1Class2Class3Class7Class10Class6Class9Class4
+Hard->Easy
+Class4 0.99
+Class9 0.61 0.86
+Class6 0.65 0.82 0.81
+Class10 0.61 0.81 0.74 0.98
+Class7 0.56 0.80 0.78 0.71 0.88
+Class3 0.63 0.85 0.71 0.65 0.66 0.84
+Class2 0.66 0.83 0.65 0.71 0.67 0.72 0.90
+Class1 0.65 0.86 0.63 0.71 0.66 0.73 0.89 0.79
+Class5 0.64 0.84 0.77 0.67 0.67 0.76 0.79 0.71 0.79
+Class8 0.64 0.85 0.60 0.69 0.66 0.80 0.84 0.71 0.73 0.68
+Class4Class9Class6Class10Class7Class3Class2Class1Class5Class8
+Easy->Hard
+Class8 0.79
+Class3 0.58 0.97
+Class2 0.66 0.77 0.97
+Class10 0.61 0.71 0.82 0.88
+Class4 0.52 0.78 0.80 0.70 0.96
+Class5 0.63 0.72 0.79 0.72 0.55 0.86
+Class7 0.64 0.65 0.79 0.65 0.52 0.69 0.91
+Class1 0.51 0.78 0.89 0.78 0.62 0.74 0.78 0.86
+Class9 0.61 0.73 0.80 0.75 0.59 0.78 0.66 0.63 0.82
+Class6 0.56 0.65 0.81 0.73 0.58 0.76 0.82 0.69 0.78 0.91
+Class8Class3Class2Class10Class4Class5Class7Class1Class9Class6
+Random
+0.00
+0.50
+1.00
+Class8 0.57
+Class5 0.54 0.76
+Class1 0.53 0.72 0.82
+Class2 0.52 0.71 0.80 0.90
+Class3 0.54 0.72 0.79 0.87 0.74
+Class7 0.51 0.71 0.73 0.88 0.72 0.86
+Class10 0.52 0.68 0.75 0.86 0.67 0.72 0.85
+Class6 0.53 0.73 0.77 0.86 0.64 0.69 0.78 0.88
+Class9 0.52 0.74 0.74 0.84 0.66 0.70 0.75 0.84 0.82
+Class4 0.52 0.71 0.72 0.83 0.63 0.70 0.73 0.80 0.80 0.89
+Class8Class5Class1Class2Class3Class7Class10Class6Class9Class4
+Hard->Easy
+Class4 0.88
+Class9 0.89 0.79
+Class6 0.92 0.77 0.84
+Class10 0.86 0.76 0.76 0.88
+Class7 0.83 0.76 0.74 0.80 0.83
+Class3 0.89 0.80 0.85 0.85 0.79 0.77
+Class2 0.82 0.77 0.77 0.84 0.78 0.69 0.86
+Class1 0.84 0.76 0.79 0.83 0.77 0.70 0.86 0.71
+Class5 0.85 0.81 0.85 0.84 0.74 0.67 0.86 0.65 0.75
+Class8 0.83 0.81 0.81 0.83 0.74 0.79 0.85 0.64 0.72 0.56
+Class4Class9Class6Class10Class7Class3Class2Class1Class5Class8
+Easy->Hard
+Class8 0.73
+Class3 0.65 0.80
+Class2 0.61 0.73 0.91
+Class10 0.60 0.71 0.88 0.78
+Class4 0.63 0.70 0.86 0.75 0.87
+Class5 0.59 0.65 0.86 0.74 0.78 0.73
+Class7 0.64 0.68 0.86 0.73 0.77 0.72 0.80
+Class1 0.63 0.68 0.85 0.71 0.78 0.69 0.80 0.76
+Class9 0.62 0.73 0.85 0.77 0.78 0.73 0.84 0.66 0.72
+Class6 0.60 0.62 0.83 0.72 0.76 0.72 0.79 0.66 0.66 0.82
+Class8Class3Class2Class10Class4Class5Class7Class1Class9Class6
+Random
+0.00
+0.50
+1.00
+Class8 0.75
+Class5 0.73 0.88
+Class1 0.70 0.84 0.85
+Class2 0.70 0.84 0.84 0.93
+Class3 0.70 0.86 0.85 0.92 0.87
+Class7 0.68 0.84 0.83 0.93 0.85 0.84
+Class10 0.67 0.84 0.84 0.91 0.84 0.83 0.95
+Class6 0.68 0.84 0.84 0.93 0.85 0.81 0.90 0.89
+Class9 0.69 0.83 0.87 0.91 0.81 0.82 0.88 0.86 0.95
+Class4 0.68 0.82 0.85 0.92 0.82 0.83 0.90 0.86 0.96 0.91
+Class8Class5Class1Class2Class3Class7Class10Class6Class9Class4
+Hard->Easy
+Class4 0.99
+Class9 0.98 0.87
+Class6 0.95 0.85 0.78
+Class10 0.91 0.86 0.78 0.97
+Class7 0.88 0.85 0.78 0.93 0.86
+Class3 0.92 0.86 0.78 0.94 0.82 0.83
+Class2 0.90 0.84 0.75 0.94 0.81 0.81 0.89
+Class1 0.90 0.85 0.76 0.94 0.82 0.81 0.89 0.78
+Class5 0.92 0.86 0.77 0.95 0.83 0.81 0.88 0.79 0.82
+Class8 0.90 0.85 0.77 0.94 0.80 0.83 0.89 0.77 0.79 0.71
+Class4Class9Class6Class10Class7Class3Class2Class1Class5Class8
+Easy->Hard
+Class8 0.79
+Class3 0.75 0.92
+Class2 0.72 0.91 0.96
+Class10 0.68 0.87 0.91 0.84
+Class4 0.73 0.90 0.94 0.85 0.91
+Class5 0.71 0.85 0.92 0.83 0.82 0.82
+Class7 0.73 0.90 0.92 0.84 0.86 0.83 0.87
+Class1 0.73 0.88 0.93 0.83 0.83 0.82 0.88 0.83
+Class9 0.70 0.87 0.91 0.85 0.86 0.81 0.82 0.76 0.83
+Class6 0.71 0.88 0.93 0.84 0.85 0.83 0.86 0.78 0.82 0.92
+Class8Class3Class2Class10Class4Class5Class7Class1Class9Class6
+Random
+Figure 6: DAGM, Wide ResNet-50-2 : concept transition matrices: NCL (top) vs. CL
+(bottom), image-level and pixel-level.
+30
+
+===== PAGE 31 =====
+0.00
+0.50
+1.00
+bracket black 0.73
+tubes 0.58 0.74
+bracket white 0.52 0.50 0.81
+metal plate 0.54 0.47 0.57 0.89
+bracket brown 0.50 0.53 0.52 0.54 0.87
+connector 0.53 0.40 0.53 0.50 0.55 0.90
+bracket blacktubes bracket whitemetal platebracket brownconnector
+Hard->Easy
+connector 0.93
+bracket brown 0.49 0.86
+metal plate 0.44 0.47 0.91
+bracket white 0.40 0.49 0.54 0.80
+tubes 0.32 0.51 0.44 0.54 0.73
+bracket black 0.38 0.42 0.42 0.59 0.47 0.71
+connectorbracket brownmetal platebracket whitetubes bracket black
+Easy->Hard
+bracket white 0.77
+connector 0.59 0.87
+metal plate 0.52 0.44 0.81
+bracket brown 0.56 0.39 0.59 0.89
+tubes 0.51 0.43 0.50 0.57 0.85
+bracket black 0.52 0.35 0.54 0.49 0.52 0.74
+bracket whiteconnectormetal platebracket browntubes bracket black
+Random
+0.00
+0.50
+1.00
+bracket black 0.93
+tubes 0.73 0.93
+bracket white 0.85 0.75 0.86
+metal plate 0.74 0.77 0.60 0.95
+bracket brown 0.85 0.72 0.85 0.73 0.90
+connector 0.86 0.71 0.84 0.75 0.85 0.94
+bracket blacktubes bracket whitemetal platebracket brownconnector
+Hard->Easy
+connector 0.96
+bracket brown 0.88 0.92
+metal plate 0.79 0.72 0.96
+bracket white 0.92 0.88 0.79 0.88
+tubes 0.75 0.75 0.70 0.72 0.94
+bracket black 0.88 0.89 0.71 0.89 0.71 0.90
+connectorbracket brownmetal platebracket whitetubes bracket black
+Easy->Hard
+bracket white 0.92
+connector 0.87 0.93
+metal plate 0.86 0.88 0.89
+bracket brown 0.88 0.86 0.79 0.95
+tubes 0.79 0.74 0.61 0.78 0.94
+bracket black 0.78 0.79 0.65 0.80 0.70 0.92
+bracket whiteconnectormetal platebracket browntubes bracket black
+Random
+0.00
+0.50
+1.00
+bracket black 0.75
+tubes 0.65 0.73
+bracket white 0.64 0.66 0.76
+metal plate 0.66 0.65 0.68 0.88
+bracket brown 0.61 0.65 0.65 0.78 0.83
+connector 0.62 0.62 0.69 0.78 0.66 0.86
+bracket blacktubes bracket whitemetal platebracket brownconnector
+Hard->Easy
+connector 0.88
+bracket brown 0.78 0.85
+metal plate 0.76 0.71 0.90
+bracket white 0.72 0.72 0.75 0.81
+tubes 0.63 0.66 0.77 0.60 0.74
+bracket black 0.58 0.59 0.76 0.63 0.60 0.73
+connectorbracket brownmetal platebracket whitetubes bracket black
+Easy->Hard
+bracket white 0.78
+connector 0.66 0.86
+metal plate 0.64 0.70 0.81
+bracket brown 0.63 0.64 0.69 0.87
+tubes 0.60 0.61 0.61 0.74 0.83
+bracket black 0.67 0.58 0.58 0.69 0.76 0.74
+bracket whiteconnectormetal platebracket browntubes bracket black
+Random
+0.00
+0.50
+1.00
+bracket black 0.93
+tubes 0.91 0.93
+bracket white 0.92 0.91 0.91
+metal plate 0.91 0.91 0.89 0.93
+bracket brown 0.91 0.90 0.90 0.89 0.93
+connector 0.90 0.88 0.91 0.89 0.91 0.96
+bracket blacktubes bracket whitemetal platebracket brownconnector
+Hard->Easy
+connector 0.96
+bracket brown 0.95 0.93
+metal plate 0.94 0.94 0.94
+bracket white 0.96 0.94 0.91 0.91
+tubes 0.94 0.93 0.88 0.89 0.94
+bracket black 0.95 0.90 0.89 0.89 0.90 0.92
+connectorbracket brownmetal platebracket whitetubes bracket black
+Easy->Hard
+bracket white 0.91
+connector 0.91 0.94
+metal plate 0.91 0.94 0.91
+bracket brown 0.91 0.93 0.89 0.97
+tubes 0.91 0.93 0.88 0.96 0.94
+bracket black 0.91 0.92 0.87 0.95 0.91 0.94
+bracket whiteconnectormetal platebracket browntubes bracket black
+Random
+Figure 7: MPDD, ResNet-18 : concept transition matrices: NCL (top) vs. CL (bottom),
+image-level and pixel-level.
+31
+
+===== PAGE 32 =====
+0.00
+0.50
+1.00
+bracket black 0.74
+tubes 0.59 0.81
+bracket white 0.53 0.51 0.85
+metal plate 0.54 0.43 0.46 0.91
+bracket brown 0.52 0.50 0.50 0.43 0.94
+connector 0.52 0.43 0.57 0.30 0.63 0.92
+bracket blacktubes bracket whitemetal platebracket brownconnector
+Hard->Easy
+connector 0.86
+bracket brown 0.45 0.85
+metal plate 0.50 0.49 0.88
+bracket white 0.36 0.53 0.43 0.84
+tubes 0.52 0.55 0.39 0.57 0.78
+bracket black 0.34 0.42 0.40 0.62 0.49 0.69
+connectorbracket brownmetal platebracket whitetubes bracket black
+Easy->Hard
+bracket white 0.79
+connector 0.61 0.82
+metal plate 0.49 0.51 0.77
+bracket brown 0.58 0.46 0.55 0.92
+tubes 0.58 0.51 0.48 0.51 0.88
+bracket black 0.56 0.35 0.44 0.44 0.52 0.83
+bracket whiteconnectormetal platebracket browntubes bracket black
+Random
+0.00
+0.50
+1.00
+bracket black 0.93
+tubes 0.63 0.96
+bracket white 0.85 0.72 0.86
+metal plate 0.74 0.77 0.58 0.97
+bracket brown 0.81 0.71 0.76 0.68 0.89
+connector 0.84 0.69 0.81 0.69 0.86 0.96
+bracket blacktubes bracket whitemetal platebracket brownconnector
+Hard->Easy
+connector 0.96
+bracket brown 0.86 0.89
+metal plate 0.85 0.83 0.90
+bracket white 0.90 0.86 0.73 0.93
+tubes 0.75 0.83 0.63 0.71 0.96
+bracket black 0.88 0.85 0.66 0.91 0.68 0.79
+connectorbracket brownmetal platebracket whitetubes bracket black
+Easy->Hard
+bracket white 0.93
+connector 0.86 0.94
+metal plate 0.82 0.83 0.85
+bracket brown 0.87 0.87 0.80 0.94
+tubes 0.64 0.76 0.52 0.78 0.95
+bracket black 0.71 0.80 0.63 0.80 0.67 0.95
+bracket whiteconnectormetal platebracket browntubes bracket black
+Random
+0.00
+0.50
+1.00
+bracket black 0.74
+tubes 0.70 0.80
+bracket white 0.67 0.71 0.86
+metal plate 0.65 0.69 0.77 0.90
+bracket brown 0.66 0.72 0.71 0.80 0.93
+connector 0.64 0.67 0.71 0.73 0.79 0.92
+bracket blacktubes bracket whitemetal platebracket brownconnector
+Hard->Easy
+connector 0.86
+bracket brown 0.71 0.87
+metal plate 0.84 0.67 0.84
+bracket white 0.66 0.71 0.73 0.86
+tubes 0.72 0.61 0.67 0.58 0.79
+bracket black 0.63 0.55 0.73 0.60 0.67 0.73
+connectorbracket brownmetal platebracket whitetubes bracket black
+Easy->Hard
+bracket white 0.81
+connector 0.69 0.85
+metal plate 0.71 0.76 0.79
+bracket brown 0.69 0.67 0.70 0.92
+tubes 0.72 0.68 0.62 0.78 0.87
+bracket black 0.62 0.61 0.62 0.72 0.64 0.81
+bracket whiteconnectormetal platebracket browntubes bracket black
+Random
+0.00
+0.50
+1.00
+bracket black 0.93
+tubes 0.85 0.95
+bracket white 0.91 0.90 0.86
+metal plate 0.90 0.90 0.81 0.95
+bracket brown 0.89 0.89 0.82 0.92 0.90
+connector 0.89 0.89 0.83 0.91 0.88 0.96
+bracket blacktubes bracket whitemetal platebracket brownconnector
+Hard->Easy
+connector 0.96
+bracket brown 0.93 0.89
+metal plate 0.88 0.83 0.88
+bracket white 0.95 0.89 0.85 0.94
+tubes 0.92 0.86 0.81 0.89 0.94
+bracket black 0.94 0.89 0.83 0.93 0.90 0.79
+connectorbracket brownmetal platebracket whitetubes bracket black
+Easy->Hard
+bracket white 0.93
+connector 0.91 0.92
+metal plate 0.88 0.86 0.87
+bracket brown 0.90 0.91 0.84 0.94
+tubes 0.86 0.85 0.80 0.88 0.96
+bracket black 0.89 0.91 0.77 0.92 0.89 0.92
+bracket whiteconnectormetal platebracket browntubes bracket black
+Random
+Figure 8: MPDD, Wide ResNet-50-2 : concept transition matrices: NCL (top) vs. CL
+(bottom), image-level and pixel-level.
+32
+
+===== PAGE 33 =====
+0.00
+0.50
+1.00
+pill 0.87
+screw 0.49 0.76
+capsule 0.50 0.55 0.84
+grid 0.50 0.48 0.55 0.88
+zipper 0.47 0.52 0.48 0.60 0.89
+transistor 0.47 0.58 0.51 0.64 0.47 0.91
+carpet 0.49 0.55 0.45 0.67 0.57 0.43 0.94
+toothbrush 0.54 0.56 0.43 0.62 0.49 0.48 0.54 0.93
+cable 0.52 0.59 0.44 0.57 0.47 0.46 0.61 0.44 0.91
+hazelnut 0.52 0.56 0.50 0.64 0.47 0.49 0.49 0.58 0.53 0.87
+metal nut 0.51 0.54 0.43 0.64 0.50 0.43 0.48 0.45 0.50 0.75 0.94
+tile 0.48 0.57 0.43 0.65 0.48 0.40 0.58 0.48 0.45 0.56 0.54 0.96
+wood 0.48 0.56 0.41 0.66 0.52 0.46 0.55 0.50 0.45 0.70 0.46 0.75 0.98
+leather 0.50 0.60 0.43 0.67 0.50 0.45 0.68 0.44 0.46 0.70 0.47 0.78 0.91 0.98
+bottle 0.48 0.52 0.40 0.56 0.46 0.46 0.48 0.52 0.47 0.65 0.54 0.52 0.69 0.52 0.98
+pill screwcapsulegrid zippertransistorcarpettoothbrushcablehazelnutmetal nuttile woodleatherbottle
+Hard->Easy
+bottle 1.00
+leather 0.53 0.99
+wood 0.52 0.83 0.99
+tile 0.53 0.87 0.90 0.97
+metal nut 0.61 0.51 0.78 0.55 0.98
+hazelnut 0.56 0.40 0.76 0.58 0.52 0.96
+cable 0.48 0.57 0.73 0.63 0.54 0.59 0.94
+toothbrush 0.47 0.54 0.77 0.64 0.51 0.73 0.57 0.93
+carpet 0.52 0.89 0.89 0.80 0.52 0.66 0.48 0.51 0.94
+transistor 0.49 0.48 0.70 0.54 0.50 0.53 0.49 0.49 0.41 0.91
+zipper 0.49 0.65 0.84 0.70 0.49 0.70 0.51 0.49 0.59 0.45 0.92
+grid 0.58 0.90 0.86 0.87 0.51 0.59 0.45 0.51 0.66 0.43 0.53 0.95
+capsule 0.52 0.59 0.84 0.66 0.56 0.83 0.47 0.55 0.51 0.48 0.50 0.64 0.83
+screw 0.47 0.59 0.80 0.65 0.53 0.76 0.46 0.53 0.53 0.45 0.47 0.65 0.47 0.81
+pill 0.53 0.58 0.73 0.59 0.49 0.78 0.45 0.53 0.46 0.44 0.52 0.64 0.43 0.60 0.84
+bottleleatherwoodtile metal nuthazelnutcabletoothbrushcarpettransistorzippergrid capsulescrewpill
+Easy->Hard
+tile 0.97
+toothbrush 0.53 0.94
+metal nut 0.51 0.55 0.91
+carpet 0.66 0.47 0.48 0.94
+transistor 0.56 0.43 0.46 0.49 0.89
+screw 0.49 0.55 0.46 0.51 0.51 0.80
+capsule 0.52 0.56 0.51 0.56 0.50 0.60 0.91
+cable 0.47 0.45 0.44 0.51 0.47 0.62 0.39 0.92
+wood 0.64 0.45 0.43 0.52 0.45 0.62 0.43 0.46 0.93
+hazelnut 0.42 0.53 0.40 0.46 0.45 0.55 0.49 0.50 0.71 0.84
+grid 0.67 0.47 0.51 0.60 0.49 0.51 0.53 0.45 0.69 0.49 0.92
+bottle 0.52 0.53 0.46 0.47 0.47 0.62 0.39 0.45 0.60 0.72 0.56 0.93
+pill 0.48 0.51 0.46 0.45 0.45 0.55 0.38 0.50 0.66 0.77 0.58 0.43 0.76
+zipper 0.60 0.52 0.47 0.60 0.51 0.56 0.53 0.47 0.67 0.72 0.64 0.50 0.47 0.93
+leather 0.60 0.45 0.47 0.59 0.51 0.60 0.51 0.45 0.73 0.67 0.69 0.52 0.53 0.51 0.89
+tile toothbrushmetal nutcarpettransistorscrewcapsulecablewoodhazelnutgrid bottlepill zipperleather
+Random
+0.00
+0.50
+1.00
+pill 0.96
+screw 0.59 0.94
+capsule 0.72 0.87 0.95
+grid 0.62 0.77 0.81 0.91
+zipper 0.66 0.83 0.84 0.44 0.96
+transistor 0.65 0.65 0.57 0.43 0.56 0.90
+carpet 0.60 0.83 0.85 0.41 0.63 0.54 0.97
+toothbrush 0.73 0.83 0.81 0.42 0.67 0.49 0.61 0.97
+cable 0.61 0.71 0.74 0.43 0.56 0.45 0.65 0.74 0.94
+hazelnut 0.70 0.79 0.57 0.39 0.58 0.41 0.50 0.79 0.46 0.96
+metal nut 0.77 0.76 0.79 0.39 0.54 0.42 0.51 0.85 0.55 0.89 0.94
+tile 0.46 0.71 0.80 0.39 0.51 0.54 0.62 0.64 0.69 0.74 0.54 0.91
+wood 0.55 0.84 0.75 0.46 0.70 0.62 0.68 0.66 0.64 0.74 0.58 0.57 0.90
+leather 0.64 0.82 0.75 0.45 0.63 0.55 0.76 0.74 0.57 0.85 0.67 0.62 0.71 0.99
+bottle 0.65 0.85 0.81 0.41 0.65 0.44 0.48 0.76 0.48 0.75 0.60 0.45 0.57 0.55 0.95
+pill screwcapsulegrid zippertransistorcarpettoothbrushcablehazelnutmetal nuttile woodleatherbottle
+Hard->Easy
+bottle 0.98
+leather 0.49 0.99
+wood 0.50 0.94 0.93
+tile 0.46 0.91 0.69 0.92
+metal nut 0.61 0.71 0.63 0.51 0.97
+hazelnut 0.43 0.65 0.66 0.44 0.74 0.98
+cable 0.47 0.69 0.58 0.68 0.55 0.76 0.96
+toothbrush 0.49 0.73 0.62 0.56 0.75 0.88 0.58 0.98
+carpet 0.47 0.92 0.72 0.71 0.63 0.81 0.65 0.70 0.98
+transistor 0.33 0.65 0.65 0.50 0.63 0.73 0.42 0.74 0.48 0.90
+zipper 0.59 0.88 0.68 0.60 0.69 0.88 0.59 0.81 0.73 0.57 0.97
+grid 0.56 0.95 0.75 0.78 0.55 0.78 0.69 0.70 0.77 0.60 0.63 0.95
+capsule 0.61 0.81 0.69 0.55 0.69 0.93 0.55 0.83 0.62 0.52 0.68 0.50 0.96
+screw 0.62 0.77 0.63 0.55 0.63 0.88 0.59 0.80 0.54 0.52 0.64 0.43 0.90 0.95
+pill 0.51 0.77 0.59 0.54 0.71 0.92 0.56 0.89 0.58 0.50 0.65 0.48 0.85 0.88 0.95
+bottleleatherwoodtile metal nuthazelnutcabletoothbrushcarpettransistorzippergrid capsulescrewpill
+Easy->Hard
+tile 0.93
+toothbrush 0.45 0.96
+metal nut 0.55 0.71 0.97
+carpet 0.48 0.68 0.54 0.98
+transistor 0.45 0.62 0.58 0.59 0.92
+screw 0.38 0.62 0.54 0.52 0.45 0.94
+capsule 0.42 0.65 0.57 0.68 0.51 0.82 0.96
+cable 0.52 0.68 0.62 0.53 0.44 0.85 0.67 0.91
+wood 0.45 0.68 0.63 0.63 0.52 0.88 0.74 0.67 0.92
+hazelnut 0.43 0.70 0.77 0.52 0.41 0.86 0.74 0.48 0.54 0.96
+grid 0.54 0.69 0.64 0.62 0.47 0.71 0.79 0.56 0.56 0.69 0.90
+bottle 0.44 0.67 0.68 0.56 0.44 0.85 0.76 0.64 0.68 0.73 0.43 0.97
+pill 0.38 0.63 0.57 0.55 0.47 0.72 0.70 0.55 0.61 0.73 0.40 0.54 0.84
+zipper 0.47 0.69 0.66 0.78 0.53 0.79 0.87 0.58 0.59 0.78 0.47 0.55 0.65 0.93
+leather 0.58 0.72 0.74 0.78 0.50 0.84 0.85 0.63 0.66 0.81 0.50 0.64 0.66 0.67 0.92
+tile toothbrushmetal nutcarpettransistorscrewcapsulecablewoodhazelnutgrid bottlepill zipperleather
+Random
+0.00
+0.50
+1.00
+pill 0.88
+screw 0.79 0.74
+capsule 0.76 0.64 0.84
+grid 0.76 0.59 0.74 0.87
+zipper 0.70 0.60 0.71 0.81 0.89
+transistor 0.71 0.56 0.71 0.73 0.83 0.90
+carpet 0.66 0.57 0.68 0.68 0.83 0.72 0.94
+toothbrush 0.72 0.55 0.64 0.77 0.78 0.76 0.88 0.94
+cable 0.70 0.56 0.61 0.75 0.77 0.74 0.87 0.90 0.88
+hazelnut 0.68 0.56 0.58 0.75 0.75 0.67 0.84 0.87 0.76 0.89
+metal nut 0.65 0.56 0.59 0.74 0.75 0.70 0.84 0.79 0.66 0.81 0.92
+tile 0.66 0.55 0.63 0.71 0.73 0.69 0.88 0.77 0.64 0.78 0.82 0.95
+wood 0.65 0.56 0.56 0.72 0.74 0.70 0.87 0.74 0.69 0.82 0.81 0.90 0.98
+leather 0.66 0.58 0.60 0.72 0.75 0.71 0.86 0.73 0.68 0.82 0.74 0.89 0.93 0.97
+bottle 0.64 0.57 0.60 0.71 0.76 0.68 0.87 0.77 0.66 0.80 0.72 0.88 0.95 0.94 1.00
+pill screwcapsulegrid zippertransistorcarpettoothbrushcablehazelnutmetal nuttile woodleatherbottle
+Hard->Easy
+bottle 0.99
+leather 0.97 0.97
+wood 0.98 0.96 0.99
+tile 0.97 0.95 0.97 0.96
+metal nut 0.96 0.90 0.95 0.92 0.95
+hazelnut 0.93 0.90 0.93 0.90 0.80 0.92
+cable 0.92 0.90 0.95 0.91 0.78 0.86 0.88
+toothbrush 0.86 0.91 0.93 0.91 0.81 0.87 0.74 0.92
+carpet 0.83 0.93 0.96 0.90 0.79 0.87 0.75 0.80 0.94
+transistor 0.86 0.92 0.95 0.90 0.75 0.86 0.71 0.82 0.86 0.87
+zipper 0.85 0.91 0.94 0.90 0.80 0.87 0.70 0.82 0.87 0.75 0.89
+grid 0.83 0.94 0.95 0.92 0.77 0.87 0.72 0.77 0.91 0.72 0.86 0.87
+capsule 0.84 0.91 0.94 0.91 0.79 0.86 0.68 0.81 0.87 0.70 0.81 0.69 0.82
+screw 0.82 0.90 0.93 0.90 0.77 0.84 0.67 0.78 0.87 0.68 0.80 0.68 0.59 0.76
+pill 0.83 0.88 0.92 0.90 0.70 0.86 0.65 0.79 0.83 0.67 0.78 0.66 0.58 0.58 0.81
+bottleleatherwoodtile metal nuthazelnutcabletoothbrushcarpettransistorzippergrid capsulescrewpill
+Easy->Hard
+tile 0.97
+toothbrush 0.96 0.92
+metal nut 0.96 0.85 0.92
+carpet 0.93 0.84 0.82 0.93
+transistor 0.90 0.87 0.79 0.88 0.88
+screw 0.94 0.85 0.75 0.85 0.77 0.81
+capsule 0.93 0.80 0.73 0.87 0.76 0.67 0.84
+cable 0.93 0.73 0.70 0.88 0.76 0.67 0.75 0.91
+wood 0.86 0.70 0.72 0.86 0.74 0.66 0.72 0.75 0.87
+hazelnut 0.86 0.79 0.67 0.87 0.74 0.63 0.70 0.76 0.82 0.83
+grid 0.88 0.74 0.67 0.83 0.72 0.65 0.71 0.77 0.83 0.74 0.87
+bottle 0.83 0.77 0.66 0.85 0.75 0.67 0.72 0.71 0.83 0.74 0.80 0.91
+pill 0.88 0.74 0.71 0.86 0.73 0.69 0.69 0.74 0.83 0.76 0.79 0.78 0.80
+zipper 0.83 0.76 0.68 0.85 0.71 0.63 0.75 0.73 0.84 0.75 0.80 0.74 0.65 0.90
+leather 0.91 0.76 0.71 0.82 0.70 0.67 0.68 0.71 0.80 0.75 0.80 0.80 0.68 0.80 0.92
+tile toothbrushmetal nutcarpettransistorscrewcapsulecablewoodhazelnutgrid bottlepill zipperleather
+Random
+0.00
+0.50
+1.00
+pill 0.96
+screw 0.89 0.95
+capsule 0.92 0.93 0.96
+grid 0.92 0.93 0.94 0.90
+zipper 0.87 0.93 0.90 0.85 0.95
+transistor 0.87 0.93 0.89 0.83 0.90 0.88
+carpet 0.82 0.90 0.88 0.79 0.87 0.80 0.96
+toothbrush 0.87 0.89 0.92 0.78 0.87 0.77 0.91 0.97
+cable 0.86 0.88 0.92 0.77 0.86 0.78 0.90 0.95 0.90
+hazelnut 0.83 0.88 0.86 0.76 0.86 0.75 0.89 0.93 0.73 0.95
+metal nut 0.87 0.90 0.90 0.75 0.85 0.76 0.89 0.93 0.71 0.95 0.93
+tile 0.78 0.85 0.83 0.72 0.85 0.76 0.91 0.91 0.78 0.92 0.86 0.87
+wood 0.85 0.86 0.90 0.75 0.86 0.77 0.90 0.92 0.78 0.93 0.86 0.83 0.86
+leather 0.85 0.88 0.90 0.74 0.86 0.77 0.90 0.91 0.77 0.93 0.86 0.84 0.82 0.95
+bottle 0.86 0.90 0.92 0.73 0.86 0.77 0.91 0.92 0.76 0.94 0.82 0.83 0.83 0.94 0.92
+pill screwcapsulegrid zippertransistorcarpettoothbrushcablehazelnutmetal nuttile woodleatherbottle
+Hard->Easy
+bottle 0.97
+leather 0.95 0.99
+wood 0.94 0.97 0.91
+tile 0.93 0.97 0.87 0.90
+metal nut 0.89 0.95 0.86 0.86 0.95
+hazelnut 0.85 0.91 0.83 0.82 0.85 0.97
+cable 0.86 0.92 0.84 0.84 0.84 0.94 0.88
+toothbrush 0.83 0.92 0.83 0.83 0.87 0.94 0.75 0.97
+carpet 0.83 0.92 0.83 0.82 0.85 0.94 0.77 0.93 0.94
+transistor 0.82 0.92 0.84 0.83 0.84 0.94 0.74 0.94 0.91 0.88
+zipper 0.85 0.92 0.83 0.83 0.85 0.94 0.76 0.93 0.91 0.78 0.95
+grid 0.84 0.94 0.84 0.85 0.85 0.94 0.76 0.93 0.92 0.77 0.91 0.90
+capsule 0.83 0.93 0.83 0.84 0.85 0.94 0.72 0.92 0.91 0.76 0.89 0.79 0.96
+screw 0.81 0.91 0.83 0.83 0.83 0.94 0.73 0.92 0.89 0.75 0.87 0.74 0.93 0.95
+pill 0.80 0.91 0.83 0.81 0.83 0.95 0.71 0.93 0.88 0.75 0.87 0.73 0.92 0.91 0.93
+bottleleatherwoodtile metal nuthazelnutcabletoothbrushcarpettransistorzippergrid capsulescrewpill
+Easy->Hard
+tile 0.93
+toothbrush 0.92 0.93
+metal nut 0.91 0.91 0.97
+carpet 0.90 0.92 0.92 0.93
+transistor 0.89 0.87 0.89 0.89 0.89
+screw 0.85 0.81 0.90 0.83 0.79 0.96
+capsule 0.90 0.85 0.90 0.90 0.79 0.90 0.96
+cable 0.87 0.83 0.90 0.86 0.77 0.93 0.85 0.92
+wood 0.84 0.83 0.88 0.86 0.78 0.91 0.83 0.82 0.83
+hazelnut 0.82 0.80 0.87 0.83 0.76 0.90 0.83 0.78 0.79 0.91
+grid 0.85 0.80 0.90 0.89 0.76 0.90 0.86 0.77 0.78 0.85 0.87
+bottle 0.82 0.82 0.88 0.87 0.76 0.91 0.87 0.80 0.82 0.90 0.79 0.89
+pill 0.84 0.85 0.87 0.87 0.75 0.89 0.89 0.78 0.80 0.91 0.80 0.84 0.87
+zipper 0.82 0.82 0.87 0.87 0.76 0.90 0.81 0.80 0.79 0.86 0.81 0.82 0.77 0.89
+leather 0.83 0.82 0.88 0.86 0.74 0.89 0.87 0.80 0.76 0.89 0.80 0.83 0.77 0.82 0.90
+tile toothbrushmetal nutcarpettransistorscrewcapsulecablewoodhazelnutgrid bottlepill zipperleather
+Random
+Figure 9: MVTec, ResNet-18 : concept transition matrices: NCL (top) vs. CL (bottom),
+image-level and pixel-level.
+33
+
+===== PAGE 34 =====
+0.00
+0.50
+1.00
+pill 0.85
+screw 0.52 0.70
+capsule 0.48 0.43 0.79
+grid 0.49 0.58 0.47 0.87
+zipper 0.50 0.51 0.42 0.58 0.85
+transistor 0.48 0.49 0.42 0.64 0.45 0.92
+carpet 0.49 0.62 0.44 0.69 0.43 0.45 0.97
+toothbrush 0.49 0.58 0.45 0.69 0.43 0.50 0.64 0.85
+cable 0.41 0.58 0.42 0.67 0.42 0.47 0.78 0.59 0.87
+hazelnut 0.48 0.50 0.44 0.68 0.44 0.48 0.66 0.55 0.58 0.87
+metal nut 0.46 0.56 0.45 0.67 0.46 0.49 0.61 0.56 0.54 0.69 0.94
+tile 0.40 0.65 0.46 0.73 0.45 0.44 0.78 0.59 0.49 0.67 0.51 0.97
+wood 0.43 0.52 0.44 0.62 0.43 0.47 0.77 0.58 0.53 0.69 0.50 0.80 0.93
+leather 0.44 0.65 0.43 0.70 0.49 0.49 0.74 0.57 0.52 0.67 0.44 0.74 0.85 0.99
+bottle 0.48 0.52 0.40 0.65 0.45 0.52 0.58 0.51 0.51 0.63 0.45 0.57 0.72 0.48 0.87
+pill screwcapsulegrid zippertransistorcarpettoothbrushcablehazelnutmetal nuttile woodleatherbottle
+Hard->Easy
+bottle 1.00
+leather 0.52 1.00
+wood 0.56 0.81 0.97
+tile 0.56 0.83 0.81 0.98
+metal nut 0.55 0.56 0.69 0.60 0.85
+hazelnut 0.56 0.54 0.73 0.60 0.51 0.83
+cable 0.42 0.60 0.76 0.73 0.46 0.69 0.84
+toothbrush 0.49 0.51 0.64 0.55 0.47 0.70 0.54 0.81
+carpet 0.49 0.81 0.85 0.83 0.43 0.71 0.53 0.49 0.90
+transistor 0.52 0.60 0.77 0.54 0.48 0.60 0.50 0.58 0.55 0.88
+zipper 0.47 0.66 0.73 0.62 0.47 0.76 0.53 0.56 0.62 0.49 0.88
+grid 0.69 0.90 0.85 0.80 0.49 0.68 0.54 0.52 0.77 0.45 0.53 0.85
+capsule 0.47 0.69 0.80 0.70 0.45 0.74 0.49 0.57 0.74 0.46 0.46 0.61 0.77
+screw 0.51 0.64 0.82 0.69 0.48 0.76 0.52 0.57 0.68 0.47 0.45 0.57 0.40 0.74
+pill 0.47 0.64 0.71 0.62 0.48 0.66 0.53 0.51 0.70 0.43 0.46 0.65 0.41 0.54 0.76
+bottleleatherwoodtile metal nuthazelnutcabletoothbrushcarpettransistorzippergrid capsulescrewpill
+Easy->Hard
+tile 0.98
+toothbrush 0.57 0.85
+metal nut 0.53 0.52 0.87
+carpet 0.62 0.53 0.44 0.97
+transistor 0.57 0.57 0.48 0.67 0.87
+screw 0.61 0.51 0.39 0.66 0.63 0.88
+capsule 0.62 0.54 0.52 0.76 0.59 0.71 0.95
+cable 0.58 0.58 0.43 0.70 0.60 0.63 0.48 0.93
+wood 0.61 0.53 0.44 0.70 0.55 0.61 0.51 0.46 0.86
+hazelnut 0.55 0.51 0.43 0.59 0.51 0.64 0.44 0.50 0.68 0.82
+grid 0.65 0.49 0.44 0.79 0.56 0.59 0.56 0.51 0.67 0.74 0.96
+bottle 0.57 0.49 0.44 0.62 0.50 0.63 0.44 0.48 0.71 0.65 0.57 0.87
+pill 0.59 0.51 0.44 0.69 0.55 0.57 0.58 0.50 0.65 0.61 0.63 0.49 0.84
+zipper 0.63 0.49 0.51 0.75 0.57 0.63 0.59 0.47 0.65 0.72 0.73 0.51 0.51 0.97
+leather 0.62 0.52 0.46 0.77 0.55 0.64 0.54 0.46 0.72 0.71 0.66 0.53 0.50 0.58 0.94
+tile toothbrushmetal nutcarpettransistorscrewcapsulecablewoodhazelnutgrid bottlepill zipperleather
+Random
+0.00
+0.50
+1.00
+pill 0.97
+screw 0.62 0.97
+capsule 0.71 0.80 0.94
+grid 0.59 0.71 0.75 0.95
+zipper 0.65 0.70 0.82 0.42 0.90
+transistor 0.67 0.76 0.70 0.41 0.61 0.91
+carpet 0.64 0.59 0.78 0.44 0.61 0.56 0.98
+toothbrush 0.71 0.71 0.79 0.36 0.60 0.51 0.68 0.97
+cable 0.51 0.73 0.75 0.42 0.59 0.51 0.73 0.67 0.91
+hazelnut 0.70 0.74 0.61 0.40 0.62 0.46 0.62 0.80 0.46 0.96
+metal nut 0.76 0.77 0.78 0.41 0.62 0.46 0.69 0.83 0.54 0.84 0.95
+tile 0.50 0.55 0.84 0.38 0.57 0.55 0.74 0.66 0.63 0.76 0.62 0.92
+wood 0.54 0.79 0.71 0.49 0.68 0.61 0.81 0.63 0.59 0.70 0.64 0.67 0.87
+leather 0.57 0.59 0.68 0.45 0.60 0.59 0.83 0.69 0.54 0.72 0.73 0.70 0.69 0.99
+bottle 0.63 0.73 0.79 0.40 0.70 0.49 0.61 0.74 0.51 0.74 0.62 0.53 0.65 0.66 0.89
+pill screwcapsulegrid zippertransistorcarpettoothbrushcablehazelnutmetal nuttile woodleatherbottle
+Hard->Easy
+bottle 0.99
+leather 0.44 0.99
+wood 0.50 0.86 0.93
+tile 0.40 0.88 0.76 0.94
+metal nut 0.52 0.71 0.68 0.54 0.88
+hazelnut 0.45 0.66 0.71 0.45 0.67 0.95
+cable 0.43 0.76 0.66 0.66 0.54 0.70 0.86
+toothbrush 0.44 0.68 0.66 0.55 0.67 0.78 0.52 0.89
+carpet 0.52 0.88 0.79 0.77 0.61 0.75 0.64 0.52 0.96
+transistor 0.30 0.71 0.70 0.51 0.62 0.69 0.38 0.69 0.57 0.85
+zipper 0.59 0.84 0.70 0.62 0.66 0.83 0.58 0.67 0.76 0.54 0.92
+grid 0.50 0.91 0.79 0.78 0.54 0.73 0.66 0.55 0.84 0.57 0.73 0.89
+capsule 0.64 0.82 0.77 0.60 0.68 0.88 0.58 0.75 0.79 0.58 0.76 0.47 0.91
+screw 0.60 0.81 0.75 0.61 0.57 0.83 0.63 0.67 0.76 0.53 0.70 0.46 0.79 0.95
+pill 0.48 0.74 0.68 0.53 0.70 0.82 0.53 0.83 0.68 0.55 0.69 0.41 0.77 0.81 0.91
+bottleleatherwoodtile metal nuthazelnutcabletoothbrushcarpettransistorzippergrid capsulescrewpill
+Easy->Hard
+tile 0.96
+toothbrush 0.52 0.89
+metal nut 0.57 0.67 0.96
+carpet 0.61 0.70 0.69 0.99
+transistor 0.50 0.73 0.72 0.78 0.95
+screw 0.53 0.67 0.66 0.81 0.43 0.98
+capsule 0.48 0.72 0.66 0.84 0.53 0.83 0.99
+cable 0.52 0.59 0.69 0.73 0.41 0.88 0.84 0.95
+wood 0.53 0.60 0.71 0.78 0.51 0.88 0.84 0.65 0.93
+hazelnut 0.52 0.76 0.78 0.73 0.48 0.90 0.87 0.50 0.65 0.98
+grid 0.54 0.76 0.75 0.87 0.47 0.80 0.88 0.52 0.57 0.74 0.95
+bottle 0.45 0.62 0.74 0.68 0.42 0.84 0.79 0.58 0.74 0.82 0.52 0.97
+pill 0.45 0.63 0.64 0.73 0.47 0.85 0.88 0.59 0.73 0.81 0.53 0.66 0.85
+zipper 0.53 0.74 0.73 0.88 0.55 0.80 0.91 0.53 0.60 0.89 0.56 0.54 0.64 0.96
+leather 0.64 0.69 0.77 0.89 0.49 0.86 0.91 0.64 0.75 0.89 0.63 0.63 0.60 0.79 0.97
+tile toothbrushmetal nutcarpettransistorscrewcapsulecablewoodhazelnutgrid bottlepill zipperleather
+Random
+0.00
+0.50
+1.00
+pill 0.84
+screw 0.73 0.65
+capsule 0.77 0.62 0.81
+grid 0.71 0.50 0.67 0.86
+zipper 0.70 0.62 0.67 0.78 0.82
+transistor 0.69 0.52 0.64 0.70 0.70 0.92
+carpet 0.65 0.54 0.66 0.76 0.71 0.78 0.95
+toothbrush 0.63 0.49 0.65 0.70 0.62 0.75 0.83 0.87
+cable 0.66 0.60 0.65 0.75 0.66 0.72 0.88 0.81 0.86
+hazelnut 0.67 0.50 0.62 0.70 0.62 0.71 0.83 0.78 0.76 0.86
+metal nut 0.70 0.51 0.61 0.71 0.66 0.73 0.87 0.75 0.71 0.79 0.93
+tile 0.67 0.56 0.63 0.75 0.67 0.71 0.88 0.76 0.72 0.78 0.80 0.93
+wood 0.63 0.50 0.59 0.66 0.61 0.66 0.82 0.72 0.70 0.78 0.70 0.80 0.89
+leather 0.61 0.56 0.60 0.66 0.65 0.73 0.86 0.75 0.67 0.76 0.67 0.83 0.80 0.87
+bottle 0.61 0.52 0.62 0.67 0.60 0.72 0.82 0.76 0.68 0.76 0.75 0.76 0.83 0.83 0.81
+pill screwcapsulegrid zippertransistorcarpettoothbrushcablehazelnutmetal nuttile woodleatherbottle
+Hard->Easy
+bottle 1.00
+leather 0.93 0.95
+wood 0.98 0.96 0.97
+tile 0.98 0.94 0.96 0.98
+metal nut 0.93 0.91 0.94 0.91 0.87
+hazelnut 0.88 0.92 0.93 0.89 0.66 0.83
+cable 0.91 0.91 0.89 0.88 0.73 0.79 0.82
+toothbrush 0.89 0.91 0.91 0.87 0.71 0.74 0.72 0.72
+carpet 0.82 0.92 0.89 0.88 0.65 0.78 0.71 0.70 0.91
+transistor 0.79 0.91 0.92 0.87 0.68 0.70 0.68 0.66 0.86 0.79
+zipper 0.82 0.91 0.92 0.85 0.65 0.71 0.68 0.65 0.88 0.68 0.87
+grid 0.80 0.92 0.87 0.86 0.65 0.74 0.69 0.69 0.85 0.65 0.72 0.79
+capsule 0.87 0.93 0.91 0.85 0.70 0.76 0.69 0.69 0.84 0.67 0.74 0.70 0.74
+screw 0.76 0.89 0.89 0.85 0.68 0.75 0.65 0.67 0.85 0.67 0.69 0.67 0.53 0.71
+pill 0.81 0.88 0.87 0.83 0.70 0.73 0.65 0.69 0.88 0.68 0.70 0.67 0.58 0.57 0.73
+bottleleatherwoodtile metal nuthazelnutcabletoothbrushcarpettransistorzippergrid capsulescrewpill
+Easy->Hard
+tile 0.98
+toothbrush 0.95 0.84
+metal nut 0.98 0.80 0.87
+carpet 0.97 0.75 0.71 0.98
+transistor 0.91 0.74 0.66 0.96 0.94
+screw 0.92 0.74 0.67 0.93 0.78 0.92
+capsule 0.93 0.75 0.61 0.96 0.80 0.72 0.96
+cable 0.91 0.75 0.68 0.93 0.72 0.79 0.84 0.93
+wood 0.91 0.73 0.67 0.93 0.74 0.78 0.85 0.77 0.85
+hazelnut 0.92 0.73 0.58 0.93 0.74 0.77 0.85 0.70 0.78 0.84
+grid 0.90 0.72 0.65 0.95 0.73 0.73 0.87 0.72 0.73 0.62 0.96
+bottle 0.89 0.70 0.64 0.94 0.69 0.75 0.84 0.73 0.74 0.69 0.87 0.84
+pill 0.86 0.67 0.66 0.94 0.71 0.72 0.83 0.72 0.68 0.69 0.87 0.80 0.83
+zipper 0.85 0.71 0.66 0.95 0.72 0.76 0.84 0.72 0.71 0.64 0.87 0.76 0.68 0.97
+leather 0.83 0.70 0.68 0.93 0.70 0.75 0.81 0.70 0.73 0.68 0.82 0.74 0.66 0.86 0.95
+tile toothbrushmetal nutcarpettransistorscrewcapsulecablewoodhazelnutgrid bottlepill zipperleather
+Random
+0.00
+0.50
+1.00
+pill 0.97
+screw 0.84 0.96
+capsule 0.92 0.94 0.92
+grid 0.89 0.87 0.89 0.93
+zipper 0.88 0.88 0.89 0.87 0.88
+transistor 0.87 0.87 0.86 0.86 0.83 0.89
+carpet 0.87 0.85 0.88 0.87 0.83 0.84 0.97
+toothbrush 0.86 0.84 0.84 0.84 0.79 0.80 0.93 0.96
+cable 0.84 0.83 0.84 0.83 0.79 0.79 0.92 0.92 0.91
+hazelnut 0.84 0.82 0.81 0.83 0.79 0.76 0.89 0.89 0.80 0.94
+metal nut 0.87 0.84 0.84 0.83 0.79 0.78 0.89 0.90 0.79 0.94 0.93
+tile 0.83 0.81 0.85 0.76 0.80 0.79 0.91 0.89 0.80 0.93 0.89 0.88
+wood 0.82 0.87 0.82 0.77 0.78 0.74 0.91 0.88 0.76 0.92 0.86 0.82 0.86
+leather 0.81 0.85 0.84 0.82 0.77 0.78 0.92 0.89 0.81 0.91 0.83 0.83 0.83 0.95
+bottle 0.85 0.84 0.82 0.77 0.79 0.77 0.91 0.89 0.79 0.91 0.87 0.83 0.83 0.92 0.82
+pill screwcapsulegrid zippertransistorcarpettoothbrushcablehazelnutmetal nuttile woodleatherbottle
+Hard->Easy
+bottle 0.99
+leather 0.96 0.99
+wood 0.94 0.98 0.92
+tile 0.94 0.97 0.90 0.92
+metal nut 0.90 0.96 0.90 0.88 0.86
+hazelnut 0.86 0.91 0.86 0.84 0.79 0.95
+cable 0.87 0.92 0.87 0.85 0.78 0.92 0.86
+toothbrush 0.89 0.93 0.88 0.86 0.80 0.92 0.81 0.86
+carpet 0.86 0.92 0.86 0.85 0.77 0.85 0.80 0.81 0.92
+transistor 0.81 0.91 0.85 0.82 0.78 0.87 0.76 0.83 0.89 0.80
+zipper 0.83 0.90 0.85 0.82 0.79 0.88 0.79 0.81 0.89 0.73 0.91
+grid 0.83 0.92 0.86 0.83 0.77 0.88 0.80 0.80 0.90 0.74 0.87 0.87
+capsule 0.86 0.95 0.87 0.86 0.80 0.90 0.77 0.84 0.91 0.74 0.87 0.83 0.91
+screw 0.83 0.93 0.86 0.84 0.77 0.87 0.79 0.80 0.90 0.72 0.86 0.82 0.85 0.95
+pill 0.83 0.93 0.86 0.84 0.79 0.89 0.77 0.84 0.90 0.73 0.85 0.82 0.81 0.91 0.86
+bottleleatherwoodtile metal nuthazelnutcabletoothbrushcarpettransistorzippergrid capsulescrewpill
+Easy->Hard
+tile 0.96
+toothbrush 0.95 0.88
+metal nut 0.95 0.86 0.95
+carpet 0.93 0.84 0.91 0.97
+transistor 0.92 0.83 0.90 0.97 0.97
+screw 0.91 0.82 0.91 0.97 0.92 0.98
+capsule 0.91 0.81 0.89 0.97 0.87 0.95 0.98
+cable 0.90 0.78 0.90 0.96 0.88 0.95 0.96 0.93
+wood 0.90 0.79 0.90 0.96 0.90 0.94 0.96 0.89 0.91
+hazelnut 0.88 0.81 0.91 0.96 0.90 0.95 0.96 0.87 0.88 0.98
+grid 0.88 0.81 0.89 0.97 0.81 0.93 0.96 0.87 0.84 0.94 0.93
+bottle 0.89 0.79 0.89 0.97 0.87 0.94 0.93 0.88 0.86 0.94 0.90 0.94
+pill 0.86 0.79 0.87 0.96 0.84 0.93 0.93 0.87 0.85 0.94 0.89 0.91 0.83
+zipper 0.87 0.79 0.87 0.96 0.83 0.94 0.93 0.87 0.86 0.93 0.89 0.90 0.77 0.96
+leather 0.88 0.79 0.86 0.96 0.82 0.93 0.92 0.87 0.83 0.93 0.87 0.89 0.75 0.92 0.96
+tile toothbrushmetal nutcarpettransistorscrewcapsulecablewoodhazelnutgrid bottlepill zipperleather
+Random
+Figure 10: MVTec, Wide ResNet-50-2 : concept transition matrices: NCL (top) vs. CL
+(bottom), image-level and pixel-level.
+34
+
+===== PAGE 35 =====
+0.00
+0.50
+1.00
+capsules 0.74
+macaroni2 0.51 0.68
+macaroni1 0.47 0.53 0.80
+pcb3 0.52 0.49 0.54 0.80
+candle 0.47 0.50 0.54 0.54 0.87
+pcb2 0.47 0.52 0.54 0.51 0.46 0.82
+fryum 0.50 0.48 0.50 0.54 0.45 0.51 0.90
+pipe fryum 0.49 0.49 0.54 0.51 0.39 0.59 0.47 0.89
+cashew 0.48 0.51 0.54 0.53 0.44 0.62 0.49 0.59 0.89
+pcb1 0.45 0.47 0.49 0.52 0.38 0.47 0.50 0.53 0.54 0.87
+chewinggum 0.47 0.52 0.55 0.52 0.43 0.59 0.48 0.69 0.63 0.50 0.94
+pcb4 0.48 0.49 0.54 0.54 0.45 0.56 0.47 0.57 0.61 0.51 0.57 0.92
+capsulesmacaroni2macaroni1pcb3 candlepcb2 fryum pipe fryumcashewpcb1 chewinggumpcb4
+Hard->Easy
+pcb4 0.96
+chewinggum 0.44 0.96
+pcb1 0.50 0.55 0.89
+cashew 0.41 0.52 0.46 0.88
+pipe fryum 0.41 0.62 0.51 0.70 0.90
+fryum 0.53 0.50 0.54 0.50 0.49 0.89
+pcb2 0.51 0.53 0.53 0.66 0.51 0.47 0.82
+candle 0.45 0.47 0.48 0.66 0.55 0.46 0.55 0.85
+pcb3 0.54 0.49 0.45 0.59 0.51 0.44 0.51 0.43 0.80
+macaroni1 0.51 0.51 0.55 0.61 0.55 0.49 0.52 0.53 0.52 0.79
+macaroni2 0.55 0.49 0.48 0.53 0.52 0.52 0.47 0.54 0.50 0.56 0.66
+capsules 0.43 0.47 0.49 0.57 0.49 0.44 0.53 0.45 0.49 0.47 0.48 0.69
+pcb4 chewinggumpcb1 cashewpipe fryumfryum pcb2 candlepcb3 macaroni1macaroni2capsules
+Easy->Hard
+pcb3 0.87
+pcb4 0.45 0.82
+capsules 0.50 0.45 0.81
+cashew 0.47 0.52 0.59 0.92
+chewinggum 0.50 0.49 0.46 0.59 0.92
+pcb1 0.52 0.46 0.57 0.54 0.54 0.82
+fryum 0.50 0.51 0.55 0.57 0.54 0.47 0.80
+macaroni1 0.45 0.49 0.46 0.52 0.50 0.49 0.47 0.84
+candle 0.43 0.49 0.55 0.57 0.50 0.55 0.49 0.54 0.82
+pcb2 0.48 0.49 0.50 0.53 0.47 0.55 0.44 0.50 0.56 0.81
+pipe fryum 0.44 0.50 0.55 0.60 0.54 0.52 0.49 0.47 0.51 0.55 0.93
+macaroni2 0.43 0.44 0.62 0.57 0.49 0.53 0.47 0.59 0.62 0.50 0.46 0.80
+pcb3 pcb4 capsulescashewchewinggumpcb1 fryum macaroni1candlepcb2 pipe fryummacaroni2
+Random
+0.00
+0.50
+1.00
+capsules 0.94
+macaroni2 0.66 0.93
+macaroni1 0.68 0.86 0.94
+pcb3 0.63 0.85 0.85 0.95
+candle 0.68 0.69 0.72 0.76 0.96
+pcb2 0.69 0.76 0.82 0.70 0.73 0.93
+fryum 0.69 0.84 0.84 0.78 0.62 0.75 0.91
+pipe fryum 0.71 0.74 0.77 0.78 0.73 0.79 0.79 0.98
+cashew 0.69 0.65 0.69 0.75 0.62 0.80 0.78 0.85 0.94
+pcb1 0.71 0.72 0.76 0.73 0.62 0.83 0.80 0.70 0.85 0.97
+chewinggum 0.71 0.67 0.75 0.73 0.68 0.81 0.78 0.84 0.90 0.77 0.97
+pcb4 0.69 0.74 0.76 0.67 0.72 0.79 0.80 0.92 0.88 0.84 0.88 0.94
+capsulesmacaroni2macaroni1pcb3 candlepcb2 fryum pipe fryumcashewpcb1 chewinggumpcb4
+Hard->Easy
+pcb4 0.94
+chewinggum 0.79 0.97
+pcb1 0.79 0.73 0.98
+cashew 0.76 0.86 0.75 0.94
+pipe fryum 0.75 0.62 0.74 0.64 0.97
+fryum 0.74 0.61 0.71 0.65 0.67 0.93
+pcb2 0.83 0.82 0.87 0.86 0.82 0.85 0.93
+candle 0.75 0.61 0.62 0.52 0.86 0.68 0.79 0.95
+pcb3 0.67 0.64 0.72 0.69 0.81 0.87 0.61 0.67 0.94
+macaroni1 0.78 0.72 0.77 0.64 0.88 0.89 0.81 0.72 0.84 0.92
+macaroni2 0.77 0.59 0.70 0.50 0.79 0.88 0.80 0.63 0.85 0.89 0.91
+capsules 0.74 0.63 0.82 0.72 0.73 0.83 0.79 0.67 0.78 0.82 0.70 0.90
+pcb4 chewinggumpcb1 cashewpipe fryumfryum pcb2 candlepcb3 macaroni1macaroni2capsules
+Easy->Hard
+pcb3 0.96
+pcb4 0.67 0.91
+capsules 0.65 0.70 0.93
+cashew 0.71 0.70 0.83 0.97
+chewinggum 0.62 0.70 0.68 0.65 0.96
+pcb1 0.69 0.72 0.70 0.78 0.89 0.95
+fryum 0.61 0.68 0.53 0.63 0.87 0.82 0.94
+macaroni1 0.68 0.73 0.80 0.73 0.83 0.80 0.76 0.94
+candle 0.74 0.72 0.81 0.79 0.83 0.79 0.78 0.88 0.94
+pcb2 0.70 0.70 0.76 0.72 0.90 0.85 0.87 0.79 0.61 0.96
+pipe fryum 0.74 0.71 0.82 0.83 0.73 0.76 0.75 0.86 0.77 0.66 0.97
+macaroni2 0.74 0.74 0.64 0.63 0.70 0.75 0.67 0.79 0.77 0.73 0.81 0.95
+pcb3 pcb4 capsulescashewchewinggumpcb1 fryum macaroni1candlepcb2 pipe fryummacaroni2
+Random
+0.00
+0.50
+1.00
+capsules 0.74
+macaroni2 0.64 0.69
+macaroni1 0.63 0.64 0.84
+pcb3 0.60 0.60 0.72 0.84
+candle 0.57 0.59 0.72 0.73 0.85
+pcb2 0.58 0.58 0.66 0.67 0.80 0.84
+fryum 0.55 0.54 0.67 0.67 0.79 0.74 0.86
+pipe fryum 0.55 0.57 0.69 0.67 0.74 0.75 0.75 0.89
+cashew 0.54 0.58 0.66 0.67 0.74 0.78 0.74 0.82 0.88
+pcb1 0.51 0.55 0.66 0.62 0.73 0.68 0.71 0.81 0.76 0.88
+chewinggum 0.55 0.54 0.64 0.65 0.74 0.75 0.69 0.83 0.76 0.79 0.91
+pcb4 0.53 0.56 0.67 0.65 0.77 0.68 0.72 0.82 0.79 0.79 0.89 0.94
+capsulesmacaroni2macaroni1pcb3 candlepcb2 fryum pipe fryumcashewpcb1 chewinggumpcb4
+Hard->Easy
+pcb4 0.95
+chewinggum 0.93 0.95
+pcb1 0.92 0.91 0.90
+cashew 0.87 0.88 0.83 0.86
+pipe fryum 0.89 0.84 0.79 0.81 0.91
+fryum 0.88 0.86 0.81 0.81 0.79 0.89
+pcb2 0.84 0.85 0.83 0.78 0.81 0.70 0.83
+candle 0.86 0.82 0.80 0.77 0.81 0.72 0.73 0.85
+pcb3 0.84 0.80 0.78 0.76 0.77 0.71 0.69 0.79 0.77
+macaroni1 0.82 0.84 0.73 0.77 0.78 0.72 0.70 0.78 0.64 0.75
+macaroni2 0.86 0.82 0.75 0.77 0.81 0.71 0.68 0.76 0.61 0.69 0.65
+capsules 0.80 0.84 0.75 0.75 0.79 0.70 0.61 0.78 0.62 0.64 0.56 0.68
+pcb4 chewinggumpcb1 cashewpipe fryumfryum pcb2 candlepcb3 macaroni1macaroni2capsules
+Easy->Hard
+pcb3 0.87
+pcb4 0.79 0.81
+capsules 0.75 0.69 0.79
+cashew 0.73 0.65 0.68 0.91
+chewinggum 0.75 0.65 0.72 0.83 0.91
+pcb1 0.76 0.68 0.73 0.80 0.83 0.81
+fryum 0.72 0.68 0.69 0.78 0.84 0.68 0.76
+macaroni1 0.72 0.64 0.68 0.79 0.82 0.63 0.60 0.82
+candle 0.74 0.64 0.71 0.81 0.81 0.70 0.60 0.74 0.85
+pcb2 0.74 0.69 0.67 0.76 0.79 0.69 0.58 0.71 0.70 0.79
+pipe fryum 0.69 0.66 0.68 0.82 0.77 0.67 0.61 0.73 0.71 0.67 0.93
+macaroni2 0.73 0.68 0.67 0.79 0.81 0.69 0.61 0.75 0.72 0.65 0.82 0.80
+pcb3 pcb4 capsulescashewchewinggumpcb1 fryum macaroni1candlepcb2 pipe fryummacaroni2
+Random
+0.00
+0.50
+1.00
+capsules 0.94
+macaroni2 0.89 0.93
+macaroni1 0.88 0.91 0.96
+pcb3 0.85 0.89 0.83 0.96
+candle 0.85 0.92 0.93 0.91 0.94
+pcb2 0.86 0.87 0.82 0.91 0.87 0.95
+fryum 0.84 0.87 0.90 0.91 0.85 0.88 0.92
+pipe fryum 0.85 0.86 0.89 0.91 0.85 0.89 0.89 0.96
+cashew 0.84 0.87 0.89 0.91 0.86 0.87 0.90 0.91 0.90
+pcb1 0.85 0.88 0.89 0.91 0.85 0.89 0.92 0.88 0.88 0.96
+chewinggum 0.83 0.85 0.79 0.90 0.85 0.89 0.89 0.90 0.88 0.90 0.93
+pcb4 0.84 0.86 0.89 0.89 0.87 0.91 0.92 0.95 0.90 0.92 0.91 0.95
+capsulesmacaroni2macaroni1pcb3 candlepcb2 fryum pipe fryumcashewpcb1 chewinggumpcb4
+Hard->Easy
+pcb4 0.97
+chewinggum 0.93 0.96
+pcb1 0.91 0.94 0.98
+cashew 0.88 0.92 0.90 0.92
+pipe fryum 0.91 0.89 0.92 0.86 0.96
+fryum 0.90 0.88 0.91 0.83 0.92 0.90
+pcb2 0.90 0.89 0.93 0.87 0.91 0.91 0.95
+candle 0.89 0.88 0.88 0.85 0.93 0.90 0.86 0.94
+pcb3 0.89 0.84 0.88 0.83 0.91 0.88 0.88 0.85 0.90
+macaroni1 0.89 0.88 0.89 0.84 0.93 0.92 0.90 0.85 0.91 0.94
+macaroni2 0.89 0.88 0.88 0.80 0.92 0.91 0.88 0.83 0.90 0.92 0.93
+capsules 0.87 0.88 0.89 0.81 0.88 0.91 0.85 0.81 0.88 0.80 0.84 0.88
+pcb4 chewinggumpcb1 cashewpipe fryumfryum pcb2 candlepcb3 macaroni1macaroni2capsules
+Easy->Hard
+pcb3 0.97
+pcb4 0.94 0.93
+capsules 0.90 0.85 0.92
+cashew 0.87 0.82 0.87 0.96
+chewinggum 0.90 0.85 0.88 0.93 0.93
+pcb1 0.92 0.86 0.86 0.92 0.92 0.97
+fryum 0.87 0.84 0.79 0.87 0.91 0.90 0.93
+macaroni1 0.89 0.83 0.87 0.89 0.91 0.90 0.88 0.95
+candle 0.91 0.82 0.86 0.88 0.93 0.90 0.91 0.91 0.93
+pcb2 0.88 0.82 0.85 0.87 0.89 0.92 0.88 0.84 0.85 0.91
+pipe fryum 0.90 0.82 0.86 0.88 0.91 0.91 0.90 0.91 0.85 0.87 0.96
+macaroni2 0.91 0.83 0.86 0.90 0.90 0.91 0.89 0.89 0.84 0.88 0.91 0.95
+pcb3 pcb4 capsulescashewchewinggumpcb1 fryum macaroni1candlepcb2 pipe fryummacaroni2
+Random
+Figure 11: VisA, ResNet-18 : concept transition matrices: NCL (top) vs. CL (bottom),
+image-level and pixel-level.
+35
+
+===== PAGE 36 =====
+0.00
+0.50
+1.00
+capsules 0.75
+macaroni2 0.52 0.62
+macaroni1 0.48 0.49 0.78
+pcb3 0.54 0.47 0.53 0.76
+candle 0.50 0.52 0.60 0.50 0.83
+pcb2 0.45 0.47 0.45 0.49 0.50 0.81
+fryum 0.48 0.48 0.55 0.48 0.52 0.51 0.88
+pipe fryum 0.49 0.47 0.58 0.43 0.45 0.51 0.50 0.86
+cashew 0.56 0.48 0.55 0.55 0.45 0.55 0.46 0.54 0.80
+pcb1 0.52 0.47 0.58 0.47 0.45 0.42 0.54 0.58 0.67 0.82
+chewinggum 0.55 0.47 0.56 0.47 0.43 0.55 0.50 0.56 0.78 0.44 0.90
+pcb4 0.49 0.48 0.51 0.51 0.46 0.53 0.51 0.59 0.63 0.46 0.51 0.85
+capsulesmacaroni2macaroni1pcb3 candlepcb2 fryum pipe fryumcashewpcb1 chewinggumpcb4
+Hard->Easy
+pcb4 0.94
+chewinggum 0.35 0.93
+pcb1 0.51 0.46 0.81
+cashew 0.46 0.61 0.43 0.86
+pipe fryum 0.43 0.59 0.52 0.63 0.87
+fryum 0.50 0.51 0.44 0.59 0.54 0.88
+pcb2 0.39 0.48 0.55 0.49 0.50 0.58 0.84
+candle 0.39 0.57 0.38 0.54 0.60 0.54 0.54 0.86
+pcb3 0.34 0.42 0.45 0.59 0.57 0.49 0.51 0.47 0.79
+macaroni1 0.43 0.53 0.38 0.63 0.52 0.52 0.52 0.52 0.50 0.81
+macaroni2 0.40 0.50 0.32 0.67 0.54 0.55 0.53 0.51 0.45 0.59 0.68
+capsules 0.41 0.44 0.41 0.58 0.48 0.51 0.47 0.50 0.43 0.49 0.46 0.74
+pcb4 chewinggumpcb1 cashewpipe fryumfryum pcb2 candlepcb3 macaroni1macaroni2capsules
+Easy->Hard
+pcb3 0.87
+pcb4 0.50 0.80
+capsules 0.44 0.51 0.80
+cashew 0.43 0.53 0.62 0.92
+chewinggum 0.45 0.41 0.59 0.60 0.93
+pcb1 0.44 0.50 0.61 0.57 0.52 0.84
+fryum 0.45 0.51 0.51 0.56 0.52 0.43 0.83
+macaroni1 0.41 0.49 0.58 0.46 0.49 0.46 0.48 0.81
+candle 0.43 0.51 0.55 0.53 0.54 0.42 0.46 0.44 0.79
+pcb2 0.47 0.59 0.58 0.47 0.46 0.49 0.50 0.39 0.45 0.76
+pipe fryum 0.43 0.45 0.57 0.59 0.58 0.49 0.47 0.43 0.53 0.54 0.83
+macaroni2 0.43 0.52 0.55 0.60 0.53 0.46 0.47 0.53 0.59 0.49 0.41 0.73
+pcb3 pcb4 capsulescashewchewinggumpcb1 fryum macaroni1candlepcb2 pipe fryummacaroni2
+Random
+0.00
+0.50
+1.00
+capsules 0.95
+macaroni2 0.73 0.87
+macaroni1 0.73 0.79 0.89
+pcb3 0.68 0.83 0.80 0.88
+candle 0.70 0.68 0.74 0.71 0.91
+pcb2 0.75 0.79 0.76 0.64 0.69 0.92
+fryum 0.70 0.80 0.79 0.74 0.59 0.72 0.93
+pipe fryum 0.71 0.68 0.66 0.66 0.67 0.75 0.68 0.93
+cashew 0.69 0.64 0.67 0.67 0.66 0.73 0.66 0.74 0.93
+pcb1 0.76 0.75 0.72 0.68 0.59 0.81 0.85 0.60 0.71 0.97
+chewinggum 0.73 0.72 0.69 0.67 0.67 0.77 0.66 0.78 0.84 0.70 0.92
+pcb4 0.69 0.73 0.75 0.59 0.68 0.73 0.81 0.86 0.83 0.81 0.81 0.86
+capsulesmacaroni2macaroni1pcb3 candlepcb2 fryum pipe fryumcashewpcb1 chewinggumpcb4
+Hard->Easy
+pcb4 0.97
+chewinggum 0.72 0.92
+pcb1 0.77 0.78 0.91
+cashew 0.77 0.78 0.73 0.90
+pipe fryum 0.73 0.69 0.73 0.65 0.96
+fryum 0.69 0.64 0.72 0.68 0.69 0.90
+pcb2 0.81 0.79 0.90 0.86 0.73 0.88 0.96
+candle 0.72 0.73 0.65 0.66 0.89 0.78 0.75 0.89
+pcb3 0.74 0.78 0.81 0.84 0.85 0.90 0.70 0.71 0.94
+macaroni1 0.76 0.78 0.76 0.73 0.86 0.89 0.79 0.66 0.83 0.96
+macaroni2 0.76 0.73 0.72 0.72 0.85 0.88 0.79 0.68 0.81 0.86 0.92
+capsules 0.71 0.75 0.77 0.74 0.75 0.81 0.79 0.64 0.78 0.81 0.79 0.92
+pcb4 chewinggumpcb1 cashewpipe fryumfryum pcb2 candlepcb3 macaroni1macaroni2capsules
+Easy->Hard
+pcb3 0.98
+pcb4 0.71 0.90
+capsules 0.72 0.69 0.97
+cashew 0.72 0.69 0.79 0.96
+chewinggum 0.69 0.67 0.65 0.71 0.95
+pcb1 0.69 0.71 0.59 0.80 0.88 0.97
+fryum 0.67 0.68 0.58 0.65 0.88 0.87 0.94
+macaroni1 0.71 0.70 0.73 0.71 0.81 0.83 0.79 0.88
+candle 0.79 0.69 0.79 0.76 0.83 0.84 0.81 0.79 0.89
+pcb2 0.70 0.68 0.74 0.72 0.89 0.89 0.88 0.72 0.61 0.96
+pipe fryum 0.76 0.68 0.77 0.80 0.77 0.80 0.75 0.77 0.70 0.63 0.93
+macaroni2 0.76 0.71 0.72 0.71 0.72 0.79 0.71 0.78 0.77 0.75 0.78 0.86
+pcb3 pcb4 capsulescashewchewinggumpcb1 fryum macaroni1candlepcb2 pipe fryummacaroni2
+Random
+0.00
+0.50
+1.00
+capsules 0.75
+macaroni2 0.66 0.64
+macaroni1 0.62 0.59 0.77
+pcb3 0.61 0.59 0.69 0.73
+candle 0.63 0.56 0.65 0.62 0.76
+pcb2 0.60 0.55 0.61 0.58 0.71 0.80
+fryum 0.62 0.55 0.65 0.57 0.69 0.62 0.85
+pipe fryum 0.58 0.54 0.65 0.61 0.72 0.61 0.74 0.77
+cashew 0.61 0.53 0.65 0.59 0.71 0.64 0.70 0.72 0.79
+pcb1 0.57 0.53 0.63 0.57 0.67 0.58 0.76 0.69 0.70 0.85
+chewinggum 0.56 0.53 0.57 0.57 0.70 0.61 0.70 0.68 0.80 0.71 0.84
+pcb4 0.55 0.55 0.60 0.60 0.63 0.59 0.72 0.75 0.78 0.67 0.76 0.88
+capsulesmacaroni2macaroni1pcb3 candlepcb2 fryum pipe fryumcashewpcb1 chewinggumpcb4
+Hard->Easy
+pcb4 0.93
+chewinggum 0.81 0.91
+pcb1 0.83 0.85 0.85
+cashew 0.86 0.82 0.78 0.86
+pipe fryum 0.87 0.82 0.71 0.80 0.86
+fryum 0.76 0.78 0.76 0.79 0.77 0.88
+pcb2 0.78 0.73 0.73 0.72 0.71 0.76 0.80
+candle 0.76 0.81 0.72 0.76 0.79 0.82 0.69 0.80
+pcb3 0.78 0.76 0.73 0.72 0.76 0.75 0.67 0.70 0.81
+macaroni1 0.75 0.80 0.69 0.77 0.79 0.74 0.69 0.68 0.66 0.81
+macaroni2 0.76 0.76 0.62 0.73 0.76 0.75 0.68 0.68 0.64 0.71 0.68
+capsules 0.75 0.71 0.68 0.69 0.68 0.76 0.65 0.65 0.65 0.64 0.58 0.70
+pcb4 chewinggumpcb1 cashewpipe fryumfryum pcb2 candlepcb3 macaroni1macaroni2capsules
+Easy->Hard
+pcb3 0.86
+pcb4 0.76 0.77
+capsules 0.69 0.65 0.79
+cashew 0.64 0.64 0.71 0.83
+chewinggum 0.67 0.64 0.68 0.77 0.89
+pcb1 0.66 0.64 0.67 0.76 0.82 0.84
+fryum 0.68 0.63 0.66 0.72 0.79 0.75 0.80
+macaroni1 0.63 0.64 0.66 0.76 0.81 0.70 0.66 0.80
+candle 0.62 0.62 0.64 0.73 0.79 0.71 0.64 0.61 0.80
+pcb2 0.70 0.63 0.64 0.69 0.77 0.68 0.64 0.59 0.69 0.76
+pipe fryum 0.68 0.63 0.69 0.72 0.79 0.68 0.63 0.61 0.70 0.60 0.88
+macaroni2 0.69 0.64 0.65 0.75 0.77 0.71 0.63 0.70 0.66 0.60 0.80 0.73
+pcb3 pcb4 capsulescashewchewinggumpcb1 fryum macaroni1candlepcb2 pipe fryummacaroni2
+Random
+0.00
+0.50
+1.00
+capsules 0.95
+macaroni2 0.92 0.87
+macaroni1 0.88 0.82 0.88
+pcb3 0.87 0.77 0.82 0.88
+candle 0.84 0.72 0.76 0.78 0.85
+pcb2 0.88 0.74 0.76 0.79 0.82 0.94
+fryum 0.86 0.79 0.76 0.77 0.83 0.83 0.90
+pipe fryum 0.84 0.75 0.79 0.79 0.84 0.85 0.86 0.92
+cashew 0.86 0.75 0.78 0.77 0.83 0.82 0.81 0.89 0.90
+pcb1 0.85 0.73 0.76 0.77 0.82 0.89 0.82 0.87 0.84 0.97
+chewinggum 0.83 0.73 0.77 0.78 0.84 0.80 0.80 0.92 0.90 0.88 0.94
+pcb4 0.79 0.72 0.78 0.79 0.83 0.85 0.82 0.91 0.89 0.91 0.89 0.87
+capsulesmacaroni2macaroni1pcb3 candlepcb2 fryum pipe fryumcashewpcb1 chewinggumpcb4
+Hard->Easy
+pcb4 0.97
+chewinggum 0.90 0.89
+pcb1 0.91 0.87 0.98
+cashew 0.89 0.82 0.91 0.91
+pipe fryum 0.90 0.84 0.86 0.87 0.95
+fryum 0.87 0.86 0.90 0.89 0.95 0.93
+pcb2 0.91 0.85 0.91 0.88 0.93 0.82 0.95
+candle 0.82 0.87 0.85 0.88 0.94 0.79 0.84 0.87
+pcb3 0.91 0.86 0.89 0.89 0.95 0.90 0.88 0.83 0.96
+macaroni1 0.82 0.83 0.83 0.84 0.92 0.88 0.83 0.81 0.86 0.94
+macaroni2 0.83 0.86 0.84 0.86 0.94 0.91 0.85 0.79 0.90 0.92 0.94
+capsules 0.83 0.84 0.83 0.83 0.91 0.80 0.83 0.79 0.84 0.86 0.82 0.90
+pcb4 chewinggumpcb1 cashewpipe fryumfryum pcb2 candlepcb3 macaroni1macaroni2capsules
+Easy->Hard
+pcb3 0.98
+pcb4 0.96 0.88
+capsules 0.92 0.77 0.94
+cashew 0.88 0.78 0.89 0.93
+chewinggum 0.88 0.77 0.87 0.86 0.95
+pcb1 0.88 0.82 0.89 0.89 0.94 0.96
+fryum 0.87 0.75 0.83 0.86 0.93 0.94 0.93
+macaroni1 0.89 0.75 0.86 0.85 0.93 0.93 0.91 0.86
+candle 0.84 0.77 0.86 0.87 0.93 0.93 0.82 0.77 0.87
+pcb2 0.91 0.80 0.87 0.85 0.94 0.95 0.84 0.75 0.82 0.95
+pipe fryum 0.90 0.77 0.85 0.82 0.91 0.90 0.83 0.75 0.82 0.80 0.95
+macaroni2 0.92 0.77 0.86 0.84 0.93 0.92 0.93 0.79 0.81 0.84 0.91 0.92
+pcb3 pcb4 capsulescashewchewinggumpcb1 fryum macaroni1candlepcb2 pipe fryummacaroni2
+Random
+Figure 12: VisA, Wide ResNet-50-2 : concept transition matrices: NCL (top) vs. CL
+(bottom), image-level and pixel-level.
+36
+
+===== PAGE 37 =====
+0.00
+0.50
+1.00
+mvtec  pill 0.91
+mvtec  screw 0.46 0.83
+mvtec  carpet 0.44 0.74 0.96
+mvtec  toothbrush 0.45 0.56 0.33 0.90
+mvtec  leather 0.51 0.78 0.70 0.44 1.00
+mvtec  bottle 0.50 0.49 0.38 0.59 0.44 1.00
+visa  capsules 0.49 0.50 0.47 0.48 0.56 0.44 0.67
+visa  macaroni2 0.58 0.62 0.45 0.52 0.43 0.28 0.47 0.72
+visa  pcb2 0.37 0.80 0.43 0.51 0.53 0.37 0.47 0.48 0.84
+visa  fryum 0.39 0.57 0.42 0.58 0.50 0.42 0.52 0.50 0.39 0.90
+visa  chewinggum 0.50 0.59 0.43 0.50 0.61 0.55 0.51 0.50 0.68 0.52 0.96
+visa  pcb4 0.46 0.55 0.47 0.51 0.52 0.38 0.49 0.53 0.51 0.40 0.49 0.85
+dagm  Class8 0.47 0.66 0.49 0.48 0.63 0.33 0.42 0.50 0.58 0.53 0.53 0.38 0.48
+dagm  Class5 0.45 0.70 0.53 0.49 0.66 0.42 0.46 0.48 0.53 0.54 0.49 0.36 0.52 0.58
+dagm  Class3 0.42 0.57 0.48 0.50 0.70 0.36 0.50 0.52 0.58 0.58 0.52 0.34 0.53 0.57 0.65
+dagm  Class7 0.39 0.62 0.50 0.44 0.78 0.48 0.45 0.55 0.63 0.62 0.59 0.37 0.49 0.56 0.51 0.87
+dagm  Class9 0.41 0.57 0.55 0.48 0.65 0.46 0.50 0.50 0.63 0.60 0.62 0.33 0.51 0.57 0.52 0.52 0.89
+dagm  Class4 0.38 0.71 0.47 0.45 0.65 0.64 0.48 0.54 0.65 0.58 0.66 0.30 0.47 0.52 0.50 0.53 0.60 0.76
+mpdd  bracket black 0.60 0.74 0.40 0.43 0.60 0.53 0.44 0.51 0.67 0.55 0.65 0.40 0.50 0.53 0.48 0.49 0.49 0.48 0.71
+mpdd  tubes 0.46 0.61 0.41 0.44 0.42 0.49 0.40 0.49 0.66 0.48 0.51 0.46 0.51 0.53 0.52 0.49 0.54 0.48 0.52 0.63
+mpdd  bracket white 0.53 0.65 0.36 0.57 0.64 0.37 0.46 0.53 0.61 0.50 0.53 0.43 0.49 0.51 0.50 0.53 0.54 0.48 0.69 0.51 0.74
+mpdd  metal plate 0.51 0.55 0.38 0.53 0.47 0.51 0.44 0.51 0.48 0.55 0.51 0.60 0.47 0.50 0.50 0.51 0.50 0.48 0.56 0.47 0.34 1.00
+mpdd  bracket brown 0.51 0.56 0.37 0.42 0.48 0.45 0.42 0.50 0.64 0.44 0.59 0.41 0.49 0.49 0.51 0.47 0.54 0.46 0.61 0.52 0.55 0.54 0.68
+mpdd  connector 0.48 0.80 0.38 0.48 0.41 0.39 0.44 0.47 0.55 0.50 0.53 0.42 0.49 0.48 0.51 0.47 0.46 0.44 0.66 0.48 0.55 0.54 0.56 0.73
+btech  02 0.44 0.53 0.67 0.34 0.71 0.44 0.44 0.54 0.47 0.41 0.54 0.31 0.49 0.52 0.54 0.64 0.76 0.48 0.49 0.56 0.58 0.46 0.44 0.59 0.78
+btech  01 0.45 0.61 0.43 0.57 0.65 0.60 0.49 0.43 0.51 0.49 0.49 0.66 0.52 0.52 0.51 0.48 0.64 0.48 0.61 0.47 0.46 0.84 0.36 0.41 0.45 0.88
+btech  03 0.58 0.57 0.44 0.46 0.56 0.41 0.42 0.50 0.51 0.55 0.45 0.70 0.49 0.46 0.49 0.49 0.51 0.47 0.53 0.53 0.46 0.81 0.23 0.32 0.49 0.66 0.90
+mvtec  pillmvtec  screwmvtec  carpetmvtec  toothbrushmvtec  leathermvtec  bottlevisa  capsulesvisa  macaroni2visa  pcb2visa  fryumvisa  chewinggumvisa  pcb4dagm  Class8dagm  Class5dagm  Class3dagm  Class7dagm  Class9dagm  Class4mpdd  bracket blackmpdd  tubesmpdd  bracket whitempdd  metal platempdd  bracket brownmpdd  connectorbtech  02btech  01btech  03
+Hard->Easy
+Figure 13: MultiDataset, ResNet-18, Hard-to-Easy: NCL, image-level concept transition
+matrix.
+37
+
+===== PAGE 38 =====
+0.00
+0.50
+1.00
+mvtec  pill 0.82
+mvtec  screw 0.84 0.78
+mvtec  carpet 0.79 0.69 0.98
+mvtec  toothbrush 0.84 0.73 0.98 0.94
+mvtec  leather 0.85 0.71 0.98 0.94 0.99
+mvtec  bottle 0.83 0.68 0.97 0.93 0.99 1.00
+visa  capsules 0.64 0.61 0.97 0.88 0.99 0.98 0.70
+visa  macaroni2 0.74 0.62 0.97 0.92 0.99 1.00 0.60 0.68
+visa  pcb2 0.76 0.63 0.97 0.95 0.99 1.00 0.55 0.61 0.85
+visa  fryum 0.76 0.61 0.97 0.94 0.99 1.00 0.59 0.59 0.74 0.86
+visa  chewinggum 0.78 0.62 0.96 0.90 0.99 1.00 0.57 0.59 0.74 0.82 0.97
+visa  pcb4 0.74 0.63 0.94 0.90 0.98 1.00 0.61 0.60 0.69 0.80 0.91 0.93
+dagm  Class8 0.76 0.61 0.96 0.90 0.99 1.00 0.53 0.63 0.72 0.77 0.89 0.90 0.51
+dagm  Class5 0.72 0.62 0.95 0.88 0.99 1.00 0.56 0.64 0.71 0.80 0.92 0.88 0.52 0.64
+dagm  Class3 0.75 0.61 0.95 0.89 0.99 1.00 0.58 0.62 0.72 0.79 0.90 0.87 0.51 0.63 0.78
+dagm  Class7 0.73 0.62 0.96 0.86 0.99 1.00 0.61 0.59 0.67 0.79 0.85 0.89 0.53 0.62 0.81 0.91
+dagm  Class9 0.72 0.62 0.96 0.86 0.99 0.99 0.56 0.61 0.71 0.80 0.90 0.83 0.51 0.62 0.75 0.84 0.89
+dagm  Class4 0.69 0.65 0.95 0.86 0.99 0.99 0.57 0.60 0.72 0.75 0.88 0.87 0.51 0.65 0.76 0.79 0.97 0.93
+mpdd  bracket black 0.74 0.63 0.94 0.87 0.99 1.00 0.60 0.61 0.71 0.78 0.90 0.85 0.52 0.64 0.75 0.88 0.94 0.88 0.70
+mpdd  tubes 0.72 0.64 0.96 0.85 0.99 1.00 0.60 0.61 0.71 0.76 0.92 0.84 0.52 0.66 0.74 0.83 0.96 0.88 0.60 0.72
+mpdd  bracket white 0.73 0.63 0.96 0.87 0.99 0.99 0.60 0.61 0.73 0.76 0.91 0.87 0.53 0.64 0.75 0.85 0.97 0.84 0.59 0.68 0.79
+mpdd  metal plate 0.72 0.60 0.97 0.86 0.99 0.99 0.60 0.59 0.68 0.76 0.85 0.90 0.51 0.66 0.75 0.80 0.96 0.91 0.62 0.62 0.73 0.72
+mpdd  bracket brown 0.71 0.63 0.96 0.89 0.99 0.99 0.61 0.58 0.68 0.79 0.88 0.88 0.52 0.67 0.75 0.89 0.93 0.90 0.56 0.64 0.71 0.70 0.75
+mpdd  connector 0.74 0.63 0.96 0.87 0.99 0.99 0.59 0.60 0.70 0.78 0.90 0.88 0.53 0.67 0.75 0.82 0.96 0.87 0.59 0.59 0.76 0.68 0.68 0.82
+btech  02 0.72 0.62 0.95 0.88 0.99 0.99 0.60 0.56 0.70 0.76 0.87 0.83 0.52 0.64 0.78 0.87 0.98 0.86 0.60 0.56 0.73 0.59 0.62 0.72 0.76
+btech  01 0.72 0.62 0.96 0.88 0.99 1.00 0.52 0.57 0.71 0.77 0.87 0.81 0.52 0.65 0.76 0.81 0.96 0.89 0.63 0.58 0.74 0.65 0.63 0.77 0.77 0.97
+btech  03 0.71 0.67 0.96 0.79 0.99 0.99 0.58 0.56 0.71 0.75 0.88 0.86 0.51 0.62 0.75 0.78 0.94 0.85 0.58 0.54 0.73 0.60 0.63 0.62 0.77 0.80 0.99
+mvtec  pillmvtec  screwmvtec  carpetmvtec  toothbrushmvtec  leathermvtec  bottlevisa  capsulesvisa  macaroni2visa  pcb2visa  fryumvisa  chewinggumvisa  pcb4dagm  Class8dagm  Class5dagm  Class3dagm  Class7dagm  Class9dagm  Class4mpdd  bracket blackmpdd  tubesmpdd  bracket whitempdd  metal platempdd  bracket brownmpdd  connectorbtech  02btech  01btech  03
+Hard->Easy
+Figure 14: MultiDataset, ResNet-18, Hard-to-Easy: CL, image-level concept transition
+matrix.
+38
+
+===== PAGE 39 =====
+0.00
+0.50
+1.00
+mvtec  pill 0.97
+mvtec  screw 0.48 0.94
+mvtec  carpet 0.50 0.76 0.98
+mvtec  toothbrush 0.78 0.66 0.43 0.97
+mvtec  leather 0.49 0.82 0.77 0.61 0.99
+mvtec  bottle 0.79 0.74 0.51 0.90 0.54 0.98
+visa  capsules 0.62 0.87 0.60 0.79 0.80 0.48 0.94
+visa  macaroni2 0.64 0.71 0.66 0.77 0.67 0.47 0.67 0.88
+visa  pcb2 0.56 0.51 0.69 0.67 0.67 0.37 0.64 0.67 0.93
+visa  fryum 0.50 0.62 0.71 0.65 0.73 0.45 0.64 0.81 0.81 0.91
+visa  chewinggum 0.61 0.60 0.55 0.77 0.83 0.37 0.64 0.42 0.80 0.60 0.97
+visa  pcb4 0.64 0.53 0.61 0.80 0.79 0.36 0.69 0.47 0.83 0.74 0.84 0.91
+dagm  Class8 0.43 0.48 0.44 0.55 0.72 0.45 0.70 0.49 0.77 0.70 0.77 0.69 0.61
+dagm  Class5 0.40 0.48 0.48 0.52 0.72 0.48 0.70 0.60 0.77 0.83 0.80 0.66 0.48 0.73
+dagm  Class3 0.37 0.49 0.47 0.51 0.82 0.46 0.69 0.65 0.76 0.85 0.80 0.69 0.53 0.65 0.83
+dagm  Class7 0.34 0.57 0.54 0.52 0.79 0.49 0.72 0.47 0.76 0.75 0.55 0.58 0.52 0.61 0.71 0.84
+dagm  Class9 0.35 0.45 0.39 0.47 0.76 0.49 0.68 0.47 0.75 0.57 0.80 0.60 0.55 0.58 0.66 0.65 0.98
+dagm  Class4 0.37 0.57 0.69 0.51 0.88 0.44 0.67 0.47 0.77 0.61 0.59 0.61 0.48 0.60 0.66 0.60 0.86 0.91
+mpdd  bracket black 0.51 0.50 0.38 0.76 0.71 0.42 0.61 0.70 0.76 0.84 0.75 0.71 0.52 0.54 0.56 0.65 0.55 0.40 0.79
+mpdd  tubes 0.42 0.51 0.59 0.59 0.68 0.38 0.68 0.81 0.79 0.89 0.70 0.74 0.51 0.59 0.62 0.66 0.75 0.51 0.61 0.94
+mpdd  bracket white 0.60 0.82 0.53 0.86 0.80 0.50 0.67 0.77 0.78 0.86 0.58 0.78 0.51 0.57 0.58 0.63 0.73 0.43 0.87 0.76 0.77
+mpdd  metal plate 0.68 0.91 0.44 0.87 0.57 0.56 0.70 0.70 0.80 0.82 0.59 0.76 0.51 0.60 0.64 0.63 0.63 0.42 0.63 0.78 0.41 0.97
+mpdd  bracket brown 0.49 0.74 0.56 0.77 0.62 0.47 0.66 0.76 0.75 0.86 0.54 0.73 0.50 0.55 0.52 0.59 0.59 0.42 0.89 0.65 0.91 0.72 0.81
+mpdd  connector 0.50 0.55 0.48 0.67 0.68 0.51 0.63 0.73 0.72 0.87 0.58 0.62 0.49 0.56 0.51 0.57 0.61 0.38 0.88 0.65 0.90 0.75 0.83 0.87
+btech  02 0.46 0.79 0.63 0.66 0.79 0.48 0.70 0.59 0.77 0.84 0.57 0.67 0.53 0.61 0.70 0.75 0.94 0.56 0.73 0.85 0.49 0.72 0.68 0.79 0.95
+btech  01 0.69 0.79 0.63 0.85 0.77 0.76 0.61 0.67 0.73 0.86 0.78 0.72 0.51 0.59 0.66 0.53 0.84 0.47 0.90 0.82 0.76 0.87 0.80 0.77 0.61 0.86
+btech  03 0.64 0.66 0.51 0.84 0.46 0.67 0.68 0.70 0.45 0.66 0.44 0.71 0.54 0.59 0.61 0.47 0.61 0.50 0.39 0.55 0.41 0.81 0.44 0.47 0.58 0.54 0.93
+mvtec  pillmvtec  screwmvtec  carpetmvtec  toothbrushmvtec  leathermvtec  bottlevisa  capsulesvisa  macaroni2visa  pcb2visa  fryumvisa  chewinggumvisa  pcb4dagm  Class8dagm  Class5dagm  Class3dagm  Class7dagm  Class9dagm  Class4mpdd  bracket blackmpdd  tubesmpdd  bracket whitempdd  metal platempdd  bracket brownmpdd  connectorbtech  02btech  01btech  03
+Hard->Easy
+Figure 15: MultiDataset, ResNet-18, Hard-to-Easy: NCL, pixel-level concept transition
+matrix.
+39
+
+===== PAGE 40 =====
+0.00
+0.50
+1.00
+mvtec  pill 0.96
+mvtec  screw 0.95 0.98
+mvtec  carpet 0.94 0.96 0.99
+mvtec  toothbrush 0.94 0.96 0.99 0.98
+mvtec  leather 0.94 0.96 0.99 0.98 0.96
+mvtec  bottle 0.94 0.96 0.99 0.98 0.96 0.93
+visa  capsules 0.89 0.94 0.99 0.96 0.95 0.80 0.92
+visa  macaroni2 0.90 0.95 0.99 0.96 0.95 0.80 0.91 0.93
+visa  pcb2 0.89 0.94 0.98 0.96 0.95 0.80 0.89 0.91 0.97
+visa  fryum 0.91 0.94 0.99 0.95 0.95 0.81 0.89 0.88 0.96 0.96
+visa  chewinggum 0.90 0.93 0.98 0.95 0.95 0.80 0.88 0.90 0.96 0.96 0.93
+visa  pcb4 0.88 0.91 0.98 0.94 0.95 0.80 0.86 0.88 0.94 0.96 0.92 0.94
+dagm  Class8 0.84 0.80 0.95 0.93 0.94 0.80 0.86 0.86 0.94 0.96 0.89 0.91 0.61
+dagm  Class5 0.81 0.77 0.94 0.93 0.93 0.80 0.85 0.88 0.95 0.96 0.90 0.92 0.59 0.74
+dagm  Class3 0.80 0.78 0.93 0.93 0.94 0.80 0.84 0.88 0.94 0.96 0.90 0.91 0.59 0.74 0.90
+dagm  Class7 0.84 0.71 0.93 0.94 0.94 0.80 0.84 0.84 0.92 0.95 0.87 0.90 0.62 0.74 0.91 0.88
+dagm  Class9 0.79 0.78 0.92 0.92 0.93 0.79 0.81 0.86 0.92 0.96 0.90 0.89 0.62 0.74 0.87 0.85 0.94
+dagm  Class4 0.80 0.79 0.92 0.93 0.93 0.79 0.84 0.86 0.93 0.96 0.89 0.91 0.59 0.76 0.89 0.83 0.99 0.96
+mpdd  bracket black 0.85 0.90 0.92 0.94 0.94 0.80 0.79 0.86 0.94 0.96 0.90 0.92 0.60 0.78 0.89 0.87 0.98 0.93 0.89
+mpdd  tubes 0.80 0.76 0.92 0.93 0.93 0.80 0.80 0.85 0.93 0.96 0.89 0.92 0.60 0.76 0.87 0.86 0.98 0.93 0.86 0.89
+mpdd  bracket white 0.85 0.90 0.92 0.94 0.93 0.80 0.84 0.88 0.94 0.96 0.91 0.92 0.60 0.78 0.89 0.88 0.99 0.94 0.91 0.88 0.91
+mpdd  metal plate 0.82 0.88 0.92 0.94 0.93 0.80 0.83 0.82 0.94 0.96 0.86 0.91 0.59 0.78 0.87 0.84 0.97 0.96 0.90 0.86 0.83 0.87
+mpdd  bracket brown 0.82 0.88 0.92 0.93 0.93 0.79 0.80 0.86 0.94 0.96 0.89 0.92 0.60 0.77 0.87 0.87 0.97 0.93 0.91 0.86 0.89 0.86 0.92
+mpdd  connector 0.86 0.90 0.92 0.94 0.93 0.80 0.81 0.87 0.94 0.96 0.89 0.92 0.60 0.78 0.89 0.87 0.98 0.95 0.90 0.86 0.89 0.86 0.91 0.92
+btech  02 0.82 0.91 0.92 0.94 0.93 0.79 0.82 0.87 0.94 0.96 0.86 0.91 0.59 0.76 0.90 0.87 0.99 0.93 0.91 0.87 0.87 0.84 0.92 0.91 0.93
+btech  01 0.86 0.92 0.92 0.94 0.93 0.80 0.79 0.88 0.93 0.96 0.90 0.91 0.58 0.78 0.89 0.85 0.98 0.95 0.94 0.87 0.90 0.86 0.93 0.93 0.92 0.92
+btech  03 0.77 0.86 0.92 0.92 0.93 0.78 0.80 0.84 0.91 0.95 0.87 0.90 0.59 0.77 0.90 0.85 0.97 0.94 0.91 0.85 0.87 0.84 0.90 0.90 0.89 0.87 0.99
+mvtec  pillmvtec  screwmvtec  carpetmvtec  toothbrushmvtec  leathermvtec  bottlevisa  capsulesvisa  macaroni2visa  pcb2visa  fryumvisa  chewinggumvisa  pcb4dagm  Class8dagm  Class5dagm  Class3dagm  Class7dagm  Class9dagm  Class4mpdd  bracket blackmpdd  tubesmpdd  bracket whitempdd  metal platempdd  bracket brownmpdd  connectorbtech  02btech  01btech  03
+Hard->Easy
+Figure 16: MultiDataset, ResNet-18, Hard-to-Easy: CL, pixel-level concept transition
+matrix.
+40
+
+===== PAGE 41 =====
+0.00
+0.50
+1.00
+btech  03 0.99
+btech  01 0.78 0.94
+btech  02 0.44 0.61 0.95
+mpdd  connector 0.38 0.61 0.66 0.96
+mpdd  bracket brown 0.43 0.64 0.68 0.89 0.92
+mpdd  metal plate 0.46 0.63 0.61 0.72 0.47 0.98
+mpdd  bracket white 0.41 0.62 0.65 0.90 0.88 0.89 0.85
+mpdd  tubes 0.43 0.63 0.66 0.58 0.41 0.73 0.58 0.95
+mpdd  bracket black 0.43 0.64 0.51 0.82 0.90 0.76 0.97 0.68 0.82
+dagm  Class4 0.41 0.57 0.43 0.70 0.60 0.79 0.44 0.82 0.63 0.93
+dagm  Class9 0.58 0.70 0.52 0.58 0.57 0.61 0.47 0.58 0.47 0.49 0.98
+dagm  Class7 0.52 0.68 0.66 0.54 0.53 0.74 0.47 0.70 0.47 0.49 0.98 0.82
+dagm  Class3 0.60 0.68 0.53 0.51 0.46 0.63 0.47 0.62 0.46 0.54 0.98 0.48 0.79
+dagm  Class5 0.59 0.66 0.60 0.50 0.48 0.62 0.46 0.60 0.45 0.56 0.99 0.54 0.65 0.67
+dagm  Class8 0.58 0.68 0.60 0.52 0.48 0.61 0.46 0.58 0.46 0.53 0.91 0.58 0.71 0.58 0.58
+visa  pcb4 0.48 0.56 0.50 0.42 0.48 0.55 0.48 0.73 0.46 0.52 0.41 0.55 0.55 0.58 0.51 0.89
+visa  chewinggum 0.58 0.61 0.40 0.60 0.48 0.57 0.47 0.77 0.47 0.56 0.76 0.56 0.63 0.58 0.52 0.79 0.97
+visa  fryum 0.43 0.72 0.69 0.84 0.82 0.75 0.71 0.88 0.89 0.55 0.77 0.59 0.64 0.63 0.52 0.75 0.66 0.91
+visa  pcb2 0.36 0.48 0.58 0.49 0.49 0.53 0.50 0.82 0.56 0.52 0.62 0.61 0.59 0.60 0.51 0.85 0.83 0.88 0.90
+visa  macaroni2 0.49 0.59 0.65 0.85 0.82 0.71 0.74 0.85 0.90 0.49 0.79 0.54 0.62 0.65 0.52 0.77 0.59 0.90 0.79 0.84
+visa  capsules 0.44 0.59 0.56 0.61 0.55 0.74 0.51 0.81 0.71 0.54 0.74 0.67 0.64 0.63 0.51 0.74 0.58 0.87 0.79 0.61 0.80
+mvtec  bottle 0.74 0.75 0.59 0.66 0.70 0.84 0.48 0.65 0.46 0.49 0.67 0.60 0.55 0.57 0.53 0.77 0.64 0.56 0.77 0.53 0.65 0.97
+mvtec  leather 0.54 0.55 0.55 0.84 0.85 0.79 0.49 0.77 0.60 0.54 0.96 0.65 0.71 0.67 0.50 0.83 0.85 0.56 0.81 0.50 0.67 0.47 0.99
+mvtec  toothbrush 0.54 0.62 0.67 0.72 0.78 0.76 0.48 0.83 0.65 0.50 0.85 0.58 0.60 0.61 0.49 0.72 0.68 0.79 0.81 0.64 0.69 0.43 0.75 0.95
+mvtec  carpet 0.61 0.58 0.74 0.78 0.70 0.70 0.61 0.87 0.69 0.54 0.93 0.63 0.64 0.61 0.52 0.68 0.86 0.89 0.75 0.85 0.70 0.52 0.86 0.65 0.98
+mvtec  screw 0.51 0.63 0.64 0.68 0.49 0.86 0.34 0.84 0.63 0.46 0.82 0.57 0.57 0.60 0.51 0.76 0.61 0.85 0.80 0.49 0.67 0.63 0.71 0.85 0.57 0.89
+mvtec  pill 0.62 0.56 0.57 0.83 0.67 0.85 0.51 0.80 0.86 0.49 0.80 0.60 0.63 0.63 0.54 0.80 0.61 0.87 0.81 0.81 0.65 0.53 0.69 0.89 0.66 0.84 0.95
+btech  03btech  01btech  02mpdd  connectormpdd  bracket brownmpdd  metal platempdd  bracket whitempdd  tubesmpdd  bracket blackdagm  Class4dagm  Class9dagm  Class7dagm  Class3dagm  Class5dagm  Class8visa  pcb4visa  chewinggumvisa  fryumvisa  pcb2visa  macaroni2visa  capsulesmvtec  bottlemvtec  leathermvtec  toothbrushmvtec  carpetmvtec  screwmvtec  pill
+Easy->Hard
+Figure 17: MultiDataset, ResNet-18, Easy-to-Hard: NCL, pixel-level concept transition
+matrix.
+41
+
+===== PAGE 42 =====
+0.00
+0.50
+1.00
+btech  03 0.99
+btech  01 0.99 0.99
+btech  02 0.99 0.99 0.79
+mpdd  connector 0.99 0.99 0.80 0.85
+mpdd  bracket brown 0.99 0.98 0.79 0.83 0.75
+mpdd  metal plate 0.99 0.98 0.79 0.85 0.74 0.74
+mpdd  bracket white 0.99 0.98 0.79 0.83 0.73 0.74 0.64
+mpdd  tubes 0.99 0.98 0.79 0.82 0.74 0.74 0.64 0.64
+mpdd  bracket black 0.99 0.98 0.79 0.75 0.72 0.74 0.64 0.64 0.61
+dagm  Class4 0.99 0.98 0.80 0.76 0.72 0.73 0.63 0.64 0.59 1.00
+dagm  Class9 0.99 0.98 0.79 0.82 0.71 0.73 0.64 0.64 0.60 1.00 0.99
+dagm  Class7 0.99 0.98 0.79 0.82 0.72 0.70 0.65 0.64 0.61 1.00 0.99 0.83
+dagm  Class3 0.99 0.98 0.79 0.81 0.69 0.70 0.65 0.63 0.62 1.00 0.99 0.82 0.82
+dagm  Class5 0.99 0.98 0.79 0.80 0.69 0.70 0.65 0.63 0.60 1.00 0.99 0.82 0.82 0.72
+dagm  Class8 0.99 0.98 0.79 0.79 0.69 0.70 0.68 0.64 0.60 1.00 0.99 0.81 0.83 0.73 0.52
+visa  pcb4 0.99 0.98 0.79 0.75 0.71 0.70 0.69 0.63 0.61 1.00 0.99 0.82 0.83 0.72 0.53 0.93
+visa  chewinggum 0.99 0.98 0.79 0.77 0.71 0.70 0.67 0.64 0.61 1.00 0.99 0.82 0.83 0.73 0.53 0.93 0.97
+visa  fryum 0.99 0.98 0.79 0.79 0.70 0.70 0.64 0.63 0.60 1.00 0.99 0.81 0.82 0.73 0.53 0.93 0.97 0.86
+visa  pcb2 0.99 0.98 0.80 0.78 0.70 0.70 0.66 0.63 0.58 1.00 0.99 0.83 0.83 0.72 0.53 0.93 0.97 0.86 0.79
+visa  macaroni2 0.99 0.98 0.79 0.79 0.69 0.69 0.66 0.65 0.61 1.00 0.99 0.83 0.83 0.73 0.53 0.93 0.97 0.86 0.79 0.65
+visa  capsules 0.99 0.98 0.79 0.76 0.69 0.70 0.66 0.63 0.56 1.00 0.99 0.82 0.84 0.74 0.52 0.93 0.97 0.86 0.79 0.64 0.62
+mvtec  bottle 0.99 0.98 0.80 0.76 0.71 0.71 0.66 0.63 0.59 1.00 0.99 0.82 0.83 0.73 0.53 0.93 0.97 0.85 0.79 0.63 0.62 1.00
+mvtec  leather 0.99 0.98 0.80 0.79 0.69 0.71 0.66 0.64 0.58 1.00 0.99 0.82 0.82 0.74 0.52 0.94 0.97 0.86 0.78 0.64 0.63 1.00 0.99
+mvtec  toothbrush 0.99 0.98 0.80 0.78 0.67 0.70 0.65 0.64 0.56 1.00 0.99 0.83 0.84 0.73 0.53 0.93 0.97 0.85 0.79 0.63 0.61 1.00 0.99 0.99
+mvtec  carpet 0.99 0.98 0.80 0.78 0.67 0.69 0.67 0.63 0.57 1.00 0.99 0.83 0.83 0.73 0.52 0.93 0.97 0.85 0.78 0.63 0.62 1.00 0.99 0.99 0.97
+mvtec  screw 0.99 0.98 0.80 0.79 0.69 0.70 0.66 0.64 0.58 1.00 0.99 0.83 0.83 0.73 0.52 0.93 0.97 0.85 0.78 0.61 0.62 1.00 0.99 0.98 0.97 0.64
+mvtec  pill 0.99 0.98 0.80 0.80 0.69 0.70 0.66 0.65 0.58 1.00 0.99 0.83 0.84 0.72 0.53 0.93 0.97 0.84 0.78 0.64 0.62 1.00 0.99 0.98 0.97 0.64 0.78
+btech  03btech  01btech  02mpdd  connectormpdd  bracket brownmpdd  metal platempdd  bracket whitempdd  tubesmpdd  bracket blackdagm  Class4dagm  Class9dagm  Class7dagm  Class3dagm  Class5dagm  Class8visa  pcb4visa  chewinggumvisa  fryumvisa  pcb2visa  macaroni2visa  capsulesmvtec  bottlemvtec  leathermvtec  toothbrushmvtec  carpetmvtec  screwmvtec  pill
+Easy->Hard
+Figure 18: MultiDataset, ResNet-18, Easy-to-Hard: CL, image-level concept transition
+matrix.
+42
+
+===== PAGE 43 =====
+0.00
+0.50
+1.00
+btech  03 0.99
+btech  01 0.86 0.96
+btech  02 0.44 0.37 0.78
+mpdd  connector 0.57 0.51 0.61 0.90
+mpdd  bracket brown 0.42 0.39 0.59 0.53 0.91
+mpdd  metal plate 0.52 0.40 0.46 0.43 0.66 1.00
+mpdd  bracket white 0.38 0.39 0.44 0.50 0.46 0.66 0.82
+mpdd  tubes 0.39 0.48 0.53 0.39 0.46 0.37 0.57 0.81
+mpdd  bracket black 0.51 0.41 0.40 0.46 0.51 0.52 0.58 0.41 0.73
+dagm  Class4 0.41 0.34 0.48 0.46 0.61 0.53 0.34 0.47 0.64 0.84
+dagm  Class9 0.40 0.47 0.70 0.34 0.57 0.25 0.49 0.49 0.68 0.47 0.87
+dagm  Class7 0.51 0.36 0.62 0.28 0.75 0.42 0.55 0.54 0.77 0.47 0.81 0.82
+dagm  Class3 0.48 0.43 0.62 0.38 0.84 0.34 0.43 0.53 0.75 0.48 0.87 0.46 0.65
+dagm  Class5 0.38 0.43 0.66 0.44 0.61 0.23 0.44 0.50 0.67 0.49 0.85 0.47 0.55 0.61
+dagm  Class8 0.38 0.47 0.67 0.50 0.71 0.45 0.55 0.53 0.51 0.49 0.75 0.45 0.54 0.53 0.48
+visa  pcb4 0.30 0.69 0.49 0.52 0.46 0.23 0.46 0.54 0.42 0.49 0.45 0.43 0.47 0.51 0.52 0.78
+visa  chewinggum 0.60 0.47 0.48 0.33 0.60 0.32 0.57 0.55 0.73 0.49 0.54 0.48 0.49 0.52 0.50 0.30 0.93
+visa  fryum 0.45 0.53 0.47 0.54 0.40 0.44 0.53 0.44 0.67 0.46 0.53 0.45 0.48 0.55 0.51 0.55 0.52 0.84
+visa  pcb2 0.24 0.48 0.47 0.32 0.46 0.42 0.44 0.45 0.70 0.49 0.49 0.44 0.47 0.54 0.53 0.62 0.53 0.60 0.78
+visa  macaroni2 0.34 0.48 0.57 0.43 0.39 0.54 0.49 0.42 0.68 0.44 0.59 0.51 0.53 0.52 0.48 0.45 0.55 0.55 0.50 0.62
+visa  capsules 0.41 0.44 0.48 0.53 0.54 0.51 0.60 0.42 0.41 0.45 0.55 0.59 0.52 0.52 0.50 0.39 0.55 0.49 0.56 0.45 0.59
+mvtec  bottle 0.75 0.62 0.45 0.37 0.32 0.52 0.32 0.50 0.44 0.51 0.48 0.46 0.51 0.52 0.50 0.22 0.49 0.51 0.52 0.53 0.44 1.00
+mvtec  leather 0.41 0.55 0.58 0.27 0.39 0.50 0.48 0.53 0.57 0.47 0.91 0.53 0.56 0.60 0.49 0.48 0.56 0.43 0.52 0.53 0.49 0.59 1.00
+mvtec  toothbrush 0.43 0.22 0.46 0.52 0.41 0.51 0.39 0.39 0.57 0.44 0.56 0.46 0.46 0.47 0.45 0.40 0.51 0.46 0.61 0.46 0.47 0.34 0.37 0.85
+mvtec  carpet 0.49 0.59 0.65 0.40 0.40 0.45 0.51 0.47 0.54 0.46 0.78 0.51 0.50 0.52 0.51 0.51 0.53 0.52 0.56 0.57 0.53 0.57 0.74 0.49 0.94
+mvtec  screw 0.44 0.32 0.48 0.39 0.55 0.70 0.35 0.47 0.51 0.46 0.53 0.47 0.48 0.50 0.53 0.43 0.58 0.48 0.54 0.44 0.45 0.46 0.56 0.49 0.41 0.73
+mvtec  pill 0.31 0.49 0.53 0.40 0.41 0.56 0.39 0.50 0.53 0.43 0.53 0.49 0.50 0.54 0.47 0.43 0.45 0.49 0.47 0.49 0.50 0.35 0.42 0.54 0.44 0.58 0.87
+btech  03btech  01btech  02mpdd  connectormpdd  bracket brownmpdd  metal platempdd  bracket whitempdd  tubesmpdd  bracket blackdagm  Class4dagm  Class9dagm  Class7dagm  Class3dagm  Class5dagm  Class8visa  pcb4visa  chewinggumvisa  fryumvisa  pcb2visa  macaroni2visa  capsulesmvtec  bottlemvtec  leathermvtec  toothbrushmvtec  carpetmvtec  screwmvtec  pill
+Easy->Hard
+Figure 19: MultiDataset, ResNet-18, Easy-to-Hard: NCL, image-level concept transition
+matrix.
+43
+
+===== PAGE 44 =====
+0.00
+0.50
+1.00
+btech  03 1.00
+btech  01 0.99 0.93
+btech  02 0.99 0.94 0.95
+mpdd  connector 0.99 0.94 0.95 0.96
+mpdd  bracket brown 0.99 0.93 0.95 0.96 0.95
+mpdd  metal plate 0.99 0.94 0.95 0.96 0.95 0.90
+mpdd  bracket white 0.99 0.93 0.95 0.96 0.95 0.90 0.94
+mpdd  tubes 0.99 0.95 0.95 0.94 0.95 0.89 0.94 0.92
+mpdd  bracket black 0.99 0.94 0.95 0.94 0.94 0.88 0.93 0.91 0.93
+dagm  Class4 0.99 0.94 0.94 0.94 0.95 0.89 0.93 0.90 0.92 1.00
+dagm  Class9 0.99 0.94 0.90 0.94 0.95 0.87 0.93 0.90 0.93 1.00 1.00
+dagm  Class7 0.99 0.94 0.92 0.95 0.95 0.88 0.93 0.89 0.93 1.00 1.00 0.86
+dagm  Class3 0.99 0.94 0.92 0.95 0.95 0.88 0.92 0.90 0.93 1.00 1.00 0.86 0.93
+dagm  Class5 0.99 0.94 0.92 0.95 0.95 0.88 0.92 0.89 0.92 1.00 1.00 0.86 0.93 0.82
+dagm  Class8 0.99 0.95 0.92 0.95 0.95 0.88 0.92 0.90 0.92 1.00 1.00 0.85 0.93 0.81 0.58
+visa  pcb4 0.99 0.94 0.93 0.94 0.95 0.87 0.92 0.90 0.92 1.00 1.00 0.86 0.93 0.81 0.58 0.97
+visa  chewinggum 0.99 0.94 0.92 0.95 0.95 0.86 0.92 0.90 0.92 1.00 1.00 0.86 0.93 0.81 0.58 0.97 0.94
+visa  fryum 0.99 0.94 0.93 0.94 0.94 0.86 0.92 0.88 0.93 1.00 1.00 0.86 0.93 0.81 0.58 0.97 0.94 0.97
+visa  pcb2 0.99 0.95 0.93 0.95 0.95 0.86 0.92 0.88 0.93 1.00 1.00 0.86 0.93 0.81 0.58 0.97 0.94 0.97 0.97
+visa  macaroni2 0.99 0.94 0.93 0.94 0.94 0.87 0.92 0.88 0.93 1.00 1.00 0.86 0.93 0.81 0.58 0.97 0.92 0.97 0.97 0.92
+visa  capsules 0.99 0.93 0.92 0.94 0.94 0.87 0.91 0.87 0.91 1.00 1.00 0.85 0.93 0.81 0.58 0.96 0.93 0.96 0.97 0.91 0.92
+mvtec  bottle 0.99 0.93 0.92 0.94 0.93 0.87 0.91 0.87 0.91 1.00 1.00 0.86 0.93 0.81 0.58 0.95 0.92 0.97 0.96 0.90 0.92 0.77
+mvtec  leather 0.99 0.93 0.92 0.93 0.89 0.86 0.91 0.86 0.88 1.00 1.00 0.86 0.93 0.81 0.58 0.95 0.91 0.96 0.96 0.90 0.91 0.77 0.91
+mvtec  toothbrush 0.99 0.93 0.92 0.92 0.92 0.86 0.91 0.86 0.89 1.00 1.00 0.86 0.93 0.81 0.58 0.95 0.91 0.96 0.96 0.90 0.91 0.75 0.90 0.95
+mvtec  carpet 0.99 0.93 0.91 0.94 0.92 0.87 0.91 0.85 0.88 1.00 1.00 0.86 0.93 0.81 0.58 0.95 0.92 0.96 0.96 0.90 0.91 0.77 0.90 0.96 0.89
+mvtec  screw 0.99 0.93 0.92 0.93 0.92 0.87 0.91 0.86 0.90 1.00 1.00 0.86 0.93 0.81 0.58 0.95 0.93 0.96 0.96 0.89 0.91 0.76 0.91 0.96 0.89 0.94
+mvtec  pill 0.99 0.93 0.92 0.94 0.92 0.85 0.91 0.87 0.91 1.00 1.00 0.86 0.93 0.81 0.58 0.95 0.92 0.96 0.96 0.90 0.91 0.76 0.91 0.95 0.89 0.93 0.92
+btech  03btech  01btech  02mpdd  connectormpdd  bracket brownmpdd  metal platempdd  bracket whitempdd  tubesmpdd  bracket blackdagm  Class4dagm  Class9dagm  Class7dagm  Class3dagm  Class5dagm  Class8visa  pcb4visa  chewinggumvisa  fryumvisa  pcb2visa  macaroni2visa  capsulesmvtec  bottlemvtec  leathermvtec  toothbrushmvtec  carpetmvtec  screwmvtec  pill
+Easy->Hard
+Figure 20: MultiDataset, ResNet-18, Easy-to-Hard: CL, pixel-level concept transition
+matrix.
+44
+
+===== PAGE 45 =====
+0.00
+0.50
+1.00
+mvtec  pill 0.85
+mvtec  screw 0.50 0.74
+mvtec  carpet 0.56 0.63 0.96
+mvtec  toothbrush 0.56 0.54 0.74 0.82
+mvtec  leather 0.51 0.60 0.82 0.51 1.00
+mvtec  bottle 0.60 0.56 0.63 0.54 0.55 1.00
+visa  capsules 0.40 0.60 0.66 0.46 0.66 0.55 0.73
+visa  macaroni2 0.53 0.60 0.63 0.55 0.57 0.47 0.53 0.68
+visa  pcb2 0.40 0.66 0.77 0.53 0.67 0.48 0.47 0.46 0.84
+visa  fryum 0.43 0.63 0.81 0.49 0.72 0.57 0.51 0.48 0.54 0.87
+visa  chewinggum 0.43 0.64 0.75 0.54 0.77 0.52 0.44 0.50 0.63 0.37 0.96
+visa  pcb4 0.49 0.58 0.74 0.51 0.71 0.53 0.46 0.51 0.54 0.49 0.50 0.95
+dagm  Class8 0.41 0.65 0.79 0.56 0.91 0.47 0.51 0.49 0.60 0.44 0.51 0.31 0.56
+dagm  Class5 0.53 0.64 0.84 0.52 0.79 0.54 0.44 0.48 0.64 0.40 0.51 0.37 0.51 0.78
+dagm  Class3 0.53 0.65 0.77 0.53 0.81 0.41 0.45 0.50 0.64 0.46 0.53 0.35 0.52 0.76 0.75
+dagm  Class7 0.49 0.60 0.67 0.59 0.83 0.53 0.53 0.48 0.58 0.46 0.52 0.47 0.50 0.61 0.52 0.90
+dagm  Class9 0.47 0.59 0.79 0.54 0.82 0.47 0.45 0.48 0.62 0.48 0.52 0.38 0.51 0.79 0.68 0.49 0.86
+dagm  Class4 0.45 0.64 0.55 0.49 0.76 0.57 0.43 0.46 0.58 0.47 0.46 0.33 0.50 0.51 0.53 0.56 0.48 0.81
+mpdd  bracket black 0.59 0.61 0.51 0.44 0.72 0.60 0.47 0.47 0.53 0.48 0.47 0.35 0.50 0.58 0.54 0.50 0.57 0.48 0.80
+mpdd  tubes 0.58 0.61 0.72 0.44 0.65 0.54 0.42 0.48 0.58 0.48 0.52 0.41 0.50 0.62 0.54 0.49 0.55 0.47 0.67 0.79
+mpdd  bracket white 0.55 0.56 0.56 0.46 0.77 0.55 0.48 0.46 0.53 0.47 0.54 0.41 0.49 0.58 0.54 0.48 0.59 0.48 0.65 0.55 0.73
+mpdd  metal plate 0.66 0.53 0.57 0.50 0.56 0.47 0.43 0.49 0.47 0.51 0.51 0.40 0.50 0.62 0.48 0.49 0.56 0.48 0.62 0.53 0.55 0.84
+mpdd  bracket brown 0.58 0.49 0.50 0.48 0.75 0.51 0.42 0.47 0.52 0.43 0.52 0.41 0.49 0.59 0.56 0.50 0.77 0.48 0.55 0.59 0.50 0.34 0.91
+mpdd  connector 0.50 0.49 0.66 0.46 0.76 0.46 0.46 0.47 0.54 0.49 0.48 0.42 0.50 0.56 0.57 0.49 0.72 0.47 0.53 0.59 0.55 0.32 0.65 0.86
+btech  02 0.54 0.41 0.70 0.48 0.83 0.55 0.54 0.47 0.46 0.51 0.51 0.42 0.50 0.59 0.52 0.52 0.65 0.50 0.54 0.57 0.52 0.43 0.64 0.60 0.82
+btech  01 0.45 0.57 0.67 0.54 0.71 0.71 0.50 0.48 0.54 0.45 0.59 0.40 0.50 0.56 0.51 0.51 0.64 0.49 0.57 0.54 0.56 0.30 0.45 0.46 0.69 0.98
+btech  03 0.52 0.50 0.58 0.46 0.58 0.57 0.47 0.46 0.49 0.46 0.51 0.34 0.49 0.54 0.52 0.49 0.50 0.50 0.58 0.53 0.53 0.64 0.45 0.37 0.60 0.61 0.95
+mvtec  pillmvtec  screwmvtec  carpetmvtec  toothbrushmvtec  leathermvtec  bottlevisa  capsulesvisa  macaroni2visa  pcb2visa  fryumvisa  chewinggumvisa  pcb4dagm  Class8dagm  Class5dagm  Class3dagm  Class7dagm  Class9dagm  Class4mpdd  bracket blackmpdd  tubesmpdd  bracket whitempdd  metal platempdd  bracket brownmpdd  connectorbtech  02btech  01btech  03
+Hard->Easy
+Figure 21: MultiDataset, Wide ResNet-50-2, Hard-to-Easy: NCL, image-level concept
+transition matrix.
+45
+
+===== PAGE 46 =====
+0.00
+0.50
+1.00
+mvtec  pill 0.81
+mvtec  screw 0.80 0.73
+mvtec  carpet 0.81 0.83 0.97
+mvtec  toothbrush 0.82 0.82 0.97 0.84
+mvtec  leather 0.83 0.74 0.97 0.85 1.00
+mvtec  bottle 0.84 0.77 0.98 0.86 1.00 1.00
+visa  capsules 0.82 0.70 0.98 0.84 1.00 1.00 0.71
+visa  macaroni2 0.83 0.67 0.98 0.83 1.00 1.00 0.69 0.64
+visa  pcb2 0.83 0.68 0.97 0.83 1.00 1.00 0.68 0.61 0.79
+visa  fryum 0.82 0.67 0.97 0.81 1.00 1.00 0.70 0.57 0.77 0.88
+visa  chewinggum 0.83 0.65 0.98 0.81 1.00 1.00 0.68 0.60 0.77 0.88 0.98
+visa  pcb4 0.79 0.64 0.97 0.78 1.00 1.00 0.67 0.56 0.74 0.87 0.95 0.93
+dagm  Class8 0.82 0.64 0.98 0.81 1.00 1.00 0.68 0.57 0.75 0.88 0.98 0.95 0.54
+dagm  Class5 0.81 0.63 0.97 0.79 1.00 1.00 0.67 0.56 0.75 0.87 0.96 0.94 0.53 0.75
+dagm  Class3 0.81 0.63 0.97 0.78 1.00 1.00 0.67 0.56 0.73 0.87 0.96 0.93 0.52 0.76 0.79
+dagm  Class7 0.82 0.64 0.98 0.81 1.00 1.00 0.66 0.56 0.74 0.86 0.98 0.94 0.53 0.79 0.88 0.93
+dagm  Class9 0.83 0.65 0.98 0.81 1.00 1.00 0.66 0.59 0.74 0.88 0.98 0.94 0.54 0.79 0.84 0.92 0.86
+dagm  Class4 0.82 0.64 0.97 0.80 1.00 0.99 0.66 0.56 0.74 0.87 0.98 0.93 0.52 0.77 0.79 0.84 0.86 0.99
+mpdd  bracket black 0.82 0.63 0.97 0.80 1.00 0.99 0.67 0.55 0.73 0.87 0.96 0.91 0.52 0.74 0.76 0.82 0.86 0.99 0.69
+mpdd  tubes 0.80 0.63 0.97 0.79 1.00 0.99 0.64 0.54 0.71 0.88 0.96 0.90 0.51 0.74 0.77 0.83 0.86 0.98 0.69 0.69
+mpdd  bracket white 0.78 0.63 0.97 0.78 1.00 0.99 0.64 0.55 0.68 0.87 0.93 0.87 0.51 0.73 0.74 0.76 0.84 0.95 0.72 0.68 0.86
+mpdd  metal plate 0.80 0.62 0.97 0.80 1.00 0.99 0.65 0.54 0.71 0.88 0.96 0.91 0.52 0.74 0.76 0.84 0.85 0.97 0.63 0.66 0.87 0.68
+mpdd  bracket brown 0.78 0.63 0.97 0.77 1.00 0.99 0.65 0.54 0.68 0.87 0.93 0.88 0.52 0.73 0.75 0.79 0.84 0.96 0.67 0.65 0.89 0.66 0.80
+mpdd  connector 0.80 0.63 0.97 0.78 1.00 0.99 0.64 0.56 0.70 0.87 0.93 0.88 0.52 0.73 0.75 0.77 0.85 0.95 0.66 0.64 0.88 0.65 0.82 0.70
+btech  02 0.80 0.64 0.97 0.79 1.00 0.99 0.64 0.54 0.71 0.87 0.94 0.89 0.52 0.73 0.76 0.78 0.85 0.96 0.67 0.60 0.86 0.66 0.80 0.75 0.82
+btech  01 0.82 0.63 0.97 0.82 1.00 0.99 0.69 0.54 0.73 0.88 0.98 0.93 0.54 0.79 0.87 0.92 0.86 0.99 0.62 0.61 0.82 0.68 0.82 0.82 0.84 0.98
+btech  03 0.81 0.63 0.97 0.79 1.00 0.99 0.62 0.54 0.68 0.87 0.97 0.89 0.53 0.74 0.79 0.90 0.86 0.99 0.62 0.59 0.75 0.67 0.76 0.80 0.84 0.98 0.98
+mvtec  pillmvtec  screwmvtec  carpetmvtec  toothbrushmvtec  leathermvtec  bottlevisa  capsulesvisa  macaroni2visa  pcb2visa  fryumvisa  chewinggumvisa  pcb4dagm  Class8dagm  Class5dagm  Class3dagm  Class7dagm  Class9dagm  Class4mpdd  bracket blackmpdd  tubesmpdd  bracket whitempdd  metal platempdd  bracket brownmpdd  connectorbtech  02btech  01btech  03
+Hard->Easy
+Figure 22: MultiDataset, Wide ResNet-50-2, Hard-to-Easy: CL, image-level concept tran-
+sition matrix.
+46
+
+===== PAGE 47 =====
+0.00
+0.50
+1.00
+mvtec  pill 0.96
+mvtec  screw 0.62 0.97
+mvtec  carpet 0.61 0.78 0.98
+mvtec  toothbrush 0.72 0.85 0.73 0.98
+mvtec  leather 0.70 0.81 0.85 0.76 0.99
+mvtec  bottle 0.65 0.88 0.61 0.76 0.77 0.98
+visa  capsules 0.62 0.88 0.70 0.77 0.89 0.49 0.96
+visa  macaroni2 0.67 0.88 0.70 0.81 0.82 0.54 0.73 0.94
+visa  pcb2 0.68 0.81 0.85 0.76 0.86 0.42 0.77 0.87 0.97
+visa  fryum 0.63 0.89 0.88 0.81 0.91 0.56 0.75 0.90 0.79 0.93
+visa  chewinggum 0.71 0.85 0.73 0.79 0.92 0.46 0.76 0.67 0.81 0.62 0.98
+visa  pcb4 0.72 0.85 0.85 0.82 0.87 0.41 0.72 0.82 0.84 0.85 0.89 0.97
+dagm  Class8 0.53 0.75 0.83 0.64 0.92 0.52 0.78 0.89 0.79 0.86 0.86 0.75 0.71
+dagm  Class5 0.54 0.70 0.84 0.67 0.85 0.53 0.79 0.71 0.79 0.60 0.84 0.74 0.55 0.90
+dagm  Class3 0.54 0.70 0.84 0.67 0.90 0.51 0.78 0.72 0.79 0.64 0.84 0.75 0.58 0.84 0.91
+dagm  Class7 0.46 0.73 0.80 0.61 0.91 0.51 0.77 0.83 0.75 0.85 0.67 0.65 0.58 0.73 0.81 0.90
+dagm  Class9 0.52 0.66 0.78 0.61 0.88 0.50 0.76 0.87 0.77 0.86 0.83 0.73 0.61 0.83 0.82 0.65 0.99
+dagm  Class4 0.54 0.83 0.85 0.66 0.92 0.56 0.77 0.87 0.78 0.87 0.75 0.71 0.52 0.71 0.73 0.68 0.90 0.95
+mpdd  bracket black 0.65 0.84 0.61 0.74 0.80 0.48 0.66 0.83 0.71 0.75 0.71 0.69 0.51 0.67 0.68 0.54 0.86 0.52 0.93
+mpdd  tubes 0.59 0.83 0.76 0.76 0.82 0.47 0.74 0.86 0.78 0.88 0.82 0.73 0.54 0.69 0.77 0.61 0.92 0.63 0.59 0.94
+mpdd  bracket white 0.74 0.89 0.67 0.79 0.85 0.52 0.69 0.86 0.75 0.87 0.78 0.75 0.52 0.66 0.69 0.55 0.92 0.57 0.90 0.79 0.94
+mpdd  metal plate 0.72 0.92 0.63 0.84 0.81 0.61 0.77 0.88 0.80 0.84 0.65 0.70 0.52 0.71 0.69 0.55 0.89 0.55 0.85 0.81 0.61 0.96
+mpdd  bracket brown 0.71 0.87 0.65 0.78 0.83 0.62 0.76 0.82 0.75 0.84 0.76 0.73 0.53 0.68 0.71 0.56 0.91 0.62 0.87 0.76 0.88 0.80 0.87
+mpdd  connector 0.66 0.87 0.67 0.79 0.84 0.62 0.72 0.83 0.77 0.85 0.75 0.70 0.53 0.67 0.68 0.53 0.92 0.57 0.87 0.71 0.95 0.79 0.93 0.94
+btech  02 0.49 0.86 0.81 0.60 0.89 0.72 0.77 0.62 0.76 0.77 0.56 0.55 0.53 0.66 0.74 0.73 0.87 0.58 0.85 0.84 0.59 0.82 0.91 0.88 0.96
+btech  01 0.71 0.89 0.75 0.77 0.88 0.79 0.78 0.81 0.75 0.83 0.84 0.72 0.52 0.62 0.63 0.59 0.84 0.58 0.91 0.88 0.87 0.81 0.88 0.90 0.74 0.96
+btech  03 0.46 0.78 0.66 0.73 0.74 0.68 0.72 0.79 0.60 0.65 0.48 0.58 0.54 0.63 0.60 0.58 0.76 0.64 0.77 0.71 0.62 0.73 0.89 0.78 0.66 0.63 0.99
+mvtec  pillmvtec  screwmvtec  carpetmvtec  toothbrushmvtec  leathermvtec  bottlevisa  capsulesvisa  macaroni2visa  pcb2visa  fryumvisa  chewinggumvisa  pcb4dagm  Class8dagm  Class5dagm  Class3dagm  Class7dagm  Class9dagm  Class4mpdd  bracket blackmpdd  tubesmpdd  bracket whitempdd  metal platempdd  bracket brownmpdd  connectorbtech  02btech  01btech  03
+Hard->Easy
+Figure 23: MultiDataset, Wide ResNet-50-2, Hard-to-Easy: NCL, pixel-level concept
+transition matrix.
+47
+
+===== PAGE 48 =====
+0.00
+0.50
+1.00
+mvtec  pill 0.95
+mvtec  screw 0.95 0.97
+mvtec  carpet 0.95 0.97 0.97
+mvtec  toothbrush 0.95 0.97 0.97 0.97
+mvtec  leather 0.95 0.97 0.95 0.96 0.96
+mvtec  bottle 0.95 0.97 0.95 0.96 0.96 0.90
+visa  capsules 0.94 0.96 0.91 0.95 0.95 0.87 0.95
+visa  macaroni2 0.90 0.95 0.91 0.94 0.93 0.86 0.95 0.95
+visa  pcb2 0.90 0.94 0.91 0.94 0.93 0.86 0.94 0.95 0.97
+visa  fryum 0.91 0.93 0.90 0.94 0.93 0.86 0.95 0.94 0.97 0.94
+visa  chewinggum 0.91 0.94 0.91 0.94 0.93 0.86 0.94 0.95 0.97 0.94 0.97
+visa  pcb4 0.90 0.92 0.91 0.94 0.93 0.86 0.94 0.93 0.96 0.94 0.98 0.97
+dagm  Class8 0.90 0.95 0.91 0.94 0.93 0.86 0.94 0.93 0.96 0.94 0.97 0.97 0.71
+dagm  Class5 0.90 0.90 0.90 0.94 0.93 0.86 0.94 0.93 0.97 0.94 0.97 0.97 0.71 0.91
+dagm  Class3 0.90 0.87 0.89 0.94 0.92 0.86 0.94 0.93 0.96 0.94 0.97 0.97 0.71 0.90 0.95
+dagm  Class7 0.90 0.93 0.89 0.94 0.92 0.85 0.94 0.94 0.97 0.94 0.97 0.97 0.70 0.91 0.95 0.90
+dagm  Class9 0.90 0.94 0.90 0.93 0.93 0.86 0.94 0.93 0.96 0.94 0.98 0.97 0.70 0.91 0.94 0.90 0.99
+dagm  Class4 0.90 0.94 0.88 0.94 0.91 0.86 0.93 0.94 0.97 0.94 0.97 0.97 0.70 0.90 0.94 0.89 0.99 1.00
+mpdd  bracket black 0.90 0.93 0.91 0.93 0.91 0.86 0.93 0.93 0.96 0.94 0.97 0.97 0.70 0.90 0.94 0.89 0.99 1.00 0.90
+mpdd  tubes 0.90 0.88 0.89 0.92 0.92 0.86 0.94 0.93 0.96 0.94 0.97 0.97 0.70 0.90 0.94 0.89 0.99 1.00 0.90 0.82
+mpdd  bracket white 0.90 0.86 0.91 0.93 0.92 0.86 0.94 0.92 0.96 0.93 0.97 0.97 0.70 0.90 0.93 0.89 0.99 1.00 0.90 0.82 0.95
+mpdd  metal plate 0.90 0.93 0.90 0.93 0.93 0.86 0.93 0.92 0.96 0.94 0.97 0.97 0.70 0.90 0.94 0.89 0.99 0.99 0.89 0.83 0.95 0.86
+mpdd  bracket brown 0.90 0.85 0.90 0.92 0.93 0.85 0.93 0.92 0.96 0.94 0.97 0.97 0.70 0.90 0.93 0.89 0.99 1.00 0.86 0.83 0.95 0.84 0.83
+mpdd  connector 0.90 0.90 0.91 0.92 0.92 0.85 0.93 0.91 0.96 0.93 0.97 0.97 0.70 0.90 0.94 0.89 0.99 0.99 0.88 0.83 0.95 0.85 0.85 0.90
+btech  02 0.90 0.92 0.89 0.93 0.92 0.85 0.93 0.92 0.96 0.94 0.97 0.96 0.70 0.90 0.94 0.89 0.99 0.99 0.89 0.83 0.95 0.86 0.87 0.91 0.93
+btech  01 0.90 0.94 0.90 0.93 0.93 0.84 0.94 0.93 0.96 0.94 0.98 0.96 0.71 0.90 0.95 0.89 0.99 0.99 0.89 0.83 0.96 0.86 0.88 0.94 0.93 0.89
+btech  03 0.90 0.89 0.89 0.92 0.93 0.84 0.93 0.91 0.95 0.94 0.97 0.96 0.69 0.90 0.93 0.89 0.99 1.00 0.89 0.82 0.95 0.85 0.88 0.94 0.93 0.90 0.99
+mvtec  pillmvtec  screwmvtec  carpetmvtec  toothbrushmvtec  leathermvtec  bottlevisa  capsulesvisa  macaroni2visa  pcb2visa  fryumvisa  chewinggumvisa  pcb4dagm  Class8dagm  Class5dagm  Class3dagm  Class7dagm  Class9dagm  Class4mpdd  bracket blackmpdd  tubesmpdd  bracket whitempdd  metal platempdd  bracket brownmpdd  connectorbtech  02btech  01btech  03
+Hard->Easy
+Figure 24: MultiDataset, Wide ResNet-50-2, Hard-to-Easy: CL, pixel-level concept tran-
+sition matrix.
+48
+
+===== PAGE 49 =====
+0.00
+0.50
+1.00
+btech  03 1.00
+btech  01 0.83 0.96
+btech  02 0.59 0.61 0.96
+mpdd  connector 0.60 0.59 0.75 0.98
+mpdd  bracket brown 0.58 0.58 0.73 0.92 0.89
+mpdd  metal plate 0.64 0.66 0.73 0.90 0.86 0.97
+mpdd  bracket white 0.66 0.62 0.70 0.93 0.91 0.82 0.94
+mpdd  tubes 0.59 0.65 0.78 0.75 0.75 0.64 0.59 0.95
+mpdd  bracket black 0.58 0.59 0.68 0.91 0.87 0.72 0.95 0.68 0.90
+dagm  Class4 0.64 0.61 0.68 0.88 0.76 0.75 0.58 0.88 0.70 1.00
+dagm  Class9 0.62 0.58 0.54 0.76 0.73 0.68 0.62 0.86 0.67 0.55 0.99
+dagm  Class7 0.57 0.59 0.71 0.86 0.82 0.70 0.48 0.85 0.78 0.50 0.90 0.90
+dagm  Class3 0.62 0.58 0.59 0.87 0.83 0.67 0.64 0.87 0.74 0.61 0.99 0.67 0.91
+dagm  Class5 0.69 0.55 0.66 0.70 0.80 0.73 0.57 0.71 0.60 0.60 0.98 0.67 0.85 0.89
+dagm  Class8 0.68 0.63 0.67 0.84 0.77 0.67 0.58 0.88 0.66 0.66 0.97 0.66 0.89 0.79 0.70
+visa  pcb4 0.69 0.55 0.68 0.69 0.77 0.68 0.55 0.80 0.56 0.59 0.91 0.63 0.76 0.75 0.54 0.95
+visa  chewinggum 0.67 0.56 0.66 0.93 0.92 0.66 0.78 0.85 0.86 0.60 0.96 0.67 0.76 0.75 0.54 0.77 0.99
+visa  fryum 0.63 0.72 0.78 0.89 0.89 0.72 0.68 0.85 0.84 0.61 0.93 0.70 0.75 0.74 0.57 0.77 0.81 0.92
+visa  pcb2 0.59 0.51 0.70 0.71 0.75 0.66 0.57 0.86 0.59 0.58 0.91 0.64 0.73 0.73 0.55 0.85 0.90 0.88 0.95
+visa  macaroni2 0.59 0.66 0.69 0.87 0.88 0.70 0.79 0.77 0.80 0.53 0.87 0.61 0.74 0.70 0.54 0.75 0.56 0.88 0.80 0.88
+visa  capsules 0.51 0.56 0.68 0.84 0.75 0.72 0.78 0.78 0.79 0.51 0.91 0.60 0.69 0.68 0.52 0.74 0.77 0.84 0.80 0.81 0.94
+mvtec  bottle 0.80 0.77 0.70 0.86 0.84 0.77 0.64 0.78 0.74 0.59 0.87 0.58 0.66 0.65 0.53 0.68 0.80 0.77 0.72 0.82 0.75 0.98
+mvtec  leather 0.68 0.62 0.62 0.90 0.90 0.65 0.85 0.87 0.88 0.55 0.82 0.71 0.73 0.63 0.50 0.77 0.88 0.85 0.83 0.90 0.80 0.45 0.99
+mvtec  toothbrush 0.65 0.64 0.68 0.87 0.90 0.72 0.66 0.77 0.77 0.57 0.86 0.58 0.66 0.68 0.54 0.71 0.68 0.80 0.72 0.86 0.75 0.46 0.81 0.97
+mvtec  carpet 0.64 0.58 0.75 0.89 0.91 0.67 0.64 0.85 0.70 0.63 0.91 0.70 0.72 0.71 0.54 0.76 0.86 0.87 0.77 0.87 0.77 0.42 0.91 0.74 0.98
+mvtec  screw 0.57 0.56 0.69 0.88 0.86 0.79 0.61 0.83 0.81 0.54 0.90 0.61 0.75 0.74 0.53 0.78 0.74 0.87 0.80 0.85 0.76 0.62 0.85 0.85 0.73 0.89
+mvtec  pill 0.62 0.62 0.66 0.84 0.92 0.78 0.48 0.77 0.73 0.55 0.86 0.61 0.66 0.71 0.55 0.74 0.66 0.71 0.77 0.73 0.76 0.47 0.86 0.87 0.68 0.89 0.95
+btech  03btech  01btech  02mpdd  connectormpdd  bracket brownmpdd  metal platempdd  bracket whitempdd  tubesmpdd  bracket blackdagm  Class4dagm  Class9dagm  Class7dagm  Class3dagm  Class5dagm  Class8visa  pcb4visa  chewinggumvisa  fryumvisa  pcb2visa  macaroni2visa  capsulesmvtec  bottlemvtec  leathermvtec  toothbrushmvtec  carpetmvtec  screwmvtec  pill
+Easy->Hard
+Figure 25: MultiDataset, Wide ResNet-50-2, Easy-to-Hard: NCL, pixel-level concept
+transition matrix.
+49
+
+===== PAGE 50 =====
+0.00
+0.50
+1.00
+btech  03 0.95
+btech  01 0.98 0.95
+btech  02 0.99 0.99 0.82
+mpdd  connector 0.98 0.99 0.84 0.82
+mpdd  bracket brown 0.98 0.99 0.84 0.80 0.92
+mpdd  metal plate 0.98 0.99 0.84 0.81 0.89 0.83
+mpdd  bracket white 0.98 0.99 0.83 0.81 0.85 0.84 0.88
+mpdd  tubes 0.98 0.99 0.83 0.78 0.84 0.83 0.84 0.79
+mpdd  bracket black 0.98 0.99 0.82 0.79 0.75 0.82 0.79 0.78 0.72
+dagm  Class4 0.97 0.99 0.83 0.77 0.74 0.82 0.77 0.75 0.71 0.97
+dagm  Class9 0.90 0.99 0.83 0.76 0.78 0.81 0.79 0.73 0.71 0.91 0.84
+dagm  Class7 0.95 0.98 0.82 0.81 0.72 0.81 0.65 0.66 0.66 0.91 0.87 0.95
+dagm  Class3 0.92 0.99 0.81 0.80 0.72 0.80 0.68 0.73 0.70 0.94 0.89 0.84 0.84
+dagm  Class5 0.95 0.99 0.82 0.74 0.74 0.76 0.70 0.72 0.67 0.94 0.81 0.74 0.70 0.75
+dagm  Class8 0.93 0.98 0.84 0.77 0.69 0.81 0.62 0.71 0.64 0.94 0.90 0.86 0.81 0.80 0.56
+visa  pcb4 0.83 0.99 0.77 0.77 0.74 0.56 0.60 0.60 0.62 0.91 0.75 0.78 0.77 0.74 0.52 0.88
+visa  chewinggum 0.94 0.99 0.81 0.76 0.67 0.78 0.65 0.69 0.66 0.93 0.88 0.74 0.70 0.77 0.51 0.90 0.96
+visa  fryum 0.90 0.99 0.80 0.76 0.67 0.76 0.65 0.70 0.65 0.92 0.89 0.78 0.73 0.78 0.52 0.88 0.92 0.89
+visa  pcb2 0.92 0.99 0.78 0.70 0.66 0.71 0.64 0.69 0.60 0.90 0.86 0.74 0.71 0.75 0.53 0.81 0.92 0.84 0.72
+visa  macaroni2 0.85 0.99 0.80 0.66 0.65 0.76 0.66 0.65 0.62 0.93 0.88 0.78 0.73 0.78 0.52 0.90 0.90 0.86 0.66 0.59
+visa  capsules 0.89 0.99 0.79 0.67 0.75 0.71 0.76 0.66 0.58 0.87 0.84 0.73 0.71 0.76 0.51 0.78 0.86 0.84 0.64 0.55 0.65
+mvtec  bottle 0.82 0.99 0.82 0.70 0.68 0.67 0.70 0.63 0.55 0.93 0.87 0.83 0.73 0.78 0.52 0.90 0.85 0.88 0.65 0.55 0.64 0.99
+mvtec  leather 0.94 0.98 0.81 0.81 0.69 0.73 0.66 0.70 0.57 0.96 0.87 0.86 0.78 0.80 0.51 0.93 0.97 0.87 0.69 0.55 0.62 0.99 1.00
+mvtec  toothbrush 0.95 0.99 0.81 0.79 0.65 0.75 0.65 0.69 0.56 0.95 0.88 0.84 0.74 0.79 0.53 0.92 0.93 0.87 0.69 0.54 0.63 1.00 1.00 0.83
+mvtec  carpet 0.94 0.98 0.81 0.84 0.70 0.73 0.68 0.67 0.57 0.93 0.88 0.79 0.73 0.76 0.53 0.90 0.96 0.86 0.67 0.54 0.63 0.99 1.00 0.75 0.97
+mvtec  screw 0.94 0.98 0.79 0.76 0.73 0.76 0.70 0.66 0.57 0.82 0.84 0.70 0.70 0.76 0.49 0.88 0.82 0.84 0.66 0.57 0.63 1.00 0.99 0.74 0.95 0.63
+mvtec  pill 0.95 0.98 0.80 0.67 0.72 0.73 0.73 0.66 0.58 0.87 0.86 0.71 0.69 0.76 0.50 0.88 0.87 0.83 0.66 0.55 0.61 0.99 0.99 0.78 0.96 0.62 0.84
+btech  03btech  01btech  02mpdd  connectormpdd  bracket brownmpdd  metal platempdd  bracket whitempdd  tubesmpdd  bracket blackdagm  Class4dagm  Class9dagm  Class7dagm  Class3dagm  Class5dagm  Class8visa  pcb4visa  chewinggumvisa  fryumvisa  pcb2visa  macaroni2visa  capsulesmvtec  bottlemvtec  leathermvtec  toothbrushmvtec  carpetmvtec  screwmvtec  pill
+Easy->Hard
+Figure 26: MultiDataset, Wide ResNet-50-2, Easy-to-Hard: CL, image-level concept tran-
+sition matrix.
+50
+
+===== PAGE 51 =====
+0.00
+0.50
+1.00
+btech  03 0.98
+btech  01 0.67 0.96
+btech  02 0.59 0.33 0.84
+mpdd  connector 0.53 0.51 0.58 0.88
+mpdd  bracket brown 0.47 0.67 0.52 0.43 0.92
+mpdd  metal plate 0.50 0.68 0.62 0.46 0.54 0.84
+mpdd  bracket white 0.46 0.61 0.50 0.29 0.54 0.43 0.90
+mpdd  tubes 0.70 0.64 0.61 0.44 0.61 0.31 0.52 0.81
+mpdd  bracket black 0.47 0.65 0.50 0.31 0.50 0.32 0.69 0.51 0.72
+dagm  Class4 0.67 0.34 0.56 0.36 0.45 0.37 0.59 0.58 0.55 0.98
+dagm  Class9 0.67 0.32 0.52 0.30 0.45 0.43 0.50 0.57 0.63 0.52 0.90
+dagm  Class7 0.57 0.32 0.54 0.51 0.48 0.34 0.54 0.51 0.47 0.49 0.64 0.96
+dagm  Class3 0.63 0.28 0.47 0.33 0.49 0.26 0.50 0.52 0.51 0.49 0.84 0.54 0.89
+dagm  Class5 0.72 0.35 0.52 0.38 0.54 0.24 0.50 0.53 0.63 0.54 0.84 0.55 0.69 0.79
+dagm  Class8 0.51 0.30 0.54 0.26 0.46 0.33 0.40 0.49 0.56 0.48 0.73 0.51 0.71 0.69 0.55
+visa  pcb4 0.57 0.55 0.58 0.39 0.47 0.48 0.46 0.50 0.62 0.48 0.67 0.52 0.56 0.64 0.48 0.93
+visa  chewinggum 0.51 0.33 0.62 0.34 0.42 0.29 0.39 0.57 0.48 0.49 0.71 0.53 0.58 0.66 0.49 0.27 0.95
+visa  fryum 0.61 0.62 0.59 0.48 0.52 0.32 0.44 0.55 0.52 0.50 0.80 0.51 0.49 0.64 0.52 0.39 0.44 0.87
+visa  pcb2 0.55 0.65 0.56 0.49 0.47 0.44 0.38 0.52 0.46 0.49 0.74 0.51 0.57 0.63 0.50 0.43 0.50 0.43 0.80
+visa  macaroni2 0.62 0.57 0.57 0.31 0.43 0.35 0.46 0.43 0.54 0.47 0.65 0.48 0.51 0.60 0.48 0.34 0.45 0.54 0.56 0.62
+visa  capsules 0.64 0.37 0.57 0.42 0.63 0.24 0.49 0.57 0.37 0.48 0.64 0.49 0.47 0.67 0.51 0.23 0.44 0.46 0.49 0.46 0.62
+mvtec  bottle 0.57 0.50 0.63 0.47 0.52 0.26 0.44 0.47 0.48 0.47 0.56 0.49 0.51 0.52 0.48 0.37 0.56 0.47 0.53 0.49 0.49 1.00
+mvtec  leather 0.51 0.55 0.52 0.42 0.49 0.26 0.47 0.57 0.45 0.47 0.54 0.56 0.53 0.50 0.48 0.40 0.56 0.42 0.62 0.50 0.51 0.57 1.00
+mvtec  toothbrush 0.37 0.36 0.55 0.52 0.55 0.32 0.35 0.56 0.42 0.53 0.60 0.47 0.52 0.61 0.50 0.34 0.47 0.43 0.52 0.46 0.50 0.50 0.58 0.74
+mvtec  carpet 0.66 0.49 0.55 0.40 0.54 0.35 0.46 0.54 0.51 0.57 0.63 0.51 0.52 0.64 0.49 0.43 0.46 0.39 0.59 0.49 0.54 0.49 0.84 0.49 0.96
+mvtec  screw 0.61 0.40 0.49 0.52 0.61 0.24 0.31 0.57 0.49 0.49 0.64 0.50 0.52 0.62 0.48 0.32 0.48 0.38 0.50 0.49 0.45 0.62 0.62 0.52 0.64 0.78
+mvtec  pill 0.48 0.43 0.44 0.36 0.61 0.28 0.41 0.46 0.44 0.48 0.67 0.49 0.54 0.66 0.51 0.33 0.43 0.41 0.48 0.50 0.44 0.39 0.71 0.54 0.69 0.57 0.81
+btech  03btech  01btech  02mpdd  connectormpdd  bracket brownmpdd  metal platempdd  bracket whitempdd  tubesmpdd  bracket blackdagm  Class4dagm  Class9dagm  Class7dagm  Class3dagm  Class5dagm  Class8visa  pcb4visa  chewinggumvisa  fryumvisa  pcb2visa  macaroni2visa  capsulesmvtec  bottlemvtec  leathermvtec  toothbrushmvtec  carpetmvtec  screwmvtec  pill
+Easy->Hard
+Figure 27: MultiDataset, Wide ResNet-50-2, Easy-to-Hard: NCL, image-level concept
+transition matrix.
+51
+
+===== PAGE 52 =====
+0.00
+0.50
+1.00
+btech  03 1.00
+btech  01 1.00 0.96
+btech  02 1.00 0.96 0.96
+mpdd  connector 0.99 0.96 0.96 0.97
+mpdd  bracket brown 0.99 0.96 0.96 0.96 0.89
+mpdd  metal plate 1.00 0.96 0.96 0.96 0.89 0.92
+mpdd  bracket white 1.00 0.96 0.96 0.96 0.88 0.92 0.96
+mpdd  tubes 0.99 0.96 0.96 0.95 0.88 0.92 0.95 0.93
+mpdd  bracket black 0.99 0.96 0.95 0.96 0.90 0.92 0.96 0.92 0.90
+dagm  Class4 0.99 0.96 0.95 0.95 0.90 0.92 0.96 0.93 0.91 1.00
+dagm  Class9 0.99 0.95 0.95 0.97 0.89 0.91 0.95 0.93 0.92 0.99 0.99
+dagm  Class7 0.99 0.94 0.95 0.96 0.91 0.92 0.95 0.93 0.92 0.95 1.00 0.91
+dagm  Class3 0.99 0.94 0.94 0.96 0.91 0.91 0.95 0.93 0.92 0.98 1.00 0.90 0.94
+dagm  Class5 0.99 0.94 0.95 0.95 0.88 0.90 0.93 0.93 0.92 0.99 0.99 0.89 0.92 0.90
+dagm  Class8 0.99 0.93 0.94 0.96 0.91 0.91 0.95 0.93 0.92 0.98 1.00 0.89 0.94 0.91 0.75
+visa  pcb4 0.99 0.94 0.93 0.95 0.89 0.87 0.87 0.92 0.91 0.98 0.99 0.87 0.88 0.88 0.69 0.95
+visa  chewinggum 0.99 0.94 0.94 0.96 0.90 0.91 0.94 0.92 0.91 0.99 1.00 0.88 0.91 0.91 0.72 0.95 0.98
+visa  fryum 0.99 0.94 0.94 0.95 0.90 0.89 0.94 0.92 0.91 0.99 1.00 0.89 0.92 0.91 0.74 0.95 0.98 0.94
+visa  pcb2 0.99 0.94 0.94 0.95 0.88 0.85 0.90 0.92 0.91 0.99 1.00 0.89 0.92 0.90 0.72 0.94 0.97 0.94 0.96
+visa  macaroni2 0.99 0.94 0.94 0.95 0.88 0.86 0.94 0.89 0.91 0.98 1.00 0.88 0.92 0.91 0.73 0.93 0.97 0.95 0.95 0.92
+visa  capsules 0.99 0.92 0.94 0.93 0.85 0.84 0.92 0.87 0.89 0.98 1.00 0.89 0.92 0.91 0.73 0.93 0.97 0.94 0.95 0.91 0.93
+mvtec  bottle 0.99 0.92 0.94 0.94 0.89 0.86 0.92 0.87 0.90 0.99 1.00 0.89 0.91 0.90 0.71 0.91 0.93 0.93 0.95 0.83 0.93 0.89
+mvtec  leather 0.99 0.91 0.94 0.95 0.89 0.86 0.93 0.87 0.90 0.99 1.00 0.90 0.93 0.91 0.72 0.94 0.98 0.95 0.95 0.94 0.93 0.89 0.95
+mvtec  toothbrush 0.99 0.92 0.94 0.95 0.89 0.88 0.94 0.88 0.90 0.99 1.00 0.90 0.93 0.90 0.74 0.95 0.97 0.94 0.96 0.92 0.92 0.89 0.95 0.94
+mvtec  carpet 0.99 0.92 0.94 0.95 0.89 0.87 0.95 0.88 0.89 0.99 1.00 0.89 0.93 0.90 0.72 0.95 0.98 0.95 0.95 0.93 0.93 0.89 0.95 0.94 0.93
+mvtec  screw 0.99 0.92 0.94 0.94 0.88 0.89 0.92 0.87 0.89 0.99 1.00 0.87 0.90 0.90 0.71 0.94 0.96 0.94 0.95 0.90 0.92 0.90 0.95 0.94 0.92 0.91
+mvtec  pill 0.99 0.92 0.94 0.94 0.89 0.86 0.93 0.88 0.89 0.98 1.00 0.89 0.92 0.90 0.73 0.94 0.97 0.94 0.95 0.93 0.92 0.89 0.94 0.94 0.93 0.93 0.92
+btech  03btech  01btech  02mpdd  connectormpdd  bracket brownmpdd  metal platempdd  bracket whitempdd  tubesmpdd  bracket blackdagm  Class4dagm  Class9dagm  Class7dagm  Class3dagm  Class5dagm  Class8visa  pcb4visa  chewinggumvisa  fryumvisa  pcb2visa  macaroni2visa  capsulesmvtec  bottlemvtec  leathermvtec  toothbrushmvtec  carpetmvtec  screwmvtec  pill
+Easy->Hard
+Figure 28: MultiDataset, Wide ResNet-50-2, Easy-to-Hard: CL, pixel-level concept tran-
+sition matrix.
+52

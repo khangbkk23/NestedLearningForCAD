@@ -1,0 +1,1063 @@
+# SOURCE: docs/papers/related_cad/arxiv_2401.01010.pdf
+# SOURCE_SHA256: 479dca2948eccee4953e1712d220fc5f554c3b31d72ddcd1b71523917d96d784
+# EXTRACTOR: pypdf 7.1.0 (PdfReader.extract_text, per page)
+# EXTRACTED: 2026-11-19
+# NOTE: machine extraction; equations/tables/unicode may be garbled. Cite the PDF, not this file.
+
+
+===== PAGE 1 =====
+Unsupervised Continual Anomaly Detection with Contrastively-learned Prompt
+Jiaqi Liu1*, Kai Wu2∗, Qiang Nie2, Ying Chen2, Bin-Bin Gao2,
+Yong Liu2, Jinbao Wang1, Chengjie Wang2,3, Feng Zheng1†
+1Southern University of Science and Technology
+2Tencent Youtu Lab
+3Shanghai Jiao Tong University
+liujq32021@mail.sustech.edu.cn, lloydwu@tencent.com, stephennie@tencent.com, mumuychen@tencent.com,
+csgaobb@gmail.com, choasliu@tencent.com, linkingring@163.com, jasoncjwang@tencent.com, zfeng02@gmail.com
+Abstract
+Unsupervised Anomaly Detection (UAD) with incremen-
+tal training is crucial in industrial manufacturing, as unpre-
+dictable defects make obtaining sufficient labeled data infea-
+sible. However, continual learning methods primarily rely on
+supervised annotations, while the application in UAD is lim-
+ited due to the absence of supervision. Current UAD meth-
+ods train separate models for different classes sequentially,
+leading to catastrophic forgetting and a heavy computational
+burden. To address this issue, we introduce a novel Un-
+supervised Continual Anomaly Detection framework called
+UCAD, which equips the UAD with continual learning ca-
+pability through contrastively-learned prompts. In the pro-
+posed UCAD, we design a Continual Prompting Module
+(CPM) by utilizing a concise key-prompt-knowledge mem-
+ory bank to guide task-invariant ‘anomaly’ model predictions
+using task-specific ‘normal’ knowledge. Moreover, Structure-
+based Contrastive Learning (SCL) is designed with the Seg-
+ment Anything Model (SAM) to improve prompt learning
+and anomaly segmentation results. Specifically, by treating
+SAM’s masks as structure, we draw features within the same
+mask closer and push others apart for general feature repre-
+sentations. We conduct comprehensive experiments and set
+the benchmark on unsupervised continual anomaly detection
+and segmentation, demonstrating that our method is signifi-
+cantly better than anomaly detection methods, even with re-
+hearsal training. The code will be available at https://github.
+com/shirowalker/UCAD.
+Introduction
+Unsupervised Anomaly Detection (UAD) focuses on iden-
+tifying unusual patterns or outliers in data without prior
+knowledge or labeled instances, relying solely on the inher-
+ent distribution of the ‘normal’ data (Chandola, Banerjee,
+and Kumar 2009). This approach is particularly useful in in-
+dustrial manufacturing since acquiring well-labeled defect
+data can be challenging and costly.
+Recent researches on UAD involve training distinct mod-
+els for various classes, which inevitably relies on the knowl-
+edge of class identity during the test phase (Liu et al.
+*Contributed Equally.
+†Corresponding Author.
+Copyright © 2024, Association for the Advancement of Artificial
+Intelligence (www.aaai.org). All rights reserved.
+Figure 1: Comparison between separate models and UCAD
+methods: a) Using separate methods, each task has its own
+individual model. On the contrary, Ours b) uses a single
+model to handle all tasks without task identities. In the con-
+tinuous stream, UCAD only requires the dataset of the cur-
+rent task for training and can be applied to previous tasks.
+2023b). Moreover, forcing separate models to learn sequen-
+tially also results in a heavy computational burden with
+class incrementation. Some other methods focus on train-
+ing a unified model that can handle multiple classes, such
+as UniAD (You et al. 2022). In real production, trains oc-
+cur sequentially, which makes it impractical for UniAD to
+require all data to be trained simultaneously. Additionally,
+the unified model still lacks the ability to retain previously
+learned knowledge when continuously adapting to frequent
+product alterations during sequential training. Catastrophic
+forgetting and computational burden hinder UAD methods
+from applying to real-world scenarios.
+Continual Learning (CL) is well-known for addressing the
+issue of catastrophic forgetting with a single model, espe-
+cially when previous data is unavailable due to privacy rea-
+sons (Li et al. 2023). Recent research on continual learning
+can be categorized based on the requirement of task identi-
+ties during the test phase. Task-aware approaches explicitly
+use the task identities to guide the learning process and pre-
+vent interference between tasks (Aljundi et al. 2018; Kirk-
+arXiv:2401.01010v1  [cs.CV]  2 Jan 2024
+
+===== PAGE 2 =====
+patrick et al. 2017). However, it’s not always possible to ac-
+quire task identities during inference. Hence, task-agnostic
+methods are necessary and more prevail. Aljundi, Kelchter-
+mans, and Tuytelaars progressively modifies data distribu-
+tion to adapt various tasks in an online setup. L2P (Wang
+et al. 2022) dynamically learns prompts as task identities.
+Despite the effectiveness of task-agnostic CL methods in su-
+pervised tasks, their efficacy in UAD remains unproven. Ob-
+taining large scales of anomalous data is difficult in indus-
+tries due to high production success rates and privacy con-
+cerns. Therefore, it is crucial to explore the application of
+CL in UAD.
+To date, there is no known effort, except for Gaussian dis-
+tribution estimator (DNE) (Li et al. 2022), to incorporate CL
+into UAD. However, DNE still relies on augmentations (Li
+et al. 2021) to provide pseudo-supervision and is not appli-
+cable to anomaly segmentation. DNE can be considered a
+continual binary image classification method rather contin-
+ual anomaly detection (AD) method. In real industrial man-
+ufacturing, accurately segmenting the areas of anomalies is
+essential for anomaly standard quantization. Hence, there is
+an urgent need for a method that can perform unsupervised
+continual AD and segmentation simultaneously.
+To address the aforementioned problems, we propose a
+novel framework for Unsupervised Continual Anomaly De-
+tection called UCAD, which can sequentially learn to de-
+tect anomalies of different classes using a single model, as
+shown in Fig. 1. UCAD incorporates a Continual Prompt-
+ing Module (CPM) to enable CL in unsupervised AD and a
+Structure-based Contrastive Learning (SCL) module to ex-
+tract more compact features across various tasks. The CPM
+learns a “key-prompt-knowledge” memory space to store
+auto-selected task queries, task adaptation prompts, and the
+‘normal’ knowledge of different classes. Given an image, the
+key is automatically selected to retrieve the corresponding
+task prompts. Based on the prompts, the image feature is fur-
+ther extracted and compared with its normal knowledge for
+anomaly detection, similar to PatchCore (Roth et al. 2022).
+However, the performance of CPM is limited because the
+frozen backbone (ViT) cannot provide compact feature rep-
+resentations across various tasks. To overcome this limita-
+tion, the SCL is introduced to extract more dominant feature
+representations and reduce domain gaps by leveraging the
+general segmentation ability of SAM (Kirillov et al. 2023).
+With SCL, features of the same structure (segmented area)
+are pulled together and pushed away from features in other
+structures. As a result, the prompts are contrastively learned
+for better feature extraction across different tasks. Our con-
+tributions can be summarized as follows:
+• To the best of our knowledge, our proposed UCAD is
+the first framework for task-agnostic continual learning
+on unsupervised anomaly detection and segmentation.
+UCAD novelty learns a key-prompt-knowledge memory
+space for automatic task instruction, knowledge transfer,
+unsupervised anomaly detection and segmentation.
+• We propose to use contrastively-learned prompts to im-
+prove unsupervised feature extraction among various
+classes by exploiting the general capabilities of SAM.
+• We have conducted thorough experiments and intro-
+duced a new benchmark for unsupervised CL anomaly
+detection and segmentation. Our proposed UCAD out-
+performs previous state-of-the-art (SOTA) AD methods
+by 15.6% on detection and 26.6% on segmentation.
+Related Work
+Unsupervised Image Anomaly Detection
+With the release of the MVTec AD dataset (Bergmann et al.
+2019), the development of industrial image anomaly de-
+tection has shifted from a supervised paradigm to an un-
+supervised paradigm. In the unsupervised anomaly detec-
+tion paradigm, the training set only consists of normal im-
+ages, while the test set contains both normal images and an-
+notated abnormal images. Gradually, research on unsuper-
+vised industrial image anomaly detection has been divided
+into two main categories: feature-embedding-based meth-
+ods and reconstruction-based methods (Liu et al. 2023b).
+Feature-embedding-based methods can be further cate-
+gorized into four subcategories, including teacher-student
+model (Bergmann et al. 2020; Salehi et al. 2021; Deng and
+Li 2022; Tien et al. 2023), one-class classification meth-
+ods (Li et al. 2021; Liu et al. 2023c), mapping-based meth-
+ods (Rudolph, Wandt, and Rosenhahn 2021; Gudovskiy,
+Ishizaka, and Kozuka 2022; Rudolph et al. 2022; Lei et al.
+2023) and memory-based methods (Defard et al. 2021; Roth
+et al. 2022; Jiang et al. 2022b; Xie et al. 2022; Liu et al.
+2023a). Reconstruction-based methods can be catego-
+rized based on the type of reconstruction network, including
+autoencoder-based methods (Zavrtanik, Kristan, and Skoˇcaj
+2021, 2022; Schl¨uter et al. 2022), Generative Adversarial
+Networks (GANs) (Goodfellow et al. 2014) based meth-
+ods (Yan et al. 2021; Liang et al. 2022), ViT-based meth-
+ods (Mishra et al. 2021; Pirnay and Chai 2022; Jiang et al.
+2022a), and Diffusion model-based methods (Mousakhan,
+Brox, and Tayyub 2023; Zhang et al. 2023).
+However, existing UAD methods are designed to enhance
+anomaly detection capabilities within a single object cate-
+gory. They often lack the ability to perform anomaly de-
+tection in a continual learning scenario. Even multi-class
+unified anomaly detection models (You et al. 2022; Zhao
+2023) have not taken into consideration the scenario of con-
+tinual anomaly detection. While our method is specifically
+designed for the scenario of continual learning and achieves
+continual anomaly segmentation in an unsupervised manner.
+Continual Image Anomaly Detection
+Different from natural image object detection tasks, the data
+stream is common in industrial manufacturing. Some current
+methods have recognized this phenomenon and attempted to
+design algorithms specifically to address the challenges in
+this scenario. IDDM (Zhang and Chen 2023) presents an in-
+cremental anomaly detection method based on a small num-
+ber of labeled samples. On the other hand, LeMO (Gao et al.
+2023) follows the common unsupervised anomaly detec-
+tion paradigm and performs incremental anomaly detection
+as normal samples continuously increase. However, both
+IDDM and LeMO focus on intra-class continual anomaly
+
+===== PAGE 3 =====
+Pretrained
+ViT Encoder
+Continual Prompting Module
+Training
+Inference
+Prompt
+Key
+Knowledge
+Query 
+Inference Image
+Training Image
+Anomaly Map
+KnowledgeSampling
+Retrieval
+Query 
+Structure-based Contrastive Learning
+Feature MapSegmentation Map
+Patch Features
+Trainable
+Frozen
+SAM
+Figure 2: The framework of UCAD mainly comprises a Continual Prompting Module (CPM) and a Structure-based Contrastive
+Learning (SCL) module, integrated with the SAM network. During training, the CPM establishes a key-prompt-knowledge
+system that efficiently maintains training data information, while also reducing memory and computational resource usage.
+Moreover, UCAD proposes a contrastive learning method using the SAM segmentation map to enhance the feature representa-
+tions. Finally, the detection of anomalies is accomplished by comparing current features and retrieved task-specific knowledge.
+detection research without addressing inter-class incremen-
+tal anomaly detection challenges. Li et al.’s research (Li et al.
+2022) is the most closely related to ours. They propose DNE
+for image-level anomaly detection in continual learning sce-
+narios. Due to the limitation of DNE in storing only class-
+level information, it cannot perform fine-grained localiza-
+tion, thus making it unsuitable for anomaly segmentation.
+Our method goes beyond continual anomaly classification
+and extends to pixel-level continual anomaly detection.
+Methods
+Unsupervised Continual AD Problem Definition
+Unsupervised Anomaly Detection (AD) aims to identify
+anomalous data using only normal data, since obtain-
+ing labeled anomalous samples is challenging in real-
+world industrial production scenarios. The training set con-
+tains only normal samples from various tasks, while the
+test set includes both normal and abnormal samples, re-
+flecting real-world applications. To formulate the prob-
+lem, we define the multi-class training set as T total train =
+T 1 train, T 2 train, · · · , T n train 	 and test set as T total test =
+T 1 test, T 2 test, · · · , T n test 	 . T i train and T i test represent class i-
+th training and test data, respectively.
+Under unsupervised continual AD and segmentation set-
+ting, a unified model is trained non-repetitively on incremen-
+tally added classes. Given Ntask tasks or classes, the model
+is sequentially trained on sub-training sets T i train, i ∈ Ntask
+and subsequently tested on all past test subdatasets T total test .
+This evaluation method ensures the final trained model’s
+ability to retain previously acquired knowledge.
+Continual Prompting Module
+Applying CL to unsupervised AD faces two challenges: 1)
+How to determine the task identities of the incoming image
+automatically; 2) How to guide the model’s predictions for
+the relevant task in an unsupervised manner. Thus, a contin-
+ual prompting module is designed to dynamically adapt and
+instruct unsupervised model predictions. We propose to use
+a memory space M for a key-prompt-knowledge architec-
+ture, (Ke, V, Kn) , that contains two distinct phases: the task
+identification phase and the task adaptation phase.
+In the task identification phase, images x ∈ RH×W ×C
+will go through a frozen pretrained vision transformer f
+(ViT) to extract keys k ∈ Ke, also known as task identi-
+ties. Because task identity contains both textual details and
+high-level information, we use a specific layer of ViT rather
+than the last embedding k = f i(x), k ∈ RNp ×C , in which
+k is the feature and Np is the num of patches after i-th
+block (in this paper, we use i = 5). However, assuming we
+have NI training images for task t, all extracted embeddings
+would have dimension Kt ∈ RNI ×Np ×C , which means a lot
+of memory space. To make task matching efficient during
+testing, we propose to use one image’s feature space repre-
+senting the whole task RNI ×Np ×C → RNp ×C . Note that a
+single image’s feature space is negligible compared to the
+whole task in the continual training setting. We find that the
+farthest point sampling method (Eldar et al. 1997) is efficient
+for selecting representative features to serve as keys. So task
+identities Ke can be represented as a set:
+Kt e = F P S(Kt), Kt e ∈ RNp ×C
+Ke = {K0 e , K1 e , ..., Kt e}, t ∈ Ntask, (1)
+where F P S is furthest point sampling, Kt represents all ex-
+tracted embeddings of task t.
+
+===== PAGE 4 =====
+During the task adaptation phase, inspired by (Liu et al.
+2021) which injects new knowledge into models, we design
+learnable prompts V to transfer task-related information to
+the current image. Unlike Ke that is downsampled from the
+pretrained backbone, prompts p ∈ V are purely learnable
+to accommodate the current task. We add a prompt pi to
+each layer’s input feature to convey task information to the
+current image, ki = f i(ki−1 + pi), where ki is the output
+feature of the i-th layer, ki−1 is the input feature, and pi is
+the prompt added to the i-th layer to transfer task-specific
+information to the current image. Then, the task-transferred
+image features ki are used to create the knowledge Kn dur-
+ing training. Since we are not using supervision, Kn serves
+as the standard to distinguish anomaly data by comparing
+it to the test image features. However, image features can
+be exceedingly large during training accumulation, we use
+coreset sampling (Roth et al. 2022) to reduce storage for V.
+Kn = CoreSetSampling(ki)
+= arg min
+Mc ⊂M
+max
+m∈M
+min
+n∈Mc
+||m − n||2, (2)
+where M is the nominal image features during training, Mc
+is the coreset space for patch-level features ki, and i = 5 in
+our experiments since middle features contain both context
+and semantic information. After establishing key-prompt-
+knowledge correspondance for each task, our proposed Con-
+tinual Prompting Module can successfully transfer knowl-
+edge from previous tasks to the current image. However, the
+features stored in V may not be discriminative enough be-
+cause the backbone f has been pretrained and not adapted
+to the current task. As the original backbone was trained on
+natural images, we modified it to improve its feature rep-
+resentation for industrial images. Industrial images mainly
+contain information about texture and edge structure, and
+the similarity between different industrial product images is
+often high. This allows us to use fewer features to represent
+normal industrial images. To make feature representations
+more compact, we developed a structure-based contrastive
+learning method to learn prompt contrastively.
+Structure-based Contrastive Learning
+Inspired by ReConPatch (Hyun et al. 2023), we designed
+structure-based contrastive learning to enhance the network
+representation for patch-level comparison during testing. We
+discovered that SAM (Kirillov et al. 2023) consistently pro-
+vides general structure knowledge, such as masks, without
+requiring training. As illustrated in Figure 2, for each im-
+age in the training set, we employed SAM to generate cor-
+responding segmentation images Is, in which different re-
+gions represent distinct structures or semantics. Simultane-
+ously, guided by prompts, we obtain the feature map Fs ∈ ki
+for each region, where ki is the i-th layer feature in the pre-
+vious section. We downsampled the segmentation image Is
+to match the size of Fs ∈ Rc×h×w and aligned the corre-
+sponding positions to create the label map Ls. By incorpo-
+rating contrastive learning, the knowledge generality in Kn
+is achieved by pulling the features of the same region closer
+and pushing the features of different regions further apart.
+The loss function is:
+Lpos con =
+HX
+i,p
+WX
+j,q
+cos(Fij , F p, q), (Lij = Lpq ),
+Lneg con =
+HX
+i,p
+WX
+j,q
+cos(Fij , F p, q), (Lij ̸= Lpq ),
+Ltotal = λαLneg con − λβ Lpos con.
+(3)
+In the given paragraph, Fij denotes the embedding of feature
+Fs at position (i, j) with a shape of (1, 1, c), while Lij repre-
+sents the label of feature Fij at the corresponding position in
+the segmentation result generated by SAM. λα and λβ are 1.
+By training prompts using this contrastive loss, the model’s
+representation ability is enhanced, and features of various
+textures become more compact. Consequently, this approach
+results in more distinct representations of abnormal features
+during testing, allowing them to stand out prominently.
+Test-Time Task-Agnostic Inference
+Task Selection and Adaption To automatically determine
+the task identity during testing, an image xtest initially lo-
+cates its corresponding task by selecting from Ke based on
+the highest similarity. The corresponding task identity is se-
+lected by the equation below:
+Kt e = arg min
+m∈Ke
+Sim(m − mtest),
+Sim(m − mtest) = X
+x∈Np
+min
+y∈Np
+||mx − mtest y ||2, (4)
+where mtest is the patch-level feature from i-th layer feature
+map of ViT containing multiple patches Np, i = 5 in this pa-
+per as discussed in previous section. Since the utilization of a
+key-prompt-knowledge architecture, the associated prompts
+V and knowledge Kn can be readily retrieved. By combin-
+ing the selected prompts with test patches and processing
+them through ViT, features from the test sample are adapted
+and extracted. Subsequently, anomaly scores are calculated
+based on the minimum distance to the task’s knowledge Kt n.
+Anomaly Detection and Segmentation To calculate the
+anomaly score, we compare the image feature mtest with
+the nominal features stored in task-specific knowledge base
+Kt n. Building upon the patch-level retrieval, we employed
+re-weighting to implement the anomaly detection process.
+Nb(m∗) represents the nearest neighbors of m∗ in Kt n. We
+use the distance between mtest and m∗ as the basic anomaly
+score, and then calculate the distance between mtest and
+the features in Nb(m∗) to achieve the re-weighting effect.
+Through Eqution 5, we set the furthest distance between fea-
+ture mtest,∗ in the test feature set P(xtest) and memory bank
+Kr n to represent the anomaly score s∗ of the sample.
+mtest,∗, m∗ = arg max
+mtest ∈P(xtest )
+arg min
+m∈Ktn
+mtest − ml 2 ,
+s∗ = mtest,∗ − m∗ 2 . (5)
+
+===== PAGE 5 =====
+Methods Bottle cable capsule carpet grid hazelnut leather metal nut pill screw tile toothbrush transistor wood zipper average avg FM
+CFA 0.309 0.489 0.275 0.834 0.571 0.903 0.935 0.464 0.528 0.528 0.763 0.519 0.320 0.923 0.984 0.623 0.361
+CSFlow 0.129 0.420 0.363 0.978 0.602 0.269 0.906 0.220 0.263 0.434 0.697 0.569 0.432 0.802 0.997 0.539 0.426
+CutPaste 0.111 0.422 0.373 0.198 0.214 0.578 0.007 0.517 0.371 0.356 0.112 0.158 0.340 0.150 0.775 0.312 0.510
+DRAEM 0.793 0.411 0.517 0.537 0.799 0.524 0.480 0.422 0.452 1.000 0.548 0.625 0.307 0.517 0.996 0.595 0.371
+FastFlow 0.454 0.512 0.517 0.489 0.482 0.522 0.487 0.476 0.575 0.402 0.489 0.267 0.526 0.616 0.867 0.512 0.279
+FAVAE 0.666 0.396 0.357 0.610 0.644 0.884 0.406 0.416 0.531 0.624 0.563 0.503 0.331 0.728 0.544 0.547 0.102
+PaDiM 0.458 0.544 0.418 0.454 0.704 0.635 0.418 0.446 0.449 0.578 0.581 0.678 0.407 0.549 0.855 0.545 0.368
+PatchCore 0.163 0.518 0.350 0.968 0.700 0.839 0.625 0.259 0.459 0.484 0.776 0.586 0.341 0.970 0.991 0.602 0.383
+RD4AD 0.401 0.538 0.475 0.583 0.558 0.909 0.596 0.623 0.479 0.596 0.715 0.397 0.385 0.700 0.987 0.596 0.393
+SPADE 0.302 0.444 0.525 0.529 0.460 0.410 0.577 0.592 0.484 0.514 0.881 0.386 0.622 0.897 0.949 0.571 0.285
+STPM 0.329 0.539 0.610 0.462 0.569 0.540 0.740 0.456 0.523 0.753 0.736 0.375 0.450 0.779 0.783 0.576 0.325
+SimpleNet 0.938 0.560 0.519 0.736 0.592 0.859 0.749 0.710 0.701 0.599 0.654 0.422 0.669 0.908 0.996 0.708 0.211
+UniAD 0.801 0.660 0.823 0.754 0.713 0.904 0.715 0.791 0.869 0.731 0.687 0.776 0.490 0.903 0.997 0.774 0.229
+DNE 0.990 0.619 0.609 0.984 0.998 0.924 1.000 0.989 0.671 0.588 0.980 0.933 0.877 0.930 0.958 0.870 0.116
+PatchCore* 0.533 0.505 0.351 0.865 0.723 0.959 0.854 0.456 0.511 0.626 0.748 0.600 0.427 0.900 0.974 0.669 0.318
+UniAD* 0.997 0.701 0.765 0.998 0.896 0.936 1.000 0.964 0.895 0.554 0.989 0.928 0.966 0.982 0.987 0.904 0.076
+Ours 1.000 0.751 0.866 0.965 0.944 0.994 1.000 0.988 0.894 0.739 0.998 1.000 0.874 0.995 0.938 0.930 0.010
+Table 1: Image-level AUROC↑ and corrsponding FM↓ on MVTec AD dataset (Bergmann et al. 2019) after training on the
+last subdataset. Note that * signifies the usage of a cache pool for rehearsal during training which may not be possible in real
+applications. The best results are highlighted in bold.
+Methods Bottle cable capsule carpet grid hazelnut leather metal nut pill screw tile toothbrush transistor wood zipper average avg FM
+CFA 0.068 0.056 0.050 0.271 0.004 0.341 0.393 0.255 0.080 0.015 0.155 0.053 0.056 0.281 0.573 0.177 0.083
+DRAEM 0.117 0.019 0.044 0.018 0.005 0.036 0.013 0.142 0.104 0.002 0.130 0.039 0.040 0.033 0.734 0.098 0.116
+FastFlow 0.044 0.021 0.013 0.013 0.005 0.028 0.007 0.090 0.029 0.003 0.060 0.015 0.036 0.037 0.264 0.044 0.214
+FAVAE 0.086 0.048 0.039 0.015 0.004 0.389 0.112 0.174 0.070 0.017 0.064 0.043 0.046 0.093 0.039 0.083 0.083
+PaDiM 0.072 0.037 0.030 0.023 0.006 0.183 0.039 0.155 0.044 0.014 0.065 0.044 0.049 0.080 0.452 0.086 0.366
+PatchCore 0.048 0.029 0.035 0.552 0.003 0.338 0.279 0.248 0.051 0.008 0.249 0.034 0.079 0.304 0.595 0.190 0.371
+RD4AD 0.055 0.040 0.064 0.212 0.005 0.384 0.116 0.247 0.061 0.015 0.193 0.034 0.059 0.097 0.562 0.143 0.425
+SPADE 0.122 0.052 0.044 0.117 0.004 0.512 0.264 0.181 0.060 0.020 0.096 0.043 0.050 0.172 0.531 0.151 0.319
+STPM 0.074 0.019 0.073 0.054 0.005 0.037 0.108 0.354 0.111 0.001 0.397 0.046 0.046 0.119 0.203 0.110 0.352
+SimpleNet 0.108 0.045 0.029 0.018 0.004 0.029 0.006 0.227 0.077 0.004 0.082 0.046 0.049 0.037 0.139 0.060 0.069
+UniAD 0.054 0.031 0.022 0.047 0.007 0.189 0.053 0.110 0.034 0.008 0.107 0.040 0.045 0.103 0.444 0.086 0.419
+PatchCore* 0.087 0.043 0.042 0.407 0.003 0.443 0.352 0.189 0.058 0.017 0.124 0.028 0.053 0.270 0.604 0.181 0.343
+UniAD* 0.734 0.232 0.313 0.517 0.204 0.378 0.360 0.587 0.346 0.035 0.428 0.398 0.542 0.378 0.443 0.393 0.086
+Ours 0.752 0.290 0.349 0.622 0.187 0.506 0.333 0.775 0.634 0.214 0.549 0.298 0.398 0.535 0.398 0.456 0.013
+Table 2: Pixel-level AUPR↑ and corrsponding FM↓ on MVTec AD dataset (Bergmann et al. 2019) after training on the last
+subdataset.
+By re-weighting from neighbors m∗ ∈ Kt n, the anomaly
+score s becomes more robust, as in Equation 6:
+s =
+ 
+1 − exp ∥mtest,∗ − m∗∥2P
+m∈Nb (m∗ ) exp ∥mtest,∗ − m∥2
+!
+· s∗. (6)
+The anomaly score of the whole image is calculated by the
+max score of all patches, Simg = max(si), i ∈ Np. The
+coarse segmentation map, Scmap, is represented by scores
+calculated from each patch. By upsampling and applying
+Gaussian smoothing to Scmap, the final segmentation result
+Smap is obtained with the same dimensions as the input im-
+age.
+Experiments and Discussion
+Experiments setup
+Datasets MVTec AD (Bergmann et al. 2019) is the most
+widely used dataset for industrial image anomaly detection.
+VisA (Zou et al. 2022) is now the largest dataset for real-
+world industrial anomaly detection with pixel-level annota-
+tions. We conduct experiments on these two datasets.
+Methods Based on the anomaly methods discussed in our
+related work section and previous benchmark (Xie et al.
+2023), we selected the most representative methods from
+each paradigm to establish the benchmark. These methods
+include CFA (Lee, Lee, and Song 2022), CSFlow (Rudolph
+et al. 2022), CutPaste (Li et al. 2021), DNE (Li et al.
+2022), DRAEM (Zavrtanik, Kristan, and Skoˇcaj 2021), Fast-
+Flow (Yu et al. 2021), FAVAE (Dehaene and Eline 2020),
+PaDiM (Defard et al. 2021), PatchCore (Roth et al. 2022),
+RD4AD (Deng and Li 2022), SPADE (Cohen and Hoshen
+2020), STPM (Wang et al. 2021), SimpleNet (Liu et al.
+2023c), and UniAD (You et al. 2022).
+Metrics Following the common practice, we utilize
+Area Under the Receiver Operating Characteristics (AU-
+ROC/AUC) to assess the model’s ability in anomaly clas-
+sification. For pixel-level anomaly segmentation capability,
+we employ Area Under Precision-Recall (AUPR/AP) for
+model evaluation. In addition, we use Forgetting Measure
+(FM) (Chaudhry et al. 2018) to evaluate models’ ability to
+prevent catastrophic forgetting.
+avg F M = 1 k − 1
+k−1X
+j=1
+max
+l∈{1,...,k−1}
+Tl,j − Tk,j , (7)
+where T represents tasks, k stands for the current training
+task ID, and j refers to the task ID being evaluated. And
+avg F M represents the average forgetting measure of the
+model after completing k tasks. During the inference, we
+evaluate the model after training on all tasks.
+Training Details and Module Parameter Settings We
+utilized the vit-base-patch16-224 backbone pretrained on
+
+===== PAGE 6 =====
+Methods candle capsules cashew chewinggum fryum macaroni1 macaroni2 pcb1 pcb2 pcb3 pcb4 pipe fryum average avg FM
+CFA 0.512 0.672 0.873 0.753 0.304 0.557 0.422 0.698 0.472 0.449 0.407 0.998 0.593 0.327
+RD4AD 0.380 0.385 0.737 0.539 0.533 0.607 0.487 0.437 0.672 0.343 0.187 0.999 0.525 0.423
+PatchCore 0.401 0.605 0.624 0.907 0.334 0.538 0.437 0.527 0.597 0.507 0.588 0.998 0.589 0.361
+SimpleNet 0.504 0.474 0.794 0.721 0.684 0.567 0.447 0.598 0.629 0.538 0.493 0.945 0.616 0.283
+UniAD 0.573 0.599 0.661 0.758 0.504 0.559 0.644 0.749 0.523 0.547 0.562 0.989 0.639 0.297
+DNE 0.486 0.413 0.735 0.585 0.691 0.584 0.546 0.633 0.693 0.642 0.562 0.747 0.610 0.179
+PatchCore* 0.647 0.579 0.669 0.735 0.431 0.631 0.624 0.617 0.534 0.479 0.645 0.999 0.633 0.349
+UniAD* 0.884 0.669 0.938 0.970 0.812 0.753 0.570 0.872 0.766 0.708 0.967 0.990 0.825 0.125
+Ours 0.778 0.877 0.960 0.958 0.945 0.823 0.667 0.905 0.871 0.813 0.901 0.988 0.874 0.039
+Table 3: Image-level AUROC↑ and corrsponding FM↓ on VisA dataset (Zou et al. 2022) after training on the last subdataset.
+Methods candle capsules cashew chewinggum fryum macaroni1 macaroni2 pcb1 pcb2 pcb3 pcb4 pipe fryum average avg FM
+CFA 0.017 0.005 0.059 0.243 0.085 0.001 0.001 0.013 0.006 0.008 0.015 0.592 0.087 0.184
+RD4AD 0.002 0.005 0.061 0.045 0.098 0.001 0.001 0.013 0.008 0.008 0.013 0.576 0.069 0.201
+PatchCore 0.012 0.007 0.055 0.315 0.082 0.000 0.000 0.008 0.004 0.007 0.010 0.585 0.090 0.311
+SimpleNet 0.001 0.004 0.017 0.007 0.047 0.000 0.000 0.013 0.003 0.004 0.009 0.058 0.014 0.016
+UniAD 0.006 0.013 0.040 0.185 0.087 0.002 0.002 0.015 0.005 0.015 0.013 0.576 0.080 0.218
+PatchCore* 0.018 0.010 0.047 0.202 0.081 0.003 0.001 0.008 0.004 0.008 0.010 0.443 0.070 0.327
+UniAD* 0.132 0.123 0.378 0.574 0.404 0.041 0.010 0.612 0.083 0.266 0.232 0.549 0.283 0.062
+Ours 0.067 0.437 0.580 0.503 0.334 0.013 0.003 0.702 0.136 0.266 0.106 0.457 0.300 0.015
+Table 4: Pixel-level AUPR↑ and corrsponding FM↓ on VisA dataset (Zou et al. 2022) after training on the last subdataset.
+ImageNet 21K (Deng et al. 2009) for our method. Dur-
+ing prompt training, we employed a batch size of 8 and
+adapt Adam optimizer (Kingma and Ba 2014) with a learn-
+ing rate of 0.0005 and momentum of 0.9. The training pro-
+cess spanned 25 epochs. Our key-prompt-knowledge struc-
+ture comprised a key of size (15, 196, 1024) float array, a
+prompt of size (15, 7, 768) float array, and knowledge of
+size (15, 196, 1024) float array, with an overall size of ap-
+proximately 23.28MB.
+Continual anomaly detection benchmark
+We conducted comprehensive evaluations of the aforemen-
+tioned 14 methods on the MVTec AD and VisA datasets.
+Among them, DNE stands as the SOTA method in unsu-
+pervised continual AD. Meanwhile, PatchCore and UniAD
+are two representative AD methods for memory-based and
+unified methods, respectively. Intuitively, these two meth-
+ods appear to be better suited for the continual learning sce-
+nario. Due to the famous replay in continual learning meth-
+ods, we also conducted replay-based experiments on Patch-
+Core and UniAD. In these experiments, we provided them
+with a buffer capable of storing 100 training samples.
+Quantitative Analysis As shown in Tables 1 - 4, most
+of the anomaly detection methods experienced significant
+performance degradation in the context of continual learn-
+ing scenarios. Surprisingly, with the use of replay, UniAD
+managed to surpass DNE on the MVTec AD dataset. More-
+over, on the VisA dataset, even without replay, UniAD out-
+performed DNE. On the other hand, our method achieved a
+substantial lead over the second-best approach without the
+use of replay. Specifically, on the MVTec AD dataset, our
+method shows a 2.6 point lead in Image AUROC and a 6.3
+point lead in Pixel AUPR over the second-ranked method,
+while on the VisA dataset, we achieve a 4.9 point lead in Im-
+age AUROC and a 1.7 point lead in Pixel AUPR. It can be
+observed that on the more complex structural VisA dataset,
+the detection capability of DNE, which solely relies on class
+CPM SCL MVTec AD VisA
+✗ ✗ 0.693/0.183 0.584/0.050
+✓ ✗ 0.894/0.426 0.786/0.251
+✓ ✓ 0.930/0.456 0.874/0.300
+Table 5: Ablation study for CPM and SCL.
+tokens for anomaly discrimination, is significantly reduced.
+In contrast, our method remains unaffected.
+Based on the comprehensive experimental results, our ap-
+proach shows significant improvement over other methods
+in detecting anomalies under a continual setting. The experi-
+ments also demonstrate the potential of reconstruction-based
+methods, such as UniAD, in the field of continual UAD.
+In future works, combining our suggested CPM with the
+reconstruction-based UAD approach could be beneficial.
+Qualitative Analysis As illustrated in Figure 3, our
+method demonstrates the ability to roughly predict the lo-
+cations of anomalies. This progress stands as a signifi-
+cant improvement compared to DNE. Compared to Patch-
+Core* and UniAD*, our method exhibits two distinct advan-
+tages. Firstly, it demonstrates a more precise localization of
+anomalies. Secondly, it minimizes false positives in normal
+image classification.
+Ablation study
+Module Effectivity As shown in Table 5, We analyze
+the impact of two modules - Continual Prompting Mod-
+ule (CPM) and Structure-based Contrastive Learning (SCL).
+We observed significant improvements in the model’s per-
+formance with the implementation of these modules. In the
+absence of CPM’s key-prompt-knowledge architecture, our
+model used a single Knowledge base and reset it every time
+a new task was introduced. This approach restricted the
+model’s ability to adapt to continual learning without super-
+vision. However, with the inclusion of CPM, the model’s
+Image AUROC score showed a significant improvement of
+
+===== PAGE 7 =====
+Anomaly Score
+Test SamplesOurs Ground Truth
+PatchCore*UniAD*
+Figure 3: Visualization examples of continual anomaly detection. The first row displays the original anomaly images, the second
+row shows the ground truth annotations, and the third to fifth rows depict the heatmaps of our method and other methods.
+CPM SCL Knowledge MVTec AD VisA Size Metric Metric
+✓ ✗ 1x 0.894/0.426 0.786/0.251
+✓ ✗ 2x 0.921/0.452 0.818/0.255
+✓ ✗ 4x 0.929/0.453 0.860/0.294
+✓ ✓ 1x 0.930/0.456 0.874/0.300
+✓ ✓ 2x 0.936/0.461 0.893/0.307
+✓ ✓ 4x 0.938/0.466 0.909/0.310
+Table 6: Ablation study for Knowledge size and SCL.
+Encoder MVTec AD VisA
+Layer Metric Metric
+1 0.840/0.399 0.806/0.143
+3 0.934/0.451 0.876/0.283
+5 0.930/0.456 0.874/0.300
+7 0.936/0.444 0.872/0.267
+9 0.906/0.420 0.853/0.248
+Table 7: Ablation study for ViT encoder layer.
+20 points. Regarding SCL, we found that without learning
+prompts contrastively, the model relied solely on the frozen
+ViT for feature extraction. This approach leds to a drop of
+around 4 points in the final performance, indicating the im-
+portance of SCL’s feature generalizability improvement.
+Size of Knowledge Base in CPM To further investigate
+the role of SCL, we designed ablation experiments as illus-
+trated in Table 6, by altering the size of Knowledge within
+the CPM module. The basic Knowledge size is 196, corre-
+sponding to the number of patches in a single image. Our
+method enables the representation of all images’ patches
+in a task with a single image feature space. Intriguingly,
+in the presence of SCL, even when the Knowledge size
+is 4 times larger, the performance enhancement remains
+marginal. However, without SCL, as the Knowledge size in-
+creases, the model exhibits a noticeable performance gain.
+This phenomenon can be attributed to SCL’s capacity to ren-
+der feature distributions more compact, allowing a feature of
+the same size to encapsulate additional information.
+ViT Feature Layers Furthermore, we explore the number
+of layers to use from ViT encoder in our method. The results
+in Table 7 indicate that neither shallow nor deep layers are
+effective for unsupervised anomaly detection. Intermediate
+layers, on the other hand, perform better as they are capable
+of representing both contextual and semantic information.
+We found that various datasets possess nuances in their defi-
+nitions of anomalies, resulting in varying levels of granular-
+ity. While the degree of contextual knowledge required may
+vary across different datasets, we decided to stick with the
+fifth layer for simplicity.
+Conclusion
+In this paper, we investigate the problem of applying contin-
+ual learning on unsupervised anomaly detection to address
+real-world applications in industrial manufacturing. To fa-
+cilitate this research, we build a comprehensive benchmark
+for unsupervised continual anomaly detection and segmen-
+tation. Furthermore, our proposed UCAD for task-agnostic
+CL on UAD is the first study to design a pixel-level con-
+tinual anomaly segmentation method. UCAD novelty relies
+on a continual prompting module and structured-based con-
+trastive learning, significantly improving continual anomaly
+detection performance. Comprehensive experiments have
+underscored our framework’s efficacy and robustness with
+varying hyperparameters. We also find that amalgamating
+and prompting ViT features from various layers might fur-
+ther enhance results, which we leave for future endeavors.
+
+===== PAGE 8 =====
+Acknowledgments
+This work is supported by the National Key R&D Pro-
+gram of China (Grant NO. 2022YFF1202903) and the Na-
+tional Natural Science Foundation of China (Grant NO.
+62122035).
+References
+Aljundi, R.; Babiloni, F.; Elhoseiny, M.; Rohrbach, M.; and
+Tuytelaars, T. 2018. Memory aware synapses: Learning
+what (not) to forget. In Proceedings of the European confer-
+ence on computer vision, 139–154.
+Aljundi, R.; Kelchtermans, K.; and Tuytelaars, T. 2019.
+Task-free continual learning. In Proceedings of the
+IEEE/CVF Conference on Computer Vision and Pattern
+Recognition, 11254–11263.
+Bergmann, P.; Fauser, M.; Sattlegger, D.; and Steger, C.
+2019. MVTec AD–A comprehensive real-world dataset
+for unsupervised anomaly detection. In Proceedings of
+the IEEE/CVF conference on computer vision and pattern
+recognition, 9592–9600.
+Bergmann, P.; Fauser, M.; Sattlegger, D.; and Steger, C.
+2020. Uninformed students: Student-teacher anomaly de-
+tection with discriminative latent embeddings. In Proceed-
+ings of the IEEE/CVF Conference on Computer Vision and
+Pattern Recognition, 4183–4192.
+Chandola, V.; Banerjee, A.; and Kumar, V. 2009. Anomaly
+Detection: A Survey. ACM Computing Surveys. vol, 41: 15.
+Chaudhry, A.; Dokania, P. K.; Ajanthan, T.; and Torr, P. H.
+2018. Riemannian walk for incremental learning: Under-
+standing forgetting and intransigence. In Proceedings of the
+European conference on computer vision, 532–547.
+Cohen, N.; and Hoshen, Y. 2020. Sub-image anomaly de-
+tection with deep pyramid correspondences. arXiv preprint
+arXiv:2005.02357.
+Defard, T.; Setkov, A.; Loesch, A.; and Audigier, R.
+2021. Padim: a patch distribution modeling framework for
+anomaly detection and localization. In Proceedings of In-
+ternational Conference on Pattern Recognition, 475–489.
+Springer.
+Dehaene, D.; and Eline, P. 2020. Anomaly localiza-
+tion by modeling perceptual features. arXiv preprint
+arXiv:2008.05369.
+Deng, H.; and Li, X. 2022. Anomaly Detection via Reverse
+Distillation from One-Class Embedding. In Proceedings of
+the IEEE/CVF Conference on Computer Vision and Pattern
+Recognition, 9737–9746.
+Deng, J.; Dong, W.; Socher, R.; Li, L.-J.; Li, K.; and Fei-
+Fei, L. 2009. Imagenet: A large-scale hierarchical image
+database. In Proceedings of 2009 IEEE conference on com-
+puter vision and pattern recognition, 248–255. Ieee.
+Eldar, Y.; Lindenbaum, M.; Porat, M.; and Zeevi, Y. Y. 1997.
+The farthest point strategy for progressive image sampling.
+IEEE Transactions on Image Processing, 6(9): 1305–1315.
+Gao, H.; Luo, H.; Shen, F.; and Zhang, Z. 2023. Towards To-
+tal Online Unsupervised Anomaly Detection and Localiza-
+tion in Industrial Vision. arXiv preprint arXiv:2305.15652.
+Goodfellow, I.; Pouget-Abadie, J.; Mirza, M.; Xu, B.;
+Warde-Farley, D.; Ozair, S.; Courville, A.; and Bengio, Y.
+2014. Generative adversarial nets. Advances in neural in-
+formation processing systems, 27.
+Gudovskiy, D.; Ishizaka, S.; and Kozuka, K. 2022. Cflow-
+ad: Real-time unsupervised anomaly detection with localiza-
+tion via conditional normalizing flows. In Proceedings of the
+IEEE/CVF Winter Conference on Applications of Computer
+Vision, 98–107.
+Hyun, J.; Kim, S.; Jeon, G.; Kim, S. H.; Bae, K.; and Kang,
+B. J. 2023. ReConPatch: Contrastive Patch Representation
+Learning for Industrial Anomaly Detection. arXiv preprint
+arXiv:2305.16713.
+Jiang, J.; Zhu, J.; Bilal, M.; Cui, Y.; Kumar, N.; Dou, R.;
+Su, F.; and Xu, X. 2022a. Masked Swin Transformer Unet
+for Industrial Anomaly Detection. IEEE Transactions on
+Industrial Informatics.
+Jiang, X.; Liu, J.; Wang, J.; Nie, Q.; Wu, K.; Liu, Y.; Wang,
+C.; and Zheng, F. 2022b. Softpatch: Unsupervised anomaly
+detection with noisy data. Advances in Neural Information
+Processing Systems, 35: 15433–15445.
+Kingma, D. P.; and Ba, J. 2014. Adam: A Method for
+Stochastic Optimization. CoRR, abs/1412.6980.
+Kirillov, A.; Mintun, E.; Ravi, N.; Mao, H.; Rolland, C.;
+Gustafson, L.; Xiao, T.; Whitehead, S.; Berg, A. C.; Lo, W.-
+Y.; Dollar, P.; and Girshick, R. 2023. Segment Anything. In
+Proceedings of the IEEE/CVF International Conference on
+Computer Vision (ICCV), 4015–4026.
+Kirkpatrick, J.; Pascanu, R.; Rabinowitz, N.; Veness, J.; Des-
+jardins, G.; Rusu, A. A.; Milan, K.; Quan, J.; Ramalho, T.;
+Grabska-Barwinska, A.; et al. 2017. Overcoming catas-
+trophic forgetting in neural networks. In Proceedings of the
+national academy of sciences, 114(13): 3521–3526.
+Lee, S.; Lee, S.; and Song, B. C. 2022. Cfa: Coupled-
+hypersphere-based feature adaptation for target-oriented
+anomaly localization. IEEE Access, 10: 78446–78454.
+Lei, J.; Hu, X.; Wang, Y.; and Liu, D. 2023. Pyramid-
+Flow: High-Resolution Defect Contrastive Localization us-
+ing Pyramid Normalizing Flow. In Proceedings of the
+IEEE/CVF Conference on Computer Vision and Pattern
+Recognition, 14143–14152.
+Li, C.-L.; Sohn, K.; Yoon, J.; and Pfister, T. 2021. Cutpaste:
+Self-supervised learning for anomaly detection and localiza-
+tion. In Proceedings of the IEEE/CVF Conference on Com-
+puter Vision and Pattern Recognition, 9664–9674.
+Li, W.; Gao, B.-B.; Xia, B.; Wang, J.; Liu, J.; Liu, Y.; Wang,
+C.; and Zheng, F. 2023. Cross-Modal Alternating Learn-
+ing with Task-Aware Representations for Continual Learn-
+ing. IEEE Transactions on Multimedia.
+Li, W.; Zhan, J.; Wang, J.; Xia, B.; Gao, B.-B.; Liu, J.; Wang,
+C.; and Zheng, F. 2022. Towards continual adaptation in
+industrial anomaly detection. In Proceedings of the 30th
+ACM International Conference on Multimedia, 2871–2880.
+Liang, Y.; Zhang, J.; Zhao, S.; Wu, R.; Liu, Y.; and Pan,
+S. 2022. Omni-frequency channel-selection representa-
+tions for unsupervised anomaly detection. arXiv preprint
+arXiv:2203.00259.
+
+===== PAGE 9 =====
+Liu, J.; Xie, G.; ruitao chen; Li, X.; Wang, J.; Liu, Y.;
+Wang, C.; and Zheng, F. 2023a. Real3D-AD: A Dataset of
+Point Cloud Anomaly Detection. In Proceedings of Thirty-
+seventh Conference on Neural Information Processing Sys-
+tems Datasets and Benchmarks Track.
+Liu, J.; Xie, G.; Wang, J.; Li, S.; Wang, C.; Zheng, F.; and
+Jin, Y. 2023b. Deep Industrial Image Anomaly Detection: A
+Survey. arXiv preprint arXiv:2301.11514, 2.
+Liu, X.; Ji, K.; Fu, Y.; Tam, W. L.; Du, Z.; Yang, Z.; and
+Tang, J. 2021. P-tuning v2: Prompt tuning can be compara-
+ble to fine-tuning universally across scales and tasks. arXiv
+preprint arXiv:2110.07602.
+Liu, Z.; Zhou, Y.; Xu, Y.; and Wang, Z. 2023c. Simplenet:
+A simple network for image anomaly detection and localiza-
+tion. In Proceedings of the IEEE/CVF Conference on Com-
+puter Vision and Pattern Recognition, 20402–20411.
+Mishra, P.; Verk, R.; Fornasier, D.; Piciarelli, C.; and Foresti,
+G. L. 2021. VT-ADL: A vision transformer network for im-
+age anomaly detection and localization. 2021 IEEE 30th
+International Symposium on Industrial Electronics (ISIE),
+01–06.
+Mousakhan, A.; Brox, T.; and Tayyub, J. 2023. Anomaly
+Detection with Conditioned Denoising Diffusion Models.
+arXiv preprint arXiv:2305.15956.
+Pirnay, J.; and Chai, K. 2022. Inpainting transformer for
+anomaly detection. In Proceedings of International Confer-
+ence on Image Analysis and Processing, 394–406.
+Roth, K.; Pemula, L.; Zepeda, J.; Sch¨olkopf, B.; Brox,
+T.; and Gehler, P. 2022. Towards total recall in indus-
+trial anomaly detection. In Proceedings of the IEEE/CVF
+Conference on Computer Vision and Pattern Recognition,
+14318–14328.
+Rudolph, M.; Wandt, B.; and Rosenhahn, B. 2021. Same
+same but differnet: Semi-supervised defect detection with
+normalizing flows. In Proceedings of the IEEE/CVF winter
+conference on applications of computer vision, 1907–1916.
+Rudolph, M.; Wehrbein, T.; Rosenhahn, B.; and Wandt, B.
+2022. Fully convolutional cross-scale-flows for image-based
+defect detection. In Proceedings of the IEEE/CVF Win-
+ter Conference on Applications of Computer Vision, 1088–
+1097.
+Salehi, M.; Sadjadi, N.; Baselizadeh, S.; Rohban, M. H.; and
+Rabiee, H. R. 2021. Multiresolution knowledge distillation
+for anomaly detection. In Proceedings of the IEEE/CVF
+conference on computer vision and pattern recognition,
+14902–14912.
+Schl¨uter, H. M.; Tan, J.; Hou, B.; and Kainz, B. 2022. Nat-
+ural synthetic anomalies for self-supervised anomaly detec-
+tion and localization. In Proceedings of European Confer-
+ence on Computer Vision, 474–489. Springer.
+Tien, T. D.; Nguyen, A. T.; Tran, N. H.; Huy, T. D.; Duong,
+S.; Nguyen, C. D. T.; and Truong, S. Q. 2023. Revisiting
+reverse distillation for anomaly detection. In Proceedings of
+the IEEE/CVF Conference on Computer Vision and Pattern
+Recognition, 24511–24520.
+Wang, G.; Han, S.; Ding, E.; and Huang, D. 2021. Student-
+Teacher Feature Pyramid Matching for Anomaly Detection.
+BMVC.
+Wang, Z.; Zhang, Z.; Lee, C.-Y.; Zhang, H.; Sun, R.; Ren,
+X.; Su, G.; Perot, V.; Dy, J.; and Pfister, T. 2022. Learn-
+ing to prompt for continual learning. In Proceedings of
+the IEEE/CVF Conference on Computer Vision and Pattern
+Recognition, 139–149.
+Xie, G.; Wang, J.; Liu, J.; Jin, Y.; and Zheng, F. 2022. Push-
+ing the Limits of Fewshot Anomaly Detection in Industry
+Vision: Graphcore. In Proceedings of The Eleventh Interna-
+tional Conference on Learning Representations.
+Xie, G.; Wang, J.; Liu, J.; Lyu, J.; Liu, Y.; Wang, C.; Zheng,
+F.; and Jin, Y. 2023. Im-iad: Industrial image anomaly
+detection benchmark in manufacturing. arXiv preprint
+arXiv:2301.13359.
+Yan, X.; Zhang, H.; Xu, X.; Hu, X.; and Heng, P.-A. 2021.
+Learning semantic context from normal samples for unsu-
+pervised anomaly detection. In Proceedings of the AAAI
+conference on artificial intelligence, volume 35, 3110–3118.
+You, Z.; Cui, L.; Shen, Y.; Yang, K.; Lu, X.; Zheng, Y.; and
+Le, X. 2022. A unified model for multi-class anomaly detec-
+tion. Advances in Neural Information Processing Systems,
+35: 4571–4584.
+Yu, J.; Zheng, Y.; Wang, X.; Li, W.; Wu, Y.; Zhao, R.; and
+Wu, L. 2021. Fastflow: Unsupervised anomaly detection
+and localization via 2d normalizing flows. arXiv preprint
+arXiv:2111.07677.
+Zavrtanik, V.; Kristan, M.; and Skoˇcaj, D. 2021. Draem-a
+discriminatively trained reconstruction embedding for sur-
+face anomaly detection. In Proceedings of the IEEE/CVF
+International Conference on Computer Vision, 8330–8339.
+Zavrtanik, V.; Kristan, M.; and Skoˇcaj, D. 2022. DSR–A
+dual subspace re-projection network for surface anomaly de-
+tection. arXiv preprint arXiv:2208.01521.
+Zhang, F.; and Chen, Z. 2023. IDDM: An incremental dual-
+network detection model for in-situ inspection of large-scale
+complex product. Journal of Industrial Information Integra-
+tion, 33: 100463.
+Zhang, H.; Wang, Z.; Wu, Z.; and Jiang, Y.-G. 2023. Diffu-
+sionAD: Denoising Diffusion for Anomaly Detection. arXiv
+preprint arXiv:2303.08730.
+Zhao, Y. 2023. OmniAL: A unified CNN framework for
+unsupervised anomaly localization. In Proceedings of the
+IEEE/CVF Conference on Computer Vision and Pattern
+Recognition, 3924–3933.
+Zou, Y.; Jeong, J.; Pemula, L.; Zhang, D.; and Dabeer, O.
+2022. Spot-the-difference self-supervised pre-training for
+anomaly detection and segmentation. In Proceedings of Eu-
+ropean Conference on Computer Vision, 392–408. Springer.
+
+===== PAGE 10 =====
+Appendix
+Dataset
+MVTec AD (Bergmann et al. 2019) is the most widely used
+dataset for industrial image anomaly detection, and it com-
+prises of 15 categories of items, comprising a collection of
+1725 normal and abnormal photos, as well as a total of 3629
+normal images, as a training set. The resolution of each im-
+age ranges from 700×700 to 1024×1024 pixels.
+VisA (Zou et al. 2022) is now the largest dataset for real-
+world industrial anomaly detection with pixel-level annota-
+tions. The VisA dataset is divided into twelve categories.
+There are 9,621 normal samples and 1,200 abnormal sam-
+ples in 10,821 images. The abnormal images have both
+structural problems, like parts that are out of place or miss-
+ing, and surface problems, like scratches, dents, or cracks.
+Visualization
+Here, we provide more examples of result visualization in
+Figure 4.
+Methods
+As discussed in the main text, we select the most represen-
+tative methods from each paradigm to establish the bench-
+mark. These methods include CFA (Lee, Lee, and Song
+2022), CSFlow (Rudolph et al. 2022), CutPaste (Li et al.
+2021), DNE (Li et al. 2022), DRAEM (Zavrtanik, Kristan,
+and Skoˇcaj 2021), FastFlow (Yu et al. 2021), FAVAE (De-
+haene and Eline 2020), PaDiM (Defard et al. 2021), Patch-
+Core (Roth et al. 2022), RD4AD (Deng and Li 2022),
+SPADE (Cohen and Hoshen 2020), STPM (Wang et al.
+2021), SimpleNet (Liu et al. 2023c), and UniAD (You et al.
+2022).
+The training settings for different methods are presented
+in Table 8. For methods with official source code available,
+we followed their procedures exactly as outlined in the of-
+ficial documentation. However, for methods without official
+source code, we used a similar approach to the one used in
+IM-IAD (Xie et al. 2023), utilizing some non-official code
+for reproduction. Among them, we employed a replay-based
+training approach for PatchCore and UniAD. We set their
+Anomaly Score
+Abnormal ImageAnomaly Heatmap Ground Truth
+Abnormal ImageAnomaly Heatmap Ground Truth
+Figure 4: Visualization examples of continual anomaly detection. The first row displays the original anomaly images, the second
+row shows the ground truth annotations, and the third to fifth rows depict the heatmaps of our method and other methods.
+
+===== PAGE 11 =====
+CFA CSFlow CutPaste DNE DRAEM FastFlow FAVAE PaDiM PatchCore RD4AD SPADE STPM SimpleNet UniAD Ours
+training epoch 50 240 256 50 700 500 100 1 1 200 1 100 40 1000 25
+batch size 4 16 32 32 8 32 64 32 2 8 8 8 8 32 8
+image size 256 768 224 224 256 256 256 256 256 256 256 256 256 224 224
+learning rate 0.001 0.0002 0.0001 0.0001 0.0001 0.001 0.00001 \ \ 0.005 \ 0.4 0.001 0.0001 0.00005
+Table 8: Experiment settings of our benchmark.
+Metric CPM SCL Bottle cable capsule carpet grid hazelnut leather metal nut pill screw tile toothbrush transistor wood zipper average
+Image AUROC
+0.502 0.551 0.343 0.925 0.709 0.910 0.999 0.596 0.481 0.487 0.819 0.814 0.383 0.932 0.938 0.693
+✓ 0.989 0.674 0.830 0.947 0.882 0.985 1.000 0.971 0.868 0.552 0.993 0.992 0.814 0.989 0.920 0.894
+✓ ✓ 1.000 0.751 0.866 0.965 0.944 0.994 1.000 0.988 0.894 0.739 0.998 1.000 0.874 0.995 0.938 0.930
+Pixel AUPR
+0.183 0.040 0.038 0.452 0.034 0.337 0.284 0.121 0.019 0.012 0.295 0.043 0.060 0.411 0.413 0.183
+✓ 0.752 0.168 0.327 0.594 0.172 0.496 0.337 0.727 0.626 0.143 0.522 0.291 0.337 0.555 0.340 0.426
+✓ ✓ 0.752 0.290 0.349 0.622 0.187 0.506 0.333 0.775 0.634 0.214 0.549 0.298 0.398 0.535 0.398 0.456
+Table 9: Ablation study for CPM and SCL on MVTec AD (Bergmann et al. 2019).
+Metric CPM SCL candle capsules cashew chewinggum fryum macaroni1 macaroni2 pcb1 pcb2 pcb3 pcb4 pipe fryum average
+Image AUROC
+0.461 0.497 0.629 0.714 0.522 0.517 0.462 0.553 0.506 0.527 0.635 0.989 0.584
+✓ 0.635 0.756 0.847 0.944 0.905 0.680 0.612 0.883 0.771 0.717 0.717 0.960 0.786
+✓ ✓ 0.778 0.877 0.960 0.958 0.945 0.823 0.667 0.905 0.871 0.813 0.901 0.988 0.874
+Pixel AUPR
+0.001 0.009 0.022 0.029 0.030 0.000 0.000 0.011 0.007 0.006 0.010 0.475 0.050
+✓ 0.026 0.302 0.561 0.496 0.244 0.004 0.004 0.584 0.117 0.180 0.053 0.441 0.251
+✓ ✓ 0.067 0.437 0.580 0.503 0.334 0.013 0.003 0.702 0.136 0.266 0.106 0.457 0.300
+Table 10: Ablation study for CPM and SCL on VisA (Zou et al. 2022).
+Metric CPM SCL Knowledge Bottle cable capsule carpet grid hazelnut leather metal nut pill screw tile toothbrush transistor wood zipper average
+Image AUROC
+✓ 1x 0.989 0.674 0.830 0.947 0.882 0.985 1.000 0.971 0.868 0.552 0.993 0.992 0.814 0.989 0.920 0.894
+✓ 2x 0.998 0.693 0.874 0.965 0.921 0.979 1.000 0.983 0.875 0.746 0.995 1.000 0.872 0.988 0.930 0.921
+✓ 4x 0.998 0.658 0.911 0.974 0.947 0.979 1.000 0.979 0.884 0.788 0.995 1.000 0.903 0.987 0.935 0.929
+✓ ✓ 1x 1.000 0.751 0.866 0.965 0.944 0.994 1.000 0.988 0.894 0.739 0.998 1.000 0.874 0.995 0.938 0.930
+✓ ✓ 2x 1.000 0.713 0.903 0.961 0.952 0.989 1.000 0.990 0.894 0.794 0.997 1.000 0.917 0.991 0.942 0.936
+✓ ✓ 4x 0.999 0.671 0.925 0.964 0.957 0.986 1.000 0.993 0.896 0.840 0.997 1.000 0.918 0.991 0.938 0.938
+Pixel AUPR
+✓ 1x 0.752 0.168 0.327 0.594 0.172 0.496 0.337 0.727 0.626 0.143 0.522 0.291 0.337 0.555 0.340 0.426
+✓ 2x 0.749 0.255 0.343 0.628 0.184 0.514 0.337 0.749 0.623 0.188 0.544 0.296 0.407 0.546 0.413 0.452
+✓ 4x 0.754 0.176 0.346 0.634 0.188 0.512 0.336 0.790 0.619 0.210 0.550 0.298 0.445 0.548 0.398 0.453
+✓ ✓ 1x 0.752 0.290 0.349 0.622 0.187 0.506 0.333 0.775 0.634 0.214 0.549 0.298 0.398 0.535 0.398 0.456
+✓ ✓ 2x 0.751 0.270 0.347 0.624 0.189 0.515 0.334 0.794 0.635 0.234 0.546 0.299 0.400 0.555 0.424 0.461
+✓ ✓ 4x 0.752 0.250 0.347 0.639 0.189 0.521 0.334 0.802 0.627 0.236 0.536 0.298 0.460 0.571 0.426 0.466
+Table 11: Ablation study for Knowledge size and SCL on MVTec AD (Bergmann et al. 2019).
+cache pool size to 100 training samples, a storage capacity
+that significantly exceeds that of our key-prompt-knowledge
+structure.
+For our method, the key-prompt-knowledge structure
+comprised a key of size (15, 196, 1024) float array, a prompt
+of size (15, 5, 768) float array, and knowledge of size (15,
+196, 1024) float array, with an overall size of approximately
+23.19MB. Where 15 represents the maximum number of
+dataset categories, 1024 signifies the dimension of the 768-
+dimension features extracted by ViT after mapping, and 196
+represents the count of embeddings obtained after flattening
+the features with (14,14,768) size of a (224,224) size im-
+age. 5 is the number of Vit encoder layer. We set the size
+of the knowledge as (15, 196, 768) with the expectation of
+covering the most essential features of different categories
+of items as comprehensively as possible. We set the size of
+the key to be the same as the knowledge based on similar
+considerations. However, in reality, the key is only used for
+categories classification, so reducing its size does not affect
+the effectiveness of query process.
+Detail experiment results
+Due to the page limitation of the main text, we provide de-
+tailed metrics of different categories for ablation study in the
+supplementary material.
+The Tables 9- 14 provided here are detailed version for the
+ablation experiments in the main text. From Tables 13 and
+14, it can be observed that features extracted from different
+ViT encoder layers have their own advantages for anomaly
+detection in different categories of objects. We believe that
+combining these features could lead to even better perfor-
+mance.
+
+===== PAGE 12 =====
+Metric CPM SCL Knowledge candle capsules cashew chewinggum fryum macaroni1 macaroni2 pcb1 pcb2 pcb3 pcb4 pipe fryum average
+Image AUROC
+✓ 1x 0.635 0.756 0.847 0.944 0.905 0.680 0.612 0.883 0.771 0.717 0.717 0.960 0.786
+✓ 2x 0.705 0.760 0.895 0.961 0.907 0.784 0.633 0.820 0.827 0.677 0.863 0.981 0.818
+✓ 4x 0.780 0.791 0.920 0.954 0.900 0.827 0.693 0.891 0.856 0.798 0.924 0.989 0.860
+✓ ✓ 1x 0.778 0.877 0.960 0.958 0.945 0.823 0.667 0.905 0.871 0.813 0.901 0.988 0.874
+✓ ✓ 2x 0.822 0.872 0.966 0.965 0.941 0.889 0.673 0.937 0.892 0.827 0.941 0.991 0.893
+✓ ✓ 4x 0.825 0.871 0.962 0.974 0.962 0.912 0.725 0.945 0.924 0.858 0.961 0.992 0.909
+Pixel AUPR
+✓ 1x 0.026 0.302 0.561 0.496 0.244 0.004 0.004 0.584 0.117 0.180 0.053 0.441 0.251
+✓ 2x 0.070 0.336 0.547 0.449 0.274 0.007 0.005 0.509 0.149 0.153 0.088 0.479 0.255
+✓ 4x 0.077 0.422 0.593 0.462 0.282 0.008 0.007 0.656 0.148 0.243 0.136 0.489 0.294
+✓ ✓ 1x 0.067 0.437 0.580 0.503 0.334 0.013 0.003 0.702 0.136 0.266 0.106 0.457 0.300
+✓ ✓ 2x 0.079 0.461 0.587 0.487 0.348 0.013 0.009 0.677 0.163 0.270 0.134 0.457 0.307
+✓ ✓ 4x 0.083 0.468 0.596 0.475 0.337 0.014 0.009 0.684 0.163 0.256 0.177 0.458 0.310
+Table 12: Ablation study for Knowledge size and SCL on VisA (Zou et al. 2022).
+Metric ViT Layer Bottle cable capsule carpet grid hazelnut leather metal nut pill screw tile toothbrush transistor wood zipper average
+Image AUROC
+1 0.993 0.593 0.834 0.842 0.880 0.973 1.000 0.764 0.867 0.262 0.979 0.994 0.713 0.989 0.919 0.840
+3 0.996 0.619 0.926 0.961 0.962 0.998 1.000 0.968 0.942 0.753 0.999 1.000 0.937 0.997 0.954 0.934
+5 1.000 0.751 0.866 0.965 0.944 0.994 1.000 0.988 0.894 0.739 0.998 1.000 0.874 0.995 0.938 0.930
+7 0.999 0.847 0.861 0.958 0.903 1.000 1.000 0.989 0.915 0.778 1.000 0.997 0.897 0.961 0.940 0.936
+9 1.000 0.841 0.783 0.953 0.817 0.986 1.000 0.970 0.890 0.656 0.992 0.964 0.850 0.977 0.917 0.906
+Pixel AUPR
+1 0.698 0.230 0.245 0.507 0.128 0.492 0.430 0.555 0.610 0.006 0.554 0.365 0.202 0.495 0.466 0.399
+3 0.759 0.026 0.339 0.540 0.195 0.520 0.405 0.788 0.669 0.217 0.527 0.333 0.405 0.521 0.522 0.451
+5 0.752 0.290 0.349 0.622 0.187 0.506 0.333 0.775 0.634 0.214 0.549 0.298 0.398 0.535 0.398 0.456
+7 0.734 0.371 0.342 0.640 0.160 0.530 0.284 0.695 0.624 0.196 0.498 0.319 0.426 0.517 0.326 0.444
+9 0.718 0.300 0.284 0.601 0.139 0.489 0.266 0.735 0.659 0.136 0.516 0.343 0.426 0.430 0.251 0.420
+Table 13: Ablation study for ViT encoder layer on MVTec AD (Bergmann et al. 2019).
+Metric ViT Layer candle capsules cashew chewinggum fryum macaroni1 macaroni2 pcb1 pcb2 pcb3 pcb4 pipe fryum average
+Image AUROC
+1 0.787 0.844 0.970 0.959 0.918 0.860 0.612 0.868 0.706 0.669 0.508 0.969 0.806
+3 0.875 0.895 0.971 0.975 0.937 0.910 0.675 0.896 0.879 0.693 0.826 0.981 0.876
+5 0.778 0.877 0.960 0.958 0.945 0.823 0.667 0.905 0.871 0.813 0.901 0.988 0.874
+7 0.840 0.848 0.980 0.945 0.938 0.833 0.613 0.907 0.867 0.781 0.917 0.992 0.872
+9 0.813 0.791 0.969 0.945 0.905 0.822 0.624 0.874 0.852 0.758 0.909 0.978 0.853
+Pixel AUPR
+1 0.076 0.637 0.219 0.194 0.222 0.024 0.013 0.037 0.050 0.005 0.010 0.479 0.164
+3 0.089 0.594 0.432 0.297 0.306 0.028 0.012 0.754 0.194 0.155 0.059 0.476 0.283
+5 0.067 0.437 0.580 0.503 0.334 0.013 0.003 0.702 0.136 0.266 0.106 0.457 0.300
+7 0.062 0.293 0.659 0.446 0.406 0.008 0.003 0.500 0.082 0.221 0.135 0.387 0.267
+9 0.070 0.244 0.714 0.403 0.419 0.007 0.004 0.393 0.046 0.175 0.154 0.348 0.248
+Table 14: Ablation study for ViT encoder layer on VisA (Zou et al. 2022).

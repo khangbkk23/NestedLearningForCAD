@@ -1,0 +1,1037 @@
+# SOURCE: docs/papers/related_cad/arxiv_2502.06194.pdf
+# SOURCE_SHA256: 15a3d4b7cfea840667cd465fe75855c976b037522c1d523879bd4c192fafa7ca
+# EXTRACTOR: pypdf 7.1.0 (PdfReader.extract_text, per page)
+# EXTRACTED: 2026-11-19
+# NOTE: machine extraction; equations/tables/unicode may be garbled. Cite the PDF, not this file.
+
+
+===== PAGE 1 =====
+Multimodal Task Representation Memory Bank vs. Catastrophic Forgetting in
+Anomaly Detection
+You Zhou, Jiangshan Zhao, Deyu Zeng, Zuo Zuo,Weixiang Liu, Zongze Wu
+Abstract
+Unsupervised Continuous Anomaly Detection
+(UCAD) faces significant challenges in multi-task
+representation learning, with existing methods suf-
+fering from incomplete representation and catas-
+trophic forgetting. Unlike supervised models, un-
+supervised scenarios lack prior information, mak-
+ing it difficult to effectively distinguish redun-
+dant and complementary multimodal features. To
+address this, we propose the Multimodal Task
+Representation Memory Bank (MTRMB) method
+through two key technical innovations: A Key-
+Prompt-Multimodal Knowledge (KPMK) mech-
+anism that uses concise key prompts to guide
+cross-modal feature interaction between BERT and
+ViT. Refined Structure-based Contrastive Learning
+(RSCL) leveraging Grounding DINO and SAM to
+generate precise segmentation masks, pulling fea-
+tures of the same structural region closer while
+pushing different structural regions apart. Exper-
+iments on MVtec AD and VisA datasets demon-
+strate MTRMB’s superiority, achieving an average
+detection accuracy of 0.921 at the lowest forget-
+ting rate, significantly outperforming state-of-the-
+art methods. We plan to open source on GitHub.
+1 Introduction
+Anomaly detection (AD) [55] refers to the identification and
+location of anomalies when there is limited or no prior knowl-
+edge of the anomaly. In recent years, the industry has begun
+to focus on equipping AD with continuous learning capabil-
+ities, that is, continuously learning the intrinsic distribution
+of normal data in new tasks without forgetting the knowledge
+of old tasks. This method is very necessary in industrial in-
+spection scenarios because it is very difficult and expensive
+to collect defect data in new scenarios.
+Recently, most AD [55] focuses on training specific mod-
+els for detection, which is effective for a single task. How-
+ever, this suffers from a very serious catastrophic forgetting
+problem [54]. In addition, a single AD model is difficult to
+migrate, resulting in a waste of computing resources and an
+inability to address the privacy issues of industrial data. To
+“Metal nut”
+“Cable”
+“Capsules”
+Task n-1
+Task n
+Task n+1
+Image Encoder
+Task n-1
+Task n
+Task n+1
+Image 
+Encoder
+Image 
+Encoder
+Image 
+Encoder
+x-dimension
+y-dimension
+x-dimension
+y-dimension
+New class
+New class
+forgetting old knowledge
+Text information
+Image embeddingFeature Mapping Layer
+? ? Hybrid embedding
+New hyperplane boundary
+Old hyperplane boundary
+Text Encoder
+Feature 
+Fusion 
+Module
+update
+update
+Image Encoder
+Text Encoder
+Feature 
+Fusion 
+Module
+Image Encoder
+Text Encoder
+Feature 
+Fusion 
+Module
+update
+update
+（a）
+（b）
+Figure 1: Comparison between UCAD with a memory bank and
+UCAD with a multimodal Task Representation Memory Bank. a)
+The memory bank-based method has the problem of forgetting old
+task knowledge due to incomplete representation, resulting in inac-
+curate new task hyperplane boundary. b) Introducing multimodal
+features to construct a task representation memory can effectively
+retain the intrinsic information of the old task and obtain a better
+new task hyperplane boundary.
+support anomaly detection for multiple tasks, some AD meth-
+ods [33; 40; 35] aim to train a unified model for multi-class
+anomaly detection. In actual industrial scenarios, the diffi-
+culty in providing training data for all tasks and the heavy
+computational burden hinder the practical application of such
+methods. In addition, such methods do not solve the catas-
+trophic forgetting problem from the root.
+With the development of AD, a few researchers began to
+realize the importance of Unsupervised Continuous Anomaly
+Detection(UCAD). DNE [10] introduced continuous learning
+into the anomaly detection task for the first time, alleviating
+the catastrophic forgetting problem in the training phase of
+arXiv:2502.06194v1  [cs.CV]  10 Feb 2025
+
+===== PAGE 2 =====
+the continuous anomaly detection model. However, DNE can
+only be used to detect anomalies but not to locate abnormal
+areas. As shown in Figure 1 (a), UCAD based on image fea-
+ture memory [41] solves the problem that DNE cannot locate
+abnormal areas, but there is a catastrophic forgetting problem
+caused by incomplete representation.
+The introduction of multimodal prompts can improve
+catastrophic forgetting caused by incomplete representation.
+By applying a small number of prompt parameters in a con-
+tinuous space to modify the input, it can rely on the learn-
+able prompts [51] of the language and visual encoders to
+achieve continuous learning across tasks and prevent forget-
+ting. However, Prompt-based multimodal continuous learn-
+ing (MMCL) [56] applied to unsupervised anomaly detec-
+tion cannot improve the multimodal perception ability of the
+model through prior information like the supervised model.
+In the absence of supervised information, learnable prompts
+cannot be used to discriminate the redundant and complemen-
+tary information of multimodal features, thereby achieving
+continuous learning in anomaly detection. Therefore, it is
+crucial to explore the application of multimodal prompt in-
+cremental learning in UCAD.
+To address the above problems, the proposed multimodal
+Task Representation Memory Bank (MTRMB) can solve
+catastrophic forgetting in anomaly detection. MTRMB uti-
+lizes a memory space of Key-prompts-Multimodal knowl-
+edge (KPMK) to support Continuous Learning in AD, as
+shown in Figure 1 (b). In addition, Refined Structure-based
+Contrastive Learning (RSCL) leveraging Grounding DINO
+[19] and Segment Anything Model (SAM) [20] to gener-
+ate precise segmentation masks, pulling features of the same
+structural region closer while pushing different structural re-
+gions apart, and make MTRMB becomes more compact.
+During the training phase, the proposed memory space of
+Key-prompts-Multimodal knowledge stores the key, prompts,
+and multimodal knowledge of a specific task. During the test-
+ing phase, MMCL implements task matching, task domain
+adaptation, and the transfer of ”normal” knowledge of dif-
+ferent classes. Given a test image, MTRMB will automat-
+ically query the task key to retrieve the corresponding task
+prompt, complete the model’s adaptation to the task domain
+through the prompt, and then extract image features and per-
+form similarity calculation with normal knowledge, similar
+to PatchCore [10]. However, the frozen backbone (ViT) can-
+not provide compact feature representations across different
+tasks. To overcome this problem, RSCL using accurate masks
+from the Grounding DINO and SAM is proposed to acquire a
+more compact MTRMB. We obtain more representative con-
+textual features between different classes through structural
+contrastive learning, where features of the same structure are
+pulled together and pushed away from features of other struc-
+tures, which can effectively reduce domain shift [20]. We
+conduct extensive experiments and the results demonstrate
+the advancedness of the proposed MTRMB. Our contribu-
+tions can be summarized as follows:
+• To the best of our knowledge, the proposed MTRMB
+is the first to use incremental learning of multimodal
+prompts for unsupervised anomaly detection. MTRMB
+proposes a Key-Prompt-Multimodal Knowledge mech-
+anism for task matching, knowledge transfer, unsuper-
+vised anomaly detection, and segmentation.
+• The proposed RSCL to obtain more compact MTRMB
+by leveraging accurate masks from Grounding DINO
+and SAM. Specifically, RSCL pulls features of the same
+structural region closer and pushes features of different
+structural regions farther apart according to the multi-
+modal model interaction.
+• We have conducted thorough experiments and intro-
+duced a new benchmark for UCAD. Compared with
+other advanced methods on MVTec AD and VisA,
+MTRMB showed superior performance, with an average
+detection accuracy of 0.921 under the lowest forgetting
+rate.
+2 Related Work
+2.1 Anomaly Detection
+With the release of the MVTec AD dataset [1] and Visa
+[2], the development of industrial image anomaly detection
+has shifted from a supervised paradigm to an unsupervised
+paradigm. research on common AD [3] has been divided
+into two main categories: feature-embedding-based meth-
+ods and reconstruction-based methods. Feature-embedding-
+based methods can be further categorized into four sub-
+categories, including teacher-student model[14; 15; 16; 17;
+18], one-class classification methods [29; 30], mapping-
+based methods [31; 7] and memory-based methods [10;
+32]. Reconstruction-based methods can be further divided
+into Autoencoders-based [36; 38], Generative Adversarial
+Networks-based [39].
+However, existing AD methods train separate anomaly
+models for different classes, which inevitably suffers from
+catastrophic forgetting and excessive computational burden.
+Even the multi-class unified anomaly detection model [33;
+34; 35] does not consider the case of continuous anomaly de-
+tection. Our method is specifically designed for the scenario
+of continuous learning and achieves continuous anomaly de-
+tection and segmentation in an unsupervised manner.
+2.2 Continual Anomaly Detection
+IDDM [9] proposed an incremental anomaly detection
+method based on a small number of labeled samples. On
+the other hand, LeMO [11] follows the common unsuper-
+vised anomaly detection paradigm and performs incremental
+anomaly detection as normal samples continue to increase.
+However, both IDDM and LeMO focus on the study of intra-
+class continuous anomaly detection, but do not address the
+challenge of inter-class incremental anomaly detection. Li et
+al. [10] proposed DNE for image-level anomaly detection in
+continuous learning scenarios. Due to the limitation that DNE
+only stores class-level information, it cannot perform fine-
+grained localization and is therefore not suitable for anomaly
+segmentation. UCAD solves the problem that DNE cannot
+locate abnormal areas and further alleviates the problems of
+catastrophic forgetting and excessive computational burden.
+However, this method suffers from performance limitations
+
+===== PAGE 3 =====
+Image encoder Text encoder
+“Metal nut”
+Text-to-image Cross-Attention
+I1 I2 Icls T1 T2 Tcls
+Previous task D1:t-1 Current task Dt Future task Dt+1 
+Patch Embedding Word Embedding
+...
+... ...
+Image-to-text Cross Attention
+Self attention
+Prompt
++
+Feature Fusion Module
+Key
+Multi-modal 
+Knowledge
+Good
+Image Feature
+Text Feature
+Trainable
+Frozen
+(c) Key-Prompt-Multimodal Knowledge Mechanism
+Label  Region
+Generator
+Label Region 
+Refiner
+“Metal nut”
+Update memory space
+Image Encoder
+Text Encoder Multimodal 
+Feature
+ Prompt
+Key
+θt-1 θt
+...
+ ...
+MemT
+...
+MemT+1
+(a) The MMB Framework During the Training Phase
+Prompt
+Key Image
+Encoder
+(b) The MMB Framework During the Inference Phase
+Deformable
+Self attention
+Q,K,V Q,K,V
+Q K,V
+K,V Q
+Test Image Anomaly Map
+Feature 
+Fusion 
+Module
+Pretrained
+Embedding 
+Layer
+Pretrained
+Embedding 
+Layer
+Normal knowledge
+Query function
+Matched pairs
+Image Embedding
+Image Embedding
+Calculate 
+anomaly score
+Figure 2: The framework of UCAD using multimodal Task Representation Memory Bank. (a) Text-image data is input during the training
+phase, and an effective task intrinsic memory bank is formed through the KPMK. In addition, we use RSCL to better utilize task-related
+contextual information to obtain a more compact MTRMB. (b) When a test image is input during the testing phase, the framework automati-
+cally queries the Task key to retrieve the corresponding task prompts, completes the model’s transfer of task knowledge through the prompts,
+then extracts the features of the test image and calculates the similarity with normal knowledge, and finally completes continuous detection
+of anomalies. (c) The KPMK mechanism uses the concise key to guide the cross-fusion of features from two different modalities, text and
+image, and generates an effective task representation memory bank.
+due to the lack of compactness and comprehensiveness of the
+representation.
+3 Methods
+3.1 Key-Prompt-Multimodal Knowledge
+Mechanism
+Using MTRMB to solve the problem of catastrophic forget-
+ting in continuous learning faces three major problems: 1)
+Existing unsupervised anomaly detection methods have seri-
+ous catastrophic forgetting problems. 2) Single-modal fea-
+ture representations are difficult to fully retain the intrinsic
+information of old tasks. 3) It is costly to collect abnormal
+data for different tasks in industrial scenarios, and an effec-
+tive continuous learning mechanism is required. To solve
+the above problems, we propose a key prompt-multimodal
+knowledge (KPMK) mechanism, which can effectively fuse
+text (BERT) and image (ViT) cross-modal features to build a
+memory bank that can retain the essential knowledge of the
+task. This structure only stores positive sample knowledge
+that takes up less memory and lightweight prompt vectors
+and keys, which can effectively complete task key queries,
+task adaptation, knowledge transfer, and complete incremen-
+tal anomaly detection for different tasks.
+In the task key query stage, we selected the feature vector
+extracted from the fifth layer of the pretrained vision trans-
+former (ViT) on normal data as the task key. This is because
+the features of the middle layer often contain rich contextual
+information, which can better represent the task itself. In or-
+der to obtain a more effective key, we used the FPS method
+to further condense the key set of all tasks.
+In the task adaptation phase, we adopt Prefix Tuning to
+insert learnable prompts P ∈ RLp ×D into different layers of a
+pre-trained ViT. where, Lp denotes the prompt length, and D
+represents the embedding dimension. Given an input image
+X ∈ RH×W ×C , it is processed through ViT f to obtain the
+feature embedding Xe ∈ RL×D . The learnable prompt is
+then concatenated with Xe, forming the final input:
+f (Xe, P ) = MSA(W Q i Xe, [Pk; W K i Xe], [Pv ; W V i Xe])
+(1)
+where W Q i , W K i , W V i are projection matrices.
+Furthermore, each prompt Pi is associated with a learnable
+key, represented as (Ki, Pi), where Ki ∈ RD . A query func-
+tion q(x) maps the input features to the key space, and the
+best-matching key is selected based on cosine similarity:
+Lkp = arg min
+NX
+i=1
+γ(q(x), Ki) (2)
+where γ denotes cosine similarity, and N is the number of
+keys.
+In the knowledge transfer stage, To obtain a more com-
+prehensive representation, we fuse text and image informa-
+
+===== PAGE 4 =====
+tion through a cross-modal attention mechanism, as shown in
+Figure 2 (c). Specifically, Text-to-Image Attention employs
+image features I as query Q and text features T as the key
+K and value V , enabling the model can enhance the image
+representations based on textual information,thereby incor-
+porating key content described in the text into the image fea-
+tures. Image-to-Text Attention utilizes text features T as the
+query Q and image features I as the key K and value V . By
+computing the similarity between text and image features, the
+model refines the textual representations based on the image
+features, leading to more accurate text descriptions.The for-
+mula is as follows:
+Q = IWQ, K = T WK , V = T WV
+Attention(Q, K, V ) = sof tmax(QK T / p DK ) (3)
+Q = T WQ, K = IWK , V = IWV
+Attention(Q, K, V ) = sof tmax(QK T / p DK ) (4)
+Finally, a task-related {K, P, M Kn} is formed for contin-
+uous anomaly detection, which transferring knowledge from
+the previous task to the current image. However, the features
+stored in M Kn may not be discriminative enough because the
+backbone has been pre-trained and is not adapted to the cur-
+rent task. To make the feature representation more compact,
+we develop RSCL for fast contrastive learning.
+3.2 Refined Structure-based Contrastive Learning
+Inspired by ReConPatch [48], we propose a refined structure-
+based contrastive learning method aimed at enhancing net-
+work representations for patch-level comparisons during test-
+ing, as shown in Figure 2 (a). Our approach leverages
+Grounding Dino and SAM to consistently provide general
+structure knowledge, such as segmentation masks, without
+requiring additional training. As illustrated in Figure ??, for
+each image in the training set, we employed Grounding Dino
+and SAM to generate segmentation masks, in which different
+regions represent distinct structures or semantics. Simulta-
+neously, guided by prompts, We use f (P, Xe) ∈ RN ×M ×C
+to represent the patch-level features extracted by ViT, where
+N represents the batch size, M represents the number of
+patch features of each sample, and C represents the dimen-
+sion of each patch feature. Grounding dino and SAM are
+utilized to segment input images and generate pseudo labels
+Y ∈ RN ×H×W , where N represents the batch size, and H
+and W represent the height and width of each pseudo label,
+respectively.
+The loss function is:
+Si,j = cos(fi(P, Xe), fj (P, Xe)) τ , Mi,j = 1 if Yi = Yj 0 else
+(5)
+The region-level contrast loss is as follows:
+Lcostra = 1 M 2
+MX
+i=1
+MX
+j=1
+ 
+−Si,j ∗ Mi,j + (1 − Mi,j ) ∗ eSi,j 
+(6)
+where S ∈ RM ×M represents the similarity matrix be-
+tween features, and τ is the temperature coefficient,which
+represents the similarity between the i-th eigenvector and
+the j-th eigenvector, and the similarity measurement uses
+cosine similarity.fi(P, Xe), fj (P, Xe) respectively represent
+the representation of the i-th patch and the j-th patch of the
+current feature map. M ∈ RM ×M is a binary mask matrix.
+Yi represents the label of the i-th patch. When the labels of
+two patches are the same, the value of the mask matrix is 1,
+indicating a positive sample pair; when the labels are differ-
+ent, the value of the mask matrix is 0, indicating a negative
+sample pair.
+The cross-modal contrast loss is as follows:
+Lcross = − 1 N × M
+NX
+i=1
+MX
+j=1
+log
+ 
+e
+cos(fi,j (P,Xe ),Ti,j )
+τ
+PM
+k=1 e
+cos(fi,k (P,Xe),Ti,k )
+τ
+!
+(7)
+where T ∈ RN ×1×D denotes features extracted by the text
+encoder,N represents the batch size and D is the dimension-
+ality of the text feature.
+The Total loss is as follows:
+Lall = Lcontra + Lcross + λLkp (8)
+3.3 Inference Process
+As shown in Figure 2 (b), during the inference, MTRMB re-
+trieves stored knowledge for anomaly detection. For a test
+image x, MTRMB first finds a relevant prompt P using a key-
+value query mechanism. The prompt P is then concatenated
+with the embedded feature Xe of the image to form a patch-
+level feature map, guiding the model to extract features more
+relevant to the task. By calculating the similarity between
+this feature map and the image knowledge KI stored in the
+memory bank, the system identifies the most relevant knowl-
+edge kI corresponding to the current task. Once the relevant
+knowledge is obtained, the system calculates the maximum
+and minimum values of the distances between the patch fea-
+tures of the current test image and those of the stored normal
+images, thereby constructing an anomaly score.
+The related formulas are as follows:
+M Kt = arg min
+kI ∈KI ∈M K
+NX
+i=1
+min
+j∈N
+||Vo([Xe, P ]) − KI ||2 (9)
+F test, F = arg max
+F test ∈Vo ([Xe,P ])
+arg min
+F ∈Ktn
+||F test − F ||2 (10)
+S = ||F test − F ||2 (11)
+where Vo represents the patch-level feature extracted by
+the pre-trained VIT network at layer o after concatenating the
+embedded feature of the test image with the relevant prompt
+P . Here, o = 5. F test denotes the patch-level feature ex-
+tracted by the VIT network at layer o from the test image,
+and F represents the corresponding patch feature of the stored
+normal image. By finding the minimum distance between the
+same patch features, the matched test and stored patches are
+obtained. Then, the Euclidean distance between these corre-
+sponding patch features is calculated to derive their anomaly
+score.
+
+===== PAGE 5 =====
+Figure 3: The T-SNE Visualization results of MTRMB. The dimen-
+sionality reduction visualization results of 15 classes show that the
+proposed method can generate a compact task representation mem-
+ory bank for UCAD. It should be noted that the arcshaped dimen-
+sionality reduction feature sets are all generated by the background
+area. This is because the background areas of each category in the
+MVTec AD dataset are very similar.
+4 Experiments and Discussion
+4.1 Experiments Setup
+Datasets: MVTec AD [1] is the most widely used dataset
+for industrial image anomaly detection. VisA [2] is now
+the largest dataset for real-world industrial anomaly detec-
+tion with pixel-level annotations. We conduct experiments
+on these two datasets. Methods:Based on the anomaly meth-
+ods discussed in our related work section and previous bench-
+mark [4], we selected the most representative methods from
+each paradigm to establish the benchmark. These methods in-
+clude CutPaste [8], CSFlow [7], Fastflow [47], FAVAE [44],
+SimpleNet [29], DRAEM [38], PaDiM [46], SPADE [45],
+STPM [15], PatchCore [13], CFA [5], DNE [10], RD4AD
+[16], UniAD [33] and UCAD [41].
+Metrics:Following the common practice, we utilize
+Area Under the Receiver Operating Characteristics (AU-
+ROC/AUC) to assess the model’s ability in anomaly clas-
+sification. For pixel-level anomaly segmentation capability,
+we employ Area Under Precision-Recall (AUPR/AP) [14]
+for model evaluation. In addition, we use Forgetting Mea-
+sure(FM) [42] to evaluate models’ ability to prevent catas-
+trophic forgetting.
+avgF M = 1 (k − 1)k
+k−1X
+j=1
+max
+l∈{1,...,k−1}
+Tl,j − Tk,j
+(12)
+where T represents tasks, k stands for the current train-
+ing task ID, and j refers to the task ID being evaluated.
+And avgF M represents the average forgetting measure of
+the model after completing k tasks. During the inference,
+we evaluate the model after training on all tasks.
+“Metal nut”
+“Cable”
+“Capsules”
+Task n-1
+Task n
+Task n+1
+Image Encoder
+Task n-1
+Task n
+Task n+1
+Image 
+Encoder
+Image 
+Encoder
+Image 
+Encoder
+x-dimension
+y-dimension
+x-dimension
+y-dimension
+New class
+New class
+forgetting old knowledge
+Text information
+Image embeddingFeature Mapping Layer
+? ? Hybrid embedding
+New hyperplane boundary
+Old hyperplane boundary
+Text Encoder
+Feature 
+Fusion 
+Module
+update
+update
+Image Encoder
+Text Encoder
+Feature 
+Fusion 
+Module
+Image Encoder
+Text Encoder
+Feature 
+Fusion 
+Module
+update
+update
+（a）
+（b）
+Class 1 Class 2 Class 3
+（a）SAM segment mask vs. ours 
+Image
+SAM Mask 
+Our Mask 
+Figure 4: The first row shows the test images, the second row shows
+the structure regions generated by SAM, and the third row shows
+the structure regions generated by the effective interaction between
+only Grounding DINO and SAM. The segmented region visualiza-
+tion shows that our method can generate more accurate structure
+regions to guide the model to learn the key parts of the object.
+4.2 Continual Anomaly Detection Benchmark
+We conducted comprehensive evaluations of the aforemen-
+tioned 15 methods on the MVTec AD and VisA datasets.
+Among them, UCAD stands as the SOTA method in unsuper-
+vised continual AD. Meanwhile, DNE and UniAD are two
+representative AD methods for continual and unified meth-
+ods, respectively. Intuitively, these two methods appear to
+be better suited for the open learning scenario. Due to the
+famous replay in continual learning methods, we also con-
+ducted replay-based experiments on PatchCore and UniAD.
+Comprehensive experiments verify the superiority of our ap-
+proach in persistent anomaly detection.
+Quantitative Analysis
+As shown in Table 1-3, our method outperforms other
+anomaly detection algorithms in both continuous detection
+and segmentation on the MVtec AD and VisA datasets. The
+detection and segmentation effects of common anomaly de-
+tection methods are greatly reduced in the continuous de-
+tection scenario. Since there are few AD studies with con-
+tinuous anomalies, we add a playback mechanism to Patch-
+core and UniAD to facilitate further comparison. However,
+P atchcore∗ with continuous learning ability is still far lower
+than the proposed method in Image AUROC and Pixel AU-
+ROC by 0.27, 0.287 (MVTec AD), and U niAD∗ is 0.041
+and 0.382 lower than our method, respectively. In addition,
+we also fully compared with the most advanced continuous
+anomaly detection methods DNE and UCAD. Our method is
+superior to DNE and UCAD in continuous detection ability
+while maintaining the lowest forgetting rate. On the MVTec
+AD dataset, compared with DNE and UCAD, our method
+has an Image AUROC that is 0.071 and 0.015 higher, re-
+spectively. On the VisA dataset, compared with DNE and
+UCAD, our method has an Image AUROC that is 0.29 and
+0.026 higher, respectively. Comprehensive experiments show
+that our method can effectively resist catastrophic forgetting,
+and the proposed method has superior continuous anomaly
+
+===== PAGE 6 =====
+Methods Bottle Cable Capsule Carpet Grid Hazelnut Leather Metal Nut Pill Screw Tile Toothbrush Transistor Wood Zipper Average Avg FM
+CFA 0.309 0.489 0.275 0.834 0.571 0.903 0.935 0.464 0.528 0.528 0.763 0.519 0.320 0.923 0.984 0.623 0.361
+CSFlow 0.129 0.420 0.363 0.978 0.602 0.269 0.906 0.220 0.263 0.434 0.697 0.569 0.432 0.802 0.997 0.539 0.426
+CutPaste 0.111 0.422 0.373 0.198 0.214 0.578 0.007 0.517 0.371 0.356 0.112 0.158 0.340 0.150 0.775 0.312 0.510
+DRAEM 0.793 0.411 0.517 0.537 0.799 0.524 0.480 0.422 0.452 1.000 0.548 0.625 0.307 0.517 0.996 0.595 0.371
+FastFlow 0.454 0.512 0.517 0.489 0.482 0.522 0.487 0.476 0.575 0.402 0.489 0.267 0.526 0.616 0.867 0.512 0.279
+FAVAE 0.666 0.396 0.357 0.610 0.644 0.884 0.406 0.416 0.531 0.624 0.563 0.503 0.331 0.728 0.544 0.547 0.102
+PaDiM 0.458 0.544 0.418 0.454 0.704 0.635 0.418 0.446 0.449 0.578 0.581 0.678 0.407 0.549 0.855 0.545 0.368
+Patchcore 0.163 0.518 0.350 0.968 0.700 0.839 0.625 0.259 0.459 0.484 0.776 0.586 0.341 0.970 0.991 0.602 0.383
+RD4AD 0.401 0.538 0.475 0.583 0.558 0.909 0.596 0.623 0.479 0.596 0.715 0.397 0.385 0.700 0.987 0.596 0.285
+SPADE 0.302 0.444 0.525 0.529 0.460 0.410 0.577 0.592 0.484 0.514 0.881 0.386 0.622 0.897 0.949 0.571 0.393
+STPM 0.329 0.539 0.610 0.462 0.569 0.540 0.740 0.456 0.523 0.753 0.736 0.375 0.450 0.779 0.783 0.576 0.325
+SimpleNet 0.938 0.560 0.519 0.736 0.592 0.859 0.749 0.710 0.701 0.599 0.654 0.422 0.669 0.908 0.996 0.708 0.211
+UniAD 0.801 0.660 0.823 0.754 0.713 0.904 0.715 0.791 0.869 0.731 0.687 0.776 0.490 0.903 0.997 0.774 0.229
+Patchcore∗ 0.533 0.505 0.351 0.865 0.723 0.959 0.854 0.456 0.511 0.626 0.748 0.600 0.427 0.900 0.974 0.669 0.318
+UniAD∗ 0.997 0.701 0.765 0.998 0.896 0.936 1.000 0.964 0.895 0.554 0.989 0.928 0.966 0.982 0.987 0.904 0.076
+DNE 0.990 0.619 0.609 0.984 0.998 0.924 1.000 0.989 0.671 0.588 0.980 0.933 0.877 0.930 0.958 0.870 0.116
+UCAD 0.995 0.731 0.866 0.965 0.944 0.994 0.996 0.988 0.890 0.739 0.998 0.978 0.874 0.995 0.938 0.926 0.056
+Ours 1.000 0.652 0.926 0.970 0.976 0.990 1.000 0.995 0.892 0.852 0.997 1.000 0.926 0.991 0.949 0.941 0.016
+Table 1: Image-level AU ROC ↑ and corrsponding F M ↓ on MVTec AD dataset after training on the last subdataset. The best results are
+highlighted in bold.
+Methods Bottle Cable Capsule Carpet Grid Hazelnut Leather Metal Nut Pill Screw Tile Toothbrush Transistor Wood Zipper Average Avg FM
+CFA 0.068 0.056 0.050 0.271 0.004 0.341 0.393 0.255 0.080 0.015 0.155 0.053 0.056 0.281 0.573 0.177 0.083
+DRAEM 0.117 0.019 0.044 0.018 0.005 0.036 0.013 0.142 0.104 0.002 0.130 0.039 0.040 0.033 0.734 0.098 0.116
+FastFlow 0.044 0.021 0.013 0.013 0.005 0.028 0.007 0.090 0.029 0.003 0.060 0.015 0.036 0.037 0.264 0.044 0.214
+FAVAE 0.086 0.048 0.039 0.015 0.004 0.389 0.112 0.174 0.070 0.017 0.064 0.043 0.046 0.093 0.039 0.083 0.083
+PaDim 0.072 0.037 0.030 0.023 0.006 0.183 0.039 0.155 0.044 0.014 0.065 0.044 0.049 0.080 0.452 0.086 0.366
+Patchcore 0.048 0.029 0.035 0.552 0.003 0.338 0.279 0.248 0.051 0.008 0.249 0.034 0.079 0.304 0.595 0.190 0.371
+RD4AD 0.055 0.040 0.064 0.212 0.005 0.384 0.116 0.247 0.061 0.015 0.193 0.034 0.059 0.097 0.562 0.143 0.425
+SPADE 0.122 0.052 0.044 0.117 0.004 0.512 0.264 0.181 0.060 0.020 0.096 0.043 0.050 0.172 0.531 0.151 0.319
+STPM 0.074 0.019 0.073 0.054 0.005 0.037 0.108 0.354 0.111 0.001 0.397 0.046 0.046 0.119 0.203 0.110 0.352
+SimpleNet 0.108 0.045 0.029 0.018 0.004 0.029 0.006 0.227 0.077 0.004 0.082 0.046 0.049 0.037 0.139 0.060 0.069
+UniAD 0.734 0.232 0.313 0.517 0.204 0.378 0.360 0.587 0.346 0.035 0.428 0.398 0.542 0.378 0.443 0.393 0.086
+UniAD∗ 0.054 0.031 0.022 0.047 0.007 0.189 0.053 0.110 0.034 0.008 0.107 0.040 0.045 0.103 0.444 0.086 0.419
+Patchcore∗ 0.087 0.043 0.042 0.407 0.003 0.443 0.352 0.189 0.058 0.017 0.124 0.028 0.053 0.270 0.604 0.181 0.343
+UCAD 0.751 0.271 0.339 0.622 0.185 0.506 0.333 0.765 0.634 0.214 0.549 0.288 0.398 0.535 0.388 0.451 0.023
+Ours 0.753 0.244 0.344 0.637 0.190 0.519 0.337 0.811 0.631 0.232 0.546 0.301 0.483 0.573 0.420 0.468 0.017
+Table 2: Pixel-level AU P R ↑ and corrsponding F M ↓ on MVTec AD dataset after training on the last subdataset.
+detection capabilities. We attribute this to the task represen-
+tation memory bank we designed, which obtains comprehen-
+sive task representations for continuous learning and unsu-
+pervised detection by strengthening the interaction of multi-
+modal information.
+Qualitative Analysis
+As shown in Fig.5, our method shows two obvious advan-
+tages over ADClip and UniAD. First, it demonstrates more
+accurate anomaly localization. Second, it minimizes false
+positives in normal image classification. As shown in Fig.4,
+our method is able to obtain better structural regions for con-
+trastive learning, which greatly improves the model’s learning
+of contextual features. To verify that the proposed method
+can generate an effective task representation memory bank,
+we performed T-SNE visualization of the memory bank after
+training 15 categories in MVTec AD, as shown in Figure3.
+The results show that the proposed method can generate a task
+representation memory bank that is compact and not easy to
+forget knowledge (after incremental learning of 15 categories,
+the features of different categories are not confused together)
+for continuous learning and detection.
+4.3 Ablation Study
+Module Effectivity
+As shown in Table 4, we analyze the impact of three parts:
+KPMK, RSCL, and Grounding DINO. We observe that the
+performance of the model is significantly improved with
+the implementation of these modules. Regarding RSCL,
+we find that RSCL can effectively improve the continuous
+detection ability. The addition of this part can improve
+Image AU C and P ixel AP by 0.03 and 0.021 respectively.
+Without KPMK, our model uses a single-modal knowledge
+base and cannot be fully represented each time a new task
+is introduced. This approach limits the model’s ability to
+continuously learn without supervision. KPMK improves
+Image AU C and P ixel AP by 0.011 and 0.011 respec-
+tively by strengthening the interaction of different modal in-
+formation. By adding Grounding DINO, the model can be
+guided to better learn contextual features, which improves
+Image AU C and P ixel AP by 0.006 and 0.01 respectively.
+The experimental results show that the key components pro-
+posed in this paper can effectively improve the model’s con-
+tinuous learning ability in AD.
+Impact of Prompt Hyperparameterss
+To further study the influence of hyperparameters in learnable
+prompts, we designed an ablation experiment as shown in Ta-
+ble 5. By changing the length of the prompt, we observe the
+trend of changes in the five detection indicators to select the
+optimal hyperparameters. The prompt length is set to 1, 5,
+10, and 15 respectively. From the results, the prompt length
+of 5 has the best detection and segmentation accuracy, and
+its excess over the suboptimal situation on Image AU C and
+P ixel AP is 0.005 and 0.016 respectively. The size of the
+prompt directly affects the effect of continuous learning, and
+choosing the appropriate prompt hyperparameters is critical.
+
+===== PAGE 7 =====
+Test SamplesGround TruthAdaClipWinClipOurs
+Candle Cashew Pcb1 Cable Capsule Metal_net Toothbrush Leather Grid Tile Chewinggum Fryum
+Figure 5: Visualization examples of continual anomaly detection. The first row displays the original anomaly images, the second row shows
+the ground truth annotations, and the third to fifth rows depict the heatmaps of our method and other methods.
+Methods Candle Capsules Cashew Chewinggum Fryum Macaroni1 Macaroni2 Pcb1 Pcb2 Pcb3 Pcb4 Pipe fryum Average AvgFM
+CFA 0.512 0.672 0.873 0.753 0.304 0.557 0.422 0.698 0.472 0.449 0.407 0.998 0.593 0.327
+RD4AD 0.380 0.385 0.737 0.539 0.533 0.607 0.487 0.437 0.672 0.343 0.187 0.999 0.525 0.423
+Patchcore 0.401 0.605 0.624 0.907 0.334 0.538 0.437 0.527 0.597 0.507 0.588 0.998 0.589 0.361
+SimpleNet 0.504 0.474 0.794 0.721 0.684 0.567 0.447 0.598 0.629 0.538 0.493 0.945 0.616 0.283
+UniAD 0.573 0.599 0.661 0.758 0.504 0.559 0.644 0.749 0.523 0.547 0.562 0.989 0.639 0.297
+UniAD∗ 0.884 0.669 0.938 0.970 0.812 0.753 0.570 0.872 0.766 0.708 0.967 0.990 0.825 0.125
+DNE 0.486 0.413 0.735 0.585 0.691 0.584 0.546 0.633 0.693 0.642 0.562 0.747 0.610 0.179
+Patchcore∗ 0.647 0.579 0.669 0.735 0.431 0.631 0.624 0.617 0.534 0.479 0.645 0.999 0.633 0.349
+UCAD 0.778 0.877 0.960 0.958 0.945 0.823 0.667 0.905 0.871 0.813 0.901 0.988 0.874 0.039
+Ours 0.946 0.937 0.935 0.989 0.874 0.783 0.794 0.765 0.914 0.938 0.997 0.925 0.900 0.010
+Table 3: Image-level AU ROC ↑ and corrsponding F M ↓ on VisA dataset after training on the last subdataset.
+RSCL KPMK GD Image AUC Pixel AP
+✗ ✗ ✗ 0.894 0.426
+✓ ✗ ✗ 0.924 0.447
+✓ ✓ ✗ 0.935 0.458
+✓ ✓ ✓ 0.941 0.468
+Table 4: Ablation experiments of key modules (RSCL, KPMK,
+GD), GD is the abbreviation of Grounding DINO. We calculated
+on the average detection and segmentation metrics of MVTec AD
+and VisA.
+Conclusion
+In this paper, we study the problem of applying incremen-
+tal learning to unsupervised anomaly detection for practical
+applications in industrial manufacturing. To facilitate this re-
+search, we establish a comprehensive benchmark for unsuper-
+vised persistent anomaly detection and segmentation. In ad-
+dition, our proposed MTRMB for the UCAD task is effective
+against catastrophic forgetting, which is the first study to ap-
+ply multimodal prompt for incremental learning to unsuper-
+vised anomaly detection. The novelty of MTRMB relies on
+Pt Len Img AUC Pix AUC Img AP Pix AP Pix PRO
+1 0.936 0.971 0.962 0.472 0.900
+5 0.941 0.976 0.965 0.488 0.908
+10 0.931 0.975 0.958 0.457 0.903
+15 0.925 0.974 0.955 0.470 0.903
+Table 5: Ablation experiments on prompt size hyperparameters. We
+calculated on the average detection and segmentation metrics of
+MVTec AD and VisA.
+the KPMK mechanism and RSML, which utilizes the inter-
+action of multimodal information to construct a compact task
+representation memory bank, which significantly improves
+the performance of persistent anomaly detection. Compre-
+hensive experiments highlight the effectiveness and robust-
+ness of our framework under different hyperparameters. We
+also find that the persistent detection effect can be further im-
+proved by designing the prompt, which is an important direc-
+tion for our subsequent optimization.
+
+===== PAGE 8 =====
+References
+[1] P. Bergmann, M. Fauser, D. Sattlegger, and C. Steger,
+“Mvtec ad–a comprehensive real-world dataset for un-
+supervised anomaly detection,” in Proceedings of the
+IEEE/CVF conference on computer vision and pattern
+recognition, 2019, pp. 9592–9600.
+[2] Y. Zou, J. Jeong, L. Pemula, D. Zhang, and O. Dabeer,
+“Spot-the-difference self-supervised pre-training for
+anomaly detection and segmentation,” arXiv preprint
+arXiv:2207.14315, 2022.
+[3] J. Liu, G. Xie, J. Wang, S. Li, C. Wang, F. Zheng, and
+Y. Jin, “Deep industrial image anomaly detection: A
+survey,” Machine Intelligence Research, vol. 21, no. 1,
+pp. 104–135, 2024.
+[4] G. Xie, J. Wang, J. Liu, J. Lyu, Y. Liu, C. Wang,
+F. Zheng, and Y. Jin, “Im-iad: Industrial image anomaly
+detection benchmark in manufacturing,” IEEE Transac-
+tions on Cybernetics, 2024.
+[5] S. Lee, S. Lee, and B. C. Song, “Cfa: Coupled-
+hypersphere-based feature adaptation for target-
+oriented anomaly localization,” IEEE Access, vol. 10,
+pp. 78 446–78 454, 2022.
+[6] D. Gudovskiy, S. Ishizaka, and K. Kozuka, “Cflow-ad:
+Real-time unsupervised anomaly detection with local-
+ization via conditional normalizing flows,” in Proceed-
+ings of the IEEE/CVF winter conference on applications
+of computer vision, 2022, pp. 98–107.
+[7] M. Rudolph, T. Wehrbein, B. Rosenhahn, and B. Wandt,
+“Fully convolutional cross-scale-flows for image-based
+defect detection,” in Proceedings of the IEEE/CVF Win-
+ter Conference on Applications of Computer Vision,
+2022, pp. 1088–1097.
+[8] C.-L. Li, K. Sohn, J. Yoon, and T. Pfister, “Cutpaste:
+Self-supervised learning for anomaly detection and lo-
+calization,” in Proceedings of the IEEE/CVF conference
+on computer vision and pattern recognition, 2021, pp.
+9664–9674.
+[9] F. Zhang and Z. Chen, “Iddm: An incremental dual-
+network detection model for in-situ inspection of large-
+scale complex product,” Journal of Industrial Informa-
+tion Integration, vol. 33, p. 100463, 2023.
+[10] W. Li, J. Zhan, J. Wang, B. Xia, B.-B. Gao, J. Liu,
+C. Wang, and F. Zheng, “Towards continual adapta-
+tion in industrial anomaly detection,” in Proceedings of
+the 30th ACM International Conference on Multimedia,
+2022, pp. 2871–2880.
+[11] W. Li, B.-B. Gao, B. Xia, J. Wang, J. Liu, Y. Liu,
+C. Wang, and F. Zheng, “Cross-modal alternating learn-
+ing with task-aware representations for continual learn-
+ing,” IEEE Transactions on Multimedia, 2023.
+[12] X. Zhang, M. Xu, and X. Zhou, “Realnet: A feature
+selection network with realistic synthetic anomaly for
+anomaly detection,” in Proceedings of the IEEE/CVF
+Conference on Computer Vision and Pattern Recogni-
+tion, 2024, pp. 16 699–16 708.
+[13] K. Roth, L. Pemula, J. Zepeda, B. Sch¨olkopf, T. Brox,
+and P. Gehler, “Towards total recall in industrial
+anomaly detection,” in Proceedings of the IEEE/CVF
+conference on computer vision and pattern recognition,
+2022, pp. 14 318–14 328.
+[14] P. Bergmann, M. Fauser, D. Sattlegger, and C. Steger,
+“Uninformed students: Student-teacher anomaly detec-
+tion with discriminative latent embeddings,” in Pro-
+ceedings of the IEEE/CVF conference on computer vi-
+sion and pattern recognition, 2020, pp. 4183–4192.
+[15] M. Salehi, N. Sadjadi, S. Baselizadeh, M. H. Rohban,
+and H. R. Rabiee, “Multiresolution knowledge distil-
+lation for anomaly detection,” in Proceedings of the
+IEEE/CVF conference on computer vision and pattern
+recognition, 2021, pp. 14 902–14 912.
+[16] H. Deng and X. Li, “Anomaly detection via reverse dis-
+tillation from one-class embedding,” in Proceedings of
+the IEEE/CVF conference on computer vision and pat-
+tern recognition, 2022, pp. 9737–9746.
+[17] T. D. Tien, A. T. Nguyen, N. H. Tran, T. D. Huy,
+S. Duong, C. D. T. Nguyen, and S. Q. Truong, “Revis-
+iting reverse distillation for anomaly detection,” in Pro-
+ceedings of the IEEE/CVF conference on computer vi-
+sion and pattern recognition, 2023, pp. 24 511–24 520.
+[18] K. Batzner, L. Heckler, and R. K¨onig, “Efficientad: Ac-
+curate visual anomaly detection at millisecond-level la-
+tencies,” in Proceedings of the IEEE/CVF Winter Con-
+ference on Applications of Computer Vision, 2024, pp.
+128–138.
+[19] S. Liu, Z. Zeng, T. Ren, F. Li, H. Zhang, J. Yang,
+Q. Jiang, C. Li, J. Yang, H. Su et al., “Grounding dino:
+Marrying dino with grounded pre-training for open-set
+object detection,” in European Conference on Computer
+Vision. Springer, 2025, pp. 38–55.
+[20] A. Kirillov, E. Mintun, N. Ravi, H. Mao, C. Rolland,
+L. Gustafson, T. Xiao, S. Whitehead, A. C. Berg, W.-
+Y. Lo et al., “Segment anything,” in Proceedings of the
+IEEE/CVF International Conference on Computer Vi-
+sion, 2023, pp. 4015–4026.
+[21] J. Jeong, Y. Zou, T. Kim, D. Zhang, A. Ravichan-
+dran, and O. Dabeer, “Winclip: Zero-/few-shot anomaly
+classification and segmentation,” in Proceedings of the
+IEEE/CVF Conference on Computer Vision and Pattern
+Recognition, 2023, pp. 19 606–19 616.
+[22] Y. Cao, J. Zhang, L. Frittoli, Y. Cheng, W. Shen, and
+G. Boracchi, “Adaclip: Adapting clip with hybrid learn-
+able prompts for zero-shot anomaly detection,” in Euro-
+pean Conference on Computer Vision. Springer, 2025,
+pp. 55–72.
+[23] X. Chen, Y. Han, and J. Zhang, “April-gan: A zero-/few-
+shot anomaly classification and segmentation method
+for cvpr 2023 vand workshop challenge tracks 1&2: 1st
+place on zero-shot ad and 4th place on few-shot ad,”
+arXiv preprint arXiv:2305.17382, 2023.
+
+===== PAGE 9 =====
+[24] Y. Cao, X. Xu, C. Sun, Y. Cheng, L. Gao, and W. Shen,
+“Winning solution for the cvpr2023 visual anomaly
+and novelty detection challenge: Multimodal prompt-
+ing for data-centric anomaly detection,” arXiv preprint
+arXiv:2306.09067, 2023.
+[25] M. Oquab, T. Darcet, T. Moutakanni, H. Vo,
+M. Szafraniec, V. Khalidov, P. Fernandez, D. Haziza,
+F. Massa, A. El-Nouby et al., “Dinov2: Learning ro-
+bust visual features without supervision,” arXiv preprint
+arXiv:2304.07193, 2023.
+[26] J. Yi and S. Yoon, “Patch svdd: Patch-level svdd for
+anomaly detection and segmentation,” in Proceedings
+of the Asian conference on computer vision, 2020.
+[27] X. Li, Z. Zhang, X. Tan, C. Chen, Y. Qu, Y. Xie, and
+L. Ma, “Promptad: Learning prompts with only normal
+samples for few-shot anomaly detection,” in Proceed-
+ings of the IEEE/CVF Conference on Computer Vision
+and Pattern Recognition, 2024, pp. 16 838–16 848.
+[28] F. V. Massoli, F. Falchi, A. Kantarci, S¸. Akti, H. K.
+Ekenel, and G. Amato, “Mocca: Multilayer one-class
+classification for anomaly detection,” IEEE transactions
+on neural networks and learning systems, vol. 33, no. 6,
+pp. 2313–2323, 2021.
+[29] Z. Liu, Y. Zhou, Y. Xu, and Z. Wang, “Simplenet: A
+simple network for image anomaly detection and local-
+ization,” in Proceedings of the IEEE/CVF Conference
+on Computer Vision and Pattern Recognition, 2023, pp.
+20 402–20 411.
+[30] T. Cao, J. Zhu, and G. Pang, “Anomaly detection under
+distribution shift,” in Proceedings of the IEEE/CVF In-
+ternational Conference on Computer Vision, 2023, pp.
+6511–6523.
+[31] Y. Zhou, X. Xu, J. Song, F. Shen, and H. T. Shen, “Ms-
+flow: Multiscale flow-based framework for unsuper-
+vised anomaly detection,” IEEE Transactions on Neural
+Networks and Learning Systems, 2024.
+[32] G. Xie, J. Wang, J. Liu, F. Zheng, and Y. Jin, “Push-
+ing the limits of fewshot anomaly detection in industry
+vision: Graphcore,” arXiv preprint arXiv:2301.12082,
+2023.
+[33] Z. You, L. Cui, Y. Shen, K. Yang, X. Lu, Y. Zheng,
+and X. Le, “A unified model for multi-class anomaly
+detection,” Advances in Neural Information Processing
+Systems, vol. 35, pp. 4571–4584, 2022.
+[34] Y. Zhao, “Omnial: A unified cnn framework for unsu-
+pervised anomaly localization,” in Proceedings of the
+IEEE/CVF Conference on Computer Vision and Pattern
+Recognition, 2023, pp. 3924–3933.
+[35] C.-H. Ho, K.-C. Peng, and N. Vasconcelos, “Long-
+tailed anomaly detection with learnable class names,”
+in Proceedings of the IEEE/CVF Conference on Com-
+puter Vision and Pattern Recognition, 2024, pp. 12 435–
+12 446.
+[36] H. M. Schl¨uter, J. Tan, B. Hou, and B. Kainz, “Natural
+synthetic anomalies for self-supervised anomaly detec-
+tion and localization,” in European Conference on Com-
+puter Vision. Springer, 2022, pp. 474–489.
+[37] M. D’Alessandro, A. Alonso, E. Calabr´es, and
+M. Galar, “Multimodal parameter-efficient few-shot
+class incremental learning,” in Proceedings of the
+IEEE/CVF International Conference on Computer Vi-
+sion, 2023, pp. 3393–3403.
+[38] V. Zavrtanik, M. Kristan, and D. Skoˇcaj, “Draem-
+a discriminatively trained reconstruction embedding
+for surface anomaly detection,” in Proceedings of the
+IEEE/CVF international conference on computer vi-
+sion, 2021, pp. 8330–8339.
+[39] J. Peng, H. Shao, Y. Xiao, B. Cai, and B. Liu, “In-
+dustrial surface defect detection and localization us-
+ing multi-scale information focusing and enhancement
+ganomaly,” Expert Systems with Applications, vol. 238,
+p. 122361, 2024.
+[40] H. Yao, Y. Cao, W. Luo, W. Zhang, W. Yu, and W. Shen,
+“Prior normality prompt transformer for multi-class
+industrial image anomaly detection,” arXiv preprint
+arXiv:2406.11507, 2024.
+[41] J. Liu, K. Wu, Q. Nie, Y. Chen, B.-B. Gao, Y. Liu,
+J. Wang, C. Wang, and F. Zheng, “Unsupervised
+continual anomaly detection with contrastively-learned
+prompt,” in Proceedings of the AAAI Conference on Ar-
+tificial Intelligence, vol. 38, no. 4, 2024, pp. 3639–3647.
+[42] A. Chaudhry, P. K. Dokania, T. Ajanthan, and P. H.
+Torr, “Riemannian walk for incremental learning: Un-
+derstanding forgetting and intransigence,” in Proceed-
+ings of the European conference on computer vision
+(ECCV), 2018, pp. 532–547.
+[43] J. Deng, W. Dong, R. Socher, L.-J. Li, K. Li, and
+L. Fei-Fei, “Imagenet: A large-scale hierarchical image
+database,” in 2009 IEEE conference on computer vision
+and pattern recognition. Ieee, 2009, pp. 248–255.
+[44] D. Dehaene and P. Eline, “Anomaly localization
+by modeling perceptual features,” arXiv preprint
+arXiv:2008.05369, 2020.
+[45] N. Cohen and Y. Hoshen, “Sub-image anomaly de-
+tection with deep pyramid correspondences,” arXiv
+preprint arXiv:2005.02357, 2020.
+[46] T. Defard, A. Setkov, A. Loesch, and R. Audigier,
+“Padim: a patch distribution modeling framework for
+anomaly detection and localization,” in International
+Conference on Pattern Recognition. Springer, 2021,
+pp. 475–489.
+[47] J. Yu, Y. Zheng, X. Wang, W. Li, Y. Wu, R. Zhao, and
+L. Wu, “Fastflow: Unsupervised anomaly detection and
+localization via 2d normalizing flows,” arXiv preprint
+arXiv:2111.07677, 2021.
+[48] J. Hyun, S. Kim, G. Jeon, S. H. Kim, K. Bae, and B. J.
+Kang, “Reconpatch: Contrastive patch representation
+
+===== PAGE 10 =====
+learning for industrial anomaly detection,” in Proceed-
+ings of the IEEE/CVF Winter Conference on Applica-
+tions of Computer Vision, 2024, pp. 2052–2061.
+[49] D. P. Kingma, “Adam: A method for stochastic opti-
+mization,” arXiv preprint arXiv:1412.6980, 2014.
+[50] Z. Wang, Z. Zhang, S. Ebrahimi, R. Sun, H. Zhang, C.-
+Y. Lee, X. Ren, G. Su, V. Perot, J. Dy et al., “Dual-
+prompt: Complementary prompting for rehearsal-free
+continual learning,” in European Conference on Com-
+puter Vision. Springer, 2022, pp. 631–648.
+[51] Z. Wang, Z. Zhang, C.-Y. Lee, H. Zhang, R. Sun,
+X. Ren, G. Su, V. Perot, J. Dy, and T. Pfister, “Learning
+to prompt for continual learning,” in Proceedings of the
+IEEE/CVF conference on computer vision and pattern
+recognition, 2022, pp. 139–149.
+[52] M. Jia, L. Tang, B.-C. Chen, C. Cardie, S. Belongie,
+B. Hariharan, and S.-N. Lim, “Visual prompt tuning,” in
+European Conference on Computer Vision. Springer,
+2022, pp. 709–727.
+[53] Y. Eldar, M. Lindenbaum, M. Porat, and Y. Y. Zeevi,
+“The farthest point strategy for progressive image sam-
+pling,” IEEE transactions on image processing, vol. 6,
+no. 9, pp. 1305–1315, 1997.
+[54] D.-W. Zhou, Q.-W. Wang, Z.-H. Qi, H.-J. Ye, D.-C.
+Zhan, and Z. Liu, “Class-incremental learning: A sur-
+vey,” IEEE Transactions on Pattern Analysis and Ma-
+chine Intelligence, 2024.
+[55] Y. Lin, Y. Chang, X. Tong, J. Yu, A. Liotta, G. Huang,
+W. Song, D. Zeng, Z. Wu, Y. Wang et al., “A sur-
+vey on rgb, 3d, and multimodal approaches for unsu-
+pervised industrial anomaly detection,” arXiv preprint
+arXiv:2410.21982, 2024.
+[56] D. Yu, X. Zhang, Y. Chen, A. Liu, Y. Zhang, P. S. Yu,
+and I. King, “Recent advances of multimodal contin-
+ual learning: A comprehensive survey,” arXiv preprint
+arXiv:2410.05352, 2024.

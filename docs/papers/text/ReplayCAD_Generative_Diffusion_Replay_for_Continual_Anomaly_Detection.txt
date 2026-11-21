@@ -1,0 +1,1034 @@
+# SOURCE: docs/papers/ReplayCAD_Generative_Diffusion_Replay_for_Continual_Anomaly_Detection.pdf
+# SOURCE_SHA256: b857599ab324670f007012496e905895698c7663be9abc770a2c8c9f74bb8f9f
+# EXTRACTOR: pypdf 7.1.0 (PdfReader.extract_text, per page)
+# EXTRACTED: 2026-11-19
+# NOTE: machine extraction; equations/tables/unicode may be garbled. Cite the PDF, not this file.
+
+
+===== PAGE 1 =====
+ReplayCAD: Generative Diffusion Replay for Continual Anomaly Detection
+Lei Hu1 , Zhiyong Gan1,2 , Ling Deng2 , Jinglin Liang1 , Lingyu Liang1 ,
+Shuangping Huang1,3,∗ , Tianshui Chen4
+1South China University of Technology
+2China United Network Communications Corporation Limited Guangdong Branch
+3Pazhou Laboratory 4Guangdong University of Technology
+eehulei@mail.scut.edu.cn, eehsp@scut.edu.cn
+Abstract
+Continual Anomaly Detection (CAD) enables
+anomaly detection models in learning new classes
+while preserving knowledge of historical classes.
+CAD faces two key challenges: catastrophic for-
+getting and segmentation of small anomalous re-
+gions. Existing CAD methods store image distri-
+butions or patch features to mitigate catastrophic
+forgetting, but they fail to preserve pixel-level de-
+tailed features for accurate segmentation. To over-
+come this limitation, we propose ReplayCAD, a
+novel diffusion-driven generative replay framework
+that replay high-quality historical data, thus ef-
+fectively preserving pixel-level detailed features.
+Specifically, we compress historical data by search-
+ing for a class semantic embedding in the con-
+ditional space of the pre-trained diffusion model,
+which can guide the model to replay data with fine-
+grained pixel details, thus improving the segmenta-
+tion performance. However, relying solely on se-
+mantic features results in limited spatial diversity.
+Hence, we further use spatial features to guide data
+compression, achieving precise control of sample
+space, thereby generating more diverse data. Our
+method achieves state-of-the-art performance in
+both classification and segmentation, with notable
+improvements in segmentation: 11.5% on VisA and
+8.1% on MVTec. Our source code is available at
+https://github.com/HULEI7/ReplayCAD.
+1 Introduction
+Nowadays, unsupervised Anomaly Detection (AD) is crucial
+in modern manufacturing [Liu et al., 2024b]. It automati-
+cally identifies defects in samples at image and pixel levels,
+enhancing production efficiency and product quality while re-
+ducing reliance on manual inspections. However, in practical
+industrial production, changes in the generation plan continu-
+ously produce new class samples, requiring the model to learn
+knowledge from new samples while retaining knowledge of
+previous ones, i.e., Continual Anomaly Detection (CAD).
+∗Corresponding author.
+Input GTReplayCAD (Ours) UCAD (SOTA)
+Figure 1: Compared to the SOTA method UCAD, our approach
+achieves more accurate anomaly segmentation, since we better pre-
+serves pixel-level detailed features through high-quality data replay.
+The key challenge of CAD lies in two aspects: First, catas-
+trophic forgetting, where models tend to catastrophically for-
+get historical class knowledge when learning new class data.
+Second, CAD requires not only the identification of image-
+level anomalous samples but also the segmentation of pixel-
+level anomalous regions. Since anomaly regions are usually
+small (As illustrated in Figure 3), this requires the model to
+remember more detailed pixel-level features from historical
+samples to ensure accurate anomaly segmentation.
+A straightforward approach to addressing these two chal-
+lenges is to apply existing Continual Learning (CL) methods
+(e.g. EWC [Kirkpatrick et al., 2017], MAS [Aljundi et al.,
+2018]) to anomaly detection models. However, existing CL
+methods do not focus on preserving the detailed features of
+historical samples, making them ineffective for CAD [Tang
+et al., 2025]. Advanced CAD methods [Li et al., 2022;
+Liu et al., 2024a] aim to mitigate catastrophic forgetting
+by compressing and storing features of historical samples.
+Specifically, DNE [Li et al., 2022] stores the mean and vari-
+ance of image features. However, DNE remembers only the
+overall features of the distribution while ignoring the detailed
+features of individual samples. UCAD [Liu et al., 2024a] di-
+arXiv:2505.06603v1  [cs.CV]  10 May 2025
+
+===== PAGE 2 =====
+(a)    Semantic Features
+Screw Chewinggum Metal Nut
+(b)    Spatial Features
+Figure 2: Visualization of semantic and spatial features. (a) Seman-
+tic features, samples from different classes exhibit distinct texture
+and shape characteristics. (b) Spatial features, samples within the
+same class are distributed across different spatial locations.
+vides the image into multiple patches and encodes them into
+features for storage, resulting in the loss of pixel-level details
+from historical samples. In summary, these methods fail to
+preserve the pixel-level detailed features of samples, which
+negatively impacts segmentation performance.
+To address this, we propose ReplayCAD, a novel CAD
+framework that can replay real and diverse historical data,
+thus preserving pixel-level detailed features. ReplayCAD
+consists of two stages: (1) compressing historical data of
+each class into conditional features; and (2) utilizing these
+features to replay historical data, and using the replayed
+data together with new class data for model training. Our
+key contribution lies in enhancing first-stage data compres-
+sion to generate more diverse and authentic historical data.
+Specifically, in the first stage, we employ reverse engineer-
+ing to learn a class semantic embedding in the conditional
+space of a pre-trained diffusion model for each class’s his-
+torical data. This class semantic embedding guides the dif-
+fusion model to generate historical data with pixel-level de-
+tailed features, significantly enhancing the segmentation per-
+formance of anomalous regions. However, as illustrated in
+Figure 2, samples contain not only semantic features but also
+rich spatial features. Compressing data using semantic fea-
+tures alone leads to replayed data lacking spatial diversity. To
+address this issue, we utilize the sample’s mask as its spa-
+tial features to guide the data compression process. This
+approach enables controlled generation of spatial positions,
+resulting in the replay of more diverse historical data. Our
+method offers several advantages: Firstly, compared to cur-
+rent CAD methods based on feature replay [Li et al., 2022;
+Liu et al., 2024a] and regularization [Tang et al., 2025;
+Li et al., 2025], the replay-based approach is more effective
+in preserving the detailed features of samples, which leads
+to better performance in anomaly segmentation. Secondly,
+by considering both semantic and spatial features, we gen-
+erate high-quality and diverse samples, which significantly
+mitigates catastrophic forgetting. Finally, by guiding the pre-
+(a)  Anomaly Image (b)  Anomaly Mask
+Figure 3: Visualization of anomalous regions, illustrating their typi-
+cally small areas.
+trained diffusion model to perform reverse engineering, we
+significantly reduce training time and cost compared to ex-
+isting replay methods [Shin et al., 2017; Wang et al., 2021;
+Gao and Liu, 2023; Li et al., 2024] that require training the
+entire generator.
+To sum up, our contributions are as follows:
+• We propose a novel CAD framework ReplayCAD,
+which effectively preserves fine-grained pixel details
+through high-quality data replay, significantly enhancing
+anomaly segmentation performance. To our best knowl-
+edge, this is the first attempt to apply diffusion-driven
+generative replay approach in CAD.
+• To generate more diverse historical data, we employ
+spatial features of samples to guide data compression,
+thereby achieving spatially controlled data replay.
+• Extensive experiments demonstrate that our method sig-
+nificantly outperforms SOTA approaches, particularly in
+segmentation performance, achieving improvements of
+11.5% and 8.1% on VisA and MVTec, respectively.
+2 Related Work
+2.1 Unsupervised Anomaly Detection
+Currently, unsupervised anomaly detection methods can be
+classified into the following three types: Embedding-based
+methods [Roth et al., 2022; Deng and Li, 2022; Liu et al.,
+2023] model the feature distribution of normal samples and
+detect anomalies by identifying deviations of anomalous sam-
+ples from this distribution. Reconstruction-based meth-
+ods [You et al., 2022; He et al., 2024; Zhang et al., 2024a;
+Wu et al., 2024] train a model to reconstruct normal images
+and detect anomalies by comparing the differences between
+the input image and the reconstructed image. Synthesizing-
+based methods [Hu et al., 2024; Li et al., 2021; Zavrtanik
+et al., 2021a; Zuo et al., 2024] train a model by adding ar-
+tificially synthesized anomalies to normal images, thereby
+improving anomaly detection capability. However, in real-
+world industrial scenarios where new classes of data fre-
+quently emerge, and existing AD methods lack the capability
+for continual learning, our goal is to equip existing anomaly
+detection methods with continual learning capability.
+
+===== PAGE 3 =====
+𝐸
+Input Image LDM 𝐸
+𝑪𝑨
+Denoising U-net
+Latent Feature
+𝑪𝑨
+Add 
+Noise 𝜖
+𝜖𝜃
+Spatial Encoder
+SAM
+ 𝐸
+ MLP
+Mask 𝑒𝑠𝑝𝑎𝑡𝑖𝑎𝑙 𝑒s𝑒𝑚𝑎𝑛𝑡𝑖𝑐
+Conditions
+𝑪𝑨
+𝑣
+"𝑎 𝑝ℎ𝑜𝑡𝑜 𝑜𝑓 𝑎"
+𝑇
+Semantic Encoder
+𝑇
+𝑒𝑐
+Latent Encoder
+Text Encoder
+Cross Attention
+Frozen
+Learnable
+Figure 4: Overview of Data Compression. We compress the data from both semantic and spatial dimensions: (1) Semantic. In the semantic
+encoder, we get the semantic feature by initializing a class semantic embedding v and combining it with a prompt p encoded by the text
+encoder. (2) Spatial. In the spatial encoder, we first obtain the mask of the sample using SAM and learn the mapping of mask to spatial
+features by optimizing a MLP layer. Finally, we use spatial and semantic features as conditions to guide the denoising process of LDM.
+2.2 Continual Learning
+The current methods for continual learning can be broadly
+categorized into the following three types: Regularization-
+based methods [Kirkpatrick et al., 2017; Pan et al., 2020;
+Aljundi et al., 2018] prevent forgetting of previous tasks by
+imposing constraints on model parameters. Replay-based
+methods [Rebuffi et al., 2017; Liu et al., 2020; Riemer et
+al., 2019] consolidate the retention of prior knowledge by re-
+playing data or features from past tasks. Architecture-based
+methods [Mallya and Lazebnik, 2018; Mallya et al., 2018;
+Yoon et al., 2017] assign specific parameters to each task,
+isolating them to minimize interference. However, existing
+CL methods are not specifically designed to preserve detailed
+features of historical samples in CAD, making them unsuit-
+able for direct application to AD models.
+2.3 Continual Anomaly Detection
+Current CAD research can be broadly categorized into two
+approaches: Feature replay-based [Li et al., 2022; Liu et
+al., 2024a] and Regularization-based [Tang et al., 2025;
+Li et al., 2025]. DNE [Li et al., 2022] and UCAD [Liu
+et al., 2024a] store the feature embeddings of samples from
+previous classes and locate anomalies by comparing the test
+sample features with the stored embeddings. However, these
+methods cannot save the pixel-level detailed features, result-
+ing in poor performance of anomalous region segmentation.
+IUF [Tang et al., 2025] and CDAD [Li et al., 2025]prevent
+knowledge forgetting by restricting parameter updates for
+previous classes, but its performance deteriorates in long
+class sequences. To address these issues, we focus on the
+data itself to remember detailed features, we propose a novel
+CAD framework that can replay high-quality historical data.
+3 Problem Definition
+In this section, we provide a detailed introduction to the spe-
+cific setting of the CAD. Unlike traditional AD task where all
+classes are known during training, CAD requires the model
+to continuously learn new classes, essentially falling un-
+der the category of class-incremental learning. Specifically,
+for an anomaly detection dataset with N classes, its train-
+ing and testing sets are represented as {X1, X2, · · · , XN }
+and {Y1, Y2, · · · , YN }, respectively. When learning the i-th
+class, we can only access the training data Xi and cannot ac-
+cess data from previous classes {X1, X2, · · · , Xi−1}, during
+testing, we need to perform testing on {X1, X2, · · · , Xi}. Our
+goal is to sequentially train on the training set of each class
+and ultimately evaluate on the testing set {Y1, Y2, · · · , YN }.
+4 Methods
+4.1 Overview
+ReplayCAD consists of two stages: feature-guided data com-
+pression stage and replay-enhanced anomaly detection stage.
+In the first stage, we compress the data of historical classes
+from both semantic and spatial dimensions, thereby extract-
+ing corresponding conditional features, as shown in Figure
+4. Specifically, for semantic features, we search for a class
+semantic embedding within the conditional space of the pre-
+trained LDM to guide the model in generating samples for the
+corresponding class. For spatial features, we learn the map-
+ping relationship between the mask and the spatial features,
+where the mask is obtained through SAM [Kirillov et al.,
+2023]. In the second stage, we use the conditional features
+learned in the first stage to replay the historical class data,
+and train the anomaly detection model together with the new
+class data. The main contribution of this paper is to enhance
+the data compression of the first stage from both semantic and
+spatial dimensions, so as to generate more diversified and au-
+thentic historical data. Therefore, in the following, we will
+focus on how to use semantic and spatial features to guide
+LDM to compress samples in the first stage.
+4.2 Semantic-Aware Generative Replay
+In this section, we will investigate how to accomplish the two
+stages of generative replay using only semantic features.
+Latent Diffusion Model (LDM) [Rombach et al., 2022]
+generates data by denoising in a low-dimensional latent
+space. Compared to directly working in high-dimensional
+
+===== PAGE 4 =====
+pixel space, this approach significantly improves computa-
+tional efficiency while preserving essential semantic informa-
+tion, ensuring high-quality outputs. To further enhance con-
+trollability, LDM incorporates a conditional guidance mech-
+anism. This allows conditions such as text descriptions, im-
+age masks, or class labels to guide the generation process,
+ensuring that the results closely align with the given condi-
+tions while maintaining diversity and flexibility. Specifically,
+for the input image x , the LDM first encodes it using a la-
+tent encoder E and then adds random noise ϵ to generate the
+noisy image zt for denoising. Subsequently, the noisy im-
+age zt and conditions c are fed into the denoising U-Net,
+where the noise ϵθ is predicted using a cross-attention mech-
+anism [Dai et al., 2023; Dai et al., 2024; Peng et al., 2024;
+Hu and Huang, 2025]. The optimization function of LDM is
+as follows:
+LLDM = EE(x),ϵ∼N (0,1),t,c[∥ϵ − ϵθ (E(x), t, Ec(c))∥2 2], (1)
+Instead of directly training the LDM, we learn the condi-
+tional feature to guide it in generating samples for the cor-
+responding class. Specifically, to represent semantic fea-
+tures, we first randomly initialize a learnable embedding
+v ∈ RK×C , which serves as the foundational representation.
+In addition, we take a text prompt p (e.g., “a photo of a”), en-
+code it using a frozen text encoder T , and then concatenate it
+with the semantic embedding v to form the final semantic fea-
+tures esemantic, guiding the LDM’s denoising process. The
+optimization objective is as follows:
+esemantic = {T (p), v}, (2)
+v∗ = arg min
+v
+LLDM (x, t, esemantic), (3)
+We store the learned semantic embedding v for each class.
+When new class data appears, we use these semantic embed-
+dings to guide LDM to replay the historical class data. After
+replaying data from historical classes, we integrate this data
+with new class data to train the AD model, effectively mitigat-
+ing the catastrophic forgetting of the historical classes. Our
+approach imposes no restrictions on anomaly detection mod-
+els, in this study, we select the multi-class anomaly detec-
+tion model InvAD [Zhang et al., 2024b] as the baseline. The
+multi-class AD model combines samples from all classes dur-
+ing training, eliminating the need to know sample classes be-
+forehand during inference, thus addressing class uncertainty
+in CAD. InvAD detects multiple types of anomalies by intro-
+ducing a feature inversion mechanism and leveraging high-
+quality feature reconstruction capabilities. Specifically, In-
+vAD consists of an encoder E and a generator G. For a given
+normal input sample x, its original feature F is first extracted
+using a frozen encoder, and then its reconstructed feature F∗
+are generated by the generator:
+F = E(x), F∗ = G(F). (4)
+Then, the abnormal region is obtained by calculating the
+difference between the original feature F and the generated
+feature F∗. The loss function is defined as follows:
+LInvAD = EE,G,x[∥F − F∗∥2 2], (5)
+mlp
+ masks
+Random
+Augment
+…
+mlp
+…
+masks
+…
+Replay
+…
+Enhanced Masks
+Stored Conditional Features Replayed Data
+…
+𝑣
+…
+Figure 5: Overview of Data Replay. We use stored semantic em-
+beddings v, the mlp layer, and mask images to guide the LDM in
+replaying data from historical classes. To enhance the diversity of
+replay samples, we apply random augmentations to the masks.
+4.3 Spatially-Enhanced Diverse Generation
+However, the samples not only present semantic features, but
+also various spatial features, as shown in Figure 2, focusing
+solely on learning semantic features may cause the gener-
+ated samples to overfit certain specific examples [Yang et al.,
+2025; Hu et al., 2024; Liang et al., 2024], resulting in a lack
+of spatial diversity. Therefore, we introduce spatial features
+to guide the data compression process.
+The spatial features of a sample include its coordinates
+and angle, which are difficult to represent directly. To ad-
+dress this, we use a mask image to denote the sample’s spa-
+tial features. However, due to the lack of mask labels in
+the training set, we utilize SAM’s [Kirillov et al., 2023]
+powerful zero-shot segmentation capability to generate the
+mask for each sample. As the diffusion model cannot di-
+rectly interpret mask information, we optimize a mlp layer
+to learn the mapping from the mask to spatial features, thus
+guiding the diffusion model in denoising. Specifically, for
+an input image x ∈ RH×W ×3, we first generate its corre-
+sponding object mask image by SAM. The mask image is
+then encoded by a latent encoder E to produce feature rep-
+resentations xmask ∈ R
+H
+8 × W 8 ×4, which are then reshaped
+to match the input size required by the mlp layer, resulting
+in x
+′
+mask ∈ R
+HW
+16n ×n. Subsequently, a mlp layer W with
+a size of (n, m) is applied to compute the spatial feature
+xspatial ∈ R
+HW
+16n ×m. Finally, xspatial is reshaped again to
+align with the size of the semantic features, yielding the final
+spatial features espatial ∈ RM ×C .
+We concatenate the extracted semantic features esemantic
+and spatial features espatial to obtain the condition ec, which
+is used to guide the denoising process of the LDM:
+ec = {esemantic, espatial} ∈ R(K+M )×C , (6)
+Our goal is to find the best semantic embedding v as well
+as the mlp layer W for each class, the optimization objectives
+are outlined as follows:
+v∗, W ∗ = arg min
+v,W
+LLDM (x, t, ec), (7)
+
+===== PAGE 5 =====
+Table 1: Comparison with state-of-the-art methods. Bold indicates the best performance, while underline indicates the second-best perfor-
+mance. The term ” Avg ” refers to the mean value obtained by testing across all classes after completing training on the final class.
+Method Venue
+VisA MVTec
+Image-AUROC Pixel-AP Image-AUROC Pixel-AP
+Avg (↑) FM (↓) Avg (↑) FM (↓) Avg (↑) FM (↓) Avg (↑) FM (↓)
+PatchCore CVPR 22 57.6 38.0 10.3 32.4 60.7 40.7 20.9 43.1
+SimpleNet CVPR 23 58.9 33.4 7.3 30.2 62.4 36.9 17.7 32.6
+MambaAD NeurIPS 24 59.5 32.4 8.8 27.6 60.6 37.6 12.7 43.8
+InvAD arXiv 24 67.5 28.1 9.8 33.1 66.8 31.7 21.5 38.2
+SimpleNet+EWC CVPR 23 59.6 35.3 9.0 28.2 69.0 29.8 21.6 28.1
+MambaAD+EWC NeurIPS 24 60.6 32.0 8.2 29.3 65.1 33.0 13.5 43.4
+SimpleNet+MAS CVPR 23 60.6 34.4 9.3 28.1 70.3 28.8 25.4 24.3
+MambaAD+MAS NeurIPS 24 65.2 25.9 9.5 25.6 64.5 33.9 12.2 45.2
+DNE MM 22 60.1 17.8 – – 87.6 4.7 – –
+DNE + PANDA CVPR 21 46.0 36.8 – – 66.3 21.8 – –
+DNE + CutPaste CVPR 21 61.3 18.9 – – 83.9 9.8 – –
+UCAD AAAI 24 87.4 – 30.0 – 93.0 – 45.6 –
+IUF ECCV 24 68.1 8.5 3.4 0.3 76.2 6.7 17.1 5.9
+CDAD CVPR 25 62.8 22.2 8.3 21.7 74.3 20.1 28.0 26.1
+ReplayCAD Ours 90.3 5.5 41.5 5.0 94.8 4.5 53.7 5.5
+After training is completed for each class, we save the se-
+mantic embedding v and the mlp layer W for subsequent data
+replay. In addition, M (M ∈ [1, 10]) randomly selected mask
+images are stored to control the spatial positioning of the gen-
+erated images. These stored components constitute the condi-
+tional features for each class, requiring minimal storage space
+while enabling precise control over both semantic and spatial
+aspects during data replay.
+In the second stage, to achieve real and diverse data re-
+play, we use stored conditional features to achieve control-
+lable generation in both semantic and spatial aspects, as illus-
+trated in Figure 5. Semantically, we use semantic embedding
+v to control the class of generated samples. Spatially, we
+control the spatial position of samples through image masks
+and the mlp layer W in the spatial encoder. In addition, we
+randomly rotate and shift the stored masks to enhance their
+spatial diversity. By achieving semantic and spatial control-
+lable generation, we can generate real and diverse historical
+data, thus preserving pixel-level details more efficiently.
+5 Experiments
+5.1 Experiments Setup
+Datasets. We conducted experiments on two commonly used
+industrial anomaly detection datasets: VisA [Zou et al., 2022]
+and MVTec [Bergmann et al., 2019]. VisA comprises 12
+sample classes, with 8659 training samples (all normal) and
+2162 test samples (962 normal, 1200 anomalous). MVTec in-
+cludes 15 sample classes, with 3629 training samples (all nor-
+mal) and 1725 test samples (467 normal, 1258 anomalous).
+Compared Methods. We compare our approach with
+three methods: (1) CAD Methods. We compare our method
+with SOTA CAD methods, including CDAD [Li et al., 2025],
+IUF [Tang et al., 2025], UCAD [Liu et al., 2024a], and
+DNE [Li et al., 2022]. Additionally, we migrate the frame-
+work of DNE to PANDA [Reiss et al., 2021] and CutPaste [Li
+et al., 2021]. (2) AD Methods. We apply current SOTA AD
+methods directly to CAD, including PatchCore [Roth et al.,
+2022], SimpleNet [Liu et al., 2023], MambaAD [He et al.,
+2024] and InvAD [Zhang et al., 2024b], we fine-tune the old
+model as new class data comes in. (3) AD+CL Methods. We
+adapt CL methods, such as EWC [Kirkpatrick et al., 2017]
+and MAS [Aljundi et al., 2018], to SimpleNet and MambaAD
+to enhance their adaptability in CAD.
+Metrics. Similar to previous methods, we assess the per-
+formance of anomaly detection from both classification and
+segmentation perspectives. For classification performance,
+we use Area Under the Receiver Operating Characteristics
+(AUROC) [Zhou and Paffenroth, 2017], while for segmen-
+tation performance, we use Area Under Precision-Recall
+(AP) [Zavrtanik et al., 2021b]. Moreover, we use Forgetting
+Measure (FM) [Chaudhry et al., 2018] to evaluate the extent
+to which the model forgets historical classes:
+F M = 1 N − 1
+N −1X
+i=1
+max
+γ∈{1, · · · , N − 1}
+(aγ,i − aN ,i), (8)
+Here, N represents the total number of classes, i denotes the
+class number, and a indicates the classification or segmenta-
+tion score for that class.
+Implementation Details. We set the number of tokens
+K for the semantic embedding v to 20. For ViSA, we use
+pre-trained Stable Diffusion 1.5 weights with a resolution of
+
+===== PAGE 6 =====
+Input GTOursUCADIUFSimpleNet +MAS SimpleNet +EWC MambaAD +MAS MambaAD +EWC MambaAD SimpleNet
+Figure 6: Visualization of anomalous region segmentation. From left to right are the test image, the heatmaps predicted by the comparison
+methods, the heatmap predicted by our method, and the Ground Truth (GT). Areas with high anomaly scores are shown in red, while areas
+with low anomaly scores are shown in blue.
+Table 2: Comparison of storage space with the SOTA method.
+Method VisA MVTec
+UCAD 18.6 MB 23.3 MB
+CDAD 2.7 GB 3.5 GB
+ReplayCAD (Ours) 1.9 MB 3.0 MB
+Table 3: Effect of semantic and spatial features on MVTec.
+Model Semantic Spatial I-AUROC P-AP
+T1 ✗ ✗ 66.8 21.5
+T2 ✓ ✗ 92.4 49.5
+T3 ✗ ✓ 86.9 42.5
+T4 ✓ ✓ 94.8 53.7
+(512, 512), where the dimension C of the semantic and spa-
+tial features is 768, and the MLP layer size is (128, 196).
+For MVTec, we use pre-trained LDM weights with a resolu-
+tion of (256, 256), where the dimension C of the semantic
+and spatial features is 1280, and the MLP layer size is (128,
+200). We generate 800 samples for each class for training
+the anomaly detection model. We use Invad [Zhang et al.,
+2024b] as the baseline model for anomaly detection, keeping
+all settings consistent with the original paper.
+5.2 Experiment Performance
+Quantitative Evaluation. As shown in Table 1, our method
+achieves state-of-the-art performance on both image-level
+and pixel-level metrics across two datasets. Specifically, we
+Table 4: Transferring to different AD models on MVTec.
+Method Venue I-AUROC P-AP
+PatchCore CVPR 22 93.7 54.7
+RLR ECCV 24 94.0 50.6
+MambaAD NeurIPS 24 95.3 53.1
+InvAD arXiv 24 94.8 53.7
+improved pixel-level metrics by 11.5% on VisA and 8.1%
+on MVTec compared to the previous state-of-the-art method.
+Existing anomaly detection methods often suffer from catas-
+trophic forgetting in continual learning scenarios. Although
+some continual learning methods can mitigate this issue, there
+remains a significant gap compared to our approach. We ob-
+serve that although IUF performs poorly in terms of pixel-
+level and image-level metrics, it demonstrates relatively low
+FM scores. This is because IUF experiences severe feature
+conflicts between new and historical classes when learning
+data from new classes. This conflict causes the historical best
+performance aγ,i (Eq. 8) of new classes to fall below their
+actual potential, thus resulting in lower FM scores. Addition-
+ally, although UCAD reported the FM metric in the original
+paper, its historical best score aγ,i was achieved by storing a
+larger number of patch features, which fails to reflect the true
+FM metric. Therefore, we marked it as “-”.
+Additionally, we compare our method’s storage space with
+the SOTA methods. As shown in Table 2, different from
+UCAD storage patch-level features and CDAD storage gra-
+dient projection, our approach significantly reduces storage
+space by storing semantic and spatial features of samples,
+
+===== PAGE 7 =====
+(a)    Replayed Data (b)    Real Data
+MVTecVisA
+Figure 7: The visual comparison of replayed data and real data on the MVTec and VisA datasets.
+while also achieving superior experimental performance.
+Qualitative Evaluation. Figure 6 shows the heatmaps of
+anomaly regions predicted by our method and other SOTA
+methods. We found that the AD methods, AD + CL meth-
+ods, and IUF often result in a large area of error prediction.
+This occurs because, when learning new classes, these meth-
+ods conflict with the features of historical classes, leading
+to catastrophic forgetting of previously acquired knowledge.
+Although UCAD shows significant improvement compared
+to previous methods, it still suffers from missed detections in
+anomalous regions. Visualization results demonstrate that our
+method achieves higher accuracy in anomaly segmentation.
+Visualization of Replayed Data. As shown in Figure 7,
+we present a comparison between the replayed data and the
+real data. Since AD is conducted in an unsupervised setting,
+the replayed data should closely resemble the real normal
+data. The results indicate that the replayed data exhibit a high
+degree of similarity to the real data, validating the effective-
+ness of our framework based on generative replay.
+5.3 Analysis
+In this section, we analyze the impact of the two proposed
+features and different AD models on MVTec.
+Effect of semantic and spatial features. As shown in Ta-
+ble 3, we analyze the effectiveness of the proposed seman-
+tic features esemantic and spatial features espatial. T1 indi-
+cates that we do not retain any features of historical samples
+but instead directly train the AD model sequentially on sam-
+ples from each class. In this case, the model suffers from
+catastrophic forgetting, resulting in a sharp decline in per-
+formance. T2 and T3 represent the processes of learning
+and storing spatial features and semantic features of the sam-
+ples, respectively, followed by replaying historical data us-
+ing the learned features. The results indicate that both types
+of features can significantly alleviate catastrophic forgetting.
+T4 simultaneously learns both spatial and semantic features.
+Compared to learning them individually, this approach sig-
+nificantly improves classification and segmentation perfor-
+mance, further demonstrating the critical role of these two
+types of features in replaying historical data.
+Transferring to different AD models. To validate the
+generalization capability of the replayed data, we transfer it
+to various anomaly detection models for training, including
+Patchcore [Roth et al., 2022], RLR [He et al., 2025], Mam-
+baAD [He et al., 2024], and InvAD [Zhang et al., 2024b], as
+shown in Table 4. Our replayed data demonstrated strong per-
+formance across four methods, confirming the superior gen-
+eralization ability of the proposed method. Moreover, this in-
+dicates that our method can be readily adapted to SOTA AD
+methods at any time. Compared to other CAD methods that
+can only adapt to a single AD method, our approach demon-
+strates greater adaptability and sustainability.
+6 Conclusion
+In this paper, we introduce ReplayCAD, marking the first use
+of generative replay based on a pre-trained diffusion model
+in CAD. Compared to current state-of-the-art methods, our
+approach more effectively preserves the detailed features of
+historical samples, leading to significant improvements in
+segmenting anomalous regions. Additionally, by incorporat-
+ing semantic and spatial feature guidance into data compres-
+sion, we achieve high-quality data generation. Experimental
+results demonstrate that our method achieves SOTA perfor-
+mance on both image-level and pixel-level metrics.
+
+===== PAGE 8 =====
+Acknowledgments
+The research is partially supported by National Natural
+Science Foundation of China (No.62176093, 61673182),
+National Key Research and Development Program of
+China (No.2023YFC3502900), Key Realm Research and
+Development Program of Guangzhou (No.202206030001),
+Guangdong-Hong Kong-Macao Joint Innovation Project
+(No.2023A0505030016), Guangdong Emergency Manage-
+ment Science and Technology Program (No.2025YJKY001).
+References
+[Aljundi et al., 2018] Rahaf Aljundi, Francesca Babiloni,
+Mohamed Elhoseiny, Marcus Rohrbach, and Tinne Tuyte-
+laars. Memory aware synapses: Learning what (not) to
+forget. In ECCV, pages 139–154, 2018.
+[Antonelli et al., 2022] Michela Antonelli, Annika Reinke,
+Spyridon Bakas, Keyvan Farahani, Annette Kopp-
+Schneider, Bennett A Landman, Geert Litjens, Bjoern
+Menze, Olaf Ronneberger, Ronald M Summers, et al. The
+medical segmentation decathlon. Nature communications,
+page 4128, 2022.
+[Bergmann et al., 2019] Paul Bergmann, Michael Fauser,
+David Sattlegger, and Carsten Steger. Mvtec ad–a com-
+prehensive real-world dataset for unsupervised anomaly
+detection. In CVPR, pages 9592–9600, 2019.
+[Chaudhry et al., 2018] Arslan Chaudhry, Puneet K Doka-
+nia, Thalaiyasingam Ajanthan, and Philip HS Torr. Rie-
+mannian walk for incremental learning: Understanding
+forgetting and intransigence. In ECCV, pages 532–547,
+2018.
+[Dai et al., 2023] Gang Dai, Yifan Zhang, Qingfeng Wang,
+Qing Du, Zhuliang Yu, Zhuoman Liu, and Shuangping
+Huang. Disentangling writer and character styles for hand-
+writing generation. In CVPR, pages 5977–5986, 2023.
+[Dai et al., 2024] Gang Dai, Yifan Zhang, Quhui Ke,
+Qiangya Guo, and Shuangping Huang. One-dm: One-
+shot diffusion mimicker for handwritten text generation.
+In ECCV, pages 410–427. Springer, 2024.
+[Deng and Li, 2022] Hanqiu Deng and Xingyu Li. Anomaly
+detection via reverse distillation from one-class embed-
+ding. In CVPR, pages 9737–9746, 2022.
+[Gao and Liu, 2023] Rui Gao and Weiwei Liu. Ddgr: Con-
+tinual learning with deep diffusion-based generative re-
+play. In ICML, pages 10744–10763. PMLR, 2023.
+[He et al., 2024] Haoyang He, Yuhu Bai, Jiangning Zhang,
+Qingdong He, Hongxu Chen, Zhenye Gan, Chengjie
+Wang, Xiangtai Li, Guanzhong Tian, and Lei Xie.
+Mambaad: Exploring state space models for multi-
+class unsupervised anomaly detection. arXiv preprint
+arXiv:2404.06564, 2024.
+[He et al., 2025] Liren He, Zhengkai Jiang, Jinlong Peng,
+Wenbing Zhu, Liang Liu, Qiangang Du, Xiaobin Hu,
+Mingmin Chi, Yabiao Wang, and Chengjie Wang. Learn-
+ing unified reference representation for unsupervised
+multi-class anomaly detection. In ECCV, pages 216–232.
+Springer, 2025.
+[Heller and others, 2023] Nicholas Heller et al. The kits21
+challenge: Automatic segmentation of kidneys, renal tu-
+mors, and renal cysts in corticomedullary-phase ct, 2023.
+[Hu and Huang, 2025] Lei Hu and Shuangping Huang. En-
+hancing table structure recognition via bounding box guid-
+ance. In ICPR, pages 209–225. Springer, 2025.
+[Hu et al., 2024] Teng Hu, Jiangning Zhang, Ran Yi, Yuzhen
+Du, Xu Chen, Liang Liu, Yabiao Wang, and Chengjie
+Wang. Anomalydiffusion: Few-shot anomaly image gen-
+eration with diffusion model. In AAAI, volume 38, pages
+8526–8534, 2024.
+[Kirillov et al., 2023] Alexander Kirillov, Eric Mintun,
+Nikhila Ravi, Hanzi Mao, Chloe Rolland, Laura
+Gustafson, Tete Xiao, Spencer Whitehead, Alexander C
+Berg, Wan-Yen Lo, et al. Segment anything. In ICCV,
+pages 4015–4026, 2023.
+[Kirkpatrick et al., 2017] James Kirkpatrick, Razvan Pas-
+canu, Neil Rabinowitz, Joel Veness, Guillaume Des-
+jardins, Andrei A Rusu, Kieran Milan, John Quan, Tiago
+Ramalho, Agnieszka Grabska-Barwinska, et al. Overcom-
+ing catastrophic forgetting in neural networks. Proceed-
+ings of the national academy of sciences, 114(13):3521–
+3526, 2017.
+[Li et al., 2021] Chun-Liang Li, Kihyuk Sohn, Jinsung
+Yoon, and Tomas Pfister. Cutpaste: Self-supervised learn-
+ing for anomaly detection and localization. In CVPR,
+pages 9664–9674, 2021.
+[Li et al., 2022] Wujin Li, Jiawei Zhan, Jinbao Wang,
+Bizhong Xia, Bin-Bin Gao, Jun Liu, Chengjie Wang, and
+Feng Zheng. Towards continual adaptation in industrial
+anomaly detection. In ACMMM, pages 2871–2880, 2022.
+[Li et al., 2024] Wei Li, Jingyang Zhang, Pheng-Ann Heng,
+and Lixu Gu. Comprehensive generative replay for task-
+incremental segmentation with concurrent appearance and
+semantic forgetting. In MICCAI, pages 80–90. Springer,
+2024.
+[Li et al., 2025] Xiaofan Li, Xin Tan, Zhuo Chen, Zhizhong
+Zhang, Ruixin Zhang, Rizen Guo, Guanna Jiang, Yulong
+Chen, Yanyun Qu, Lizhuang Ma, et al. One-for-more:
+Continual diffusion model for anomaly detection. arXiv
+preprint arXiv:2502.19848, 2025.
+[Liang et al., 2024] Jinglin Liang, Jin Zhong, Hanlin Gu,
+Zhongqi Lu, Xingxing Tang, Gang Dai, Shuangping
+Huang, Lixin Fan, and Qiang Yang. Diffusion-driven data
+replay: A novel approach to combat forgetting in feder-
+ated class continual learning. In ECCV, pages 303–319.
+Springer, 2024.
+[Liu et al., 2020] Xialei Liu, Chenshen Wu, Mikel Menta,
+Luis Herranz, Bogdan Raducanu, Andrew D Bagdanov,
+Shangling Jui, and Joost van de Weijer. Generative feature
+replay for class-incremental learning. In CVPRW, pages
+226–227, 2020.
+[Liu et al., 2023] Zhikang Liu, Yiming Zhou, Yuansheng
+Xu, and Zilei Wang. Simplenet: A simple network for im-
+age anomaly detection and localization. In CVPR, pages
+20402–20411, 2023.
+
+===== PAGE 9 =====
+[Liu et al., 2024a] Jiaqi Liu, Kai Wu, Qiang Nie, Ying Chen,
+Bin-Bin Gao, Yong Liu, Jinbao Wang, Chengjie Wang,
+and Feng Zheng. Unsupervised continual anomaly de-
+tection with contrastively-learned prompt. In AAAI, vol-
+ume 38, pages 3639–3647, 2024.
+[Liu et al., 2024b] Jiaqi Liu, Guoyang Xie, Jinbao Wang,
+Shangnian Li, Chengjie Wang, Feng Zheng, and Yaochu
+Jin. Deep industrial image anomaly detection: A survey.
+Machine Intelligence Research, 21(1):104–135, 2024.
+[Mallya and Lazebnik, 2018] Arun Mallya and Svetlana
+Lazebnik. Packnet: Adding multiple tasks to a single net-
+work by iterative pruning. In CVPR, pages 7765–7773,
+2018.
+[Mallya et al., 2018] Arun Mallya, Dillon Davis, and Svet-
+lana Lazebnik. Piggyback: Adapting a single network to
+multiple tasks by learning to mask weights. In ECCV,
+pages 67–82, 2018.
+[Pan et al., 2020] Pingbo Pan, Siddharth Swaroop, Alexan-
+der Immer, Runa Eschenhagen, Richard Turner, and Mo-
+hammad Emtiyaz E Khan. Continual deep learning
+by functional regularisation of memorable past. NIPS,
+33:4453–4464, 2020.
+[Peng et al., 2024] Wenjie Peng, Hongxiang Huang, Tian-
+shui Chen, Quhui Ke, Gang Dai, and Shuangping
+Huang. Globally correlation-aware hard negative gener-
+ation. IJCV, pages 1–22, 2024.
+[Rebuffi et al., 2017] Sylvestre-Alvise Rebuffi, Alexander
+Kolesnikov, Georg Sperl, and Christoph H Lampert. icarl:
+Incremental classifier and representation learning. In
+CVPR, pages 2001–2010, 2017.
+[Reiss et al., 2021] Tal Reiss, Niv Cohen, Liron Bergman,
+and Yedid Hoshen. Panda: Adapting pretrained features
+for anomaly detection and segmentation. In CVPR, pages
+2806–2814, 2021.
+[Riemer et al., 2019] Matthew Riemer, Tim Klinger, Djallel
+Bouneffouf, and Michele Franceschini. Scalable recollec-
+tions for continual lifelong learning. In AAAI, volume 33,
+pages 1352–1359, 2019.
+[Rombach et al., 2022] Robin Rombach, Andreas
+Blattmann, Dominik Lorenz, Patrick Esser, and Bj¨orn
+Ommer. High-resolution image synthesis with latent
+diffusion models. In CVPR, pages 10684–10695, 2022.
+[Roth et al., 2022] Karsten Roth, Latha Pemula, Joaquin
+Zepeda, Bernhard Sch¨olkopf, Thomas Brox, and Peter
+Gehler. Towards total recall in industrial anomaly detec-
+tion. In CVPR, pages 14318–14328, 2022.
+[Shin et al., 2017] Hanul Shin, Jung Kwon Lee, Jaehong
+Kim, and Jiwon Kim. Continual learning with deep gener-
+ative replay. NIPS, 30, 2017.
+[Tang et al., 2025] Jiaqi Tang, Hao Lu, Xiaogang Xu,
+Ruizheng Wu, Sixing Hu, Tong Zhang, Tsz Wa Cheng,
+Ming Ge, Ying-Cong Chen, and Fugee Tsung. An incre-
+mental unified framework for small defect inspection. In
+ECCV, pages 307–324. Springer, 2025.
+[Wang et al., 2021] Liyuan Wang, Kuo Yang, Chongxuan Li,
+Lanqing Hong, Zhenguo Li, and Jun Zhu. Ordisco: Ef-
+fective and efficient usage of incremental unlabeled data
+for semi-supervised continual learning. In CVPR, pages
+5383–5392, 2021.
+[Wu et al., 2024] Di Wu, Shicai Fan, Xue Zhou, Li Yu,
+Yuzhong Deng, Jianxiao Zou, and Baihong Lin. Unsu-
+pervised anomaly detection via masked diffusion posterior
+sampling. In IJCAI, pages 2442–2450, 2024.
+[Yang et al., 2025] Shuai Yang, Zhifei Chen, Pengguang
+Chen, Xi Fang, Yixun Liang, Shu Liu, and Yingcong
+Chen. Defect spectrum: a granular look of large-scale de-
+fect datasets with rich semantics. In ECCV, pages 187–
+203. Springer, 2025.
+[Yoon et al., 2017] Jaehong Yoon, Eunho Yang, Jeong-
+tae Lee, and Sung Ju Hwang. Lifelong learning
+with dynamically expandable networks. arXiv preprint
+arXiv:1708.01547, 2017.
+[You et al., 2022] Zhiyuan You, Lei Cui, Yujun Shen, Kai
+Yang, Xin Lu, Yu Zheng, and Xinyi Le. A unified model
+for multi-class anomaly detection. NIPS, 35:4571–4584,
+2022.
+[Zavrtanik et al., 2021a] Vitjan Zavrtanik, Matej Kristan,
+and Danijel Skoˇcaj. Draem-a discriminatively trained re-
+construction embedding for surface anomaly detection. In
+ICCV, pages 8330–8339, 2021.
+[Zavrtanik et al., 2021b] Vitjan Zavrtanik, Matej Kristan,
+and Danijel Skoˇcaj. Draem-a discriminatively trained re-
+construction embedding for surface anomaly detection. In
+ICCV, pages 8330–8339, 2021.
+[Zhang et al., 2024a] Jiangning Zhang, Chengjie Wang, Xi-
+angtai Li, Guanzhong Tian, Zhucun Xue, Yong Liu, Guan-
+song Pang, and Dacheng Tao. Learning feature inversion
+for multi-class anomaly detection under general-purpose
+coco-ad benchmark. arXiv preprint arXiv:2404.10760,
+2024.
+[Zhang et al., 2024b] Jiangning Zhang, Chengjie Wang, Xi-
+angtai Li, Guanzhong Tian, Zhucun Xue, Yong Liu, Guan-
+song Pang, and Dacheng Tao. Learning feature inversion
+for multi-class anomaly detection under general-purpose
+coco-ad benchmark. arXiv preprint arXiv:2404.10760,
+2024.
+[Zhou and Paffenroth, 2017] Chong Zhou and Randy C Paf-
+fenroth. Anomaly detection with robust deep autoen-
+coders. In SIGKDD, pages 665–674, 2017.
+[Zou et al., 2022] Yang Zou, Jongheon Jeong, Latha Pemula,
+Dongqing Zhang, and Onkar Dabeer. Spot-the-difference
+self-supervised pre-training for anomaly detection and
+segmentation. In ECCV, pages 392–408. Springer, 2022.
+[Zuo et al., 2024] Zuo Zuo, Yao Wu, Baoqiang Li, Jiahao
+Dong, You Zhou, Lei Zhou, Yanyun Qu, and Zongze Wu.
+Clip-fsac: Boosting clip for few-shot anomaly classifica-
+tion with synthetic anomalies. In IJCAI, pages 1834–1842,
+2024.
+
+===== PAGE 10 =====
+A Appendix
+This supplementary material consists of:
+• In Section A.1, we have provided more ablation experi-
+ments.
+• In Section A.2, we provide image-level and pixel-level
+evaluation metrics for each class.
+• In Section A.3, we explain how to use SAM to obtain
+the mask for each sample.
+• In Section A.4, we present additional replayed data.
+• In Figure 12, we present the specific process of our ap-
+proach.
+A.1 More ablation experiments
+Qualitative analysis of semantic and spatial features.
+In Table 3, we performed a quantitative analysis of the impact
+of semantic and spatial features. In this section, we further
+conducted a visual analysis to examine the impact of these
+two features on anomaly region segmentation. As shown in
+Figure 9, when feature compression is not guided by seman-
+tic or spatial features, the model struggles to retain detailed
+information from past samples, resulting in poor segmenta-
+tion performance. Incorporating either semantic or spatial
+features significantly improves segmentation, demonstrating
+their effectiveness. Ultimately, considering both semantic
+and spatial features leads to better segmentation results.
+Real Gen
+Figure 8: The generation results on MSD and kits23.
+Generalization.
+We demonstrate the generalization capability of ReplayCAD
+in the following two points: 1) We validated ReplayCAD on
+two widely used medical image datasets: MSD [Antonelli et
+al., 2022] and kits23 [Heller and others, 2023]. As shown
+in Figure 8, the results below show that ReplayCAD can ef-
+fectively generate data even when there are significant differ-
+ences from the pretraining domain. 2) The MVTec and VisA
+datasets we used were not used for pretraining the diffusion
+model.
+GT
+T4
+T2
+T1
+T3
+Input
+Figure 9: Qualitative analysis of semantic and spatial features in
+anomaly region segmentation. T1 means that neither feature is ap-
+plicable, T2 and T3 mean that only semantic and spatial features are
+used respectively, and T4 means that both features are used simul-
+taneously. Areas with high anomaly scores are shown in red, while
+areas with low anomaly scores are shown in blue.
+Table 5: Effect of different spatial information on MVTec.
+Method Mask Noisy mask MBR
+Performance 94.8/53.7 93.8/52.1 94.4/52.8
+Noisy maskMask MBR
+Figure 10: Different spatial information.
+Ablation experiment of spatial information.
+As in Table 5 and Figure 10, We are robust to SAM’s seg-
+mentation errors: First, we add random noise (Increase or
+decrease the segmentation area) to 30% of training and infer-
+ence masks. Second, we directly use the Minimum Bounding
+Rectangle (MBR) of masks. Experiments prove the model is
+robust to noisy spatial information.
+Ablation experiment of the number of semantic
+embedding tokens (K).
+We set K=20 in both MVTec and VisA as it represents the op-
+timal balance point between performance and storage space.
+
+===== PAGE 11 =====
+As shown in Table 6, a small K (1 or 5) fails to suffi-
+ciently preserve sample features, leading to poorer perfor-
+mance, while a large K (40) significantly increases storage
+space while having minimal impact on performance.
+Table 6: Ablation experiment of K on MVTec.
+K 1 5 20 40
+Storage space 1.5 MB 1.8 MB 3.0 MB 4.5 MB
+Performance 90.3/47.5 92.6/49.4 94.8/53.7 94.6/53.5
+Ablation experiment of class order.
+As shown in Table 7, we train the model using four random
+class orders and the performances are close, demonstrating
+that class order does not affect model performance.
+Table 7: Effect of class order on MVTec.
+Class order 1 2 3 4
+Performance 94.8/53.7 94.1/52.1 95.3/52.2 95.5/52.7
+A.2 Quantitative results on each class
+In Table 8, we list the image-level and pixel-level evaluation
+metrics for each class on the VisA dataset. We achieved the
+best or second-best performance across all classes, particu-
+larly excelling in segmentation for classes like Candle, Mac-
+aroni1, Macaroni2, Fryum, and Pcb4. This is because these
+classes have rich detailed features, and our method is better
+at preserving these features, leading to superior segmentation
+results. As shown in Table 9, we present the results on the
+MVTec dataset, our method demonstrates significant advan-
+tages, further confirming its effectiveness.
+A.3 Mask Generation
+We employ two methods, points prompt and area selection,
+to obtain the sample mask. As shown in Figure 11 (a), for
+samples with simple and unobstructed backgrounds (such as
+screws and metal nuts), we use points prompt to acquire the
+masks. Specifically, we input the coordinates of the four cor-
+ners of the image as prompts into SAM along with the im-
+age to obtain the background mask area, with the remaining
+part being the sample mask area. As illustrated in Figure 11
+(b), for samples with complex backgrounds (such as transis-
+tors and fryums), we use area selection to obtain the masks.
+Specifically, we first input the image directly into SAM to ac-
+quire masks for all objects. Considering that the area of each
+type of sample is relatively fixed, we directly select the mask
+with the corresponding area size as the sample mask.
+A.4 Additional replayed data
+As shown in Figure 13, 14, we provide additional replayed
+data on the VisA and MVTec datasets. We can see that the re-
+played data effectively restore the detailed semantic features
+of the real data, and they exhibit diverse spatial positions,
+demonstrating the effectiveness of our framework.
+Input
+ Mask
+(a)
+Area
+Selection(b)
+SAM
+SAM
+Inversion
+Figure 11: Two methods for generating masks. (a) Points prompt.
+We first use the four corners of the image as prompts to obtain the
+background mask, then apply an inversion to get the sample mask.
+(b) Area selection. We directly input the original image into SAM
+to obtain masks for all targets, then filter the target sample masks
+based on area.
+LDM
+…
+Stage 1：Feature-Guided Data Compression
+Historical Classes Conditional Features
+Stage 2：Replay-Enhanced Anomaly Detection
+…
+New Class
+AD Model
+Training
+LDM
+…
+LDM
+…
+…
+Replay
+Historical Classes 
+Figure 12: Overview of the ReplayCAD framework. In the first
+stage, the data of each historical class is compressed into conditional
+features and stored. In the second stage, the stored conditional fea-
+tures are used to replay the historical class data, which is then com-
+bined with new class data to train the AD model.
+
+===== PAGE 12 =====
+(a)   Real Data
+ (b)   Replayed Data
+Figure 13: The visual comparison of replayed data and real data of each class on VisA. The classes from top to bottom are Candle, Capsules,
+Cashew, Chewinggum, Fryum, Macaroni1, Macaroni2, Pcb1, Pcb2, Pcb3 and Pcb4.
+
+===== PAGE 13 =====
+(a)   Real Data
+ (b)   Replayed Data
+Figure 14: The visual comparison of replayed data and real data of each class on MVTec. The classes from top to bottom are Bottle, Cable,
+Capsule, Carpet, Grid, Hazelnut, Leather, Metal Nut, Pill, Screw, Tile, Toothbrush, Transistor and Wood.
+
+===== PAGE 14 =====
+Table 8: Quantitative results (Image-AUROC / Pixel-AP) for each class on VisA. ∗ Indicates that MAS is adapted. Bold indicates the best
+performance, while underline indicates the second-best performance.
+Class Method
+PatchCore SimpleNet MambaAD SimpleNet∗ MambaAD∗ DNE IUF UCAD ReplayCAD
+Candle 39.7/1.1 25.3/0.3 59.5/0.6 42.0/0.9 62.4/0.6 21.9/– 99.4/1.2 77.8/6.7 92.4/24.1
+Capsules 65.1/0.7 52.0/0.6 40.2/0.8 60.6/0.6 49.6/1.1 31.9/– 69.2/1.7 87.7/43.7 84.3/43.0
+Cashew 72.1/6.2 85.3/6.1 81.2/14.9 73.3/12.1 75.4/5.0 81.5/– 75.8/4.3 96.0/58.0 93.7/55.5
+Chewinggum 92.4/39.2 55.2/0.4 73.7/23.8 49.2/0.6 89.6/37.6 76.3/– 54.8/3.3 95.8/50.3 96.1/67.4
+Fryum 42.3/10.0 35.0/1.7 48.4/10.4 53.7/5.8 56.4/10.5 83.2/– 67.7/10.7 94.5/33.4 91.5/46.2
+Macaroni1 46.0/0.1 54.1/0.1 57.2/0.3 55.8/0.1 59.6/0.2 39.9/– 79.5/1.1 82.3/1.3 88.9/17.8
+Macaroni2 33.8/0.1 59.0/0.1 42.8/0.1 27.3/0.1 51.7/0.1 29.9/– 60.6/0.4 66.7/0.3 80.5/9.9
+Pcb1 61.2/1.1 74.9/7.0 57.3/1.1 72.2/13.8 58.8/1.6 76.9/– 56.3/1.9 90.5/70.2 91.1/79.3
+Pcb2 59.5/0.8 64.0/0.2 55.6/0.7 56.8/0.8 57.6/1.2 54.5/– 76.6/0.9 87.1/13.6 84.9/19.9
+Pcb3 42.1/0.9 60.6/0.2 49.2/1.0 65.9/0.2 46.4/1.3 58.6/– 65.1/1.8 81.3/26.6 83.1/42.2
+Pcb4 37.0/1.3 55.7/1.7 50.7/1.8 79.0/9.6 77.4/5.6 75.0/– 51.2/2.1 90.1/10.6 97.8/30.3
+Pipe Fryum 99.8/62.8 86.4/70.0 98.4/50.8 91.9/67.4 98.2/49.2 92.5/– 61.4/11.7 98.8/45.7 99.1/62.5
+Avg 57.6/10.3 58.9/7.3 59.5/8.8 60.6/9.3 65.2/9.5 60.1/– 68.1/3.4 87.4/30.0 90.3/41.5
+Table 9: Quantitative results (Image-AUROC / Pixel-AP) for each class on MVTec. ∗ Indicates that MAS is adapted. Bold indicates the best
+performance, while underline indicates the second-best performance.
+Class Method
+PatchCore SimpleNet MambaAD SimpleNet∗ MambaAD∗ DNE IUF UCAD ReplayCAD
+Bottle 21.3/5.2 82.3/36.9 79.2/18.7 65.9/28.4 85.3/15.0 97.9/– 90.9/28.9 100.0/75.2 99.0/71.0
+Cable 51.0/3.4 46.1/4.5 45.1/4.5 59.5/18.7 43.8/4.2 74.4/– 54.1/5.4 75.1/29.0 95.7/36.9
+Capsule 34.2/4.3 55.3/3.3 41.4/5.6 38.0/3.1 52.3/9.4 57.0/– 52.0/4.0 86.8/34.9 74.7/33.7
+Carpet 97.0/60.0 75.8/10.7 67.6/11.7 87.4/40.7 61.3/9.7 99.6/– 99.6/44.0 96.5/62.2 98.0/65.2
+Grid 70.6/0.5 49.7/0.8 55.8/0.6 65.6/0.7 54.5/0.6 98.3/– 69.5/8.4 94.4/18.7 92.7/33.8
+Hazelnut 84.8/38.4 37.4/5.6 83.4/30.0 72.6/21.5 85.5/30.9 94.8/– 87.5/30.1 99.4/50.6 98.5/63.5
+Leather 61.8/29.7 43.7/0.5 53.2/8.8 75.3/15.7 53.0/5.2 88.6/– 99.7/33.0 100.0/33.3 97.4/58.7
+Metal Nut 26.7/25.7 52.2/42.6 40.7/19.4 50.7/49.2 60.5/17.5 98.1/– 64.3/14.2 98.8/77.5 99.5/65.6
+Pill 45.4/5.8 62.1/19.6 46.8/5.5 54.7/22.1 54.2/4.8 80.6/– 54.7/4.8 89.4/63.4 94.4/69.8
+Screw 49.1/1.1 57.7/1.3 52.0/1.2 60.8/1.5 53.9/1.0 61.8/– 64.6/1.2 73.9/21.4 79.5/32.9
+Tile 77.4/28.1 94.7/59.1 75.9/9.3 94.4/66.7 75.6/9.6 96.8/– 94.0/31.0 99.8/54.9 99.9/53.1
+Toothbrush 60.3/4.7 68.9/29.2 49.2/3.6 80.8/ 31.6 41.7/4.7 92.2/– 71.1/4.9 100.0/29.8 98.1/57.6
+Transistor 34.6/8.3 53.1/4.6 47.2/5.6 63.6/13.4 66.3/7.6 84.4/– 66.0/6.5 87.4/39.8 95.7/60.5
+Wood 97.0/34.1 58.8/3.8 83.0/15.6 86.5/20.4 90.1/15.0 94.4/– 95.3/32.6 99.5/53.5 98.4/50.0
+Zipper 99.4/63.9 98.0/43.9 89.3/50.4 99.3/46.9 89.3/48.0 95.5/– 79.5/8.0 93.8/39.8 99.7/53.9
+Avg 60.7/20.9 62.4/17.7 60.6/12.7 70.3/25.4 64.5/12.2 87.6/– 76.2/17.1 93.0/45.6 94.8/53.7

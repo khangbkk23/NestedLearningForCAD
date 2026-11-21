@@ -1,0 +1,812 @@
+# SOURCE: docs/papers/related_cad/arxiv_2601.01856.pdf
+# SOURCE_SHA256: 5bf2562bd1a6feddfd91814fbdec933b4c4f9c1d6dcd638c055073f8e9f0ee43
+# EXTRACTOR: pypdf 7.1.0 (PdfReader.extract_text, per page)
+# EXTRACTED: 2026-11-19
+# NOTE: machine extraction; equations/tables/unicode may be garbled. Cite the PDF, not this file.
+
+
+===== PAGE 1 =====
+GCR: Geometry-Consistent Routing for Task-Agnostic Continual Anomaly
+Detection
+Joongwon Chae1,2∗, Lihui Luo1∗, Yang Liu1, Runming Wang1
+Dongmei Yu3, Zeming Liang4, Xi Yuan4, Dayan Zhang4
+Zhenglin Chen4, Peiwu Qin4†, Ilmoon Chae2†
+1Tsinghua University Shenzhen International Graduate School, Shenzhen, China
+2Ratel Soft
+3Affiliated Fifth Hospital, Wenzhou Medical University, Wenzhou, Zhejiang, China
+4Chinese Medicine Guangdong Laboratory
+Abstract
+Feature-based anomaly detection has achieved strong perfor-
+manceinindustrialinspection,butpracticalsystemsoftenre-
+quiretask-agnosticinferenceundercontinualcategoryexpan-
+sion,wheretest-timecategorylabelsareunavailableandnew
+productcategoriesarrivesequentially.Inthissetting,anomaly
+detectionbecomesacross-headdecisionproblem:thesystem
+must first select an appropriate category-specific normality
+modelbeforeapplyingwithin-headanomalyscoring.Directly
+comparing head-specific anomaly scores can be unstable be-
+cause their score distributions and scales are not calibrated
+across categories. We propose GCR, a lightweight mixture-
+of-experts framework that separates cross-head routing from
+within-head scoring. GCR constructs category-specific pro-
+totype banks from frozen patch embeddings and routes each
+test image by minimizing the mean nearest-prototype dis-
+tanceinthesharedembeddingspace.Anomalymapsarethen
+computed only within the selected expert. This design avoids
+cross-head score comparison, requires no gradient updates
+for category expansion, and confines inference to a single
+routedhead.ExperimentsonMVTecADandVisAshowthat
+GCR improves routing stability and achieves the best average
+detection and localization performance among the evaluated
+methodsundertask-agnosticcontinualevaluation.Controlled
+ablationsidentifycross-headdecisioninstabilityasanimpor-
+tant source of degradation, especially for localization. These
+results highlight routing design as a key factor for scalable
+continual anomaly detection.
+Introduction
+Feature-based anomaly detection (AD) has become a dom-
+inant paradigm in industrial inspection, where large pre-
+trained vision encoders provide transferable patch-level rep-
+resentations for image-level anomaly detection and pixel-
+level localization without task-specific supervision or end-
+to-end training (Bergmann et al. 2019a; Defard et al. 2021;
+Rothetal.2022).Existingmethodsmainlyimprovecategory-
+specific anomaly scoring through density modeling, recon-
+struction, nearest-neighbor retrieval, or memory bank con-
+struction. However, practical inspection systems often re-
+∗These authors contributed equally.
+†Corresponding author.
+quire task-agnostic inference under continual category ex-
+pansion: multiple product categories must be handled si-
+multaneously, new categories arrive sequentially, and the
+category identity of a test image may be unavailable (You
+et al. 2022; Gao 2024; He et al. 2024a,b). Prior work has
+reportedsevereperformancedegradationonpreviouslyseen
+categories under such settings, often described as system-
+level catastrophic forgetting (Liu et al. 2024). In addition
+to accuracy degradation, continual AD must also address
+the cumulative cost of retraining category-specific prompts,
+representations, or models as categories increase.
+A simple alternative is to merge normal features from all
+categoriesintoasinglelargememorybankandperformuni-
+fied nearest-neighbor retrieval. Yet this strategy creates two
+deployment issues. First, the search space grows with the
+number of categories, weakening the fast inference advan-
+tage of memory-bank methods. Second, mixing heteroge-
+neous normal manifolds can introduce cross-category inter-
+ference.Maintainingseparatecategory-specificheadsavoids
+a monolithic bank, but introduces a new problem: when the
+test category is unknown, the system must route each image
+to an appropriate head before scoring.
+We revisit task-agnostic continual AD as a cross-head de-
+cisionproblem.Acommonstrategyselectstheheadwiththe
+most favorable anomaly score, implicitly assuming that in-
+dependently constructed heads are comparable. In practice,
+their anomaly-score distributions and scales are not neces-
+sarilycalibratedacrosscategories(Liuetal.2024;Youetal.
+2022). We therefore argue that part of task-agnostic degra-
+dation arises from cross-head decision instability, not repre-
+sentation forgetting alone.
+To test this hypothesis, we keep frozen ViT features and
+category prototypes fixed and vary only the routing rule. A
+shared geometric criterion sharply improves routing accu-
+racy, indicating that stable expert selection is a key factor in
+continual AD. Based on this observation, we propose GCR
+(Geometry-Consistent Routing), a lightweight mixture-of-
+experts framework that separates cross-head routing from
+within-head anomaly scoring. GCR appends a prototype
+bank without gradient updates, routes by mean nearest-
+prototype distance in a shared frozen embedding space, and
+arXiv:2601.01856v3  [cs.CV]  24 Jul 2026
+
+===== PAGE 2 =====
+computes anomaly maps only within the selected expert.
+Our contributions are summarized as follows:
+• A decision-rule perspective on task-agnostic contin-
+ualAD.Wereformulatetask-agnosticcontinualanomaly
+detection as a multi-head expert selection problem and
+identify cross-head routing instability as an important
+source of task-agnostic degradation.
+• Geometry-consistent routing for scalable continual
+expansion. We propose GCR, which adds categories
+through gradient-free prototype construction and uses a
+shared geometric criterion for routing, avoiding cross-
+head anomaly-score calibration.
+• Mechanism-level evaluation. We evaluate GCR on
+MVTecADandVisAwithcontrolledroutingdiagnostics
+andmemory-bankcomparisons,obtainingimprovedrout-
+ing stability and the best average detection/localization
+among the evaluated methods.
+Related Work
+Industrial anomaly detection (IAD) aims to detect and lo-
+calize visual defects using only normal training samples.
+Since the introduction of MVTec AD, IAD has empha-
+sized both image-level anomaly detection and pixel-level
+localization, and the field has expanded to more challeng-
+ing benchmarks such as VisA, MVTec LOCO-AD, MVTec
+3D-AD, and Real-IAD (Bergmann et al. 2019a; Zou et al.
+2022; Bergmann et al. 2022a,b; Wang et al. 2024). Existing
+methods differ mainly in how they model normality and de-
+fine anomaly scores. Reconstruction-based methods detect
+anomalies through reconstruction errors from autoencoders
+or generative models (Bergmann et al. 2019b; Song et al.
+2021;Zavrtanik,Kristan,andSkočaj2021),whileprobabilis-
+ticandflow-basedmethodsassignscoresthroughlikelihood
+or feature-density modeling (Rudolph, Wandt, and Rosen-
+hahn2021;Gudovskiy,Ishizaka,andKozuka2022;Yuetal.
+2021;Zhangetal.2023).Morerecently,diffusion-basedand
+text-conditioned methods have extended anomaly detection
+through denoising, reconstruction, or controllable anomaly
+generation (Wyatt et al. 2022; Zhang et al. 2025; Sun et al.
+2025). Although effective within a category, these methods
+typically do not address whether anomaly scores from dif-
+ferent category heads are comparable under task-agnostic
+multi-category inference.
+Feature-based anomaly detection with pre-trained en-
+coders has become a dominant practical paradigm. Repre-
+sentativemethodsincludeteacher–studentdistillation(Wang
+et al. 2021; Deng and Li 2022; Gu et al. 2023), one-
+class or discriminative feature modeling (Zhou et al. 2021;
+Yi and Yoon 2021; Liu et al. 2023), and memory-bank-
+basednearest-neighborretrieval(Rothetal.2022;Bae,Lee,
+and Kim 2023). Memory-bank methods are lightweight in
+the standard single-category setting, but continual multi-
+category deployment raises a different question: how should
+normal features be organized and queried as categories ac-
+cumulate? A unified memory bank avoids explicit routing,
+but increases the search space and can mix heterogeneous
+normalmanifolds.Separatecategory-specificbankspreserve
+categorystructure,butrequiretask-agnosticroutingwhenthe
+category label is unknown. GCR adopts the latter structure
+and focuses on making this routing decision stable.
+Recent unified and foundation-model-based methods ex-
+tend AD beyond fixed category-aware evaluation (You et al.
+2022; Guo et al. 2025), including zero-shot, prompt-based,
+and open-vocabulary approaches (Jeong et al. 2023; Zhou
+et al. 2024; Li et al. 2024; Gu et al. 2024). Unified and con-
+tinualADposerelatedbutdistinctsystemquestions:asingle
+sharedmodelavoidsexplicittaskinferencebutcanmixcate-
+gorymanifolds,whereasspecializedheadspreservecategory
+structurebutrequireroutingwhenlabelsareabsent.Theclos-
+estcontinualsettingisUCAD,whichlearnscategory-specific
+contrastive prompts and a key-prompt-knowledge bank for
+task inference (Liu et al. 2024). Unlike learned task infer-
+ence, GCR studies expert selection itself as a cross-head de-
+cision: shared embedding geometry performs routing, while
+anomaly-scoreaggregationisreservedfortheselectedhead.
+Categoryexpansionrequiresneitherprompttrainingnorrep-
+resentation updates.
+Method
+Problem Setup and Design Principle
+Figure 1 illustrates the overall GCR pipeline, includ-
+ing category-specific prototype construction, geometry-
+consistent routing, and routed-head anomaly scoring.
+Weconsiderunsupervisedanomalydetectionforindustrial
+inspection under a category-incremental continual setting.
+Trainingdatacontainonlynormalimages,andproductcate-
+goriesarrivesequentially.Let Ct denotethesetofcategories
+observed up to continual step t.
+Given a test image
+x ∈ R3×H0 ×W0 ,
+itscategoryidentityisunknown.Thesystemmustfirstselect
+an appropriate category-specific expert and then produce (i)
+a pixel-level anomaly map
+M (x) ∈ RH0 ×W0 ,
+and (ii) an image-level anomaly score
+score(x) ∈ R.
+Thissettingcanbeviewedasamulti-headinferenceprob-
+lem. Each observed category c ∈ Ct is associated with an
+expert that models the normal distribution of that category.
+At inference time, the system must select an expert with-
+out access to the category label and then compute anomaly
+scores within the selected expert.
+The central design principle of GCR is that cross-head
+routingandwithin-headanomalyscoringservedifferentob-
+jectives.Routingshouldidentifythecategorywhosenormal
+structurebestexplainsthedominantcontentofthetestimage
+andshouldthereforeremainrelativelyinsensitivetolocalized
+defects. In contrast, anomaly scoring should emphasize lo-
+calized feature deviations. GCR consequently uses a global
+geometric criterion for routing and a defect-sensitive local
+aggregation rule for scoring, rather than reusing the same
+anomaly score for both operations.
+
+===== PAGE 3 =====
+Figure 1: Overview of GCR. During continual expansion, GCR constructs category-specific prototype banks from frozen ViT
+patch embeddings. At inference, geometry-consistent routing selects an expert using the mean nearest-prototype distance, and
+anomaly scoring is performed only within the selected head.
+Frozen Category-Specific Prototype Banks
+GCR extracts patch-level representations using a frozen
+OpenCLIP ViT-B/16 encoder f (·). Given an input image
+x,weusepatchtokensfromaselectedtransformerblock;all
+experiments use block 6. After removing the [CLS] token,
+the resulting feature map is
+F (x) ∈ RD×H ′×W ′ .
+Let N = H ′W ′ denote the number of patch tokens, and let
+qp(x) ∈ RD , p ∈ {1, . . . , N },
+denote the patch feature at spatial location p.
+Input images are normalized using the standard CLIP
+channel statistics. Prototype construction, routing, and
+anomaly scoring therefore operate in the same raw embed-
+ding geometry. The encoder remains frozen throughout the
+continualprocess,andnoend-to-endrepresentationlearning
+is performed.
+For category c, let
+Qc =
+
+qp(x) | x ∈ Dtrain c , p = 1, . . . , N 	
+be the set of patch embeddings extracted from its normal
+training images. GCR constructs a category-specific proto-
+type bank
+Mc = {µc,1, . . . , µc,K }, µc,k ∈ RD . (1)
+The K prototypes are selected from Qc using greedy k-
+center coreset selection under squared Euclidean distance:
+µc,1 ∼ Uniform(Qc),
+µc,t = arg max q∈Qc min 1≤s<t ∥q − µc,s∥2 2, t = 2, . . . , K.
+(2)
+Weuse K = 196prototypespercategory.Whenanewcat-
+egoryarrives,GCRconstructsonlyitscorrespondingproto-
+typebank.Thefrozenencoderandallpreviouslyconstructed
+category banks remain unchanged. Coreset construction is
+a data-dependent selection procedure rather than gradient-
+based optimization; category expansion therefore requires
+neither backpropagation nor retraining of previous heads.
+Geometry-Consistent Routing
+At inference time, the category label of x is unavailable, so
+anexpertmustbeselectedbeforeanomalyscoring.Ascore-
+based routing strategy computes an image-level anomaly
+score under every head and selects the head with the low-
+est score. This implicitly assumes that independently con-
+structed heads produce directly comparable anomaly-score
+distributions and scales. It also uses a defect-sensitive score
+forexpertselection,allowinglocalizedanomaliestoalterthe
+routing decision.
+GCRinsteadappliesthesamegeometricroutingcriterion
+uniformly to all category heads in the shared frozen embed-
+ding space. Let
+Pr ⊆ {1, . . . , N }
+be a uniformly sampled set of routing-patch indices, and let
+Mr = |Pr |.
+For each candidate category c ∈ Ct, we compute the mean
+nearest-prototype squared distance
+rc(x) = 1 Mr X p∈Pr min 1≤k≤K ∥qp(x) − µc,k∥2 2. (3)
+
+===== PAGE 4 =====
+The routed category is selected by top-1 gating:
+ˆc(x) = arg min
+c∈Ct
+rc(x). (4)
+We use Mr = 32 sampled patch tokens. Uniform sam-
+pling makes rc(x) an efficient estimate of the mean nearest-
+prototype distance over all image patches.
+The mean is used instead of a maximum or top-q aggre-
+gation because routing should reflect the dominant normal
+structure of the image rather than a small number of high-
+distance patches. A localized defect affects only part of the
+image,whiletheremainingnormalpatchestypicallypreserve
+the global geometry of the true category. Averaging nearest-
+prototype distances therefore makes routing less sensitive to
+localized anomalies than an extreme-sensitive image-level
+anomaly score.
+Routing uses only raw isotropic squared Euclidean dis-
+tances. The soft aggregation, prototype weighting, and scor-
+ing variants used within a selected head are not included in
+the routing criterion. This explicitly separates expert selec-
+tion from defect-sensitive anomaly scoring.
+Routed-Head Anomaly Scoring
+After routing, anomaly scores are computed only within the
+selectedexpert ˆc(x).Forapatchfeature q andprototype µc,k
+from category head c, we define
+dc,k(q) = ∥q − µc,k∥2 2. (5)
+For each patch, we retain the K ′ nearest prototypes ac-
+cording to the same raw squared Euclidean distance. Their
+index set is denoted by
+K′ c(q),
+and we use K ′ = 16.
+The patch anomaly score is computed using a truncated
+LogSumExp soft minimum:
+Ec(q) = − log
+X
+k∈K′c (q)
+πc,k exp
+
+− 1 2 dc,k(q)  , (6)
+where the retained prototypes use uniform weights,
+πc,k = 1 K ′ .
+This aggregation provides a smooth alternative to hard
+nearest-prototype scoring and admits a Gaussian-mixture-
+style energy interpretation.
+Forimage x,thepatch-levelanomalymapundercategory
+head c is
+Sc(x)[p] = Ec
+ 
+qp(x)
+
+, p = 1, . . . , N. (7)
+The final patch-level map is computed only for the routed
+category:
+S(x) = Sˆc(x)(x) ∈ RH ′×W ′ . (8)
+The patch-level map is upsampled to the input resolution
+using bilinear interpolation:
+M (x) = Upsample
+ 
+S(x); H0, W0
+
+∈ RH0 ×W0 . (9)
+The image-level anomaly score is obtained by top-q pool-
+ing over the upsampled map:
+score(x) = TopQPool
+ 
+M (x); q
+
+, (10)
+where TopQPool averages the largest q fraction of pixel
+scores. We use q = 1% by default. Top-q pooling preserves
+strong responses from localized defects while reducing sen-
+sitivity to diffuse background activation.
+GCRneverdirectlycomparesanomalyscoresproducedby
+different heads. Routing is completed first using the shared
+geometric criterion, and the anomaly map and image-level
+score are then consumed only within the selected head.
+Cross-head anomaly-score calibration is therefore unneces-
+sary.
+Ablation-onlyscoringvariants. Inadditiontothedefault
+isotropic LogSumExp scoring rule, we evaluate a hard min-
+imum aggregator and an EMA variance-based diagonal pre-
+cision in the controlled ablations. These variants are used
+only to analyze the effect of within-head scoring and are not
+partofthedefaultGCRconfigurationoritsroutingcriterion.
+Continual Expansion and Complexity
+When a new category arrives, GCR appends only its pro-
+totype bank while keeping the encoder and all previously
+constructed banks fixed. Category expansion therefore does
+not modify representations or normality models associated
+with earlier categories.
+Let
+C = |Ct|
+denote the number of categories observed at step t. Routing
+compares Mr sampledpatcheswith K prototypesineachof
+the C category heads, requiring
+O(CMr KD)
+distance computation.
+Aftertop-1routing,denseanomalyscoringisrestrictedto
+the selected bank and requires
+O(N KD)
+distance computation, followed by energy aggregation over
+the retained K ′ prototypes. In contrast, an accumulated all-
+head search applies the full N-patch query to all category
+banks and requires
+O(CN KD).
+Eachcategorystoresafixed-sizeprototypebank,givinga
+memory complexity of
+O(CKD).
+The routing cost therefore grows linearly with the num-
+ber of categories, but category growth affects only the
+lightweight Mr -token gating stage. Dense localization and
+image-level anomaly scoring are always performed within a
+single routed expert rather than across all category heads.
+
+===== PAGE 5 =====
+(a) MVTec AD
+Class CFA PaDiM PatchCore SimpleNet UniAD UCAD GCR
+Bottle .309/.068 .458/.072 .533/.087 .938/.108 .997/.734 1.000/.752 1.000/.700
+Cable .489/.056 .544/.037 .505/.043 .560/.045 .701/.232 .751/.290 .975/.552
+Capsule .275/.050 .418/.030 .351/.042 .519/.029 .765/.313 .866/.349 .957/.336
+Carpet .834/.271 .454/.023 .865/.407 .736/.018 .998/.517 .965/.622 1.000/.733
+Grid .571/.004 .704/.006 .723/.003 .592/.004 .896/.204 .944/.187 1.000/.334
+Hazelnut .903/.341 .635/.183 .959/.443 .859/.029 .936/.378 .994/.506 1.000/.530
+Leather .935/.393 .418/.039 .854/.352 .749/.006 1.000/.360 1.000/.333 1.000/.423
+Metal Nut .464/.255 .446/.155 .456/.189 .710/.227 .964/.587 .988/.775 .998/.668
+Pill .528/.080 .449/.044 .511/.058 .701/.077 .895/.346 .894/.634 .958/.582
+Screw .528/.015 .578/.014 .626/.017 .599/.004 .554/.035 .739/.214 .855/.226
+Tile .763/.155 .581/.065 .748/.124 .654/.082 .989/.428 .998/.549 1.000/.598
+Toothbrush .519/.053 .678/.044 .600/.028 .422/.046 .928/.398 1.000/.298 .975/.437
+Transistor .320/.056 .407/.049 .427/.053 .669/.049 .966/.542 .874/.398 .977/.452
+Wood .923/.281 .549/.080 .900/.270 .908/.037 .982/.378 .995/.535 .995/.552
+Zipper .984/.573 .855/.452 .974/.604 .996/.139 .987/.443 .938/.398 .986/.575
+Average .623/.177 .545/.086 .669/.181 .708/.060 .904/.393 .930/.456 .978/.513
+AvgFM .361/.083 .368/.366 .318/.343 .211/.069 .076/.086 .010/.013 .000/.000
+(b) VisA
+Class CFA PatchCore PaDiM SimpleNet UniAD UCAD GCR
+Candle .512/.017 .647/.018 .533/.004 .504/.001 .573/.132 .778/.067 .910/.135
+Capsules .672/.005 .579/.010 .455/.009 .474/.004 .599/.123 .877/.437 .788/.386
+Cashew .873/.059 .669/.047 .570/.056 .794/.017 .661/.378 .960/.580 .957/.457
+Chewinggum .753/.243 .735/.202 .438/.021 .721/.007 .758/.574 .958/.503 .972/.558
+Fryum .304/.085 .431/.081 .549/.088 .684/.047 .504/.404 .945/.334 .926/.281
+Macaroni1 .557/.001 .631/.003 .486/.002 .567/.000 .559/.041 .823/.013 .824/.069
+Macaroni2 .422/.001 .624/.001 .516/.002 .447/.000 .644/.010 .667/.003 .766/.041
+PCB1 .698/.013 .617/.008 .546/.012 .598/.013 .749/.612 .905/.702 .942/.652
+PCB2 .472/.006 .534/.004 .549/.004 .629/.003 .523/.083 .871/.136 .844/.107
+PCB3 .449/.008 .479/.008 .502/.010 .538/.004 .547/.266 .813/.266 .808/.253
+PCB4 .407/.015 .645/.010 .490/.015 .493/.009 .562/.232 .901/.106 .976/.319
+PipeFryum .998/.592 .999/.443 .984/.569 .945/.058 .989/.549 .988/.457 1.000/.367
+Average .593/.087 .633/.070 .551/.066 .616/.014 .639/.283 .874/.300 .893/.302
+AvgFM .327/.184 .349/.327 .337/.239 .283/.016 .297/.062 .039/.015 .000/.000
+Table 1: Category-wise task-agnostic continual results. Each cell reports I-AUROC/P-AP; AvgFM reports I-FM/P-FM.
+Experiments
+Setup and Metrics
+We evaluate GCR on MVTec AD and VisA. Both datasets
+use only normal images for training and provide test images
+with normal/anomalous labels and pixel-level annotations.
+We follow the task-agnostic continual protocol used in prior
+continual AD work (Liu et al. 2024): categories are intro-
+ducedsequentially,andtest-timecategorylabelsareunavail-
+able. Therefore, the model must first route each image to
+an appropriate head and then compute anomaly scores only
+within the selected head.
+GCR uses a LAION-400M-pretrained OpenCLIP ViT-
+B/16 (Schuhmann et al. 2021) as a frozen feature extractor.
+Wetakepatchtokensfromblock6withstandardCLIPinput
+normalization and perform routing and scoring in the raw
+embedding space. Each category uses K = 196 prototypes
+selected from normal training patches by greedy k-center
+selection. A category bank is constructed once from its own
+normaltrainingimagesandremainsfixedthereafter.Whena
+new category arrives, GCR appends only its corresponding
+prototype bank without modifying the encoder, revisiting
+previous training data, or updating previously constructed
+heads.
+At inference, GCR routes using the mean nearest-
+prototype squared distance over Mr = 32 sampled patch
+tokens.Weuserandomseed0fortokensamplingandreport
+asingledeterministicrun.Routingaccuracyreaches 100%at
+Mr = 32 and remains unchanged at Mr = 64 (Table 2(e)),
+indicating that a coarse global sample is sufficient for the
+evaluated category pool. Routing always uses raw isotropic
+squared Euclidean distance. The selected head produces a
+LogSumExpanomalymap,whichisupsampledandreduced
+to an image-level score by top-q pooling over the largest 1%
+of pixel scores. Diagonal geometry is evaluated only as an
+ablation variant.
+WecompareGCRwithPaDiM(Defardetal.2021),Patch-
+
+===== PAGE 6 =====
+(a) Routing and scoring ablations
+Metric Score-based GCR routing
+Routing Acc. (overall) ↑ .937 1.000
+Routing Acc. (normal) ↑ 1.000 1.000
+Routing Acc. (anomaly) ↑ .914 1.000
+I-AUROC (%) ↑ 97.8 97.8
+P-AP ↑ .380 .513
+Scoring rule Diagonal I-AUROC (%) / I-FM
+Energy / LSE Yes 97.7 / .001
+Energy / LSE No 97.8 / .000
+Energy / Min Yes 97.7 / .008
+Energy / Min No 97.5 / .000
+(c) Misrouting breakdown
+Score-based GCR
+Normal routed correctly 467/467 467/467
+Anomaly routed correctly 1150/1258 1258/1258
+P-AP, correctly routed .4035 —
+P-AP, misrouted .2432 —
+(b) Memory organization and efficiency
+Config. Search I-AUC ↑ P-AP ↑ I-FM ↓ ms ↓
+PC shared 196 .690 .265 .112 14.08
+PC accum. 196C .884 .514 .034 14.22
+GCR 196 .978 .513 .000 2.54
+(d) Cross-method latency
+Method ms/img Method ms/img
+PaDiM 1.09 UniAD 27.31
+GCR 2.54 CFA 42.58
+PatchCore 14.22 SimpleNet 114.82
+UCAD 400.21
+(e) Routing-token sweep
+Mr 16 32 64
+Routing Acc. ↑ .992 1.000 1.000
+Table2:ControlledanalysesonMVTecADunderthesamefrozenrepresentationandprototypeconstructionwhereapplicable.
+(a) Comparison of routing rules and within-head scoring variants. (b) Memory organization and efficiency. (c) Misrouting
+breakdown.(d)Cross-methodinferencelatencymeasuredonasingleRTX3090GPUat 224 × 224.(e)Routingaccuracyversus
+the number of sampled routing tokens Mr . In (b), Search denotes the number of prototypes queried during dense anomaly
+scoring, and C denotes the number of observed category heads.
+Core (Roth et al. 2022), CFA (Lee, Lee, and Song 2022),
+SimpleNet (Liu et al. 2023), UniAD (You et al. 2022), and
+UCAD (Liu et al. 2024). To isolate the effects of routing
+and memory-bank organization, we additionally construct
+controlled PatchCore variants using the same frozen rep-
+resentation and prototype construction: a shared memory
+bankthatmergesallcategories,anaccumulatedper-category
+memory that searches across all category banks, and GCR
+with category-specific banks and geometry-consistent rout-
+ing. Our main causal analysis is based on these controlled
+routing diagnostics and memory-organization ablations.
+We report image-level AUROC (I-AUROC), pixel-level
+average precision (P-AP), routing accuracy, and forgetting
+measures. Category-wise metrics are computed within each
+category after task-agnostic routing, and the reported aver-
+ages are macro-averages over categories. Test-time category
+labels are used only for evaluation and are never used for
+routing or scoring. I-FM and P-FM are defined as the av-
+erage gaps between each category’s best post-introduction
+I-AUROC or P-AP and its value at the final continual step.
+Routing accuracy is the fraction of test images assigned to
+theirground-truthcategories.BecauseGCRdoesnotupdate
+theencoderorpreviouslyconstructedheads,itsFMprimarily
+reflectsrouting-inducedforgettingratherthanrepresentation
+drift.
+Main Results
+Table 1 reports category-wise results under task-agnostic
+continual evaluation. Among the evaluated methods, GCR
+achievesthebestaverageI-AUROCandP-APandthelowest
+I-FM and P-FM on both datasets.
+On MVTec AD, GCR improves average I-AUROC from
+.930 to .978 and P-AP from .456 to .513 compared with
+UCAD. The gains extend across both object and texture cat-
+egories, with particularly strong localization performance
+onCable,Carpet,Grid,Screw,Tile,andWood.Severalcate-
+goriesremainchallenging:UCADperformsbetteronBottle,
+Capsule, Metal Nut, and Pill localization, while PatchCore
+achieves the highest P-AP on Zipper. These differences in-
+dicate that stable routing complements, rather than replaces,
+category-specific anomaly scoring.
+On VisA, GCR achieves .893 I-AUROC and .302 P-AP,
+compared with .874 and .300 for UCAD. The largest detec-
+tion improvements occur on Candle, Macaroni2, PCB1, and
+PCB4, whereas UCAD remains stronger on Capsules and
+Cashew.
+Interpretation of forgetting measures. Because GCR
+keeps the encoder and all previously constructed prototype
+banks fixed, its forgetting measures should not be inter-
+pretedasrepresentation-levelforgetting.Underourprotocol,
+I-FM and P-FM primarily measure routing-induced forget-
+ting: whether the introduction of new heads causes samples
+from previously observed categories to be assigned to an
+incorrect expert. Accordingly, FM = .000 indicates stable
+routing across the evaluated 15 MVTec AD and 12 VisA
+heads, but does not by itself establish the same behavior for
+substantially larger or more fine-grained category pools.
+
+===== PAGE 7 =====
+Controlled Analysis
+Thecontrolledexperimentsisolatetheeffectsofroutingand
+memory organization from differences in the feature repre-
+sentation and prototype construction.
+Replacing score-based routing with geometry-consistent
+routing increases routing accuracy from .937 to 1.000. I-
+AUROCremainsunchangedat 97.8%,whileP-APimproves
+from .380to .513.Becausebothconfigurationsuseidentical
+representations,prototypes,andwithin-headscoring,thelo-
+calization gain is attributable to expert selection rather than
+feature quality.
+Table 2(c) clarifies this mechanism. Score-based routing
+assigns all normal images to the correct heads but misroutes
+asubsetofanomalousimages.Thisasymmetryfollowsfrom
+the different decision rules: a localized defect can strongly
+alteradefect-sensitiveimage-levelanomalyscore,whilethe
+remaining normal patches still preserve the global geome-
+try of the true category. Consequently, misrouted samples
+achieve substantially lower P-AP than correctly routed sam-
+ples. This explains why misrouting can degrade localiza-
+tion even when aggregate image-level AUROC remains un-
+changed. Geometry-consistent routing instead averages raw
+isotropic nearest-prototype distances over patches and cor-
+rectly routes all samples in the same evaluation.
+With routing fixed, the four within-head scoring and ag-
+gregationvariantsproduceI-AUROCvaluesbetween 97.5%
+and 97.8%, with FM at or below .008. Diagonal adaptation
+provides no consistent benefit. These results support the de-
+fault isotropic Energy/LSE configuration and show that the
+primaryimprovement arisesfromrouting ratherthanfroma
+particular within-head scoring rule.
+The routing-token sweep provides further evidence that
+dense patch evaluation is unnecessary for expert selection.
+Increasing Mr from 16 to 32 raises routing accuracy from
+.992 to 1.000, while increasing it further to 64 produces
+no additional gain. Thus, a small sample of spatial tokens
+already captures sufficient image-level geometry to identify
+the appropriate category bank. We use Mr = 32 throughout
+themainexperiments,reducingroutingcomputationwithout
+sacrificing accuracy in the evaluated setting.
+The memory-organization comparison leads to the same
+conclusion.Underidenticalfeaturesandprototypeconstruc-
+tion, FM decreases from .112 for a shared bank to .034
+for accumulated category-specific banks and to .000 for
+GCR.GCRperformsdensescoringinonlyoneroutedhead,
+matches the accumulated-bank configuration in P-AP (.513
+vs. .514),improvesI-AUROCfrom .884to .978,andreduces
+latency from 14.22 to 2.54 ms. The improvement therefore
+comes from selecting the appropriate expert rather than in-
+creasing the number of prototypes searched during dense
+scoring.
+Figure2presentsrepresentativetask-agnosticlocalization
+results. GCR concentrates anomaly responses on defective
+regions while suppressing category-specific background ac-
+tivation.
+Scope and Limitations
+Our evaluation covers 27 categories across MVTec AD and
+VisA under a task-agnostic closed-world continual setting.
+Figure 2: Qualitative localization on MVTec AD. Each pair
+shows an input image and its anomaly map under task-
+agnostic routing. GCR concentrates responses on defective
+regions while suppressing category-specific background ac-
+tivation.
+Within this scope, GCR achieves stable expert selection us-
+ing only Mr = 32 sampled routing tokens. Although dense
+anomaly scoring is restricted to a single routed head, rout-
+ing still compares the sampled tokens with every category
+bank and therefore scales linearly with the number of heads.
+Evaluatingsubstantiallylargerormorefine-grainedcategory
+poolsanddevelopinghierarchicalroutingforlarge-scalede-
+ployment remain natural directions for future work.
+Conclusion
+WeproposedGCR,atask-agnosticcontinualADframework
+thatseparatesgeometry-consistentroutingfromwithin-head
+scoring. It appends frozen prototype heads without gradi-
+ent updates, routes by mean nearest-prototype distance, and
+scores only within the selected expert. Controlled results
+show that stable head selection, rather than a more elabo-
+rate within-head score, accounts for the main improvement.
+This separation enables efficient continual expansion with-
+out retraining previous heads or performing dense all-head
+anomaly scoring. Our results further indicate that apparent
+forgettingintask-agnosticcontinualADcanarisefromunsta-
+blecross-headdecisionsevenwhentheunderlyingrepresen-
+tationsremainfixed.Thisperspectivemotivateshierarchical
+routing, confidence-aware expert selection, and open-world
+category rejection.
+
+===== PAGE 8 =====
+References
+Bae, J.; Lee, J.-H.; and Kim, S. 2023. PNI: Industrial
+Anomaly Detection Using Position and Neighborhood In-
+formation. In Proceedings of the IEEE/CVF International
+Conference on Computer Vision, 6373–6383.
+Bergmann, P.; Batzner, K.; Fauser, M.; Sattlegger, D.; and
+Steger, C. 2022a. Beyond Dents and Scratches: Logical
+Constraints in Unsupervised Anomaly Detection and Local-
+ization. International Journal of Computer Vision, 130(4):
+947–969.
+Bergmann, P.; Fauser, M.; Sattlegger, D.; and Steger, C.
+2019a. MVTec AD – A Comprehensive Real-World Dataset
+for Unsupervised Anomaly Detection. In Proceedings of
+the IEEE/CVF Conference on Computer Vision and Pattern
+Recognition, 9592–9600.
+Bergmann, P.; Jin, X.; Sattlegger, D.; and Steger, C. 2022b.
+The MVTec 3D-AD Dataset for Unsupervised 3D Anomaly
+Detection and Localization. In Proceedings of the 17th In-
+ternational Joint Conference on Computer Vision, Imaging
+andComputerGraphicsTheoryandApplications,202–213.
+Bergmann, P.; Löwe, S.; Fauser, M.; Sattlegger, D.; and Ste-
+ger, C. 2019b. Improving Unsupervised Defect Segmenta-
+tion by Applying Structural Similarity to Autoencoders. In
+Proceedings of the 14th International Joint Conference on
+Computer Vision, Imaging and Computer Graphics Theory
+andApplications–Volume5:VISAPP,372–380.SciTePress.
+Defard, T.; Setkov, A.; Loesch, A.; and Audigier, R. 2021.
+PaDiM: A Patch Distribution Modeling Framework for
+Anomaly Detection and Localization. In Pattern Recogni-
+tion.ICPRInternationalWorkshopsandChallenges,volume
+12664, 475–489. Springer.
+Deng, H.; and Li, X. 2022. Anomaly Detection via Reverse
+Distillation From One-Class Embedding. In Proceedings of
+the IEEE/CVF Conference on Computer Vision and Pattern
+Recognition, 9737–9746.
+Gao,B.-B.2024. LearningtoDetectMulti-ClassAnomalies
+with Just One Normal Image Prompt. In Computer Vision –
+ECCV 2024, 454–470. Springer.
+Gu, Z.; Liu, L.; Chen, X.; Yi, R.; Zhang, J.; Wang, Y.;
+Wang, C.; Shu, A.; Jiang, G.; and Ma, L. 2023. Remem-
+bering Normality: Memory-guided Knowledge Distillation
+forUnsupervisedAnomalyDetection. InProceedingsofthe
+IEEE/CVF International Conference on Computer Vision,
+16401–16409.
+Gu, Z.; Zhu, B.; Zhu, G.; Chen, Y.; Tang, M.; and Wang, J.
+2024. AnomalyGPT: Detecting Industrial Anomalies Using
+LargeVision-LanguageModels. InProceedingsoftheAAAI
+ConferenceonArtificialIntelligence,volume38,1932–1940.
+Gudovskiy,D.;Ishizaka,S.;andKozuka,K.2022. CFLOW-
+AD: Real-Time Unsupervised Anomaly Detection With Lo-
+calization via Conditional Normalizing Flows. In Proceed-
+ingsoftheIEEE/CVFWinterConferenceonApplicationsof
+Computer Vision, 98–107.
+Guo, J.; Lu, S.; Zhang, W.; Chen, F.; Li, H.; and Liao, H.
+2025. Dinomaly: The Less Is More Philosophy in Multi-
+Class Unsupervised Anomaly Detection. In Proceedings of
+the IEEE/CVF Conference on Computer Vision and Pattern
+Recognition, 20405–20415.
+He,H.;Zhang,J.;Chen,H.;Chen,X.;Li,Z.;Chen,X.;Wang,
+Y.;Wang,C.;andXie,L.2024a. ADiffusion-BasedFrame-
+workforMulti-ClassAnomalyDetection. InProceedingsof
+the AAAI Conference on Artificial Intelligence, volume 38,
+8472–8480.
+He, L.; Jiang, Z.; Peng, J.; Zhu, W.; Liu, L.; Du, Q.; Hu,
+X.; Chi, M.; Wang, Y.; and Wang, C. 2024b. Learning Uni-
+fiedReferenceRepresentationforUnsupervisedMulti-Class
+Anomaly Detection. In Computer Vision – ECCV 2024,
+216–232. Springer.
+Jeong, J.; Zou, Y.; Kim, T.; Zhang, D.; Ravichandran, A.;
+and Dabeer, O. 2023. WinCLIP: Zero-/Few-Shot Anomaly
+Classification and Segmentation. In Proceedings of the
+IEEE/CVF Conference on Computer Vision and Pattern
+Recognition, 19606–19616.
+Lee, S.; Lee, S.; and Song, B. C. 2022. CFA: Coupled-
+hypersphere-based Feature Adaptation for Target-Oriented
+Anomaly Localization. IEEE Access, 10: 78446–78454.
+Li,X.;Zhang,Z.;Tan,X.;Chen,C.;Qu,Y.;Xie,Y.;andMa,
+L. 2024. PromptAD: Learning Prompts with Only Normal
+SamplesforFew-ShotAnomalyDetection.InProceedingsof
+the IEEE/CVF Conference on Computer Vision and Pattern
+Recognition, 16838–16848.
+Liu, J.; Wu, K.; Nie, Q.; Chen, Y.; Gao, B.-B.; Liu, Y.;
+Wang, J.; Wang, C.; and Zheng, F. 2024. Unsupervised
+Continual Anomaly Detection with Contrastively-Learned
+Prompt. InProceedingsoftheAAAIConferenceonArtificial
+Intelligence, volume 38, 3639–3647.
+Liu, Z.; Zhou, Y.; Xu, Y.; and Wang, Z. 2023. SimpleNet:
+A Simple Network for Image Anomaly Detection and Lo-
+calization. In Proceedings of the IEEE/CVF Conference on
+Computer Vision and Pattern Recognition (CVPR), 20402–
+20411.
+Roth,K.;Pemula,L.;Zepeda,J.;Schölkopf,B.;Brox,T.;and
+Gehler,P.2022. TowardsTotalRecallinIndustrialAnomaly
+Detection. In Proceedings of the IEEE/CVF Conference on
+Computer Vision and Pattern Recognition, 14318–14328.
+Rudolph, M.; Wandt, B.; and Rosenhahn, B. 2021. Same
+SamebutDifferNet:Semi-SupervisedDefectDetectionWith
+NormalizingFlows. InProceedingsoftheIEEE/CVFWinter
+ConferenceonApplicationsofComputerVision,1907–1916.
+Schuhmann, C.; Vencu, R.; Beaumont, R.; Kaczmarczyk,
+R.; Mullis, C.; Katta, A.; Coombes, T.; Jitsev, J.; and
+Komatsuzaki, A. 2021. LAION-400M: Open Dataset of
+CLIP-Filtered 400 Million Image-Text Pairs. arXiv preprint
+arXiv:2111.02114.
+Song, J.; Kong, K.; Park, Y.-I.; Kim, S.-G.; and Kang, S.-J.
+2021. AnoSeg:AnomalySegmentationNetworkUsingSelf-
+Supervised Learning. arXiv preprint arXiv:2110.03396.
+Sun, H.; Cao, Y.; Dong, H.; and Fink, O. 2025. Unseen Vi-
+sual Anomaly Generation. In Proceedings of the IEEE/CVF
+Conference on Computer Vision and Pattern Recognition,
+25508–25517.
+
+===== PAGE 9 =====
+Wang, C.; Zhu, W.; Gao, B.-B.; Gan, Z.; Zhang, J.; Gu,
+Z.; Qian, S.; Chen, M.; and Ma, L. 2024. Real-IAD: A
+Real-World Multi-View Dataset for Benchmarking Versa-
+tile Industrial Anomaly Detection. In Proceedings of the
+IEEE/CVF Conference on Computer Vision and Pattern
+Recognition, 22883–22892.
+Wang, G.; Han, S.; Ding, E.; and Huang, D. 2021. Student-
+Teacher Feature Pyramid Matching for Anomaly Detection.
+In Proceedings of the British Machine Vision Conference
+(BMVC).
+Wyatt, J.; Leach, A.; Schmon, S. M.; and Willcocks, C. G.
+2022. AnoDDPM:AnomalyDetectionWithDenoisingDif-
+fusion Probabilistic Models Using Simplex Noise. In Pro-
+ceedings of the IEEE/CVF Conference on Computer Vision
+and Pattern Recognition Workshops (CVPRW), 650–656.
+Yi, J.; and Yoon, S. 2021. Patch SVDD: Patch-level SVDD
+for Anomaly Detection and Segmentation. In Computer Vi-
+sion – ACCV 2020, volume 12627, 375–390. Springer.
+You, Z.; Cui, L.; Shen, Y.; Yang, K.; Lu, X.; Zheng, Y.;
+and Le, X. 2022. A Unified Model for Multi-class Anomaly
+Detection. In Advances in Neural Information Processing
+Systems, volume 35, 4571–4584. Curran Associates, Inc.
+Yu, J.; Zheng, Y.; Wang, X.; Li, W.; Wu, Y.; Zhao, R.; and
+Wu, L. 2021. FastFlow: Unsupervised Anomaly Detection
+and Localization via 2D Normalizing Flows. arXiv preprint
+arXiv:2111.07677.
+Zavrtanik, V.; Kristan, M.; and Skočaj, D. 2021. DRAEM
+- A Discriminatively Trained Reconstruction Embedding
+for Surface Anomaly Detection. In Proceedings of the
+IEEE/CVF International Conference on Computer Vision,
+8330–8339.
+Zhang, H.; Wang, Z.; Zeng, D.; Wu, Z.; and Jiang, Y.-G.
+2025. DiffusionAD:Norm-guidedOne-StepDenoisingDif-
+fusionforAnomalyDetection.IEEETransactionsonPattern
+Analysis and Machine Intelligence, 47(8): 7140–7152.
+Zhang,X.;Li,N.;Li,J.;Dai,T.;Jiang,Y.;andXia,S.-T.2023.
+Unsupervised Surface Anomaly Detection with Diffusion
+Probabilistic Model. In Proceedings of the IEEE/CVF In-
+ternational Conference on Computer Vision (ICCV), 6782–
+6791.
+Zhou, Q.; Pang, G.; Tian, Y.; He, S.; and Chen, J. 2024.
+AnomalyCLIP: Object-agnostic Prompt Learning for Zero-
+Shot Anomaly Detection. In International Conference on
+Learning Representations (ICLR).
+Zhou, Y.; Liang, X.; Zhang, W.; Zhang, L.; and Song, X.
+2021. VAE-basedDeepSVDDforAnomalyDetection. Neu-
+rocomputing, 453: 131–140.
+Zou, Y.; Jeong, J.; Pemula, L.; Zhang, D.; and Dabeer, O.
+2022. SPot-the-Difference Self-Supervised Pre-Training for
+Anomaly Detection and Segmentation. In Computer Vision
+– ECCV 2022, volume 13690 of Lecture Notes in Computer
+Science, 392–408. Springer.
