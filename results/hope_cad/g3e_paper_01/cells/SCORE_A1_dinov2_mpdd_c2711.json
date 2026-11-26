@@ -1,0 +1,92 @@
+{
+ "tag": "A1_dinov2_mpdd_c2711",
+ "name": "A1",
+ "backbone": "dinov2",
+ "dataset": "mpdd",
+ "order_key": "c",
+ "seed": 2711,
+ "order": [
+  "mpdd/metal_plate",
+  "mpdd/connector",
+  "mpdd/bracket_black",
+  "mpdd/bracket_brown",
+  "mpdd/tubes",
+  "mpdd/bracket_white"
+ ],
+ "arms": [
+  "U",
+  "E@8"
+ ],
+ "counts": [
+  54,
+  128,
+  289,
+  185,
+  122,
+  110
+ ],
+ "bytes": {
+  "U": [
+   3010568,
+   4552712,
+   8033288,
+   10262024,
+   11731976,
+   13057544
+  ],
+  "E@8": [
+   3010568,
+   4552712,
+   8033288,
+   8388104,
+   8388104,
+   8388104
+  ]
+ },
+ "update_s": {
+  "U": 17.56088638305664,
+  "E@8": 19.35473942756653
+ },
+ "state_s": 31.983513116836548,
+ "select_log": {
+  "E@8": [
+   {
+    "stage": 0,
+    "n_keys": 424,
+    "cap": 3925
+   },
+   {
+    "stage": 1,
+    "n_keys": 1428,
+    "cap": 3925
+   },
+   {
+    "stage": 2,
+    "n_keys": 3694,
+    "cap": 3925
+   },
+   {
+    "stage": 3,
+    "n_keys": 3925,
+    "cap": 3925
+   },
+   {
+    "stage": 4,
+    "n_keys": 3925,
+    "cap": 3925
+   },
+   {
+    "stage": 5,
+    "n_keys": 3925,
+    "cap": 3925
+   }
+  ]
+ },
+ "seconds": 46.82406973838806,
+ "latency_ms_per_img_p50": {
+  "U": 2.6374567638744004,
+  "E@8": 2.024994268045797
+ },
+ "peak_vram": 1171494912,
+ "label": "G3E_PAPER"
+}

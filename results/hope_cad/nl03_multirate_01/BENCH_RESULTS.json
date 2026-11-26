@@ -1,0 +1,1717 @@
+{
+ "bench": {
+  "mvtec_a2711": {
+   "U": {
+    "pixel_ap": 0.6347502728303274,
+    "image_auroc": 0.9953228347787344,
+    "fm": 0.003360001104218619,
+    "prequential_ap": 0.6552417723839753,
+    "acq_ap": 0.6292827427387238,
+    "bytes_final": 46070792,
+    "bytes_max": 46070792,
+    "update_s": 98.34340739250183,
+    "latency_ms_per_img": 9.933246112925746,
+    "per_task_final_ap": {
+     "mvtec/bottle": 0.8553693294525146,
+     "mvtec/cable": 0.49686574935913086,
+     "mvtec/capsule": 0.5903100967407227,
+     "mvtec/carpet": 0.7267544865608215,
+     "mvtec/grid": 0.494269460439682,
+     "mvtec/hazelnut": 0.8077566027641296,
+     "mvtec/leather": 0.4675756096839905,
+     "mvtec/metal_nut": 0.7232781052589417,
+     "mvtec/pill": 0.5746335387229919,
+     "mvtec/screw": 0.600079357624054,
+     "mvtec/tile": 0.7271465063095093,
+     "mvtec/toothbrush": 0.6690069437026978,
+     "mvtec/transistor": 0.5085171461105347,
+     "mvtec/wood": 0.679145872592926,
+     "mvtec/zipper": 0.6005452871322632
+    },
+    "per_task_final_auroc": {
+     "mvtec/bottle": 1.0,
+     "mvtec/cable": 0.991191904047976,
+     "mvtec/capsule": 0.9784603111288392,
+     "mvtec/carpet": 1.0,
+     "mvtec/grid": 1.0,
+     "mvtec/hazelnut": 0.9996428571428572,
+     "mvtec/leather": 1.0,
+     "mvtec/metal_nut": 1.0,
+     "mvtec/pill": 0.9939989088925258,
+     "mvtec/screw": 0.9831932773109244,
+     "mvtec/tile": 1.0,
+     "mvtec/toothbrush": 1.0,
+     "mvtec/transistor": 0.99125,
+     "mvtec/wood": 0.9921052631578947,
+     "mvtec/zipper": 1.0
+    },
+    "pixel_ap_ci95": [
+     0.6164066791534424,
+     0.6539732396602631
+    ],
+    "image_auroc_ci95": [
+     0.9917249351739883,
+     0.9978571698069573
+    ]
+   },
+   "E": {
+    "pixel_ap": 0.5926523824532827,
+    "image_auroc": 0.9826164429616465,
+    "fm": 0.033254582967076986,
+    "prequential_ap": 0.6395172587162186,
+    "acq_ap": 0.6129276752471924,
+    "bytes_final": 8388104,
+    "bytes_max": 8388104,
+    "update_s": 107.3832459449768,
+    "latency_ms_per_img": 2.2773564371288333,
+    "per_task_final_ap": {
+     "mvtec/bottle": 0.8334002494812012,
+     "mvtec/cable": 0.4846082031726837,
+     "mvtec/capsule": 0.47223448753356934,
+     "mvtec/carpet": 0.7028050422668457,
+     "mvtec/grid": 0.4849756360054016,
+     "mvtec/hazelnut": 0.7562412619590759,
+     "mvtec/leather": 0.4267740845680237,
+     "mvtec/metal_nut": 0.6366724371910095,
+     "mvtec/pill": 0.5099627375602722,
+     "mvtec/screw": 0.4912116229534149,
+     "mvtec/tile": 0.7251074314117432,
+     "mvtec/toothbrush": 0.6609691977500916,
+     "mvtec/transistor": 0.44915100932121277,
+     "mvtec/wood": 0.6693031787872314,
+     "mvtec/zipper": 0.5863691568374634
+    },
+    "per_task_final_auroc": {
+     "mvtec/bottle": 1.0,
+     "mvtec/cable": 0.9778860569715142,
+     "mvtec/capsule": 0.8974870362983646,
+     "mvtec/carpet": 1.0,
+     "mvtec/grid": 1.0,
+     "mvtec/hazelnut": 1.0,
+     "mvtec/leather": 1.0,
+     "mvtec/metal_nut": 1.0,
+     "mvtec/pill": 0.9893617021276596,
+     "mvtec/screw": 0.8866571018651364,
+     "mvtec/tile": 1.0,
+     "mvtec/toothbrush": 1.0,
+     "mvtec/transistor": 0.9958333333333332,
+     "mvtec/wood": 0.9938596491228071,
+     "mvtec/zipper": 0.9981617647058824
+    },
+    "pixel_ap_ci95": [
+     0.574665616452694,
+     0.6122999370098113
+    ],
+    "image_auroc_ci95": [
+     0.9767373681068421,
+     0.9877188116312027
+    ]
+   },
+   "CB": {
+    "pixel_ap": 0.5670930524667104,
+    "image_auroc": 0.9806606306677996,
+    "fm": 0.026551057185445513,
+    "prequential_ap": 0.622449656031064,
+    "acq_ap": 0.585365355014801,
+    "bytes_final": 8388096,
+    "bytes_max": 8388096,
+    "update_s": 394.85795736312866,
+    "latency_ms_per_img": 2.439467151663932,
+    "per_task_final_ap": {
+     "mvtec/bottle": 0.8348791003227234,
+     "mvtec/cable": 0.5122782588005066,
+     "mvtec/capsule": 0.45290952920913696,
+     "mvtec/carpet": 0.7276518940925598,
+     "mvtec/grid": 0.4630413055419922,
+     "mvtec/hazelnut": 0.7838164567947388,
+     "mvtec/leather": 0.3231718838214874,
+     "mvtec/metal_nut": 0.6672931909561157,
+     "mvtec/pill": 0.4843689501285553,
+     "mvtec/screw": 0.4536639451980591,
+     "mvtec/tile": 0.6476568579673767,
+     "mvtec/toothbrush": 0.6505231261253357,
+     "mvtec/transistor": 0.4248009920120239,
+     "mvtec/wood": 0.6332651972770691,
+     "mvtec/zipper": 0.44707509875297546
+    },
+    "per_task_final_auroc": {
+     "mvtec/bottle": 1.0,
+     "mvtec/cable": 0.9739505247376312,
+     "mvtec/capsule": 0.8899082568807339,
+     "mvtec/carpet": 0.9955858747993579,
+     "mvtec/grid": 1.0,
+     "mvtec/hazelnut": 0.9982142857142857,
+     "mvtec/leather": 1.0,
+     "mvtec/metal_nut": 1.0,
+     "mvtec/pill": 0.9563557010365521,
+     "mvtec/screw": 0.9061283049805287,
+     "mvtec/tile": 1.0,
+     "mvtec/toothbrush": 1.0,
+     "mvtec/transistor": 0.9995833333333333,
+     "mvtec/wood": 0.993859649122807,
+     "mvtec/zipper": 0.9963235294117647
+    },
+    "pixel_ap_ci95": [
+     0.5469592988491059,
+     0.5873297661542892
+    ],
+    "image_auroc_ci95": [
+     0.974678598344326,
+     0.9861058428883552
+    ]
+   },
+   "F": {
+    "pixel_ap": 0.5670930524667104,
+    "image_auroc": 0.9806606306677996,
+    "fm": 0.026551057185445513,
+    "prequential_ap": 0.622449656031064,
+    "acq_ap": 0.585365355014801,
+    "bytes_final": 8388096,
+    "bytes_max": 8388096,
+    "update_s": 394.85795736312866,
+    "latency_ms_per_img": 2.4547900553948865,
+    "per_task_final_ap": {
+     "mvtec/bottle": 0.8348791003227234,
+     "mvtec/cable": 0.5122782588005066,
+     "mvtec/capsule": 0.45290952920913696,
+     "mvtec/carpet": 0.7276518940925598,
+     "mvtec/grid": 0.4630413055419922,
+     "mvtec/hazelnut": 0.7838164567947388,
+     "mvtec/leather": 0.3231718838214874,
+     "mvtec/metal_nut": 0.6672931909561157,
+     "mvtec/pill": 0.4843689501285553,
+     "mvtec/screw": 0.4536639451980591,
+     "mvtec/tile": 0.6476568579673767,
+     "mvtec/toothbrush": 0.6505231261253357,
+     "mvtec/transistor": 0.4248009920120239,
+     "mvtec/wood": 0.6332651972770691,
+     "mvtec/zipper": 0.44707509875297546
+    },
+    "per_task_final_auroc": {
+     "mvtec/bottle": 1.0,
+     "mvtec/cable": 0.9739505247376312,
+     "mvtec/capsule": 0.8899082568807339,
+     "mvtec/carpet": 0.9955858747993579,
+     "mvtec/grid": 1.0,
+     "mvtec/hazelnut": 0.9982142857142857,
+     "mvtec/leather": 1.0,
+     "mvtec/metal_nut": 1.0,
+     "mvtec/pill": 0.9563557010365521,
+     "mvtec/screw": 0.9061283049805287,
+     "mvtec/tile": 1.0,
+     "mvtec/toothbrush": 1.0,
+     "mvtec/transistor": 0.9995833333333333,
+     "mvtec/wood": 0.993859649122807,
+     "mvtec/zipper": 0.9963235294117647
+    },
+    "pixel_ap_ci95": [
+     0.5469592988491059,
+     0.5873297661542892
+    ],
+    "image_auroc_ci95": [
+     0.974678598344326,
+     0.9861058428883552
+    ]
+   },
+   "P": {
+    "pixel_ap": 0.5873644272486369,
+    "image_auroc": 0.9712189749406139,
+    "fm": 0.05123936491353171,
+    "prequential_ap": 0.6376873647176002,
+    "acq_ap": 0.6065869351228078,
+    "bytes_final": 7667708,
+    "bytes_max": 8137408,
+    "update_s": 160.8572564125061,
+    "latency_ms_per_img": 1.3721743753345597,
+    "per_task_final_ap": {
+     "mvtec/bottle": 0.843262255191803,
+     "mvtec/cable": 0.5016888976097107,
+     "mvtec/capsule": 0.4723222255706787,
+     "mvtec/carpet": 0.713846743106842,
+     "mvtec/grid": 0.4700523912906647,
+     "mvtec/hazelnut": 0.7938223481178284,
+     "mvtec/leather": 0.45176970958709717,
+     "mvtec/metal_nut": 0.6034815907478333,
+     "mvtec/pill": 0.4438764452934265,
+     "mvtec/screw": 0.40550529956817627,
+     "mvtec/tile": 0.7665504813194275,
+     "mvtec/toothbrush": 0.6712718605995178,
+     "mvtec/transistor": 0.3910140097141266,
+     "mvtec/wood": 0.678502082824707,
+     "mvtec/zipper": 0.6035000681877136
+    },
+    "per_task_final_auroc": {
+     "mvtec/bottle": 1.0,
+     "mvtec/cable": 0.9790104947526237,
+     "mvtec/capsule": 0.898284802552852,
+     "mvtec/carpet": 1.0,
+     "mvtec/grid": 1.0,
+     "mvtec/hazelnut": 0.9885714285714287,
+     "mvtec/leather": 1.0,
+     "mvtec/metal_nut": 0.9995112414467253,
+     "mvtec/pill": 0.9495362793235134,
+     "mvtec/screw": 0.7696249231399876,
+     "mvtec/tile": 1.0,
+     "mvtec/toothbrush": 0.9944444444444445,
+     "mvtec/transistor": 0.995,
+     "mvtec/wood": 0.9956140350877194,
+     "mvtec/zipper": 0.998686974789916
+    },
+    "pixel_ap_ci95": [
+     0.5698664709925652,
+     0.6066157385706902
+    ],
+    "image_auroc_ci95": [
+     0.9630430802702904,
+     0.9785465359687805
+    ],
+    "ap_minus_U": {
+     "delta": -0.047385845581690456,
+     "ci95": [
+      -0.055212156288325785,
+      -0.038783066533505925
+     ]
+    },
+    "ap_minus_E": {
+     "delta": -0.005287955204645756,
+     "ci95": [
+      -0.012231573439203202,
+      0.0019514784653438205
+     ]
+    },
+    "ap_minus_CB": {
+     "delta": 0.020271374781926532,
+     "ci95": [
+      0.01059154241811484,
+      0.03195297112688422
+     ]
+    },
+    "ap_minus_F": {
+     "delta": 0.020271374781926532,
+     "ci95": [
+      0.01059154241811484,
+      0.03195297112688422
+     ]
+    }
+   }
+  },
+  "mvtec_b2711": {
+   "U": {
+    "pixel_ap": 0.6347540100415547,
+    "image_auroc": 0.9953228347787345,
+    "fm": 0.010096362658909388,
+    "prequential_ap": 0.6235044661907164,
+    "acq_ap": 0.635447104771932,
+    "bytes_final": 46070792,
+    "bytes_max": 46070792,
+    "update_s": 96.16568207740784,
+    "latency_ms_per_img": 8.899664286500919,
+    "per_task_final_ap": {
+     "mvtec/zipper": 0.6004920601844788,
+     "mvtec/wood": 0.6791412830352783,
+     "mvtec/transistor": 0.5085161924362183,
+     "mvtec/toothbrush": 0.6690073013305664,
+     "mvtec/tile": 0.727148175239563,
+     "mvtec/screw": 0.600086510181427,
+     "mvtec/pill": 0.5746384859085083,
+     "mvtec/metal_nut": 0.7232798337936401,
+     "mvtec/leather": 0.46758151054382324,
+     "mvtec/hazelnut": 0.8077594041824341,
+     "mvtec/grid": 0.4942772090435028,
+     "mvtec/carpet": 0.7267621755599976,
+     "mvtec/capsule": 0.590330183506012,
+     "mvtec/cable": 0.496888667345047,
+     "mvtec/bottle": 0.8554011583328247
+    },
+    "per_task_final_auroc": {
+     "mvtec/zipper": 1.0,
+     "mvtec/wood": 0.9921052631578947,
+     "mvtec/transistor": 0.99125,
+     "mvtec/toothbrush": 1.0,
+     "mvtec/tile": 1.0,
+     "mvtec/screw": 0.9831932773109244,
+     "mvtec/pill": 0.9939989088925258,
+     "mvtec/metal_nut": 1.0,
+     "mvtec/leather": 1.0,
+     "mvtec/hazelnut": 0.9996428571428572,
+     "mvtec/grid": 1.0,
+     "mvtec/carpet": 1.0,
+     "mvtec/capsule": 0.9784603111288392,
+     "mvtec/cable": 0.991191904047976,
+     "mvtec/bottle": 1.0
+    }
+   },
+   "E": {
+    "pixel_ap": 0.5929532984892527,
+    "image_auroc": 0.9816193629149222,
+    "fm": 0.03933352019105639,
+    "prequential_ap": 0.5979306983376176,
+    "acq_ap": 0.6197720269362131,
+    "bytes_final": 8388104,
+    "bytes_max": 8388104,
+    "update_s": 104.59260940551758,
+    "latency_ms_per_img": 2.0079315072596438,
+    "per_task_final_ap": {
+     "mvtec/zipper": 0.5626249313354492,
+     "mvtec/wood": 0.6615917086601257,
+     "mvtec/transistor": 0.3997226655483246,
+     "mvtec/toothbrush": 0.6694678068161011,
+     "mvtec/tile": 0.7236347198486328,
+     "mvtec/screw": 0.46034494042396545,
+     "mvtec/pill": 0.48586973547935486,
+     "mvtec/metal_nut": 0.6516197919845581,
+     "mvtec/leather": 0.4417457580566406,
+     "mvtec/hazelnut": 0.7603381872177124,
+     "mvtec/grid": 0.4965672194957733,
+     "mvtec/carpet": 0.7335707545280457,
+     "mvtec/capsule": 0.5049657821655273,
+     "mvtec/cable": 0.4954971373081207,
+     "mvtec/bottle": 0.846738338470459
+    },
+    "per_task_final_auroc": {
+     "mvtec/zipper": 0.9978991596638656,
+     "mvtec/wood": 0.9964912280701755,
+     "mvtec/transistor": 0.9841666666666667,
+     "mvtec/toothbrush": 0.9944444444444445,
+     "mvtec/tile": 1.0,
+     "mvtec/screw": 0.8481246156999385,
+     "mvtec/pill": 0.9768139661756683,
+     "mvtec/metal_nut": 1.0,
+     "mvtec/leather": 1.0,
+     "mvtec/hazelnut": 1.0,
+     "mvtec/grid": 1.0,
+     "mvtec/carpet": 0.9995987158908507,
+     "mvtec/capsule": 0.9445552453131234,
+     "mvtec/cable": 0.9821964017991005,
+     "mvtec/bottle": 1.0
+    }
+   },
+   "P": {
+    "pixel_ap": 0.5392648657162984,
+    "image_auroc": 0.9723555702909991,
+    "fm": 0.09288923229490008,
+    "prequential_ap": 0.5751249635420318,
+    "acq_ap": 0.6047524015108744,
+    "bytes_final": 7635368,
+    "bytes_max": 8015748,
+    "update_s": 163.5372977256775,
+    "latency_ms_per_img": 1.2189632712556528,
+    "per_task_final_ap": {
+     "mvtec/zipper": 0.45742982625961304,
+     "mvtec/wood": 0.6408308744430542,
+     "mvtec/transistor": 0.38796383142471313,
+     "mvtec/toothbrush": 0.660673201084137,
+     "mvtec/tile": 0.673462450504303,
+     "mvtec/screw": 0.3146667778491974,
+     "mvtec/pill": 0.4426230490207672,
+     "mvtec/metal_nut": 0.46237826347351074,
+     "mvtec/leather": 0.3912011384963989,
+     "mvtec/hazelnut": 0.6909136176109314,
+     "mvtec/grid": 0.4526419937610626,
+     "mvtec/carpet": 0.7402474880218506,
+     "mvtec/capsule": 0.5068047642707825,
+     "mvtec/cable": 0.4301324188709259,
+     "mvtec/bottle": 0.8370032906532288
+    },
+    "per_task_final_auroc": {
+     "mvtec/zipper": 0.9942226890756303,
+     "mvtec/wood": 0.992982456140351,
+     "mvtec/transistor": 0.9958333333333333,
+     "mvtec/toothbrush": 0.9944444444444445,
+     "mvtec/tile": 1.0,
+     "mvtec/screw": 0.7675753228120518,
+     "mvtec/pill": 0.9721767594108021,
+     "mvtec/metal_nut": 0.9916911045943304,
+     "mvtec/leather": 1.0,
+     "mvtec/hazelnut": 1.0,
+     "mvtec/grid": 1.0,
+     "mvtec/carpet": 0.9995987158908507,
+     "mvtec/capsule": 0.9305943358595932,
+     "mvtec/cable": 0.9462143928035982,
+     "mvtec/bottle": 1.0
+    }
+   }
+  },
+  "mvtec_c2711": {
+   "U": {
+    "pixel_ap": 0.6347520152727762,
+    "image_auroc": 0.9953228347787345,
+    "fm": 0.0005051259483609881,
+    "prequential_ap": 0.6424529175127879,
+    "acq_ap": 0.6320851445198059,
+    "bytes_final": 46070792,
+    "bytes_max": 46070792,
+    "update_s": 96.7249116897583,
+    "latency_ms_per_img": 8.941731430500678,
+    "per_task_final_ap": {
+     "mvtec/screw": 0.6000515818595886,
+     "mvtec/hazelnut": 0.8077468872070312,
+     "mvtec/leather": 0.46756839752197266,
+     "mvtec/toothbrush": 0.6690026521682739,
+     "mvtec/wood": 0.6791365742683411,
+     "mvtec/bottle": 0.8553991913795471,
+     "mvtec/grid": 0.49427396059036255,
+     "mvtec/tile": 0.7271469235420227,
+     "mvtec/zipper": 0.6005403995513916,
+     "mvtec/pill": 0.5746347904205322,
+     "mvtec/metal_nut": 0.7232796549797058,
+     "mvtec/cable": 0.4968874454498291,
+     "mvtec/capsule": 0.5903310179710388,
+     "mvtec/carpet": 0.7267626523971558,
+     "mvtec/transistor": 0.5085180997848511
+    },
+    "per_task_final_auroc": {
+     "mvtec/screw": 0.9831932773109244,
+     "mvtec/hazelnut": 0.9996428571428572,
+     "mvtec/leather": 1.0,
+     "mvtec/toothbrush": 1.0,
+     "mvtec/wood": 0.9921052631578947,
+     "mvtec/bottle": 1.0,
+     "mvtec/grid": 1.0,
+     "mvtec/tile": 1.0,
+     "mvtec/zipper": 1.0,
+     "mvtec/pill": 0.9939989088925258,
+     "mvtec/metal_nut": 1.0,
+     "mvtec/cable": 0.991191904047976,
+     "mvtec/capsule": 0.9784603111288392,
+     "mvtec/carpet": 1.0,
+     "mvtec/transistor": 0.99125
+    }
+   },
+   "E": {
+    "pixel_ap": 0.5973977088928223,
+    "image_auroc": 0.9848491970085007,
+    "fm": 0.026099230561937605,
+    "prequential_ap": 0.6224575642904757,
+    "acq_ap": 0.6165548185507457,
+    "bytes_final": 8388104,
+    "bytes_max": 8388104,
+    "update_s": 105.63273978233337,
+    "latency_ms_per_img": 2.069406761267442,
+    "per_task_final_ap": {
+     "mvtec/screw": 0.42692646384239197,
+     "mvtec/hazelnut": 0.7729254364967346,
+     "mvtec/leather": 0.4539840519428253,
+     "mvtec/toothbrush": 0.6489467024803162,
+     "mvtec/wood": 0.6612003445625305,
+     "mvtec/bottle": 0.8470411896705627,
+     "mvtec/grid": 0.4934093654155731,
+     "mvtec/tile": 0.7255721092224121,
+     "mvtec/zipper": 0.5905452966690063,
+     "mvtec/pill": 0.49724823236465454,
+     "mvtec/metal_nut": 0.649462103843689,
+     "mvtec/cable": 0.49116644263267517,
+     "mvtec/capsule": 0.5320739150047302,
+     "mvtec/carpet": 0.7445287108421326,
+     "mvtec/transistor": 0.4259352684020996
+    },
+    "per_task_final_auroc": {
+     "mvtec/screw": 0.8993646238983398,
+     "mvtec/hazelnut": 1.0,
+     "mvtec/leather": 1.0,
+     "mvtec/toothbrush": 1.0,
+     "mvtec/wood": 0.9956140350877194,
+     "mvtec/bottle": 1.0,
+     "mvtec/grid": 1.0,
+     "mvtec/tile": 1.0,
+     "mvtec/zipper": 0.9968487394957983,
+     "mvtec/pill": 0.9904528096017458,
+     "mvtec/metal_nut": 1.0,
+     "mvtec/cable": 0.9895052473763118,
+     "mvtec/capsule": 0.9038691663342642,
+     "mvtec/carpet": 1.0,
+     "mvtec/transistor": 0.9970833333333333
+    }
+   },
+   "P": {
+    "pixel_ap": 0.5792237142721812,
+    "image_auroc": 0.9691010525870138,
+    "fm": 0.043443654264722555,
+    "prequential_ap": 0.6092427142183099,
+    "acq_ap": 0.599910444021225,
+    "bytes_final": 7658468,
+    "bytes_max": 7903328,
+    "update_s": 166.70481252670288,
+    "latency_ms_per_img": 1.2277503380712296,
+    "per_task_final_ap": {
+     "mvtec/screw": 0.2859024405479431,
+     "mvtec/hazelnut": 0.7806721329689026,
+     "mvtec/leather": 0.48247769474983215,
+     "mvtec/toothbrush": 0.6797801852226257,
+     "mvtec/wood": 0.6852110028266907,
+     "mvtec/bottle": 0.8274005055427551,
+     "mvtec/grid": 0.4996809661388397,
+     "mvtec/tile": 0.7433199882507324,
+     "mvtec/zipper": 0.5105074048042297,
+     "mvtec/pill": 0.4586215019226074,
+     "mvtec/metal_nut": 0.6121972799301147,
+     "mvtec/cable": 0.4731648564338684,
+     "mvtec/capsule": 0.5127782821655273,
+     "mvtec/carpet": 0.7080322504043579,
+     "mvtec/transistor": 0.4286092221736908
+    },
+    "per_task_final_auroc": {
+     "mvtec/screw": 0.7468743594998974,
+     "mvtec/hazelnut": 0.9985714285714287,
+     "mvtec/leather": 1.0,
+     "mvtec/toothbrush": 0.9972222222222222,
+     "mvtec/wood": 0.9859649122807017,
+     "mvtec/bottle": 1.0,
+     "mvtec/grid": 1.0,
+     "mvtec/tile": 1.0,
+     "mvtec/zipper": 0.9600840336134453,
+     "mvtec/pill": 0.9765411893071468,
+     "mvtec/metal_nut": 0.9897360703812317,
+     "mvtec/cable": 0.9565217391304348,
+     "mvtec/capsule": 0.9345831671320304,
+     "mvtec/carpet": 1.0,
+     "mvtec/transistor": 0.9904166666666667
+    }
+   }
+  },
+  "visa_a2711": {
+   "U": {
+    "pixel_ap": 0.4867558827002843,
+    "image_auroc": 0.9746025302530255,
+    "fm": 0.0030171288685365157,
+    "prequential_ap": 0.5068064661577842,
+    "acq_ap": 0.47841092695792514,
+    "bytes_final": 106638344,
+    "bytes_max": 106638344,
+    "update_s": 669.0006995201111,
+    "latency_ms_per_img": 20.6017404794693,
+    "per_task_final_ap": {
+     "visa/candle": 0.44415196776390076,
+     "visa/capsules": 0.6276273727416992,
+     "visa/cashew": 0.6919082403182983,
+     "visa/chewinggum": 0.7016603350639343,
+     "visa/fryum": 0.46720555424690247,
+     "visa/macaroni1": 0.15668432414531708,
+     "visa/macaroni2": 0.13733072578907013,
+     "visa/pcb1": 0.797821044921875,
+     "visa/pcb2": 0.42670774459838867,
+     "visa/pcb3": 0.4437410831451416,
+     "visa/pcb4": 0.4192086458206177,
+     "visa/pipe_fryum": 0.5270235538482666
+    },
+    "per_task_final_auroc": {
+     "visa/candle": 0.9766,
+     "visa/capsules": 0.9668333333333334,
+     "visa/cashew": 0.9676,
+     "visa/chewinggum": 0.9900000000000001,
+     "visa/fryum": 0.9584,
+     "visa/macaroni1": 0.9327000000000001,
+     "visa/macaroni2": 0.9455,
+     "visa/pcb1": 0.996,
+     "visa/pcb2": 0.9823,
+     "visa/pcb3": 0.9928712871287129,
+     "visa/pcb4": 0.9974257425742574,
+     "visa/pipe_fryum": 0.989
+    },
+    "pixel_ap_ci95": [
+     0.4572541892528534,
+     0.5128596961498261
+    ],
+    "image_auroc_ci95": [
+     0.9679902404546737,
+     0.9799864605069161
+    ]
+   },
+   "E": {
+    "pixel_ap": 0.4602507644643386,
+    "image_auroc": 0.9349114961496149,
+    "fm": 0.011919595978476784,
+    "prequential_ap": 0.4934113950188396,
+    "acq_ap": 0.4637832759569089,
+    "bytes_final": 8388104,
+    "bytes_max": 8388104,
+    "update_s": 677.4118404388428,
+    "latency_ms_per_img": 2.1468353271484375,
+    "per_task_final_ap": {
+     "visa/candle": 0.4220735430717468,
+     "visa/capsules": 0.6055200695991516,
+     "visa/cashew": 0.651757001876831,
+     "visa/chewinggum": 0.6707891225814819,
+     "visa/fryum": 0.41054555773735046,
+     "visa/macaroni1": 0.1819593459367752,
+     "visa/macaroni2": 0.0938115194439888,
+     "visa/pcb1": 0.7842364311218262,
+     "visa/pcb2": 0.41654568910598755,
+     "visa/pcb3": 0.3908873200416565,
+     "visa/pcb4": 0.37522488832473755,
+     "visa/pipe_fryum": 0.5196586847305298
+    },
+    "per_task_final_auroc": {
+     "visa/candle": 0.9055000000000001,
+     "visa/capsules": 0.9366666666666666,
+     "visa/cashew": 0.9380000000000001,
+     "visa/chewinggum": 0.9942,
+     "visa/fryum": 0.9048,
+     "visa/macaroni1": 0.8671,
+     "visa/macaroni2": 0.8386,
+     "visa/pcb1": 0.9547000000000001,
+     "visa/pcb2": 0.9425,
+     "visa/pcb3": 0.9711881188118812,
+     "visa/pcb4": 0.9916831683168317,
+     "visa/pipe_fryum": 0.974
+    },
+    "pixel_ap_ci95": [
+     0.4298349149525166,
+     0.4852967023849487
+    ],
+    "image_auroc_ci95": [
+     0.9241920053958893,
+     0.9448078736662865
+    ]
+   },
+   "CB": {
+    "pixel_ap": 0.38335339818149805,
+    "image_auroc": 0.8824980473047305,
+    "fm": 0.04129056734117595,
+    "prequential_ap": 0.44286468005367347,
+    "acq_ap": 0.4154074862599373,
+    "bytes_final": 8388096,
+    "bytes_max": 8388096,
+    "update_s": 1065.3750593662262,
+    "latency_ms_per_img": 2.430865168571472,
+    "per_task_final_ap": {
+     "visa/candle": 0.3893139660358429,
+     "visa/capsules": 0.5847911238670349,
+     "visa/cashew": 0.5453543663024902,
+     "visa/chewinggum": 0.5835265517234802,
+     "visa/fryum": 0.24524055421352386,
+     "visa/macaroni1": 0.07489889860153198,
+     "visa/macaroni2": 0.0506361685693264,
+     "visa/pcb1": 0.6948786377906799,
+     "visa/pcb2": 0.3687947392463684,
+     "visa/pcb3": 0.3497140109539032,
+     "visa/pcb4": 0.26827073097229004,
+     "visa/pipe_fryum": 0.4448210299015045
+    },
+    "per_task_final_auroc": {
+     "visa/candle": 0.8760999999999999,
+     "visa/capsules": 0.9326666666666668,
+     "visa/cashew": 0.8453999999999999,
+     "visa/chewinggum": 0.9775999999999999,
+     "visa/fryum": 0.8642000000000002,
+     "visa/macaroni1": 0.7666,
+     "visa/macaroni2": 0.6648000000000001,
+     "visa/pcb1": 0.968,
+     "visa/pcb2": 0.9021999999999999,
+     "visa/pcb3": 0.8764356435643564,
+     "visa/pcb4": 0.9525742574257425,
+     "visa/pipe_fryum": 0.9634
+    },
+    "pixel_ap_ci95": [
+     0.35257390066981315,
+     0.40846253633499147
+    ],
+    "image_auroc_ci95": [
+     0.8681159347295762,
+     0.895102447271347
+    ]
+   },
+   "F": {
+    "pixel_ap": 0.38335339818149805,
+    "image_auroc": 0.8824980473047305,
+    "fm": 0.04129056734117595,
+    "prequential_ap": 0.44286468005367347,
+    "acq_ap": 0.4154074862599373,
+    "bytes_final": 8388096,
+    "bytes_max": 8388096,
+    "update_s": 1065.3750593662262,
+    "latency_ms_per_img": 2.4306082725524902,
+    "per_task_final_ap": {
+     "visa/candle": 0.3893139660358429,
+     "visa/capsules": 0.5847911238670349,
+     "visa/cashew": 0.5453543663024902,
+     "visa/chewinggum": 0.5835265517234802,
+     "visa/fryum": 0.24524055421352386,
+     "visa/macaroni1": 0.07489889860153198,
+     "visa/macaroni2": 0.0506361685693264,
+     "visa/pcb1": 0.6948786377906799,
+     "visa/pcb2": 0.3687947392463684,
+     "visa/pcb3": 0.3497140109539032,
+     "visa/pcb4": 0.26827073097229004,
+     "visa/pipe_fryum": 0.4448210299015045
+    },
+    "per_task_final_auroc": {
+     "visa/candle": 0.8760999999999999,
+     "visa/capsules": 0.9326666666666668,
+     "visa/cashew": 0.8453999999999999,
+     "visa/chewinggum": 0.9775999999999999,
+     "visa/fryum": 0.8642000000000002,
+     "visa/macaroni1": 0.7666,
+     "visa/macaroni2": 0.6648000000000001,
+     "visa/pcb1": 0.968,
+     "visa/pcb2": 0.9021999999999999,
+     "visa/pcb3": 0.8764356435643564,
+     "visa/pcb4": 0.9525742574257425,
+     "visa/pipe_fryum": 0.9634
+    },
+    "pixel_ap_ci95": [
+     0.35257390066981315,
+     0.40846253633499147
+    ],
+    "image_auroc_ci95": [
+     0.8681159347295762,
+     0.895102447271347
+    ]
+   },
+   "P": {
+    "pixel_ap": 0.42179928813129663,
+    "image_auroc": 0.9009000275027503,
+    "fm": 0.05082580887458541,
+    "prequential_ap": 0.47953051133193303,
+    "acq_ap": 0.4579145014286041,
+    "bytes_final": 7612268,
+    "bytes_max": 7837108,
+    "update_s": 399.5999653339386,
+    "latency_ms_per_img": 1.3314354419708252,
+    "per_task_final_ap": {
+     "visa/candle": 0.4131411910057068,
+     "visa/capsules": 0.6474437117576599,
+     "visa/cashew": 0.5900002717971802,
+     "visa/chewinggum": 0.6979954838752747,
+     "visa/fryum": 0.41564688086509705,
+     "visa/macaroni1": 0.0610789880156517,
+     "visa/macaroni2": 0.055747587233781815,
+     "visa/pcb1": 0.6442872285842896,
+     "visa/pcb2": 0.32962343096733093,
+     "visa/pcb3": 0.4078218638896942,
+     "visa/pcb4": 0.28807270526885986,
+     "visa/pipe_fryum": 0.510732114315033
+    },
+    "per_task_final_auroc": {
+     "visa/candle": 0.9511999999999999,
+     "visa/capsules": 0.9506666666666665,
+     "visa/cashew": 0.8668000000000001,
+     "visa/chewinggum": 0.9836,
+     "visa/fryum": 0.9382,
+     "visa/macaroni1": 0.672,
+     "visa/macaroni2": 0.7267,
+     "visa/pcb1": 0.9521000000000001,
+     "visa/pcb2": 0.8973,
+     "visa/pcb3": 0.9235643564356436,
+     "visa/pcb4": 0.983069306930693,
+     "visa/pipe_fryum": 0.9655999999999999
+    },
+    "pixel_ap_ci95": [
+     0.3920942202210426,
+     0.4473401576280594
+    ],
+    "image_auroc_ci95": [
+     0.8881104454398155,
+     0.912961320579052
+    ],
+    "ap_minus_U": {
+     "delta": -0.06495659456898767,
+     "ci95": [
+      -0.07554806005209684,
+      -0.05480104070156814
+     ]
+    },
+    "ap_minus_E": {
+     "delta": -0.03845147633304197,
+     "ci95": [
+      -0.04766245679929852,
+      -0.02888164813630283
+     ]
+    },
+    "ap_minus_CB": {
+     "delta": 0.038445889949798584,
+     "ci95": [
+      0.02827331582084298,
+      0.04911604961380362
+     ]
+    },
+    "ap_minus_F": {
+     "delta": 0.038445889949798584,
+     "ci95": [
+      0.02827331582084298,
+      0.04911604961380362
+     ]
+    }
+   }
+  },
+  "visa_b2711": {
+   "U": {
+    "pixel_ap": 0.48675232008099556,
+    "image_auroc": 0.9746025302530253,
+    "fm": 0.004660691727291454,
+    "prequential_ap": 0.4680161697838407,
+    "acq_ap": 0.4842099187274774,
+    "bytes_final": 106638344,
+    "bytes_max": 106638344,
+    "update_s": 662.3950788974762,
+    "latency_ms_per_img": 21.057738065719604,
+    "per_task_final_ap": {
+     "visa/pipe_fryum": 0.5270146131515503,
+     "visa/pcb4": 0.41919559240341187,
+     "visa/pcb3": 0.44373345375061035,
+     "visa/pcb2": 0.4267064332962036,
+     "visa/pcb1": 0.797816812992096,
+     "visa/macaroni2": 0.13732697069644928,
+     "visa/macaroni1": 0.1566796898841858,
+     "visa/fryum": 0.4671986401081085,
+     "visa/chewinggum": 0.7016562819480896,
+     "visa/cashew": 0.6919035911560059,
+     "visa/capsules": 0.6276273727416992,
+     "visa/candle": 0.4441683888435364
+    },
+    "per_task_final_auroc": {
+     "visa/pipe_fryum": 0.989,
+     "visa/pcb4": 0.9974257425742574,
+     "visa/pcb3": 0.9928712871287129,
+     "visa/pcb2": 0.9823,
+     "visa/pcb1": 0.996,
+     "visa/macaroni2": 0.9455,
+     "visa/macaroni1": 0.9327000000000001,
+     "visa/fryum": 0.9584,
+     "visa/chewinggum": 0.9900000000000001,
+     "visa/cashew": 0.9676,
+     "visa/capsules": 0.9668333333333334,
+     "visa/candle": 0.9766
+    }
+   },
+   "E": {
+    "pixel_ap": 0.44893568692107994,
+    "image_auroc": 0.9499571782178219,
+    "fm": 0.0271718596870249,
+    "prequential_ap": 0.44098405545591285,
+    "acq_ap": 0.4694447784374158,
+    "bytes_final": 8388104,
+    "bytes_max": 8388104,
+    "update_s": 669.4148960113525,
+    "latency_ms_per_img": 2.1076566811224713,
+    "per_task_final_ap": {
+     "visa/pipe_fryum": 0.5200729966163635,
+     "visa/pcb4": 0.32307231426239014,
+     "visa/pcb3": 0.37668654322624207,
+     "visa/pcb2": 0.3731808662414551,
+     "visa/pcb1": 0.7341744303703308,
+     "visa/macaroni2": 0.10779256373643875,
+     "visa/macaroni1": 0.1579849272966385,
+     "visa/fryum": 0.43872058391571045,
+     "visa/chewinggum": 0.6936319470405579,
+     "visa/cashew": 0.6350252628326416,
+     "visa/capsules": 0.6065959930419922,
+     "visa/candle": 0.4202898144721985
+    },
+    "per_task_final_auroc": {
+     "visa/pipe_fryum": 0.9742000000000001,
+     "visa/pcb4": 0.9846534653465346,
+     "visa/pcb3": 0.9467326732673267,
+     "visa/pcb2": 0.9385999999999999,
+     "visa/pcb1": 0.9372,
+     "visa/macaroni2": 0.8982,
+     "visa/macaroni1": 0.9225,
+     "visa/fryum": 0.9458,
+     "visa/chewinggum": 0.9838,
+     "visa/cashew": 0.9358000000000001,
+     "visa/capsules": 0.9595,
+     "visa/candle": 0.9725
+    }
+   },
+   "P": {
+    "pixel_ap": 0.40762726434816915,
+    "image_auroc": 0.9132730198019802,
+    "fm": 0.06230493330142715,
+    "prequential_ap": 0.42525670771317275,
+    "acq_ap": 0.45502951617042225,
+    "bytes_final": 7612268,
+    "bytes_max": 7847888,
+    "update_s": 420.3508961200714,
+    "latency_ms_per_img": 1.2364139159520469,
+    "per_task_final_ap": {
+     "visa/pipe_fryum": 0.4985501766204834,
+     "visa/pcb4": 0.23991680145263672,
+     "visa/pcb3": 0.3455025255680084,
+     "visa/pcb2": 0.333666056394577,
+     "visa/pcb1": 0.676337718963623,
+     "visa/macaroni2": 0.06083322688937187,
+     "visa/macaroni1": 0.12351246178150177,
+     "visa/fryum": 0.3802393674850464,
+     "visa/chewinggum": 0.7050000429153442,
+     "visa/cashew": 0.5620102882385254,
+     "visa/capsules": 0.5681812763214111,
+     "visa/candle": 0.3977772295475006
+    },
+    "per_task_final_auroc": {
+     "visa/pipe_fryum": 0.9572,
+     "visa/pcb4": 0.976039603960396,
+     "visa/pcb3": 0.8963366336633664,
+     "visa/pcb2": 0.8783000000000001,
+     "visa/pcb1": 0.9733999999999999,
+     "visa/macaroni2": 0.7956,
+     "visa/macaroni1": 0.8514000000000002,
+     "visa/fryum": 0.92,
+     "visa/chewinggum": 0.9802,
+     "visa/cashew": 0.905,
+     "visa/capsules": 0.886,
+     "visa/candle": 0.9398
+    }
+   }
+  },
+  "visa_c2711": {
+   "U": {
+    "pixel_ap": 0.48675695930918056,
+    "image_auroc": 0.9746025302530255,
+    "fm": 0.0023415318944237447,
+    "prequential_ap": 0.4504375728354764,
+    "acq_ap": 0.4739518463611603,
+    "bytes_final": 106638344,
+    "bytes_max": 106638344,
+    "update_s": 662.8131620883942,
+    "latency_ms_per_img": 20.05615724259941,
+    "per_task_final_ap": {
+     "visa/capsules": 0.6276264786720276,
+     "visa/macaroni2": 0.13733093440532684,
+     "visa/fryum": 0.46720486879348755,
+     "visa/pipe_fryum": 0.5270230770111084,
+     "visa/chewinggum": 0.7016590237617493,
+     "visa/pcb4": 0.4192078113555908,
+     "visa/candle": 0.4441681206226349,
+     "visa/macaroni1": 0.15668487548828125,
+     "visa/pcb2": 0.4267091155052185,
+     "visa/pcb3": 0.4437403976917267,
+     "visa/pcb1": 0.7978205680847168,
+     "visa/cashew": 0.6919082403182983
+    },
+    "per_task_final_auroc": {
+     "visa/capsules": 0.9668333333333334,
+     "visa/macaroni2": 0.9455,
+     "visa/fryum": 0.9584,
+     "visa/pipe_fryum": 0.989,
+     "visa/chewinggum": 0.9900000000000001,
+     "visa/pcb4": 0.9974257425742574,
+     "visa/candle": 0.9766,
+     "visa/macaroni1": 0.9327000000000001,
+     "visa/pcb2": 0.9823,
+     "visa/pcb3": 0.9928712871287129,
+     "visa/pcb1": 0.996,
+     "visa/cashew": 0.9676
+    }
+   },
+   "E": {
+    "pixel_ap": 0.4475166654835145,
+    "image_auroc": 0.9497660616061606,
+    "fm": 0.019875429570674896,
+    "prequential_ap": 0.43223409111696215,
+    "acq_ap": 0.45657944679260254,
+    "bytes_final": 8388104,
+    "bytes_max": 8388104,
+    "update_s": 670.3403222560883,
+    "latency_ms_per_img": 1.991421488387075,
+    "per_task_final_ap": {
+     "visa/capsules": 0.5921577215194702,
+     "visa/macaroni2": 0.09611684828996658,
+     "visa/fryum": 0.4091411530971527,
+     "visa/pipe_fryum": 0.5039090514183044,
+     "visa/chewinggum": 0.6991307735443115,
+     "visa/pcb4": 0.3055741488933563,
+     "visa/candle": 0.42587676644325256,
+     "visa/macaroni1": 0.14196619391441345,
+     "visa/pcb2": 0.37501588463783264,
+     "visa/pcb3": 0.3895163834095001,
+     "visa/pcb1": 0.7589154243469238,
+     "visa/cashew": 0.6728796362876892
+    },
+    "per_task_final_auroc": {
+     "visa/capsules": 0.9308333333333333,
+     "visa/macaroni2": 0.8749,
+     "visa/fryum": 0.95,
+     "visa/pipe_fryum": 0.9794,
+     "visa/chewinggum": 0.99,
+     "visa/pcb4": 0.9759405940594059,
+     "visa/candle": 0.9521000000000001,
+     "visa/macaroni1": 0.9136,
+     "visa/pcb2": 0.9511,
+     "visa/pcb3": 0.9681188118811881,
+     "visa/pcb1": 0.9583999999999999,
+     "visa/cashew": 0.9528000000000001
+    }
+   },
+   "P": {
+    "pixel_ap": 0.43362681940197945,
+    "image_auroc": 0.9034336358635865,
+    "fm": 0.04086349362676794,
+    "prequential_ap": 0.4280315830197567,
+    "acq_ap": 0.45356182754039764,
+    "bytes_final": 7612268,
+    "bytes_max": 7812468,
+    "update_s": 423.577760219574,
+    "latency_ms_per_img": 1.2249183654785156,
+    "per_task_final_ap": {
+     "visa/capsules": 0.6257558465003967,
+     "visa/macaroni2": 0.08014070987701416,
+     "visa/fryum": 0.4226583242416382,
+     "visa/pipe_fryum": 0.5249186158180237,
+     "visa/chewinggum": 0.6530349254608154,
+     "visa/pcb4": 0.22519920766353607,
+     "visa/candle": 0.4083033502101898,
+     "visa/macaroni1": 0.13908398151397705,
+     "visa/pcb2": 0.3565613329410553,
+     "visa/pcb3": 0.3507148027420044,
+     "visa/pcb1": 0.7695313692092896,
+     "visa/cashew": 0.647619366645813
+    },
+    "per_task_final_auroc": {
+     "visa/capsules": 0.9478333333333333,
+     "visa/macaroni2": 0.7777999999999999,
+     "visa/fryum": 0.9314000000000001,
+     "visa/pipe_fryum": 0.9366,
+     "visa/chewinggum": 0.9792000000000001,
+     "visa/pcb4": 0.9054455445544555,
+     "visa/candle": 0.8757,
+     "visa/macaroni1": 0.8405,
+     "visa/pcb2": 0.8353,
+     "visa/pcb3": 0.8675247524752475,
+     "visa/pcb1": 0.9861,
+     "visa/cashew": 0.9578
+    }
+   }
+  },
+  "mpdd_a2711": {
+   "U": {
+    "pixel_ap": 0.5174698183933893,
+    "image_auroc": 0.962705623490096,
+    "fm": 0.0012212559580802918,
+    "prequential_ap": 0.345416686642501,
+    "acq_ap": 0.5178071347375711,
+    "bytes_final": 13057544,
+    "bytes_max": 13057544,
+    "update_s": 17.692649364471436,
+    "latency_ms_per_img": 2.658685048421224,
+    "per_task_final_ap": {
+     "mpdd/bracket_black": 0.19713379442691803,
+     "mpdd/bracket_brown": 0.40697917342185974,
+     "mpdd/bracket_white": 0.08055196702480316,
+     "mpdd/connector": 0.757787823677063,
+     "mpdd/metal_plate": 0.8852774500846863,
+     "mpdd/tubes": 0.7770887017250061
+    },
+    "per_task_final_auroc": {
+     "mpdd/bracket_black": 0.8723404255319148,
+     "mpdd/bracket_brown": 0.9751131221719457,
+     "mpdd/bracket_white": 0.9822222222222222,
+     "mpdd/connector": 1.0,
+     "mpdd/metal_plate": 1.0,
+     "mpdd/tubes": 0.9465579710144929
+    },
+    "pixel_ap_ci95": [
+     0.4999901719391346,
+     0.5379253342747689
+    ],
+    "image_auroc_ci95": [
+     0.9449336767196655,
+     0.978511968255043
+    ]
+   },
+   "E": {
+    "pixel_ap": 0.5082262977957726,
+    "image_auroc": 0.9399078490516836,
+    "fm": 0.012806892395019531,
+    "prequential_ap": 0.3433117847061819,
+    "acq_ap": 0.5162597137192885,
+    "bytes_final": 8388104,
+    "bytes_max": 8388104,
+    "update_s": 20.283934116363525,
+    "latency_ms_per_img": 1.8918434778849282,
+    "per_task_final_ap": {
+     "mpdd/bracket_black": 0.18228191137313843,
+     "mpdd/bracket_brown": 0.3831247091293335,
+     "mpdd/bracket_white": 0.060734882950782776,
+     "mpdd/connector": 0.7666935920715332,
+     "mpdd/metal_plate": 0.8843340277671814,
+     "mpdd/tubes": 0.772188663482666
+    },
+    "per_task_final_auroc": {
+     "mpdd/bracket_black": 0.8424202127659575,
+     "mpdd/bracket_brown": 0.9223227752639517,
+     "mpdd/bracket_white": 0.9322222222222223,
+     "mpdd/connector": 1.0,
+     "mpdd/metal_plate": 1.0,
+     "mpdd/tubes": 0.942481884057971
+    },
+    "pixel_ap_ci95": [
+     0.4894565723836422,
+     0.5295561090111732
+    ],
+    "image_auroc_ci95": [
+     0.9164387255907058,
+     0.9605902761220932
+    ]
+   },
+   "CB": {
+    "pixel_ap": 0.4449602135767539,
+    "image_auroc": 0.9264423456748782,
+    "fm": 0.003114642947912216,
+    "prequential_ap": 0.2667059944321712,
+    "acq_ap": 0.4403335762520631,
+    "bytes_final": 8388096,
+    "bytes_max": 8388096,
+    "update_s": 27.095317602157593,
+    "latency_ms_per_img": 2.176160936231737,
+    "per_task_final_ap": {
+     "mpdd/bracket_black": 0.18173621594905853,
+     "mpdd/bracket_brown": 0.2063218504190445,
+     "mpdd/bracket_white": 0.04609094187617302,
+     "mpdd/connector": 0.6619330644607544,
+     "mpdd/metal_plate": 0.8382019400596619,
+     "mpdd/tubes": 0.7354772686958313
+    },
+    "per_task_final_auroc": {
+     "mpdd/bracket_black": 0.7087765957446809,
+     "mpdd/bracket_brown": 0.9419306184012066,
+     "mpdd/bracket_white": 0.9822222222222222,
+     "mpdd/connector": 1.0,
+     "mpdd/metal_plate": 1.0,
+     "mpdd/tubes": 0.9257246376811594
+    },
+    "pixel_ap_ci95": [
+     0.42492043450474737,
+     0.46717249155044555
+    ],
+    "image_auroc_ci95": [
+     0.901192569732666,
+     0.949166813492775
+    ]
+   },
+   "F": {
+    "pixel_ap": 0.4449602135767539,
+    "image_auroc": 0.9264423456748782,
+    "fm": 0.003114642947912216,
+    "prequential_ap": 0.2667059944321712,
+    "acq_ap": 0.4403335762520631,
+    "bytes_final": 8388096,
+    "bytes_max": 8388096,
+    "update_s": 27.095317602157593,
+    "latency_ms_per_img": 2.194169279816863,
+    "per_task_final_ap": {
+     "mpdd/bracket_black": 0.18173621594905853,
+     "mpdd/bracket_brown": 0.2063218504190445,
+     "mpdd/bracket_white": 0.04609094187617302,
+     "mpdd/connector": 0.6619330644607544,
+     "mpdd/metal_plate": 0.8382019400596619,
+     "mpdd/tubes": 0.7354772686958313
+    },
+    "per_task_final_auroc": {
+     "mpdd/bracket_black": 0.7087765957446809,
+     "mpdd/bracket_brown": 0.9419306184012066,
+     "mpdd/bracket_white": 0.9822222222222222,
+     "mpdd/connector": 1.0,
+     "mpdd/metal_plate": 1.0,
+     "mpdd/tubes": 0.9257246376811594
+    },
+    "pixel_ap_ci95": [
+     0.42492043450474737,
+     0.46717249155044555
+    ],
+    "image_auroc_ci95": [
+     0.901192569732666,
+     0.949166813492775
+    ]
+   },
+   "P": {
+    "pixel_ap": 0.4711533809701602,
+    "image_auroc": 0.935510344115666,
+    "fm": 0.013481460511684418,
+    "prequential_ap": 0.29445152727680074,
+    "acq_ap": 0.48201214397946995,
+    "bytes_final": 7670788,
+    "bytes_max": 7949528,
+    "update_s": 30.30222225189209,
+    "latency_ms_per_img": 1.157844066619873,
+    "per_task_final_ap": {
+     "mpdd/bracket_black": 0.1716851443052292,
+     "mpdd/bracket_brown": 0.25969430804252625,
+     "mpdd/bracket_white": 0.07521361112594604,
+     "mpdd/connector": 0.6884567737579346,
+     "mpdd/metal_plate": 0.8753792643547058,
+     "mpdd/tubes": 0.7564911842346191
+    },
+    "per_task_final_auroc": {
+     "mpdd/bracket_black": 0.8351063829787234,
+     "mpdd/bracket_brown": 0.9283559577677225,
+     "mpdd/bracket_white": 0.9244444444444445,
+     "mpdd/connector": 0.9976190476190476,
+     "mpdd/metal_plate": 1.0,
+     "mpdd/tubes": 0.927536231884058
+    },
+    "pixel_ap_ci95": [
+     0.4529343195259571,
+     0.49295699298381807
+    ],
+    "image_auroc_ci95": [
+     0.9104309752583504,
+     0.9579348132014275
+    ],
+    "ap_minus_U": {
+     "delta": -0.04631643742322916,
+     "ci95": [
+      -0.05985256964340806,
+      -0.0350978296250105
+     ]
+    },
+    "ap_minus_E": {
+     "delta": -0.03707291682561237,
+     "ci95": [
+      -0.04774793554097414,
+      -0.02686716704629362
+     ]
+    },
+    "ap_minus_CB": {
+     "delta": 0.02619316739340627,
+     "ci95": [
+      0.016054941713809966,
+      0.03720244569703936
+     ]
+    },
+    "ap_minus_F": {
+     "delta": 0.02619316739340627,
+     "ci95": [
+      0.016054941713809966,
+      0.03720244569703936
+     ]
+    }
+   }
+  },
+  "mpdd_b2711": {
+   "U": {
+    "pixel_ap": 0.5174731301764647,
+    "image_auroc": 0.962705623490096,
+    "fm": -0.0010849744081497192,
+    "prequential_ap": 0.6912116281688214,
+    "acq_ap": 0.5155372495452563,
+    "bytes_final": 13057544,
+    "bytes_max": 13057544,
+    "update_s": 17.32259225845337,
+    "latency_ms_per_img": 2.0703247615269254,
+    "per_task_final_ap": {
+     "mpdd/tubes": 0.7770872116088867,
+     "mpdd/metal_plate": 0.8852774500846863,
+     "mpdd/connector": 0.7577905654907227,
+     "mpdd/bracket_white": 0.08055447787046432,
+     "mpdd/bracket_brown": 0.4069908559322357,
+     "mpdd/bracket_black": 0.1971382200717926
+    },
+    "per_task_final_auroc": {
+     "mpdd/tubes": 0.9465579710144929,
+     "mpdd/metal_plate": 1.0,
+     "mpdd/connector": 1.0,
+     "mpdd/bracket_white": 0.9822222222222222,
+     "mpdd/bracket_brown": 0.9751131221719457,
+     "mpdd/bracket_black": 0.8723404255319148
+    }
+   },
+   "E": {
+    "pixel_ap": 0.5029541092614332,
+    "image_auroc": 0.9465756288402122,
+    "fm": 0.012607598304748535,
+    "prequential_ap": 0.6889896840271023,
+    "acq_ap": 0.5124576985836029,
+    "bytes_final": 8388104,
+    "bytes_max": 8388104,
+    "update_s": 18.638686180114746,
+    "latency_ms_per_img": 2.00345256541035,
+    "per_task_final_ap": {
+     "mpdd/tubes": 0.7778143286705017,
+     "mpdd/metal_plate": 0.8836869597434998,
+     "mpdd/connector": 0.7395374178886414,
+     "mpdd/bracket_white": 0.06782519072294235,
+     "mpdd/bracket_brown": 0.377577543258667,
+     "mpdd/bracket_black": 0.17128321528434753
+    },
+    "per_task_final_auroc": {
+     "mpdd/tubes": 0.9483695652173912,
+     "mpdd/metal_plate": 1.0,
+     "mpdd/connector": 1.0,
+     "mpdd/bracket_white": 0.9566666666666666,
+     "mpdd/bracket_brown": 0.9366515837104071,
+     "mpdd/bracket_black": 0.8377659574468085
+    }
+   },
+   "P": {
+    "pixel_ap": 0.4723792187869549,
+    "image_auroc": 0.9299864111540392,
+    "fm": 0.0174800843000412,
+    "prequential_ap": 0.6646102666647898,
+    "acq_ap": 0.4828410632908344,
+    "bytes_final": 7650768,
+    "bytes_max": 8162048,
+    "update_s": 30.167181253433228,
+    "latency_ms_per_img": 1.2019554773966472,
+    "per_task_final_ap": {
+     "mpdd/tubes": 0.7385395765304565,
+     "mpdd/metal_plate": 0.879116952419281,
+     "mpdd/connector": 0.7173012495040894,
+     "mpdd/bracket_white": 0.06847435981035233,
+     "mpdd/bracket_brown": 0.24147304892539978,
+     "mpdd/bracket_black": 0.18937012553215027
+    },
+    "per_task_final_auroc": {
+     "mpdd/tubes": 0.9343297101449275,
+     "mpdd/metal_plate": 1.0,
+     "mpdd/connector": 1.0,
+     "mpdd/bracket_white": 0.9766666666666666,
+     "mpdd/bracket_brown": 0.8823529411764706,
+     "mpdd/bracket_black": 0.7865691489361701
+    }
+   }
+  }
+ },
+ "not_run": {
+  "mpdd_c2711": "see report (engineering edge case)"
+ },
+ "order_mean": {
+  "mvtec": {
+   "U": {
+    "pixel_ap": 0.6347520993815529,
+    "image_auroc": 0.9953228347787344,
+    "fm": 0.004653829903829665,
+    "prequential_ap": 0.6403997186958265,
+    "acq_ap": 0.6322716640101539,
+    "orders": [
+     "a",
+     "b",
+     "c"
+    ]
+   },
+   "E": {
+    "pixel_ap": 0.5943344632784525,
+    "image_auroc": 0.9830283342950231,
+    "fm": 0.03289577790669033,
+    "prequential_ap": 0.6199685071147706,
+    "acq_ap": 0.6164181735780504,
+    "orders": [
+     "a",
+     "b",
+     "c"
+    ]
+   },
+   "P": {
+    "pixel_ap": 0.5686176690790389,
+    "image_auroc": 0.9708918659395422,
+    "fm": 0.06252408382438478,
+    "prequential_ap": 0.6073516808259806,
+    "acq_ap": 0.603749926884969,
+    "orders": [
+     "a",
+     "b",
+     "c"
+    ]
+   },
+   "P_minus": {
+    "U": [
+     -0.047385845581690456,
+     -0.09548914432525635,
+     -0.055528301000595026
+    ],
+    "E": [
+     -0.005287955204645756,
+     -0.05368843277295432,
+     -0.018173994620641065
+    ]
+   }
+  },
+  "visa": {
+   "U": {
+    "pixel_ap": 0.48675505403015346,
+    "image_auroc": 0.9746025302530255,
+    "fm": 0.0033397841634172382,
+    "prequential_ap": 0.4750867362590338,
+    "acq_ap": 0.4788575640155209,
+    "orders": [
+     "a",
+     "b",
+     "c"
+    ]
+   },
+   "E": {
+    "pixel_ap": 0.4522343722896443,
+    "image_auroc": 0.9448782453245325,
+    "fm": 0.019655628412058857,
+    "prequential_ap": 0.4555431805305716,
+    "acq_ap": 0.4632691670623091,
+    "orders": [
+     "a",
+     "b",
+     "c"
+    ]
+   },
+   "P": {
+    "pixel_ap": 0.4210177906271484,
+    "image_auroc": 0.905868894389439,
+    "fm": 0.05133141193426016,
+    "prequential_ap": 0.4442729340216209,
+    "acq_ap": 0.455501948379808,
+    "orders": [
+     "a",
+     "b",
+     "c"
+    ]
+   },
+   "P_minus": {
+    "U": [
+     -0.06495659456898767,
+     -0.07912505573282641,
+     -0.05313013990720111
+    ],
+    "E": [
+     -0.03845147633304197,
+     -0.041308422572910786,
+     -0.01388984608153504
+    ]
+   }
+  },
+  "mpdd": {
+   "U": {
+    "pixel_ap": 0.517471474284927,
+    "image_auroc": 0.962705623490096,
+    "fm": 6.814077496528634e-05,
+    "prequential_ap": 0.5183141574056612,
+    "acq_ap": 0.5166721921414137,
+    "orders": [
+     "a",
+     "b"
+    ]
+   },
+   "E": {
+    "pixel_ap": 0.5055902035286028,
+    "image_auroc": 0.9432417389459479,
+    "fm": 0.012707245349884034,
+    "prequential_ap": 0.516150734366642,
+    "acq_ap": 0.5143587061514456,
+    "orders": [
+     "a",
+     "b"
+    ]
+   },
+   "P": {
+    "pixel_ap": 0.47176629987855756,
+    "image_auroc": 0.9327483776348526,
+    "fm": 0.015480772405862809,
+    "prequential_ap": 0.4795308969707953,
+    "acq_ap": 0.4824266036351522,
+    "orders": [
+     "a",
+     "b"
+    ]
+   },
+   "P_minus": {
+    "U": [
+     -0.04631643742322916,
+     -0.0450939113895098
+    ],
+    "E": [
+     -0.03707291682561237,
+     -0.030574890474478367
+    ]
+   }
+  }
+ },
+ "ad2_test_public": {
+  "U": {
+   "pixel_ap": 0.18761215361519135,
+   "image_auroc": 0.7102828239881811,
+   "fm": 0.001244136061619169,
+   "per_scenario_final": {
+    "can": {
+     "pixel_ap": 0.00016907622921280563,
+     "image_auroc": 0.5125
+    },
+    "fabric": {
+     "pixel_ap": 0.12050966173410416,
+     "image_auroc": 0.646969696969697
+    },
+    "fruit_jelly": {
+     "pixel_ap": 0.22302548587322235,
+     "image_auroc": 0.7933333333333333
+    },
+    "rice": {
+     "pixel_ap": 0.2768481373786926,
+     "image_auroc": 0.7933862433862434
+    },
+    "sheet_metal": {
+     "pixel_ap": 0.20269526541233063,
+     "image_auroc": 0.7805555555555556
+    },
+    "vial": {
+     "pixel_ap": 0.35292160511016846,
+     "image_auroc": 0.9395918367346939
+    },
+    "wallplugs": {
+     "pixel_ap": 0.04343341290950775,
+     "image_auroc": 0.4507407407407407
+    },
+    "walnuts": {
+     "pixel_ap": 0.281294584274292,
+     "image_auroc": 0.7651851851851852
+    }
+   },
+   "au_pro": "NOT_COMPUTED (official code utils absent)"
+  },
+  "E": {
+   "pixel_ap": 0.17419059018902772,
+   "image_auroc": 0.6912503793604984,
+   "fm": 0.011633202244411223,
+   "per_scenario_final": {
+    "can": {
+     "pixel_ap": 0.00015237952175084502,
+     "image_auroc": 0.5669753086419753
+    },
+    "fabric": {
+     "pixel_ap": 0.11591224372386932,
+     "image_auroc": 0.5782828282828283
+    },
+    "fruit_jelly": {
+     "pixel_ap": 0.21518680453300476,
+     "image_auroc": 0.7675
+    },
+    "rice": {
+     "pixel_ap": 0.2670442461967468,
+     "image_auroc": 0.7261904761904762
+    },
+    "sheet_metal": {
+     "pixel_ap": 0.1738559901714325,
+     "image_auroc": 0.7611111111111112
+    },
+    "vial": {
+     "pixel_ap": 0.3159038722515106,
+     "image_auroc": 0.9093877551020408
+    },
+    "wallplugs": {
+     "pixel_ap": 0.035134702920913696,
+     "image_auroc": 0.44037037037037036
+    },
+    "walnuts": {
+     "pixel_ap": 0.27033448219299316,
+     "image_auroc": 0.7801851851851852
+    }
+   },
+   "au_pro": "NOT_COMPUTED (official code utils absent)"
+  },
+  "CB": {
+   "pixel_ap": 0.14673708628288296,
+   "image_auroc": 0.6626613928399643,
+   "fm": 0.012298125068939823,
+   "per_scenario_final": {
+    "can": {
+     "pixel_ap": 9.359921386931092e-05,
+     "image_auroc": 0.47175925925925927
+    },
+    "fabric": {
+     "pixel_ap": 0.12458477169275284,
+     "image_auroc": 0.6542087542087542
+    },
+    "fruit_jelly": {
+     "pixel_ap": 0.18412663042545319,
+     "image_auroc": 0.7133333333333333
+    },
+    "rice": {
+     "pixel_ap": 0.21334370970726013,
+     "image_auroc": 0.6775132275132275
+    },
+    "sheet_metal": {
+     "pixel_ap": 0.18299616873264313,
+     "image_auroc": 0.7495370370370371
+    },
+    "vial": {
+     "pixel_ap": 0.21846126019954681,
+     "image_auroc": 0.8740136054421769
+    },
+    "wallplugs": {
+     "pixel_ap": 0.0218270942568779,
+     "image_auroc": 0.45462962962962966
+    },
+    "walnuts": {
+     "pixel_ap": 0.22846345603466034,
+     "image_auroc": 0.7062962962962962
+    }
+   },
+   "au_pro": "NOT_COMPUTED (official code utils absent)"
+  },
+  "F": {
+   "pixel_ap": 0.14673708628288296,
+   "image_auroc": 0.6626613928399643,
+   "fm": 0.012298125068939823,
+   "per_scenario_final": {
+    "can": {
+     "pixel_ap": 9.359921386931092e-05,
+     "image_auroc": 0.47175925925925927
+    },
+    "fabric": {
+     "pixel_ap": 0.12458477169275284,
+     "image_auroc": 0.6542087542087542
+    },
+    "fruit_jelly": {
+     "pixel_ap": 0.18412663042545319,
+     "image_auroc": 0.7133333333333333
+    },
+    "rice": {
+     "pixel_ap": 0.21334370970726013,
+     "image_auroc": 0.6775132275132275
+    },
+    "sheet_metal": {
+     "pixel_ap": 0.18299616873264313,
+     "image_auroc": 0.7495370370370371
+    },
+    "vial": {
+     "pixel_ap": 0.21846126019954681,
+     "image_auroc": 0.8740136054421769
+    },
+    "wallplugs": {
+     "pixel_ap": 0.0218270942568779,
+     "image_auroc": 0.45462962962962966
+    },
+    "walnuts": {
+     "pixel_ap": 0.22846345603466034,
+     "image_auroc": 0.7062962962962962
+    }
+   },
+   "au_pro": "NOT_COMPUTED (official code utils absent)"
+  },
+  "P": {
+   "pixel_ap": 0.17075705212846515,
+   "image_auroc": 0.6583382006001053,
+   "fm": 0.02122134653369098,
+   "per_scenario_final": {
+    "can": {
+     "pixel_ap": 9.121830225922167e-05,
+     "image_auroc": 0.5067901234567901
+    },
+    "fabric": {
+     "pixel_ap": 0.14880961179733276,
+     "image_auroc": 0.5486531986531986
+    },
+    "fruit_jelly": {
+     "pixel_ap": 0.19214804470539093,
+     "image_auroc": 0.7966666666666666
+    },
+    "rice": {
+     "pixel_ap": 0.24446776509284973,
+     "image_auroc": 0.7058201058201058
+    },
+    "sheet_metal": {
+     "pixel_ap": 0.14415223896503448,
+     "image_auroc": 0.6462962962962963
+    },
+    "vial": {
+     "pixel_ap": 0.24603673815727234,
+     "image_auroc": 0.8854421768707482
+    },
+    "wallplugs": {
+     "pixel_ap": 0.05539928004145622,
+     "image_auroc": 0.39370370370370367
+    },
+    "walnuts": {
+     "pixel_ap": 0.3349515199661255,
+     "image_auroc": 0.7833333333333333
+    }
+   },
+   "au_pro": "NOT_COMPUTED (official code utils absent)"
+  }
+ },
+ "time": "2026-11-25T03:30:46"
+}

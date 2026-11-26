@@ -1,0 +1,375 @@
+{
+ "scenarios": [
+  "can",
+  "fabric",
+  "fruit_jelly",
+  "rice",
+  "sheet_metal",
+  "vial",
+  "wallplugs",
+  "walnuts"
+ ],
+ "arms": [
+  "U",
+  "E",
+  "CB",
+  "F",
+  "P"
+ ],
+ "CB": "C5",
+ "tau": 40.0,
+ "counts": [
+  412,
+  387,
+  263,
+  313,
+  137,
+  291,
+  293,
+  432
+ ],
+ "theta": {
+  "U": {
+   "can": 617.0069580078125,
+   "fabric": 446.1546325683594,
+   "fruit_jelly": 675.7642211914062,
+   "rice": 367.658203125,
+   "sheet_metal": 409.3904724121094,
+   "vial": 599.3555908203125,
+   "wallplugs": 498.0537414550781,
+   "walnuts": 463.5699768066406
+  },
+  "E": {
+   "can": 617.0069580078125,
+   "fabric": 452.1106262207031,
+   "fruit_jelly": 680.4359741210938,
+   "rice": 409.1673889160156,
+   "sheet_metal": 452.9163818359375,
+   "vial": 659.82568359375,
+   "wallplugs": 532.7877807617188,
+   "walnuts": 536.349853515625
+  },
+  "CB": {
+   "can": 0.3899971544742584,
+   "fabric": 0.38122716546058655,
+   "fruit_jelly": 0.46730172634124756,
+   "rice": 0.34872302412986755,
+   "sheet_metal": 0.3684752881526947,
+   "vial": 0.42439839243888855,
+   "wallplugs": 0.44048643112182617,
+   "walnuts": 0.4263111650943756
+  },
+  "F": {
+   "can": 0.3899971544742584,
+   "fabric": 0.38122716546058655,
+   "fruit_jelly": 0.46730172634124756,
+   "rice": 0.34872302412986755,
+   "sheet_metal": 0.3684752881526947,
+   "vial": 0.42439839243888855,
+   "wallplugs": 0.44048643112182617,
+   "walnuts": 0.4263111650943756
+  },
+  "P": {
+   "can": 370.4634094238281,
+   "fabric": 340.7129821777344,
+   "fruit_jelly": 552.2875366210938,
+   "rice": 319.6720275878906,
+   "sheet_metal": 331.00775146484375,
+   "vial": 610.4135131835938,
+   "wallplugs": 402.1781311035156,
+   "walnuts": 423.0809631347656
+  }
+ },
+ "bytes": {
+  "U": [
+   7322120,
+   11983880,
+   15151112,
+   18920456,
+   20571656,
+   24076808,
+   27606536,
+   32808968
+  ],
+  "E": [
+   7322120,
+   8388104,
+   8388104,
+   8388104,
+   8388104,
+   8388104,
+   8388104,
+   8388104
+  ],
+  "CB": [
+   4984320,
+   8388096,
+   8388096,
+   8388096,
+   8388096,
+   8388096,
+   8388096,
+   8388096
+  ],
+  "F": [
+   4984320,
+   8388096,
+   8388096,
+   8388096,
+   8388096,
+   8388096,
+   8388096,
+   8388096
+  ],
+  "P": [
+   7823248,
+   7803228,
+   7900248,
+   7763188,
+   7612268,
+   7766268,
+   7664628,
+   7612268
+  ]
+ },
+ "update_s": {
+  "U": 86.87025117874146,
+  "E": 91.39650893211365,
+  "CB": 231.5281491279602,
+  "F": 231.5281491279602,
+  "P": 103.79389953613281
+ },
+ "seconds": 602.245142698288,
+ "theta_dthr": {
+  "U": {
+   "can": 569.059528049336,
+   "fabric": 429.7350905846191,
+   "fruit_jelly": 649.6329773511093,
+   "rice": 373.87663479978613,
+   "sheet_metal": 436.0907122635949,
+   "vial": 541.7185535549974,
+   "wallplugs": 505.1015563471484,
+   "walnuts": 471.07240307177494
+  },
+  "E": {
+   "can": 569.059528049336,
+   "fabric": 443.18777444809507,
+   "fruit_jelly": 666.1389159634996,
+   "rice": 422.8093909939998,
+   "sheet_metal": 480.1356106883585,
+   "vial": 600.7174601349518,
+   "wallplugs": 557.5158534311614,
+   "walnuts": 554.6601909023015
+  }
+ },
+ "theta_dthr_stats": {
+  "U": {
+   "can": {
+    "mean": 265.6907199915511,
+    "std": 101.12293601926166,
+    "n_pixels": 105136128,
+    "n_images": 46,
+    "stage": 0
+   },
+   "fabric": {
+    "mean": 308.33999328287024,
+    "std": 40.465032433916285,
+    "n_pixels": 215580672,
+    "n_images": 43,
+    "stage": 1
+   },
+   "fruit_jelly": {
+    "mean": 253.79107694151975,
+    "std": 131.94730013652983,
+    "n_pixels": 118104000,
+    "n_images": 37,
+    "stage": 2
+   },
+   "rice": {
+    "mean": 278.05640137725885,
+    "std": 31.940077807509095,
+    "n_pixels": 175472640,
+    "n_images": 35,
+    "stage": 3
+   },
+   "sheet_metal": {
+    "mean": 287.7445134891864,
+    "std": 49.44873292480285,
+    "n_pixels": 84750336,
+    "n_images": 19,
+    "stage": 4
+   },
+   "vial": {
+    "mean": 225.77891789503823,
+    "std": 105.31321188665304,
+    "n_pixels": 109060000,
+    "n_images": 41,
+    "stage": 5
+   },
+   "wallplugs": {
+    "mean": 322.6766072075606,
+    "std": 60.80831637986261,
+    "n_pixels": 165445632,
+    "n_images": 33,
+    "stage": 6
+   },
+   "walnuts": {
+    "mean": 274.7338301389849,
+    "std": 65.44619097759667,
+    "n_pixels": 240648192,
+    "n_images": 48,
+    "stage": 7
+   }
+  },
+  "E": {
+   "can": {
+    "mean": 265.6907199915511,
+    "std": 101.12293601926166,
+    "n_pixels": 105136128,
+    "n_images": 46,
+    "stage": 0
+   },
+   "fabric": {
+    "mean": 317.08301971986754,
+    "std": 42.03491824274252,
+    "n_pixels": 215580672,
+    "n_images": 43,
+    "stage": 1
+   },
+   "fruit_jelly": {
+    "mean": 271.26340867868475,
+    "std": 131.6251690949383,
+    "n_pixels": 118104000,
+    "n_images": 37,
+    "stage": 2
+   },
+   "rice": {
+    "mean": 326.4780627119751,
+    "std": 32.11044276067489,
+    "n_pixels": 175472640,
+    "n_images": 35,
+    "stage": 3
+   },
+   "sheet_metal": {
+    "mean": 340.7202925831346,
+    "std": 46.47177270174129,
+    "n_pixels": 84750336,
+    "n_images": 19,
+    "stage": 4
+   },
+   "vial": {
+    "mean": 313.0101139571473,
+    "std": 95.90244872593483,
+    "n_pixels": 109060000,
+    "n_images": 41,
+    "stage": 5
+   },
+   "wallplugs": {
+    "mean": 377.73435613225905,
+    "std": 59.92716576630079,
+    "n_pixels": 165445632,
+    "n_images": 33,
+    "stage": 6
+   },
+   "walnuts": {
+    "mean": 352.18612086924173,
+    "std": 67.49135667768657,
+    "n_pixels": 240648192,
+    "n_images": 48,
+    "stage": 7
+   }
+  }
+ },
+ "theta_dthr_rule": "D-THR: theta_s = mean + 3*std (population, fp64) of native-resolution float32 A1 pixel scores over all validation/ images of scenario s, arm state at the acquisition stage of s; binary = final-stage float32 native map > theta_s",
+ "theta_dthr_arms": [
+  "U",
+  "E"
+ ],
+ "theta_dthr_old_theta_check": {
+  "U": {
+   "can": {
+    "old_theta_reproduced": true,
+    "old": 617.0069580078125,
+    "stored": 617.0069580078125
+   },
+   "fabric": {
+    "old_theta_reproduced": true,
+    "old": 446.1546325683594,
+    "stored": 446.1546325683594
+   },
+   "fruit_jelly": {
+    "old_theta_reproduced": true,
+    "old": 675.7642211914062,
+    "stored": 675.7642211914062
+   },
+   "rice": {
+    "old_theta_reproduced": true,
+    "old": 367.658203125,
+    "stored": 367.658203125
+   },
+   "sheet_metal": {
+    "old_theta_reproduced": true,
+    "old": 409.3904724121094,
+    "stored": 409.3904724121094
+   },
+   "vial": {
+    "old_theta_reproduced": true,
+    "old": 599.3555908203125,
+    "stored": 599.3555908203125
+   },
+   "wallplugs": {
+    "old_theta_reproduced": true,
+    "old": 498.0537414550781,
+    "stored": 498.0537414550781
+   },
+   "walnuts": {
+    "old_theta_reproduced": true,
+    "old": 463.5699768066406,
+    "stored": 463.5699768066406
+   }
+  },
+  "E": {
+   "can": {
+    "old_theta_reproduced": true,
+    "old": 617.0069580078125,
+    "stored": 617.0069580078125
+   },
+   "fabric": {
+    "old_theta_reproduced": true,
+    "old": 452.1106262207031,
+    "stored": 452.1106262207031
+   },
+   "fruit_jelly": {
+    "old_theta_reproduced": true,
+    "old": 680.4359741210938,
+    "stored": 680.4359741210938
+   },
+   "rice": {
+    "old_theta_reproduced": true,
+    "old": 409.1673889160156,
+    "stored": 409.1673889160156
+   },
+   "sheet_metal": {
+    "old_theta_reproduced": true,
+    "old": 452.9163818359375,
+    "stored": 452.9163818359375
+   },
+   "vial": {
+    "old_theta_reproduced": true,
+    "old": 659.82568359375,
+    "stored": 659.82568359375
+   },
+   "wallplugs": {
+    "old_theta_reproduced": true,
+    "old": 532.7877807617188,
+    "stored": 532.7877807617188
+   },
+   "walnuts": {
+    "old_theta_reproduced": true,
+    "old": 536.349853515625,
+    "stored": 536.349853515625
+   }
+  }
+ },
+ "theta_dthr_time": "2026-11-25T06:41:08"
+}

@@ -1,0 +1,118 @@
+{
+ "status": {
+  "I_visa_a2711_8mib": "DONE",
+  "J1_visa_a2712_8mib": "DONE",
+  "J1_visa_a2713_8mib": "DONE",
+  "J1_visa_b2711_8mib": "DONE",
+  "J1_visa_b2712_8mib": "DONE",
+  "J1_visa_b2713_8mib": "DONE",
+  "J1_visa_c2711_8mib": "DONE",
+  "J1_visa_c2712_8mib": "DONE",
+  "J1_visa_c2713_8mib": "DONE",
+  "J1x_visa_a2712_8mib": "DONE",
+  "J1x_visa_a2713_8mib": "DONE",
+  "J1x_visa_b2711_8mib": "DONE",
+  "J1x_visa_b2712_8mib": "DONE"
+ },
+ "reduced": true,
+ "arms": {
+  "I_visa_a2711_8mib": [
+   "C0",
+   "C1",
+   "C2",
+   "C3",
+   "C4",
+   "C5",
+   "P",
+   "P4",
+   "P16"
+  ],
+  "J1_visa_a2712_8mib": [
+   "P",
+   "C3"
+  ],
+  "J1_visa_a2713_8mib": [
+   "P",
+   "C3"
+  ],
+  "J1_visa_b2711_8mib": [
+   "P",
+   "C3"
+  ],
+  "J1_visa_b2712_8mib": [
+   "P",
+   "C3"
+  ],
+  "J1_visa_b2713_8mib": [
+   "P",
+   "C3"
+  ],
+  "J1_visa_c2711_8mib": [
+   "P",
+   "C3"
+  ],
+  "J1_visa_c2712_8mib": [
+   "P",
+   "C3"
+  ],
+  "J1_visa_c2713_8mib": [
+   "P",
+   "C3"
+  ],
+  "J1x_visa_a2712_8mib": [
+   "C2",
+   "C5"
+  ],
+  "J1x_visa_a2713_8mib": [
+   "C2",
+   "C5"
+  ],
+  "J1x_visa_b2711_8mib": [
+   "C2",
+   "C5"
+  ],
+  "J1x_visa_b2712_8mib": [
+   "C2",
+   "C5"
+  ],
+  "J1x_visa_b2713_8mib": [
+   "C2",
+   "C5"
+  ],
+  "J1x_visa_c2711_8mib": [
+   "C2",
+   "C5"
+  ],
+  "J1x_visa_c2712_8mib": [
+   "C2",
+   "C5"
+  ],
+  "J1x_visa_c2713_8mib": [
+   "C2",
+   "C5"
+  ],
+  "J2_s33_a2711_8mib": [
+   "C0",
+   "C1",
+   "C2",
+   "C3",
+   "C4",
+   "C5",
+   "P",
+   "P4",
+   "P16"
+  ],
+  "J3_visa_a2711_16mib": [
+   "C0",
+   "C1",
+   "C2",
+   "C3",
+   "C4",
+   "C5",
+   "P",
+   "P4",
+   "P16"
+  ]
+ },
+ "time": "2026-11-24T22:43:24"
+}

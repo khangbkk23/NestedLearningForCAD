@@ -1,0 +1,57 @@
+{
+ "pytest": {
+  "rc": 0,
+  "tail": [
+   "...                                                                      [100%]",
+   "3 passed in 12.37s"
+  ]
+ },
+ "cells": {
+  "bracket_black": {
+   "Einf_eq_U_bitwise": true,
+   "U_eq_MR_U_bitwise": true,
+   "E8_eq_MR_E_bitwise": true,
+   "max_abs_U": 0.0,
+   "max_abs_E": 0.0
+  },
+  "bracket_brown": {
+   "Einf_eq_U_bitwise": true,
+   "U_eq_MR_U_bitwise": true,
+   "E8_eq_MR_E_bitwise": true,
+   "max_abs_U": 0.0,
+   "max_abs_E": 0.0
+  },
+  "bracket_white": {
+   "Einf_eq_U_bitwise": true,
+   "U_eq_MR_U_bitwise": true,
+   "E8_eq_MR_E_bitwise": true,
+   "max_abs_U": 0.0,
+   "max_abs_E": 0.0
+  },
+  "connector": {
+   "Einf_eq_U_bitwise": true,
+   "U_eq_MR_U_bitwise": true,
+   "E8_eq_MR_E_bitwise": true,
+   "max_abs_U": 0.0,
+   "max_abs_E": 0.0
+  },
+  "metal_plate": {
+   "Einf_eq_U_bitwise": true,
+   "U_eq_MR_U_bitwise": true,
+   "E8_eq_MR_E_bitwise": true,
+   "max_abs_U": 0.0,
+   "max_abs_E": 0.0
+  },
+  "tubes": {
+   "Einf_eq_U_bitwise": true,
+   "U_eq_MR_U_bitwise": true,
+   "E8_eq_MR_E_bitwise": true,
+   "max_abs_U": 0.0,
+   "max_abs_E": 0.0
+  }
+ },
+ "bytes_Einf_eq_U": true,
+ "E_inf_equals_U": true,
+ "reproduces_multirate": true,
+ "pass": true
+}

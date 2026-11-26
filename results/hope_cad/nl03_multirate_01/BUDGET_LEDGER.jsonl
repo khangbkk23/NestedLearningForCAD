@@ -1,0 +1,38 @@
+{"phase": "dev_synth", "stream": "s33", "seconds": 331.50594687461853, "gpu": true, "time": "2026-11-24T18:54:48"}
+{"phase": "dev_tests", "seconds": 65.315101146698, "gpu": true, "time": "2026-11-24T18:57:51"}
+{"phase": "dev_smoke", "cell": "smoke_visa_a2711_8_2tasks", "seconds": 293.57927989959717, "gpu": true, "stage": 2, "time": "2026-11-24T19:02:47"}
+{"phase": "dev", "cell": "I_visa_a2711_8mib", "seconds": 2860.2444972991943, "gpu": true, "stage": 12, "time": "2026-11-24T19:51:27"}
+{"phase": "dev", "cell": "J1_visa_a2712_8mib", "seconds": 764.2390134334564, "gpu": true, "stage": 12, "time": "2026-11-24T20:04:12"}
+{"phase": "dev", "cell": "J1_visa_a2713_8mib", "seconds": 751.8007452487946, "gpu": true, "stage": 12, "time": "2026-11-24T20:16:44"}
+{"phase": "dev", "cell": "J1_visa_b2711_8mib", "seconds": 730.3105487823486, "gpu": true, "stage": 12, "time": "2026-11-24T20:28:55"}
+{"phase": "dev", "cell": "J1_visa_b2712_8mib", "seconds": 765.385288476944, "gpu": true, "stage": 12, "time": "2026-11-24T20:41:41"}
+{"phase": "dev", "cell": "J1_visa_b2713_8mib", "seconds": 720.171483039856, "gpu": true, "stage": 12, "time": "2026-11-24T20:53:41"}
+{"phase": "dev", "cell": "J1_visa_c2711_8mib", "seconds": 710.6980576515198, "gpu": true, "stage": 12, "time": "2026-11-24T21:05:32"}
+{"phase": "dev", "cell": "J1_visa_c2712_8mib", "seconds": 692.0070888996124, "gpu": true, "stage": 12, "time": "2026-11-24T21:17:04"}
+{"phase": "dev", "cell": "J1_visa_c2713_8mib", "seconds": 761.3690798282623, "gpu": true, "stage": 12, "time": "2026-11-24T21:29:46"}
+{"phase": "dev", "cell": "J1x_visa_a2712_8mib", "seconds": 1083.2978112697601, "gpu": true, "stage": 12, "time": "2026-11-24T21:47:49"}
+{"phase": "dev", "cell": "J1x_visa_a2713_8mib", "seconds": 1118.2537233829498, "gpu": true, "stage": 12, "time": "2026-11-24T22:06:28"}
+{"phase": "dev", "cell": "J1x_visa_b2711_8mib", "seconds": 1126.8532121181488, "gpu": true, "stage": 12, "time": "2026-11-24T22:25:15"}
+{"phase": "dev", "cell": "J1x_visa_b2712_8mib", "seconds": 1089.0142889022827, "gpu": true, "stage": 12, "time": "2026-11-24T22:43:24"}
+{"phase": "dev_final_smoke", "seconds": 148.84482169151306, "gpu": true, "time": "2026-11-24T22:46:51"}
+{"phase": "conf_ad2_extract", "seconds": 2472.9247086048126, "gpu": true, "time": "2026-11-24T23:28:14"}
+{"phase": "conf_ad2_run", "seconds": 602.2401802539825, "gpu": true, "time": "2026-11-24T23:38:32"}
+{"phase": "conf_bench", "cell": "mvtec_a2711", "seconds": 1028.576420545578, "gpu": true, "time": "2026-11-25T00:43:57"}
+{"phase": "cpu_bench_metrics", "cell": "mvtec_a2711", "seconds": 665.3336462974548, "gpu": false, "time": "2026-11-25T00:55:05"}
+{"phase": "conf_bench", "cell": "visa_a2711", "seconds": 2720.378111600876, "gpu": true, "time": "2026-11-25T01:40:28"}
+{"phase": "cpu_bench_metrics", "cell": "visa_a2711", "seconds": 707.8967041969299, "gpu": false, "time": "2026-11-25T01:52:18"}
+{"phase": "conf_bench", "cell": "mpdd_a2711", "seconds": 114.65476202964783, "gpu": true, "time": "2026-11-25T01:54:15"}
+{"phase": "cpu_bench_metrics", "cell": "mpdd_a2711", "seconds": 99.74238348007202, "gpu": false, "time": "2026-11-25T01:55:56"}
+{"phase": "conf_bench", "cell": "mvtec_b2711", "seconds": 517.2521326541901, "gpu": true, "time": "2026-11-25T02:04:37"}
+{"phase": "cpu_bench_metrics", "cell": "mvtec_b2711", "seconds": 254.15173530578613, "gpu": false, "time": "2026-11-25T02:08:52"}
+{"phase": "conf_bench", "cell": "visa_b2711", "seconds": 1590.024908065796, "gpu": true, "time": "2026-11-25T02:35:25"}
+{"phase": "cpu_bench_metrics", "cell": "visa_b2711", "seconds": 391.9776952266693, "gpu": false, "time": "2026-11-25T02:41:59"}
+{"phase": "conf_bench", "cell": "mpdd_b2711", "seconds": 80.67268300056458, "gpu": true, "time": "2026-11-25T02:43:22"}
+{"phase": "cpu_bench_metrics", "cell": "mpdd_b2711", "seconds": 38.293434143066406, "gpu": false, "time": "2026-11-25T02:44:02"}
+{"phase": "conf_bench", "cell": "mvtec_c2711", "seconds": 519.9562683105469, "gpu": true, "time": "2026-11-25T02:52:45"}
+{"phase": "cpu_bench_metrics", "cell": "mvtec_c2711", "seconds": 256.35197019577026, "gpu": false, "time": "2026-11-25T02:57:03"}
+{"phase": "conf_bench", "cell": "visa_c2711", "seconds": 1562.1838715076447, "gpu": true, "time": "2026-11-25T03:23:08"}
+{"phase": "cpu_bench_metrics", "cell": "visa_c2711", "seconds": 381.1492729187012, "gpu": false, "time": "2026-11-25T03:29:30"}
+{"phase": "conf_bench", "cell": "mpdd_c2711", "seconds": 1.837015151977539, "gpu": true, "time": "2026-11-25T03:29:35"}
+{"phase": "dthr_ad2_theta", "seconds": 121.2558126449585, "gpu": true, "time": "2026-11-25T06:41:08"}
+{"phase": "cpu_ad2_aupro", "seconds": 273.60769748687744, "gpu": false, "time": "2026-11-25T06:51:49"}

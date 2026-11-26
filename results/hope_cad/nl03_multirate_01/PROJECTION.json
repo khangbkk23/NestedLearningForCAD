@@ -1,0 +1,141 @@
+{
+ "rates": {
+  "per_fast_level_step_s": 0.27155537655281675,
+  "per_step_cand_slow_s": 0.07473295544265607,
+  "per_eval_s": 0.5363980487540916,
+  "overhead_task_s": 11.251673579216003,
+  "c0_per_step_s": 0.3784453300161099
+ },
+ "safety": 1.5,
+ "cells_full": [
+  {
+   "cell": "I_visa_a2711_8mib",
+   "seconds": 3055.5093452952324
+  },
+  {
+   "cell": "J1_visa_a2712_8mib",
+   "seconds": 1582.0121479704162
+  },
+  {
+   "cell": "J1_visa_a2713_8mib",
+   "seconds": 1582.0121479704162
+  },
+  {
+   "cell": "J1_visa_b2711_8mib",
+   "seconds": 1582.0121479704162
+  },
+  {
+   "cell": "J1_visa_b2712_8mib",
+   "seconds": 1582.0121479704162
+  },
+  {
+   "cell": "J1_visa_b2713_8mib",
+   "seconds": 1582.0121479704162
+  },
+  {
+   "cell": "J1_visa_c2711_8mib",
+   "seconds": 1582.0121479704162
+  },
+  {
+   "cell": "J1_visa_c2712_8mib",
+   "seconds": 1582.0121479704162
+  },
+  {
+   "cell": "J1_visa_c2713_8mib",
+   "seconds": 1582.0121479704162
+  },
+  {
+   "cell": "J2_s33_a2711_8mib",
+   "seconds": 8132.811851993066
+  },
+  {
+   "cell": "J3_visa_a2711_16mib",
+   "seconds": 3055.5093452952324
+  }
+ ],
+ "cells_reduced": [
+  {
+   "cell": "I_visa_a2711_8mib",
+   "seconds": 3055.5093452952324
+  },
+  {
+   "cell": "J1_visa_a2712_8mib",
+   "seconds": 928.591352543283
+  },
+  {
+   "cell": "J1_visa_a2713_8mib",
+   "seconds": 928.591352543283
+  },
+  {
+   "cell": "J1_visa_b2711_8mib",
+   "seconds": 928.591352543283
+  },
+  {
+   "cell": "J1_visa_b2712_8mib",
+   "seconds": 928.591352543283
+  },
+  {
+   "cell": "J1_visa_b2713_8mib",
+   "seconds": 928.591352543283
+  },
+  {
+   "cell": "J1_visa_c2711_8mib",
+   "seconds": 928.591352543283
+  },
+  {
+   "cell": "J1_visa_c2712_8mib",
+   "seconds": 928.591352543283
+  },
+  {
+   "cell": "J1_visa_c2713_8mib",
+   "seconds": 928.591352543283
+  },
+  {
+   "cell": "J1x_visa_a2712_8mib",
+   "seconds": 928.591352543283
+  },
+  {
+   "cell": "J1x_visa_a2713_8mib",
+   "seconds": 928.591352543283
+  },
+  {
+   "cell": "J1x_visa_b2711_8mib",
+   "seconds": 928.591352543283
+  },
+  {
+   "cell": "J1x_visa_b2712_8mib",
+   "seconds": 928.591352543283
+  },
+  {
+   "cell": "J1x_visa_b2713_8mib",
+   "seconds": 928.591352543283
+  },
+  {
+   "cell": "J1x_visa_c2711_8mib",
+   "seconds": 928.591352543283
+  },
+  {
+   "cell": "J1x_visa_c2712_8mib",
+   "seconds": 928.591352543283
+  },
+  {
+   "cell": "J1x_visa_c2713_8mib",
+   "seconds": 928.591352543283
+  },
+  {
+   "cell": "J2_s33_a2711_8mib",
+   "seconds": 8132.811851993066
+  },
+  {
+   "cell": "J3_visa_a2711_16mib",
+   "seconds": 3055.5093452952324
+  }
+ ],
+ "used_before_s": 690.4003279209137,
+ "total_projected_s": 26899.927726346858,
+ "ceiling_s": 14400,
+ "full_fits": false,
+ "reduced_mandatory_s": 10484.240165641497,
+ "time": "2026-11-24T19:03:40",
+ "plan": "reduced (I + J1 {P, C3} mandatory; rest in priority order)"
+}

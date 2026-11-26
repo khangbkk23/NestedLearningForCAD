@@ -1,0 +1,25 @@
+{
+ "arms": [
+  "U",
+  "E",
+  "CB",
+  "F",
+  "P"
+ ],
+ "CB": "C5",
+ "dev_verdict": "NL03_CONVENTIONAL_MEMORY_EQUIVALENT",
+ "rules": {
+  "arm_set": "U (canonical G3 unbounded), E (G3-E 8 MiB task boundary), CB (CB_SELECTION), F (flat streaming Euclidean 8 MiB = C5 rule), P (BMRM C=8 8 MiB; omitted only if NL03_PROTOCOL_BLOCKED)",
+  "order_seed": "order a, seed 2711 (confirmation); benchmark orders b, c for U, E, P only if budget allows",
+  "training_normals": "full train/good (100 %) in chronological (relative_path) order, including CALIB/EVAL roles and the NL-02 SELECTED pool (released after this lock); tau recomputed from full-train counts",
+  "ad2_stream": "8 scenarios, alphabetical, one CL stream, fit on train/ only",
+  "ad2_threshold": "per scenario and arm: theta = max A1 image score over validation/ images at the scenario acquisition stage; binary map = pixel map > theta; no test split used",
+  "ad2_maps": "final-stage A1 maps (392) bilinearly resized to native resolution; float32 TIFF + binary PNG",
+  "metrics": "native pixel AP (binned, BENCH-G3 primitives), image AUROC (A1 top-1 %), FM, prequential mean, persistent bytes, update time, inference latency",
+  "budget": "N-O <= 8 GPU-h wall with auto-stop; priority AD2 package > AD2 test_public > MVTec AD > VisA > MPDD"
+ },
+ "manifest_sha256": "2eb95ff74c98978484f15f32881b5adf4fc30063eb1f5a09c7086c1a4299466d",
+ "git_head": "448de206c984dd3dbed68b94da4cead9aea005d2",
+ "time": "2026-11-24T22:46:55",
+ "statement": "nothing changes after this point"
+}

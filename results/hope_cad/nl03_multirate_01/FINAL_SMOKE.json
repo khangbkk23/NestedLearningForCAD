@@ -1,0 +1,34 @@
+{
+ "E_equals_C0_keys": true,
+ "E_W_close_C0": true,
+ "bytes": {
+  "U": [
+   8862728,
+   12788744
+  ],
+  "E": [
+   8388104,
+   8388104
+  ],
+  "CB": [
+   6532608,
+   8388096
+  ],
+  "F": [
+   6532608,
+   8388096
+  ],
+  "P": [
+   7810928,
+   7844808
+  ]
+ },
+ "U_keys": 6790,
+ "energy_finite_U": true,
+ "energy_finite_E": true,
+ "energy_finite_CB": true,
+ "energy_finite_F": true,
+ "energy_finite_P": true,
+ "bounded_ok": true,
+ "seconds": 148.84481811523438
+}

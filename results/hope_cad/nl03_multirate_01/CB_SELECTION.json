@@ -1,0 +1,18 @@
+{
+ "CB": "C5",
+ "conventional_old_auroc": {
+  "C1": 0.986328125,
+  "C4": 0.9858842329545454,
+  "C5": 0.9876598011363636
+ },
+ "strongest_matched": "C5",
+ "matched_old_auroc": {
+  "C1": 0.986328125,
+  "C2": 0.9855291193181818,
+  "C3": 0.9751420454545454,
+  "C4": 0.9858842329545454,
+  "C5": 0.9876598011363636
+ },
+ "rule": "argmax tier-1 VisA a|2711 8 MiB final old-task synthetic image AUROC (point)",
+ "time": "2026-11-24T19:51:28"
+}

@@ -1,0 +1,30 @@
+{
+ "arms": {
+  "U": {
+   "archive": "results/hope_cad/nl03_multirate_01/ad2/UPLOAD/U.tar.gz",
+   "bytes": 10530362832,
+   "sha256": "e8ba60f49d89c845998af8bec6ee155db16585300cb5b51b05831121f209f5ef",
+   "n_files": 8180,
+   "official_check": "All checks successful",
+   "archive_members_match_staging": true,
+   "verified": true,
+   "source": "results/hope_cad/nl03_multirate_01/ad2/AD2_SUBMISSION/U",
+   "time": "2026-11-25T07:14:12",
+   "seconds": 1305.8009717464447
+  },
+  "E": {
+   "archive": "results/hope_cad/nl03_multirate_01/ad2/UPLOAD/E.tar.gz",
+   "bytes": 9828331531,
+   "sha256": "1294efacd30408417cef2c2c63409f5a2d349d223b38b9f9ed39a96367df0626",
+   "n_files": 8180,
+   "official_check": "All checks successful",
+   "archive_members_match_staging": true,
+   "verified": true,
+   "source": "results/hope_cad/nl03_multirate_01/ad2/AD2_SUBMISSION/E",
+   "time": "2026-11-25T07:36:32",
+   "seconds": 1297.8134756088257
+  }
+ },
+ "code_utils": "/mnt/k/mvtec_ad2_code_utils/MVTecAD2_public_code_utils",
+ "time": "2026-11-25T07:36:37"
+}

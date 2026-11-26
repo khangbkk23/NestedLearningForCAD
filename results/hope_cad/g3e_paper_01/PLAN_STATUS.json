@@ -1,0 +1,33 @@
+{
+ "status": {
+  "A1_dinov2_mpdd_c2711": "DONE",
+  "A4_dinov2_mvtec_a2711": "DONE",
+  "A4_dinov2_visa_a2711": "DONE",
+  "A4_dinov2_mpdd_a2711": "DONE",
+  "A3_dinov2_mvtec_a2711": "DONE",
+  "A3_dinov2_visa_a2711": "DONE",
+  "A3_dinov2_mpdd_a2711": "DONE",
+  "A3_dinov2_mvtec_a2712": "DONE",
+  "A3_dinov2_visa_a2712": "DONE",
+  "A3_dinov2_mpdd_a2712": "DONE",
+  "A3_dinov2_mvtec_a2713": "DONE",
+  "A3_dinov2_visa_a2713": "DONE",
+  "A3_dinov2_mpdd_a2713": "DONE",
+  "B_vitb8_mvtec_a2711": "DONE",
+  "B_vitb8_visa_a2711": "DONE",
+  "A2_dinov2_mvtec_b2712": "DONE",
+  "A2_dinov2_visa_b2712": "DONE",
+  "A2_dinov2_mpdd_b2712": "DONE",
+  "A2_dinov2_mvtec_c2712": "DONE",
+  "A2_dinov2_visa_c2712": "DONE",
+  "A2_dinov2_mpdd_c2712": "DONE",
+  "A2_dinov2_mvtec_b2713": "DONE",
+  "A2_dinov2_visa_b2713": "DONE",
+  "A2_dinov2_mpdd_b2713": "DONE",
+  "A2_dinov2_mvtec_c2713": "DONE",
+  "A2_dinov2_visa_c2713": "DONE",
+  "A2_dinov2_mpdd_c2713": "DONE"
+ },
+ "gpu_used_h": 5.190104427337647,
+ "time": "2026-11-25T15:11:09"
+}

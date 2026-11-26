@@ -1,0 +1,13 @@
+{
+ "rc": 0,
+ "tail": [
+  ".....18:57:07 CELL test_resume_a stage 0 mpdd/bracket_black step 22 {'C0': 0.998, 'C1': 0.9951, 'P': 0.9961, 'C5': 0.9971}",
+  "18:57:17 CELL test_resume_a stage 1 mpdd/bracket_brown step 34 {'C0': 0.9985, 'C1': 0.9966, 'P': 0.9966, 'C5': 0.9956}",
+  "18:57:26 CELL test_resume_b stage 0 mpdd/bracket_black step 22 {'C0': 0.998, 'C1': 0.9951, 'P': 0.9961, 'C5': 0.9971}",
+  "18:57:35 CELL test_resume_b stage 1 mpdd/bracket_brown step 34 {'C0': 0.9985, 'C1': 0.9966, 'P': 0.9966, 'C5': 0.9956}",
+  "..",
+  "7 passed in 64.46s (0:01:04)"
+ ],
+ "seconds": 65.31251406669617,
+ "time": "2026-11-24T18:57:51"
+}

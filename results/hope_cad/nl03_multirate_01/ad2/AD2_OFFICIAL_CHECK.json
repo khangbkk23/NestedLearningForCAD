@@ -1,0 +1,10 @@
+{
+ "tool": "MVTecAD2_public_code_utils/check_and_prepare_data_for_upload.py :: check_submission (compress_submission NOT called)",
+ "code_utils_archive_sha256": "fda9b379affbbde8b4d4fc1fe6ac52aaff981f347f3424e6b6de027457549f15",
+ "python": "~/miniconda3/envs/pytorch_env (tifffile, Pillow, tqdm, numpy; no install)",
+ "input": "symlink view <arm>/{anomaly_images, anomaly_images_thresholded} -> results/hope_cad/nl03_multirate_01/ad2/AD2_SUBMISSION/<arm>/ (README.md, DONE, DONE16 excluded; the checker rejects superfluous root files)",
+ "results": {"P": "All checks successful (2026-11-25 06:12:39)", "E": "All checks successful (06:14:39)",
+             "U": "All checks successful (06:16:34)", "CB": "All checks successful (06:18:29)", "F": "All checks successful (06:20:24)"},
+ "checked": "8 scenarios x {test_private, test_private_mixed}; file counts and names; anomaly_images single-channel float16 .tiff; thresholded single-channel {0,255} .png",
+ "au_pro": "NOT_COMPUTED: the code utils do not contain AU-PRO; their README points to the MVTec AD evaluation code (download not authorized)"
+}

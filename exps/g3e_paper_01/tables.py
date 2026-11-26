@@ -53,8 +53,8 @@ def row(ds, ok, seed, arm, src=None):
                              'fm_ap': (max(ap[t][l] for l in range(j, T - 1)) - ap[t][T - 1]) if j < T - 1 else None}
                          for j, t in enumerate(order)},
            'source': str(sp.relative_to(R.ROOT)), 'arm_key': a}
-    if 'boot_file' in me:
-        bf = np.load(me['boot_file'])
+    bf = np.load(me['boot_file']) if 'boot_file' in me else None
+    if bf is not None and f'{order[0]}||{a}||ap' in bf.files:      # MULTIRATE orders b/c carry an empty boot npz
         out['_boot'] = {m: np.mean([bf[f'{t}||{a}||{m}'] for t in order], axis=0) for m in ('ap', 'auroc')}
         out['pixel_ap_ci95'] = [float(x) for x in np.nanpercentile(out['_boot']['ap'], [2.5, 97.5])]
         out['image_auroc_ci95'] = [float(x) for x in np.nanpercentile(out['_boot']['auroc'], [2.5, 97.5])]

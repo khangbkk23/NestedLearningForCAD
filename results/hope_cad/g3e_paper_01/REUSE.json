@@ -1,0 +1,64 @@
+{
+ "source": "results/hope_cad/nl03_multirate_01/bench",
+ "files": {
+  "METRICS_mpdd_a2711.json": {
+   "sha256": "633c976e2574dd768f1527d562e336032aebdbeb5f9a03ffcb6c74d0be8a1cb8",
+   "boot_sha256_verified": "b48e1e9a4b40ff9dd1eecbf44ea9f134108901bf94e6f2168f378dca362edf03"
+  },
+  "METRICS_mpdd_b2711.json": {
+   "sha256": "49bc140577bd2f3693aab84976a1076c8c7d799de1698a55108b6e001dfd6cc7",
+   "boot_sha256_verified": "8739c76e681f900923b900c9df0ef75cf421d39cabb54650c4b9ad19b6a76d85"
+  },
+  "METRICS_mvtec_a2711.json": {
+   "sha256": "1491594952a9ad3e8e42669865c37594d7dd6ca606237e2d6ac2f11fe4676d2c",
+   "boot_sha256_verified": "3035e9ba792746e54043b6e767edfbfc9f52f67c2df4fe065ef6802643a6077a"
+  },
+  "METRICS_mvtec_b2711.json": {
+   "sha256": "eb9f3ead62525ca6ef88d1e618632b0f48ea77218ad952e6573badfa9fda8d61",
+   "boot_sha256_verified": "8739c76e681f900923b900c9df0ef75cf421d39cabb54650c4b9ad19b6a76d85"
+  },
+  "METRICS_mvtec_c2711.json": {
+   "sha256": "be6c766f8d834713b0b24059df6910dc3bffb5911489b05d8175c02fcc4ddb0a",
+   "boot_sha256_verified": "8739c76e681f900923b900c9df0ef75cf421d39cabb54650c4b9ad19b6a76d85"
+  },
+  "METRICS_visa_a2711.json": {
+   "sha256": "aeef15ee619b4a94813d6ea774eca151bc579d800ff91531e3900bf324765562",
+   "boot_sha256_verified": "9e68537d75cdb189a0aa1be6299f60e2c30f549d3ed03b5b9e38634e6406f989"
+  },
+  "METRICS_visa_b2711.json": {
+   "sha256": "a05e81b05e9b76b950455241041ce145c507dde8293548d16256cca17bc6fb94",
+   "boot_sha256_verified": "8739c76e681f900923b900c9df0ef75cf421d39cabb54650c4b9ad19b6a76d85"
+  },
+  "METRICS_visa_c2711.json": {
+   "sha256": "384d6e5cf1ae9c0bb040d054d5c4ca4f4bd30d1a416c50ed90e9a8cbc13265a1",
+   "boot_sha256_verified": "8739c76e681f900923b900c9df0ef75cf421d39cabb54650c4b9ad19b6a76d85"
+  },
+  "SCORE_mpdd_a2711.json": {
+   "sha256": "3aaba1cb54001970475f401d95bf02c0875ba65f7e45f6b225654c04492065d5"
+  },
+  "SCORE_mpdd_b2711.json": {
+   "sha256": "ec4280c785ebb89134d495205728e74ec73b5f9f49e120c9284da3680dacf992"
+  },
+  "SCORE_mvtec_a2711.json": {
+   "sha256": "7889768d99b230b3403161ae587ce75a229db1dbc8465338276aedc2a7326024"
+  },
+  "SCORE_mvtec_b2711.json": {
+   "sha256": "f3c1ebb39456d49cc8065ebfeb059d5441cf3a6a4db2e495d1e5f47a226b9b14"
+  },
+  "SCORE_mvtec_c2711.json": {
+   "sha256": "1f0e0f5c5adc48667f05594c1afdc7cdeb97d3450d2ca87585898d1649b8d3d1"
+  },
+  "SCORE_visa_a2711.json": {
+   "sha256": "a4366ee06c0b923d03347e18c307b2d462bba3559895cce2a87dba5587afbbb4"
+  },
+  "SCORE_visa_b2711.json": {
+   "sha256": "4dd0eb022f62c806a2d9339b6e330dd0d563808e9d9c4f509b7ac1b61e632359"
+  },
+  "SCORE_visa_c2711.json": {
+   "sha256": "5eba52c98e8e352fde5282fc84103fe3ec2fb8af7ea4636e56b3e17b1b6b2fef"
+  }
+ },
+ "final_lock": "918999763101ef12d156d5b75fb0c7c7761de0571a4abc944bfe4b865d1e489c",
+ "note": "U/E (8 MiB, seed 2711) cells of MULTIRATE-01 \u00a717; not recomputed",
+ "time": "2026-11-25T07:36:39"
+}

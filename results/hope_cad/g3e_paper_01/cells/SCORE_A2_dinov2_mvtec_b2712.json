@@ -1,0 +1,173 @@
+{
+ "tag": "A2_dinov2_mvtec_b2712",
+ "name": "A2",
+ "backbone": "dinov2",
+ "dataset": "mvtec",
+ "order_key": "b",
+ "seed": 2712,
+ "order": [
+  "mvtec/zipper",
+  "mvtec/wood",
+  "mvtec/transistor",
+  "mvtec/toothbrush",
+  "mvtec/tile",
+  "mvtec/screw",
+  "mvtec/pill",
+  "mvtec/metal_nut",
+  "mvtec/leather",
+  "mvtec/hazelnut",
+  "mvtec/grid",
+  "mvtec/carpet",
+  "mvtec/capsule",
+  "mvtec/cable",
+  "mvtec/bottle"
+ ],
+ "arms": [
+  "U",
+  "E@8"
+ ],
+ "counts": [
+  240,
+  247,
+  213,
+  60,
+  230,
+  320,
+  267,
+  220,
+  245,
+  391,
+  264,
+  280,
+  219,
+  224,
+  209
+ ],
+ "bytes": {
+  "U": [
+   5250056,
+   8225288,
+   10790408,
+   11513864,
+   14284808,
+   18138632,
+   21355016,
+   24004616,
+   26955272,
+   31664648,
+   34844168,
+   38217224,
+   40854536,
+   43553288,
+   46070792
+  ],
+  "E@8": [
+   5250056,
+   8225288,
+   8388104,
+   8388104,
+   8388104,
+   8388104,
+   8388104,
+   8388104,
+   8388104,
+   8388104,
+   8388104,
+   8388104,
+   8388104,
+   8388104,
+   8388104
+  ]
+ },
+ "update_s": {
+  "U": 97.83092403411865,
+  "E@8": 106.15908002853394
+ },
+ "state_s": 164.24266910552979,
+ "select_log": {
+  "E@8": [
+   {
+    "stage": 0,
+    "n_keys": 1882,
+    "cap": 3925
+   },
+   {
+    "stage": 1,
+    "n_keys": 3819,
+    "cap": 3925
+   },
+   {
+    "stage": 2,
+    "n_keys": 3925,
+    "cap": 3925
+   },
+   {
+    "stage": 3,
+    "n_keys": 3925,
+    "cap": 3925
+   },
+   {
+    "stage": 4,
+    "n_keys": 3925,
+    "cap": 3925
+   },
+   {
+    "stage": 5,
+    "n_keys": 3925,
+    "cap": 3925
+   },
+   {
+    "stage": 6,
+    "n_keys": 3925,
+    "cap": 3925
+   },
+   {
+    "stage": 7,
+    "n_keys": 3925,
+    "cap": 3925
+   },
+   {
+    "stage": 8,
+    "n_keys": 3925,
+    "cap": 3925
+   },
+   {
+    "stage": 9,
+    "n_keys": 3925,
+    "cap": 3925
+   },
+   {
+    "stage": 10,
+    "n_keys": 3925,
+    "cap": 3925
+   },
+   {
+    "stage": 11,
+    "n_keys": 3925,
+    "cap": 3925
+   },
+   {
+    "stage": 12,
+    "n_keys": 3925,
+    "cap": 3925
+   },
+   {
+    "stage": 13,
+    "n_keys": 3925,
+    "cap": 3925
+   },
+   {
+    "stage": 14,
+    "n_keys": 3925,
+    "cap": 3925
+   }
+  ]
+ },
+ "seconds": 347.29280519485474,
+ "latency_ms_per_img_p50": {
+  "U": 9.03287946579847,
+  "E@8": 2.044334370865781
+ },
+ "peak_vram": 4345721856,
+ "label": "G3E_PAPER"
+}
