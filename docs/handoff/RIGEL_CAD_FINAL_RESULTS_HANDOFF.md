@@ -17,6 +17,7 @@
 >   - MVTec AD 2 (8 scenarios, every stage): thresholds, test_public AU-PRO / SegF1 (80 values) and forgetting are bitwise equal to the locked arm E (mean AU-PRO₀.₀₅ 0.2633).
 >   - 300 of 300 sampled submission files are byte-identical to the files submitted to the server (RIGEL-CAD, 38.2 / 34.0 AU-PRO₀.₀₅ private / mixed).
 >   - Result: `results/rigel_cad/ad2/RESULTS_ad2.json`.
+> - **Code and architecture report:** `docs/handoff/RIGEL_CAD_CODE_REPORT.md`.
 > - **File locations.** Paths under `/mnt/k/...` are local caches and are not in the repository. `agents/...` files are internal and also not in git.
 
 ---
