@@ -1,0 +1,58 @@
+2026-11-26T08:10:05 START
+08:12:13 ENCODE ad2/can_train 412 125s
+08:12:44 ENCODE ad2/can_validation 46 14s
+08:12:45 AD2 TASK can theta 569.060
+08:18:15 ENCODE ad2/fabric_train 387 328s
+08:19:12 ENCODE ad2/fabric_validation 43 42s
+08:19:13 AD2 TASK fabric theta 443.188
+08:20:13 ENCODE ad2/fruit_jelly_train 263 59s
+08:20:29 ENCODE ad2/fruit_jelly_validation 37 8s
+08:20:29 AD2 TASK fruit_jelly theta 666.139
+08:23:41 ENCODE ad2/rice_train 313 191s
+08:24:13 ENCODE ad2/rice_validation 35 21s
+08:24:14 AD2 TASK rice theta 422.809
+08:24:51 ENCODE ad2/sheet_metal_train 137 37s
+08:24:59 ENCODE ad2/sheet_metal_validation 19 6s
+08:25:00 AD2 TASK sheet_metal theta 480.136
+08:25:39 ENCODE ad2/vial_train 291 39s
+08:25:54 ENCODE ad2/vial_validation 41 5s
+08:25:55 AD2 TASK vial theta 600.717
+08:27:09 ENCODE ad2/wallplugs_train 293 74s
+08:27:27 ENCODE ad2/wallplugs_validation 33 8s
+08:27:28 AD2 TASK wallplugs theta 557.516
+08:31:31 ENCODE ad2/walnuts_train 432 242s
+08:32:17 ENCODE ad2/walnuts_validation 48 27s
+08:32:19 AD2 TASK walnuts theta 554.660
+08:33:00 ENCODE ad2/can_test_public 162 41s
+08:35:39 ENCODE ad2/can_test_private 321 81s
+08:37:25 ENCODE ad2/can_test_private_mixed 321 80s
+08:37:51 AD2 EVAL can {'au_pro_0.05': 0.06428542784191417, 'au_pro_0.30': 0.22236936111030897, 'seg_f1': 0.0008121904544232278}
+08:39:39 ENCODE ad2/fabric_test_public 156 108s
+08:44:59 ENCODE ad2/fabric_test_private 314 215s
+08:49:13 ENCODE ad2/fabric_test_private_mixed 314 217s
+08:49:48 AD2 EVAL fabric {'au_pro_0.05': 0.16023518923346936, 'au_pro_0.30': 0.3781896936899384, 'seg_f1': 0.07448946008156253}
+08:50:06 ENCODE ad2/fruit_jelly_test_public 80 17s
+08:51:31 ENCODE ad2/fruit_jelly_test_private 255 52s
+08:52:48 ENCODE ad2/fruit_jelly_test_private_mixed 255 53s
+08:53:11 AD2 EVAL fruit_jelly {'au_pro_0.05': 0.3559538907684235, 'au_pro_0.30': 0.5903743831575923, 'seg_f1': 0.16868002050535266}
+08:54:29 ENCODE ad2/rice_test_public 132 78s
+08:58:26 ENCODE ad2/rice_test_private 277 164s
+09:01:41 ENCODE ad2/rice_test_private_mixed 277 164s
+09:02:12 AD2 EVAL rice {'au_pro_0.05': 0.36815572976921235, 'au_pro_0.30': 0.5479095753343536, 'seg_f1': 0.056271023517404574}
+09:02:44 ENCODE ad2/sheet_metal_test_public 114 31s
+09:04:14 ENCODE ad2/sheet_metal_test_private 142 38s
+09:05:07 ENCODE ad2/sheet_metal_test_private_mixed 142 39s
+09:05:22 AD2 EVAL sheet_metal {'au_pro_0.05': 0.1416133474782729, 'au_pro_0.30': 0.3332411507215674, 'seg_f1': 0.11325754629246658}
+09:05:42 ENCODE ad2/vial_test_public 140 19s
+09:07:20 ENCODE ad2/vial_test_private 276 37s
+09:08:20 ENCODE ad2/vial_test_private_mixed 276 36s
+09:08:44 AD2 EVAL vial {'au_pro_0.05': 0.5322819391956004, 'au_pro_0.30': 0.8006130791843722, 'seg_f1': 0.3193521258869654}
+09:09:21 ENCODE ad2/wallplugs_test_public 150 37s
+09:11:15 ENCODE ad2/wallplugs_test_private 232 59s
+09:12:38 ENCODE ad2/wallplugs_test_private_mixed 232 56s
+09:13:04 AD2 EVAL wallplugs {'au_pro_0.05': 0.15607519266562964, 'au_pro_0.30': 0.3818486538414289, 'seg_f1': 0.0767146764619898}
+09:14:28 ENCODE ad2/walnuts_test_public 150 83s
+09:17:22 ENCODE ad2/walnuts_test_private 228 128s
+09:19:57 ENCODE ad2/walnuts_test_private_mixed 228 129s
+09:20:22 AD2 EVAL walnuts {'au_pro_0.05': 0.3279568944427046, 'au_pro_0.30': 0.5452732145758424, 'seg_f1': 0.38519282242808955}
+2026-11-26T09:20:23 END rc=0

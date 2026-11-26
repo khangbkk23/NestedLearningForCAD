@@ -12,6 +12,11 @@
 > - **Machine-readable results:**
 >   - `results/hope_cad/g3e_paper_01/RESULTS.json`;
 >   - the same tables under the RIGEL-CAD names: `results/rigel_cad/paper/RIGEL_CAD_TABLES.md`.
+> - **Reproduction from raw images (2026-11-26)**, with the official package `rigel_cad/`:
+>   - MPDD (order a, seed 2711): pixel AP 0.50822631 vs 0.50822630 locked; image AUROC identical.
+>   - MVTec AD 2 (8 scenarios, every stage): thresholds, test_public AU-PRO / SegF1 (80 values) and forgetting are bitwise equal to the locked arm E (mean AU-PRO₀.₀₅ 0.2633).
+>   - 300 of 300 sampled submission files are byte-identical to the files submitted to the server (RIGEL-CAD, 38.2 / 34.0 AU-PRO₀.₀₅ private / mixed).
+>   - Result: `results/rigel_cad/ad2/RESULTS_ad2.json`.
 > - **File locations.** Paths under `/mnt/k/...` are local caches and are not in the repository. `agents/...` files are internal and also not in git.
 
 ---

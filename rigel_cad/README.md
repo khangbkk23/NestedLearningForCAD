@@ -167,6 +167,20 @@ The token caches written earlier, in another software/hardware environment, diff
 | Image AUROC | 0.93990785 | 0.93990785 (identical) |
 | Bytes | 8,388,104 | 8,388,104 |
 
+**End-to-end check on MVTec AD 2** (`python -m rigel_cad ad2 … --budget-mib 8 --seed 2711 --per-stage`, 2026-11-26, 70 min on an RTX 4050):
+
+| Quantity | Result vs locked values |
+|---|---|
+| θ, 8 scenarios | bitwise equal |
+| test_public AU-PRO 0.05 / 0.30, SegF1, every stage (80 values) | bitwise equal |
+| mean AU-PRO 0.05 / 0.30 / SegF1 | 0.2633 / 0.4750 / 0.1493 (bitwise equal) |
+| forgetting of AU-PRO 0.05 | 0.0077 (bitwise equal) |
+| submission files (300 sampled TIFF + PNG) | byte-identical to the submitted folder |
+
+Result file: `results/rigel_cad/ad2/RESULTS_ad2.json`.
+
+The saved `.rigel` file stores S in its fp64 accumulator precision, so it is about 10.7 MB on disk. The budget counts S at fp32 (2,359,304 B with the count), as in the research protocol.
+
 ## Scope and limitations
 
 - **Unmatched comparisons.** Comparisons with published continual AD methods use a different backbone (DINOv2 at 392 px). With a matched ViT-B/8 at 224 px backbone, RIGEL-CAD is below CADIC's reported numbers.
