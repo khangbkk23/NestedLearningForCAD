@@ -1,4 +1,6 @@
 """RIGEL-CAD unit tests (CPU; no dataset or checkpoint needed)."""
+from pathlib import Path
+
 import numpy as np
 import pytest
 import torch
@@ -113,3 +115,30 @@ def test_binned_ap_and_aupro_small():
     f1 = metrics.SegF1(); f1.add(m > 0.5, m > 0)
     assert f1.value() == 1.0
     assert abs(metrics.trapezoid([0, 0.5, 1], [0, 1, 1], x_max=0.25) - 0.0625) < 1e-12
+
+
+def test_ad2_mask_lookup_uses_directory_not_stem(tmp_path):
+    """MVTec AD 2 good and bad test_public images share file names; only bad/ images may get a mask."""
+    gt = tmp_path / 'can' / 'test_public' / 'ground_truth' / 'bad'
+    gt.mkdir(parents=True)
+    (gt / '000_regular_mask.png').write_bytes(b'x')
+    for d in ('good', 'bad'):
+        (tmp_path / 'can' / 'test_public' / d).mkdir(parents=True, exist_ok=True)
+    assert data.ad2_mask_of(tmp_path, 'can/test_public/good/000_regular.png') is None
+    assert data.ad2_mask_of(tmp_path, 'can/test_public/bad/000_regular.png') == gt / '000_regular_mask.png'
+    with pytest.raises(FileNotFoundError):
+        data.ad2_mask_of(tmp_path, 'can/test_public/bad/001_regular.png')
+    with pytest.raises(ValueError):
+        data.ad2_mask_of(tmp_path, 'can/validation/good/000_regular.png')
+
+
+AD2_ROOT = Path('/mnt/k/mvtec_ad_2')
+
+
+@pytest.mark.skipif(not AD2_ROOT.exists(), reason='needs MVTec AD 2')
+def test_ad2_masks_on_real_dataset():
+    """Every bad test_public image has a non-empty mask; every good one gets None (all-normal)."""
+    for s in data.ad2_scenarios(AD2_ROOT):
+        for r in data.ad2_files(AD2_ROOT, s, 'test_public'):
+            m = data.ad2_mask_of(AD2_ROOT, r)
+            assert (m is None) == ('/good/' in r), r

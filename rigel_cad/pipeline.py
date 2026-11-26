@@ -127,10 +127,22 @@ def run_stream(dataset: str, data_root, config: RigelConfig, order: str = 'a', o
 
 
 # ====================================================================== MVTec AD 2
+def ad2_stream_summary(per_scenario: dict, scens) -> dict:
+    """Forgetting and acquisition of test_public AU-PRO 0.05 from a per-stage report {scenario: {stage: cell}}
+    (stage keys int or str). FM as in NL03-MULTIRATE-01 ad2_aupro.py: mean over scenarios but the last of
+    max over stages j..T-2 minus final."""
+    T = len(scens)
+    c = lambda s, l: (per_scenario[s].get(l) or per_scenario[s].get(str(l)))['au_pro_0.05']
+    return {'fm_au_pro_0.05': float(np.mean([max(c(s, l) for l in range(j, T - 1)) - c(s, T - 1)
+                                             for j, s in enumerate(scens[:-1])])),
+            'acq_au_pro_0.05': float(np.mean([c(s, j) for j, s in enumerate(scens)]))}
+
+
 def run_ad2(data_root, config: RigelConfig, out_dir='results/rigel_cad/ad2', cache_dir=None,
-            per_stage: bool = False) -> dict:
+            per_stage: bool = False, write_submission: bool = True) -> dict:
     """Continual stream over the AD 2 scenarios; thresholds from validation at acquisition; local test_public AU-PRO
-    and SegF1; submission folder for test_private and test_private_mixed (final-stage maps)."""
+    and SegF1 (good images scored against an all-normal mask, bad images against their ground truth); submission folder
+    for test_private and test_private_mixed (final-stage maps) unless write_submission=False."""
     root, out_dir = Path(data_root), Path(out_dir)
     scens = DATA.ad2_scenarios(root)
     T = len(scens)
@@ -147,11 +159,17 @@ def run_ad2(data_root, config: RigelConfig, out_dir='results/rigel_cad/ad2', cac
         theta[s], theta_stats[s] = AD2.validation_threshold(g, hws_of(va))
         log('AD2 TASK', s, 'theta %.3f' % theta[s])
     sub = out_dir / 'submission'
-    report = {}
+    report, mask_audit = {}, {}
     for j, s in enumerate(scens):
         tp = DATA.ad2_files(root, s, 'test_public')
         q, hws = store.get(f'ad2/{s}_test_public', root, tp), hws_of(tp)
-        masks = [M.native_mask(m, hw) for m, hw in zip((DATA.ad2_mask_of(root, r) for r in tp), hws)]
+        mpaths = [DATA.ad2_mask_of(root, r) for r in tp]
+        masks = [M.native_mask(m, hw) for m, hw in zip(mpaths, hws)]
+        is_bad = [Path(r).parts[2] == 'bad' for r in tp]
+        mask_audit[s] = {'n_good': is_bad.count(False), 'n_bad': is_bad.count(True),
+                         'good_with_defect_pixels': sum(bool(m.any()) for m, b in zip(masks, is_bad) if not b),
+                         'bad_with_defect_pixels': sum(bool(m.any()) for m, b in zip(masks, is_bad) if b)}
+        assert mask_audit[s]['good_with_defect_pixels'] == 0, mask_audit[s]
         stages = range(j, T) if per_stage else [T - 1]
         report[s] = {}
         for l in stages:
@@ -166,7 +184,7 @@ def run_ad2(data_root, config: RigelConfig, out_dir='results/rigel_cad/ad2', cac
             if l == T - 1:
                 cell['seg_f1'] = f1.value()
             report[s][l] = cell
-        for split in ('test_private', 'test_private_mixed'):
+        for split in ('test_private', 'test_private_mixed') if write_submission else ():
             rels = DATA.ad2_files(root, s, split)
             if rels:
                 g = model.patch_energy_grid(store.get(f'ad2/{s}_{split}', root, rels))
@@ -177,8 +195,10 @@ def run_ad2(data_root, config: RigelConfig, out_dir='results/rigel_cad/ad2', cac
            'config': config.to_dict(), 'scenarios': list(scens), 'theta': theta, 'theta_stats': theta_stats,
            'test_public': {'au_pro_0.05': float(np.mean([fin[s]['au_pro_0.05'] for s in scens])),
                            'au_pro_0.30': float(np.mean([fin[s]['au_pro_0.30'] for s in scens])),
-                           'seg_f1': float(np.mean([fin[s]['seg_f1'] for s in scens])), 'per_scenario': report},
-           'submission_dir': str(sub), 'bytes': model.persistent_bytes(), 'seconds': time.time() - t0}
+                           'seg_f1': float(np.mean([fin[s]['seg_f1'] for s in scens])), 'per_scenario': report,
+                           'mask_audit': mask_audit,
+                           **(ad2_stream_summary(report, list(scens)) if per_stage else {})},
+           'submission_dir': str(sub) if write_submission else None, 'bytes': model.persistent_bytes(), 'seconds': time.time() - t0}
     write_json(out_dir / 'RESULTS_ad2.json', res)
     model.save(out_dir / 'states' / 'ad2.rigel')
     return res

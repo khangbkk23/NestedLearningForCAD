@@ -1,5 +1,7 @@
 # RIGEL-CAD final results handoff
 
+> **Erratum, 2026-11-26.** This report's local MVTec AD 2 test_public AU-PRO / SegF1 numbers (for example, a mean AU-PRO 0.05 of 0.2633) were computed with a defective mask lookup: all 379 good images received the defect mask of the bad image with the same file name. The corrected values are 0.3594 / 0.5921 / 0.1680 (AU-PRO 0.05 / 0.30 / SegF1). Everything else is unaffected: server numbers (38.2 / 34.0), thresholds, submission maps, and MVTec AD / VisA / MPDD. The release report that supersedes this one is `docs/handoff/RIGEL_CAD_RELEASE_REPORT.md`.
+
 > **For readers outside the project.**
 > - This is a copy of the internal report `agents/reports/g3e_paper_01.md` (G3E-PAPER-01, 2026-11-25). That report is not in git.
 > - **G3-E is the research name of RIGEL-CAD**, the proposed method:

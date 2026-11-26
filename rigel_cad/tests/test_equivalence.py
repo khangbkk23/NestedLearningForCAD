@@ -40,8 +40,24 @@ def test_orders_match_registered():
             assert [f'{ds}/{c}' for c in data.stream_orders(ds)[ok]] == list(FN.bench_order(ds, ok)), (ds, ok)
 
 
+@pytest.fixture
+def restore_torch_globals():
+    """The research encoder loader (exps.nar_pilot_00.full.configure) switches the whole process to deterministic
+    algorithms, 2 CPU threads and a 5 GiB memory cap. The locked grids were computed without those settings, so they
+    must not leak into later tests (test_stream_grids_bitwise fails after this test otherwise)."""
+    det, warn = torch.are_deterministic_algorithms_enabled(), torch.is_deterministic_algorithms_warn_only_enabled()
+    thr, tf32m, tf32c = torch.get_num_threads(), torch.backends.cuda.matmul.allow_tf32, torch.backends.cudnn.allow_tf32
+    yield
+    torch.use_deterministic_algorithms(det, warn_only=warn)
+    torch.set_num_threads(thr)
+    torch.backends.cuda.matmul.allow_tf32, torch.backends.cudnn.allow_tf32 = tf32m, tf32c
+    if torch.cuda.is_available():
+        torch.cuda.set_per_process_memory_fraction(1.0)
+        torch.cuda.empty_cache()
+
+
 @need
-def test_encoder_tokens_bitwise():
+def test_encoder_tokens_bitwise(restore_torch_globals):
     """RIGEL-CAD encoder == the research encoder code run on the same machine (bitwise). The locked token caches were
     written in an earlier software/hardware environment; against them the difference is at most one fp16 ulp on a
     tiny fraction of entries (measured 2026-11-26: max 6.1e-5 on 0.0045 % of entries)."""
@@ -117,10 +133,21 @@ AD2O = ROOT / 'results/hope_cad/nl03_multirate_01/ad2'
 need_ad2 = pytest.mark.skipif(not (AD2C.exists() and (AD2O / 'AD2_AUPRO.json').exists()), reason='needs AD 2 caches')
 
 
+def _legacy_stem_mask_of(root, rel):
+    """The pre-2026-11-26 stem-only mask lookup, kept HERE ONLY to reproduce the locked AD2_AUPRO.json numbers, which
+    were computed with it. It is wrong for good images (they share file names with bad ones); the package uses the
+    corrected rigel_cad.data.ad2_mask_of."""
+    gt = Path(root) / Path(rel).parts[0] / 'test_public' / 'ground_truth'
+    stem = Path(rel).stem
+    c = [q for q in gt.rglob('*') if q.is_file() and q.stem in (stem, stem + '_mask')]
+    return c[0] if c else None
+
+
 @need_ad2
 def test_ad2_threshold_aupro_segf1():
     """D-THR thresholds (all scenarios, arm E) and test_public AU-PRO / SegF1 (scenario 'can', final stage) equal the
-    locked AD2_SCORE.json / AD2_AUPRO.json values."""
+    locked AD2_SCORE.json / AD2_AUPRO.json values when fed the same (legacy, defective) masks: this checks that the
+    package's metric code is the research metric code. The corrected numbers are in results/rigel_cad/ad2/."""
     from rigel_cad import ad2, data, metrics, readout
     sc = json.loads((AD2O / 'AD2_SCORE.json').read_text())
     au = json.loads((AD2O / 'AD2_AUPRO.json').read_text())
@@ -134,7 +161,7 @@ def test_ad2_threshold_aupro_segf1():
     maps = readout.anomaly_maps(d['grid'][-1])
     acc, f1 = metrics.ProAccumulator(), metrics.SegF1()
     for r, hw, m in zip(d['rows'], d['hws'], maps):
-        gt = metrics.native_mask(data.ad2_mask_of(root, r), hw)
+        gt = metrics.native_mask(_legacy_stem_mask_of(root, r), hw)
         nat = readout.to_native_cv2(m, hw)
         acc.add(nat.astype(np.float16), gt)
         f1.add(nat > sc['theta_dthr']['E'][s], gt)

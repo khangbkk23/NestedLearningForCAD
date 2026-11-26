@@ -1,4 +1,4 @@
-"""Command line: python -m rigel_cad {stream,ad2} ... (see rigel_cad/README.md)."""
+"""Command line: python -m rigel_cad {stream,ad2,bench} ... (see rigel_cad/README.md)."""
 from __future__ import annotations
 
 import argparse
@@ -36,13 +36,27 @@ def main(argv=None):
             s.add_argument('--save-grids', action='store_true')
         else:
             s.add_argument('--per-stage', action='store_true', help='test_public AU-PRO at every stage (forgetting)')
+            s.add_argument('--no-submission', action='store_true', help='skip writing the test_private submission maps')
+    b = sub.add_parser('bench', help='speed / memory benchmark from raw images')
+    b.add_argument('--dataset', choices=('mvtec', 'visa', 'mpdd', 'ad2'), required=True)
+    b.add_argument('--data-root', required=True)
+    b.add_argument('--out', default='results/rigel_cad/bench')
+    b.add_argument('--budget-mib', type=float, default=8.0)
+    b.add_argument('--seed', type=int, default=DEFAULT_SEED)
+    b.add_argument('--n-infer', type=int, default=100)
+    b.add_argument('--device', default='cuda')
     a = p.parse_args(argv)
+    if a.cmd == 'bench':
+        from rigel_cad.bench import run_bench
+        run_bench(a.dataset, a.data_root, a.budget_mib, a.seed, a.device, n_infer=a.n_infer, out_dir=a.out)
+        return
     from rigel_cad import pipeline
     if a.cmd == 'stream':
         pipeline.run_stream(a.dataset, a.data_root, _config(a), a.order, a.out, a.cache_dir,
                             bootstrap=False if a.no_bootstrap else None, save_grids=a.save_grids)
     else:
-        pipeline.run_ad2(a.data_root, _config(a), a.out, a.cache_dir, per_stage=a.per_stage)
+        pipeline.run_ad2(a.data_root, _config(a), a.out, a.cache_dir, per_stage=a.per_stage,
+                          write_submission=not a.no_submission)
 
 
 if __name__ == '__main__':

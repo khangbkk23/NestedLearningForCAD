@@ -1,0 +1,1 @@
+First benchmark version (tokens kept on GPU between encode and fit). Superseded: on VisA the 6 GB GPU spilled into shared memory (candle fit 289 s vs ~90 s expected) and the run was stopped. Kept for the record.

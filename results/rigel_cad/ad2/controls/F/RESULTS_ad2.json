@@ -1,0 +1,207 @@
+{
+ "method": "RIGEL-CAD",
+ "protocol": "MVTec AD 2 continual stream (scenarios alphabetical, train/ only)",
+ "config": {
+  "budget_mib": 8.0,
+  "slow_level": false,
+  "selection": "kcenter",
+  "seed": 2711,
+  "backbone": "dinov2_vitb14_reg4",
+  "device": "cuda",
+  "extra": {}
+ },
+ "scenarios": [
+  "can",
+  "fabric",
+  "fruit_jelly",
+  "rice",
+  "sheet_metal",
+  "vial",
+  "wallplugs",
+  "walnuts"
+ ],
+ "theta": {
+  "can": 0.3531287827296856,
+  "fabric": 0.3943578590904129,
+  "fruit_jelly": 0.4540226609925474,
+  "rice": 0.4076960770705574,
+  "sheet_metal": 0.4337992721426267,
+  "vial": 0.43127279604829516,
+  "wallplugs": 0.43373053769620773,
+  "walnuts": 0.4446580505269454
+ },
+ "theta_stats": {
+  "can": {
+   "mean": 0.1992258543989666,
+   "std": 0.05130097611023966,
+   "n_pixels": 105136128,
+   "n_images": 46,
+   "k": 3.0
+  },
+  "fabric": {
+   "mean": 0.2919062336924138,
+   "std": 0.034150541799333016,
+   "n_pixels": 215580672,
+   "n_images": 43,
+   "k": 3.0
+  },
+  "fruit_jelly": {
+   "mean": 0.23785637347661281,
+   "std": 0.0720554291719782,
+   "n_pixels": 118104000,
+   "n_images": 37,
+   "k": 3.0
+  },
+  "rice": {
+   "mean": 0.3136442668460039,
+   "std": 0.031350603408184505,
+   "n_pixels": 175472640,
+   "n_images": 35,
+   "k": 3.0
+  },
+  "sheet_metal": {
+   "mean": 0.2918235307178569,
+   "std": 0.047325247141589935,
+   "n_pixels": 84750336,
+   "n_images": 19,
+   "k": 3.0
+  },
+  "vial": {
+   "mean": 0.25941177903073664,
+   "std": 0.05728700567251949,
+   "n_pixels": 109060000,
+   "n_images": 41,
+   "k": 3.0
+  },
+  "wallplugs": {
+   "mean": 0.3108105205192456,
+   "std": 0.040973339058987375,
+   "n_pixels": 165445632,
+   "n_images": 33,
+   "k": 3.0
+  },
+  "walnuts": {
+   "mean": 0.3159665336394223,
+   "std": 0.04289717229584104,
+   "n_pixels": 240648192,
+   "n_images": 48,
+   "k": 3.0
+  }
+ },
+ "test_public": {
+  "au_pro_0.05": 0.293884814246927,
+  "au_pro_0.30": 0.5333072987685705,
+  "seg_f1": 0.2387920498206764,
+  "per_scenario": {
+   "can": {
+    "7": {
+     "au_pro_0.05": 0.0030293149752334964,
+     "au_pro_0.30": 0.16566217537912492,
+     "seg_f1": 0.00014058713549865964
+    }
+   },
+   "fabric": {
+    "7": {
+     "au_pro_0.05": 0.24637278114542294,
+     "au_pro_0.30": 0.4929395822500759,
+     "seg_f1": 0.1464121361537674
+    }
+   },
+   "fruit_jelly": {
+    "7": {
+     "au_pro_0.05": 0.342525000031757,
+     "au_pro_0.30": 0.5803542858290665,
+     "seg_f1": 0.25335769853913875
+    }
+   },
+   "rice": {
+    "7": {
+     "au_pro_0.05": 0.336179132673749,
+     "au_pro_0.30": 0.5812754177484077,
+     "seg_f1": 0.3528628121848898
+    }
+   },
+   "sheet_metal": {
+    "7": {
+     "au_pro_0.05": 0.18062469328637645,
+     "au_pro_0.30": 0.4042722533402338,
+     "seg_f1": 0.31631720673472696
+    }
+   },
+   "vial": {
+    "7": {
+     "au_pro_0.05": 0.6118341345256176,
+     "au_pro_0.30": 0.839428843429289,
+     "seg_f1": 0.2999336552392519
+    }
+   },
+   "wallplugs": {
+    "7": {
+     "au_pro_0.05": 0.1601575605951922,
+     "au_pro_0.30": 0.42241683047063655,
+     "seg_f1": 0.06343008465964736
+    }
+   },
+   "walnuts": {
+    "7": {
+     "au_pro_0.05": 0.4703558967420672,
+     "au_pro_0.30": 0.7801090017017301,
+     "seg_f1": 0.4778822179184904
+    }
+   }
+  },
+  "mask_audit": {
+   "can": {
+    "n_good": 72,
+    "n_bad": 90,
+    "good_with_defect_pixels": 0,
+    "bad_with_defect_pixels": 90
+   },
+   "fabric": {
+    "n_good": 66,
+    "n_bad": 90,
+    "good_with_defect_pixels": 0,
+    "bad_with_defect_pixels": 90
+   },
+   "fruit_jelly": {
+    "n_good": 20,
+    "n_bad": 60,
+    "good_with_defect_pixels": 0,
+    "bad_with_defect_pixels": 60
+   },
+   "rice": {
+    "n_good": 42,
+    "n_bad": 90,
+    "good_with_defect_pixels": 0,
+    "bad_with_defect_pixels": 90
+   },
+   "sheet_metal": {
+    "n_good": 24,
+    "n_bad": 90,
+    "good_with_defect_pixels": 0,
+    "bad_with_defect_pixels": 90
+   },
+   "vial": {
+    "n_good": 35,
+    "n_bad": 105,
+    "good_with_defect_pixels": 0,
+    "bad_with_defect_pixels": 105
+   },
+   "wallplugs": {
+    "n_good": 60,
+    "n_bad": 90,
+    "good_with_defect_pixels": 0,
+    "bad_with_defect_pixels": 90
+   },
+   "walnuts": {
+    "n_good": 60,
+    "n_bad": 90,
+    "good_with_defect_pixels": 0,
+    "bad_with_defect_pixels": 90
+   }
+  }
+ },
+ "submission_dir": null,
+ "bytes": 8388096,
+ "seconds": 223.97336292266846
+}

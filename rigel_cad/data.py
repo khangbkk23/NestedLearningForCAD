@@ -96,11 +96,19 @@ def ad2_files(root, scenario: str, split: str) -> List[str]:
 
 
 def ad2_mask_of(root, rel: str) -> Optional[Path]:
-    """test_public ground truth <scenario>/test_public/ground_truth/bad/<stem>_mask.png (None for good images)."""
-    root = Path(root)
-    gt = root / Path(rel).parts[0] / 'test_public' / 'ground_truth'
-    stem = Path(rel).stem
-    if not gt.exists():
+    """Ground-truth mask of one test_public image: <scenario>/test_public/ground_truth/bad/<stem>_mask.png for an image
+    under test_public/bad/, None for an image under test_public/good/ (all-normal).
+
+    The label comes from the image's directory, never from its file name: in MVTec AD 2 every good test_public image
+    shares its file name with a bad one (good/000_regular.png and bad/000_regular.png), so a stem-only lookup gives
+    good images a defect mask. Releases up to 2026-11-26 had that defect (local AU-PRO / SegF1 only; see
+    rigel_cad/README.md). A bad image without its mask is an error, not a silent all-normal mask."""
+    root, parts = Path(root), Path(rel).parts
+    if len(parts) != 4 or parts[1] != 'test_public' or parts[2] not in ('good', 'bad'):
+        raise ValueError(f'not a test_public/{{good,bad}}/<file> image: {rel}')
+    if parts[2] == 'good':
         return None
-    c = [q for q in gt.rglob('*') if q.is_file() and q.stem in (stem, stem + '_mask')]
-    return c[0] if c else None
+    m = root / parts[0] / 'test_public' / 'ground_truth' / 'bad' / f'{Path(rel).stem}_mask.png'
+    if not m.is_file():
+        raise FileNotFoundError(f'missing ground-truth mask for {rel}: {m}')
+    return m

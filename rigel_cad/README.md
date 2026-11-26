@@ -78,7 +78,10 @@ python -m rigel_cad stream --dataset mpdd --data-root data/mpdd --fast-only     
 
 # MVTec AD 2: stream over the 8 scenarios, thresholds from validation/, local test_public AU-PRO / SegF1,
 # submission folder for test_private + test_private_mixed
-python -m rigel_cad ad2 --data-root /path/to/mvtec_ad_2 --out results/rigel_cad/ad2 [--per-stage]
+python -m rigel_cad ad2 --data-root /path/to/mvtec_ad_2 --out results/rigel_cad/ad2 [--per-stage] [--no-submission]
+
+# speed / memory benchmark from raw images (train: decode, encode, fit per task; inference: batch-1 end to end)
+python -m rigel_cad bench --dataset mvtec --data-root data/mvtec --out results/rigel_cad/bench
 
 # paper tables under RIGEL-CAD names (from the locked research results; nothing is recomputed)
 python -m rigel_cad.paper_tables
@@ -154,7 +157,8 @@ python -m pytest -q rigel_cad/tests/test_equivalence.py   # needs CUDA + the loc
 4. Encoder tokens are bitwise equal to the research encoder run on the same machine.
 5. MVTec AD 2:
    - the D-THR thresholds of all 8 scenarios are bitwise equal to the locked values;
-   - test_public AU-PRO 0.05 / 0.30 and SegF1 (scenario `can`, with its tp/fp/fn counts) are bitwise equal to the locked values.
+   - test_public AU-PRO 0.05 / 0.30 and SegF1 (scenario `can`, with its tp/fp/fn counts) are bitwise equal to the locked values
+     when given the same masks as the locked run (the pre-fix stem lookup, kept inside the test only; see erratum below).
 6. ViT-B/8 tokens are bitwise equal to the matched-backbone cache.
 
 The token caches written earlier, in another software/hardware environment, differ by at most one fp16 ulp on 0.0045 % of entries.
@@ -168,16 +172,25 @@ The token caches written earlier, in another software/hardware environment, diff
 | Bytes | 8,388,104 | 8,388,104 |
 
 **End-to-end check on MVTec AD 2** (`python -m rigel_cad ad2 … --budget-mib 8 --seed 2711 --per-stage`, 2026-11-26, 70 min on an RTX 4050):
+θ for all 8 scenarios, every test_public AU-PRO / SegF1 value (80) and the forgetting were bitwise equal to the locked
+arm E, and 300 sampled submission files were byte-identical to the submitted folder.
 
-| Quantity | Result vs locked values |
-|---|---|
-| θ, 8 scenarios | bitwise equal |
-| test_public AU-PRO 0.05 / 0.30, SegF1, every stage (80 values) | bitwise equal |
-| mean AU-PRO 0.05 / 0.30 / SegF1 | 0.2633 / 0.4750 / 0.1493 (bitwise equal) |
-| forgetting of AU-PRO 0.05 | 0.0077 (bitwise equal) |
-| submission files (300 sampled TIFF + PNG) | byte-identical to the submitted folder |
+**Erratum (2026-11-26): MVTec AD 2 test_public masks.** In MVTec AD 2 every good test_public image has the same file
+name as a bad one (`good/000_regular.png`, `bad/000_regular.png`). The earlier `ad2_mask_of` matched on the file stem,
+so all 379 good images were scored against a defect mask. It now takes the label from the directory (good → all-normal;
+bad → `ground_truth/bad/<stem>_mask.png`, error if missing), and `run_ad2` asserts it (`mask_audit`). Thresholds,
+submission maps and the official server numbers (38.2 / 34.0 AU-PRO 0.05) do not depend on test masks and are unchanged.
+Local test_public, RIGEL-CAD 8 MiB, re-run with `results/rigel_cad/ad2/run_ad2_maskfix.sh`:
 
-Result file: `results/rigel_cad/ad2/RESULTS_ad2.json`.
+| test_public | Before (stem lookup) | Corrected |
+|---|---|---|
+| mean AU-PRO 0.05 / 0.30 | 0.2633 / 0.4750 | **0.3594 / 0.5921** |
+| mean SegF1 | 0.1493 | **0.1680** |
+| forgetting of AU-PRO 0.05 | 0.0077 | 0.0116 |
+
+Result files: `results/rigel_cad/ad2/RESULTS_ad2.json` (corrected), `RESULTS_ad2_STEM_MASK_DEFECT.json` (before);
+controls U and F with corrected masks: `results/rigel_cad/ad2/controls/`. Full report:
+`docs/handoff/RIGEL_CAD_RELEASE_REPORT.md`.
 
 The saved `.rigel` file stores S in its fp64 accumulator precision, so it is about 10.7 MB on disk. The budget counts S at fp32 (2,359,304 B with the count), as in the research protocol.
 
