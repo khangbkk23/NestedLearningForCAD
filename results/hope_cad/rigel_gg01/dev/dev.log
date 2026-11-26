@@ -1,0 +1,27 @@
+11:04:41 TASK 0 can k 3231 {'V1': 3231, 'GG01': 3231, 'F': 3231, 'U': 3231, 'CCW': 3231, 'CCE': 3231} {'V1': 'none', 'GG01': 'none', 'F': 'none', 'U': 'none', 'CCW': 'none', 'CCE': 'none'} cond 22.1
+11:05:36 TASK 1 fabric k 3035 {'V1': 3925, 'GG01': 3925, 'F': 5461, 'U': 6266, 'CCW': 3925, 'CCE': 5461} {'V1': 'P', 'GG01': 'W_prev', 'F': 'P', 'U': 'none', 'CCW': 'P', 'CCE': 'P'} cond 15.7
+11:06:10 TASK 2 fruit_jelly k 2062 {'V1': 3925, 'GG01': 3925, 'F': 5461, 'U': 8328, 'CCW': 3925, 'CCE': 5461} {'V1': 'P', 'GG01': 'W_prev', 'F': 'P', 'U': 'none', 'CCW': 'P', 'CCE': 'P'} cond 17.5
+11:06:54 TASK 3 rice k 2454 {'V1': 3925, 'GG01': 3925, 'F': 5461, 'U': 10782, 'CCW': 3925, 'CCE': 5461} {'V1': 'P', 'GG01': 'W_prev', 'F': 'P', 'U': 'none', 'CCW': 'P', 'CCE': 'P'} cond 16.2
+11:07:09 TASK 4 sheet_metal k 1075 {'V1': 3925, 'GG01': 3925, 'F': 5461, 'U': 11857, 'CCW': 3925, 'CCE': 5461} {'V1': 'P', 'GG01': 'W_prev', 'F': 'P', 'U': 'none', 'CCW': 'P', 'CCE': 'P'} cond 16.3
+11:07:53 TASK 5 vial k 2282 {'V1': 3925, 'GG01': 3925, 'F': 5461, 'U': 14139, 'CCW': 3925, 'CCE': 5461} {'V1': 'P', 'GG01': 'W_prev', 'F': 'P', 'U': 'none', 'CCW': 'P', 'CCE': 'P'} cond 17.2
+11:08:34 TASK 6 wallplugs k 2298 {'V1': 3925, 'GG01': 3925, 'F': 5461, 'U': 16437, 'CCW': 3925, 'CCE': 5461} {'V1': 'P', 'GG01': 'W_prev', 'F': 'P', 'U': 'none', 'CCW': 'P', 'CCE': 'P'} cond 16.4
+11:09:47 TASK 7 walnuts k 3387 {'V1': 3925, 'GG01': 3925, 'F': 5461, 'U': 19824, 'CCW': 3925, 'CCE': 5461} {'V1': 'P', 'GG01': 'W_prev', 'F': 'P', 'U': 'none', 'CCW': 'P', 'CCE': 'P'} cond 16.3
+11:10:11 GRIDS can {'rows_equal': True, 'final_bitwise': True, 'all_stages_bitwise': True}
+11:10:32 GRIDS fabric {'rows_equal': True, 'final_bitwise': True, 'all_stages_bitwise': True}
+11:10:42 GRIDS fruit_jelly {'rows_equal': True, 'final_bitwise': True, 'all_stages_bitwise': True}
+11:10:56 GRIDS rice {'rows_equal': True, 'final_bitwise': True, 'all_stages_bitwise': True}
+11:11:07 GRIDS sheet_metal {'rows_equal': True, 'final_bitwise': True, 'all_stages_bitwise': True}
+11:11:17 GRIDS vial {'rows_equal': True, 'final_bitwise': True, 'all_stages_bitwise': True}
+11:11:26 GRIDS wallplugs {'rows_equal': True, 'final_bitwise': True, 'all_stages_bitwise': True}
+11:11:32 GRIDS walnuts {'rows_equal': True, 'final_bitwise': True, 'all_stages_bitwise': True}
+11:11:33 STREAM DONE 435s
+11:15:26 METRIC can {'V1': 0.0002, 'GG01': 0.0001, 'F': 0.0001, 'U': 0.0002, 'CCW': 0.0002, 'CCE': 0.0001} 217s
+11:17:28 METRIC fruit_jelly {'V1': 0.2717, 'GG01': 0.1855, 'F': 0.2189, 'U': 0.287, 'CCW': 0.3273, 'CCE': 0.1935} 120s
+11:19:06 METRIC fabric {'V1': 0.1807, 'GG01': 0.2274, 'F': 0.2168, 'U': 0.1933, 'CCW': 0.189, 'CCE': 0.1827} 437s
+11:21:28 METRIC sheet_metal {'V1': 0.1944, 'GG01': 0.2168, 'F': 0.2045, 'U': 0.2272, 'CCW': 0.213, 'CCE': 0.1924} 139s
+11:21:53 METRIC rice {'V1': 0.4498, 'GG01': 0.2395, 'F': 0.3338, 'U': 0.4672, 'CCW': 0.4756, 'CCE': 0.3895} 262s
+11:22:59 METRIC vial {'V1': 0.3311, 'GG01': 0.2781, 'F': 0.249, 'U': 0.3686, 'CCW': 0.3306, 'CCE': 0.2843} 87s
+11:23:56 METRIC wallplugs {'V1': 0.0408, 'GG01': 0.0195, 'F': 0.0213, 'U': 0.0509, 'CCW': 0.0475, 'CCE': 0.0169} 120s
+11:24:13 METRIC walnuts {'V1': 0.4347, 'GG01': 0.3471, 'F': 0.3757, 'U': 0.4498, 'CCW': 0.3364, 'CCE': 0.4185} 70s
+11:24:13 METRICS DONE
+11:24:18 VERDICT GG01_REJECTED_DEV {'G1_delta_ge_0.005': False, 'G2_ci_lower_gt_0': False, 'G3_no_category_loss_gt_0.03': False, 'G4_forgetting_not_worse_gt_0.005': False, 'G5_physical_bytes_le_v1': True, 'G6_correctness': True}
