@@ -38,7 +38,7 @@ class BudgetViolation(AssertionError):
 @dataclass
 class RigelState:
     """Read-out state of RIGEL-CAD after some task: what is needed to score a query."""
-    keys: torch.Tensor                 # [M, D] fp16 unit keys (CPU)
+    keys: Optional[torch.Tensor]       # [M, D] fp16 unit keys (CPU); None only inside an unbounded history
     W: Optional[torch.Tensor]          # [D, D] fp32 read-out whitener (CPU); None for the fast-only ablation
     n_tasks: int
     bytes: int                         # persistent bytes charged against the budget
@@ -149,7 +149,8 @@ class RigelCAD:
         self.task_names.append(name or f'task{self.n_tasks - 1}')
         st = self.state()
         if self.keep_history:
-            self.history.append(st)
+            # unbounded memory: store only the prefix length; keys are re-assembled on demand (no per-stage copies)
+            self.history.append(RigelState(None, st.W, st.n_tasks, st.bytes) if self.fast.capacity is None else st)
         return st
 
     # ------------------------------------------------------------------ state
@@ -168,7 +169,10 @@ class RigelCAD:
         """Read-out state right after task `task_index` (requires keep_history=True)."""
         if not self.keep_history:
             raise RuntimeError('construct RigelCAD(keep_history=True) to score past stages')
-        return self.history[task_index]
+        st = self.history[task_index]
+        if st.keys is None:
+            return RigelState(torch.cat(self.fast.blocks[:st.n_tasks]), st.W, st.n_tasks, st.bytes)
+        return st
 
     # ------------------------------------------------------------------ scoring
     @torch.no_grad()
@@ -201,7 +205,7 @@ class RigelCAD:
 
     @classmethod
     def load(cls, path, device: Optional[str] = None) -> 'RigelCAD':
-        d = torch.load(path, map_location='cpu', weights_only=False)
+        d = torch.load(path, map_location='cpu', weights_only=True)
         if d.get('format') != FORMAT:
             raise ValueError(f'not a RIGEL-CAD state file: {path}')
         cfg = RigelConfig.from_dict(d['config'])
