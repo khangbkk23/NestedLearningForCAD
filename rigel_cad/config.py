@@ -19,6 +19,9 @@ INPUT_SIZE = 392                # DINOv2 input (full field of view, square bilin
 # ---------------------------------------------------------------- persistent-state accounting
 KEY_BYTES = 2 * TOKEN_DIM                       # one fp16 key                         = 1,536 B
 SLOW_BYTES = TOKEN_DIM * TOKEN_DIM * 4 + 8      # fp32 residual moment S + fp64 count  = 2,359,304 B
+KEY4_BYTES = TOKEN_DIM // 2 + 2                 # one int4 key (packed codes + fp16 scale) = 386 B
+SLOW_TRI_BYTES = TOKEN_DIM * (TOKEN_DIM + 1) // 2 * 4 + 8   # fp32 upper triangle of S + fp64 count = 1,181,192 B
+STORAGES = ('fp16', 'int4_triangular')          # persistent-state formats (rigel_cad/storage.py); fp16 = v1
 ENCODER_BYTES = 144_806_400                     # frozen shared encoder, reported separately (not CL state)
 
 # ---------------------------------------------------------------- fast level (episodic keys)
@@ -57,6 +60,9 @@ class RigelConfig:
     seed           seed of every greedy k-centre call.
     backbone       'dinov2_vitb14_reg4' (default, 392 px) or 'vit_b8_in21k' (matched-backbone ablation, 224 px).
     device         'cuda' or 'cpu' (the frozen results were produced on CUDA).
+    storage        'fp16' (default; RIGEL-CAD v1: fp16 keys, full residual moment) or 'int4_triangular' (compact memory:
+                   int4 keys with per-key fp16 scale, fp32 upper triangle of the residual moment; more keys in the same
+                   budget). 'int4_triangular' requires a finite budget, slow_level=True and selection='kcenter'.
     """
     budget_mib: Optional[float] = 8
     slow_level: bool = True
@@ -65,34 +71,51 @@ class RigelConfig:
     backbone: str = 'dinov2_vitb14_reg4'
     device: str = 'cuda'
     extra: dict = field(default_factory=dict)
+    storage: str = 'fp16'
 
     def __post_init__(self):
         if self.selection not in ('kcenter', 'fifo'):
             raise ValueError(f"selection must be 'kcenter' or 'fifo', got {self.selection!r}")
         if self.budget_mib is not None and self.budget_mib <= 0:
             raise ValueError('budget_mib must be positive or None')
+        if self.storage not in STORAGES:
+            raise ValueError(f'storage must be one of {STORAGES}, got {self.storage!r}')
+        if self.storage == 'int4_triangular' and (self.budget_mib is None or not self.slow_level
+                                                  or self.selection != 'kcenter'):
+            raise ValueError("storage='int4_triangular' is defined for a finite budget with slow_level=True and "
+                             "selection='kcenter' only")
 
     @property
     def budget_bytes(self) -> Optional[int]:
         return None if self.budget_mib is None else int(round(self.budget_mib * MiB))
 
     @property
+    def key_bytes(self) -> int:
+        """Persistent bytes of one key in the configured storage format."""
+        return KEY4_BYTES if self.storage == 'int4_triangular' else KEY_BYTES
+
+    @property
     def slow_bytes(self) -> int:
-        return SLOW_BYTES if self.slow_level else 0
+        if not self.slow_level:
+            return 0
+        return SLOW_TRI_BYTES if self.storage == 'int4_triangular' else SLOW_BYTES
 
     @property
     def key_capacity(self) -> Optional[int]:
-        """Largest number of fp16 keys such that keys + slow statistic fit the budget."""
+        """Largest number of keys (in the storage format) such that keys + slow statistic fit the budget."""
         b = self.budget_bytes
         if b is None:
             return None
-        cap = (b - self.slow_bytes) // KEY_BYTES
+        cap = (b - self.slow_bytes) // self.key_bytes
         if cap <= 0:
             raise ValueError(f'budget {b} B cannot hold the slow statistic ({self.slow_bytes} B) and one key')
         return cap
 
     def to_dict(self) -> dict:
-        return asdict(self)
+        d = asdict(self)
+        if d['storage'] == 'fp16':
+            del d['storage']        # fp16 configs keep the RIGEL-CAD 1.0 layout (and stay readable by 1.0)
+        return d
 
     @classmethod
     def from_dict(cls, d: dict) -> 'RigelConfig':

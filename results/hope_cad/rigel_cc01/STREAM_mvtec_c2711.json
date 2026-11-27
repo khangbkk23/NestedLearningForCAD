@@ -1,0 +1,133 @@
+{
+ "tag": "mvtec_c2711",
+ "dataset": "mvtec",
+ "order": [
+  "mvtec/screw",
+  "mvtec/hazelnut",
+  "mvtec/leather",
+  "mvtec/toothbrush",
+  "mvtec/wood",
+  "mvtec/bottle",
+  "mvtec/grid",
+  "mvtec/tile",
+  "mvtec/zipper",
+  "mvtec/pill",
+  "mvtec/metal_nut",
+  "mvtec/cable",
+  "mvtec/capsule",
+  "mvtec/carpet",
+  "mvtec/transistor"
+ ],
+ "seed": 2711,
+ "arms": [
+  "V1",
+  "Q4T"
+ ],
+ "fit_s_shared": 102.35947918891907,
+ "fit_src": {
+  "screw": "/mnt/k/NLCAD/cache/rigel_gg01/fit/mvtec/screw_s2711.pt",
+  "hazelnut": "/mnt/k/NLCAD/cache/rigel_gg01/fit/mvtec/hazelnut_s2711.pt",
+  "leather": "/mnt/k/NLCAD/cache/rigel_gg01/fit/mvtec/leather_s2711.pt",
+  "toothbrush": "/mnt/k/NLCAD/cache/rigel_gg01/fit/mvtec/toothbrush_s2711.pt",
+  "wood": "/mnt/k/NLCAD/cache/rigel_gg01/fit/mvtec/wood_s2711.pt",
+  "bottle": "/mnt/k/NLCAD/cache/rigel_gg01/fit/mvtec/bottle_s2711.pt",
+  "grid": "/mnt/k/NLCAD/cache/rigel_gg01/fit/mvtec/grid_s2711.pt",
+  "tile": "/mnt/k/NLCAD/cache/rigel_gg01/fit/mvtec/tile_s2711.pt",
+  "zipper": "/mnt/k/NLCAD/cache/rigel_gg01/fit/mvtec/zipper_s2711.pt",
+  "pill": "/mnt/k/NLCAD/cache/rigel_gg01/fit/mvtec/pill_s2711.pt",
+  "metal_nut": "/mnt/k/NLCAD/cache/rigel_gg01/fit/mvtec/metal_nut_s2711.pt",
+  "cable": "/mnt/k/NLCAD/cache/rigel_gg01/fit/mvtec/cable_s2711.pt",
+  "capsule": "/mnt/k/NLCAD/cache/rigel_gg01/fit/mvtec/capsule_s2711.pt",
+  "carpet": "/mnt/k/NLCAD/cache/rigel_gg01/fit/mvtec/carpet_s2711.pt",
+  "transistor": "/mnt/k/NLCAD/cache/rigel_gg01/fit/mvtec/transistor_s2711.pt"
+ },
+ "select_s": {
+  "V1": 58.06266188621521,
+  "Q4T": 41.89146089553833
+ },
+ "update_s": {
+  "V1": 160.42214107513428,
+  "Q4T": 144.2509400844574
+ },
+ "latency_ms_per_img_p50": {
+  "V1": 2.78184520910195,
+  "Q4T": 8.107996125877042
+ },
+ "logical_bytes_per_stage": {
+  "V1": [
+   6213128,
+   8388104,
+   8388104,
+   8388104,
+   8388104,
+   8388104,
+   8388104,
+   8388104,
+   8388104,
+   8388104,
+   8388104,
+   8388104,
+   8388104,
+   8388104,
+   8388104
+  ],
+  "Q4T": [
+   2149666,
+   3333142,
+   4074648,
+   4256454,
+   5004136,
+   5636790,
+   6435810,
+   7132154,
+   7858606,
+   8388584,
+   8388584,
+   8388584,
+   8388584,
+   8388584,
+   8388584
+  ]
+ },
+ "accounting": {
+  "V1": {
+   "n_keys": 3925,
+   "L_logical_final": 8388104,
+   "L_logical_max": 8388104,
+   "P_persisted": 10747400,
+   "F_file": 10749300,
+   "R_runtime_scoring_peak": 52397568,
+   "R_resident_fp32_keys_W_mW": 26474496
+  },
+  "Q4T": {
+   "n_keys": 18672,
+   "L_logical_final": 8388584,
+   "L_logical_max": 8388584,
+   "P_persisted": 8388584,
+   "F_file": 8390773,
+   "R_runtime_scoring_peak": 233608704,
+   "R_resident_fp32_keys_W_mW": 117080064
+  }
+ },
+ "v1_grid_parity_locked": {
+  "screw": true,
+  "hazelnut": true,
+  "leather": true,
+  "toothbrush": true,
+  "wood": true,
+  "bottle": true,
+  "grid": true,
+  "tile": true,
+  "zipper": true,
+  "pill": true,
+  "metal_nut": true,
+  "cable": true,
+  "capsule": true,
+  "carpet": true,
+  "transistor": true
+ },
+ "distortion_on_v1_keys": null,
+ "learn_s": 109.8616418838501,
+ "seconds": 313.7259931564331,
+ "spec_sha256": "f1a26f661e4020e8acf76abe9010442f24b8f15925247734624eabd93245698c"
+}

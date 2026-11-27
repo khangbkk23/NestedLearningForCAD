@@ -1,0 +1,81 @@
+{
+ "tag": "mpdd_c2711",
+ "dataset": "mpdd",
+ "order": [
+  "mpdd/metal_plate",
+  "mpdd/connector",
+  "mpdd/bracket_black",
+  "mpdd/bracket_brown",
+  "mpdd/tubes",
+  "mpdd/bracket_white"
+ ],
+ "seed": 2711,
+ "arms": [
+  "V1",
+  "Q4T"
+ ],
+ "fit_s_shared": 17.684028148651123,
+ "fit_src": {
+  "metal_plate": "/mnt/k/NLCAD/cache/rigel_cc01/fit/mpdd/metal_plate_s2711.pt",
+  "connector": "/mnt/k/NLCAD/cache/rigel_cc01/fit/mpdd/connector_s2711.pt",
+  "bracket_black": "/mnt/k/NLCAD/cache/rigel_cc01/fit/mpdd/bracket_black_s2711.pt",
+  "bracket_brown": "/mnt/k/NLCAD/cache/rigel_cc01/fit/mpdd/bracket_brown_s2711.pt",
+  "tubes": "/mnt/k/NLCAD/cache/rigel_cc01/fit/mpdd/tubes_s2711.pt",
+  "bracket_white": "/mnt/k/NLCAD/cache/rigel_cc01/fit/mpdd/bracket_white_s2711.pt"
+ },
+ "select_s": {
+  "V1": 3.063657522201538,
+  "Q4T": 0.07266831398010254
+ },
+ "update_s": {
+  "V1": 20.74768567085266,
+  "Q4T": 17.756696462631226
+ },
+ "latency_ms_per_img_p50": {
+  "V1": 4.36688553203236,
+  "Q4T": 3.670667673086191
+ },
+ "logical_bytes_per_stage": {
+  "V1": [
+   3010568,
+   4552712,
+   8033288,
+   8388104,
+   8388104,
+   8388104
+  ],
+  "Q4T": [
+   1344856,
+   1732400,
+   2607076,
+   3167162,
+   3536564,
+   3869682
+  ]
+ },
+ "accounting": {
+  "V1": {
+   "n_keys": 3925,
+   "L_logical_final": 8388104,
+   "L_logical_max": 8388104,
+   "P_persisted": 10747400,
+   "F_file": 10749300,
+   "R_runtime_scoring_peak": 53475840,
+   "R_resident_fp32_keys_W_mW": 26474496
+  },
+  "Q4T": {
+   "n_keys": 6965,
+   "L_logical_final": 3869682,
+   "L_logical_max": 3869682,
+   "P_persisted": 3869682,
+   "F_file": 3871861,
+   "R_runtime_scoring_peak": 90033152,
+   "R_resident_fp32_keys_W_mW": 45152256
+  }
+ },
+ "v1_grid_parity_locked": {},
+ "distortion_on_v1_keys": null,
+ "learn_s": 5.016308784484863,
+ "seconds": 44.00444555282593,
+ "spec_sha256": "f1a26f661e4020e8acf76abe9010442f24b8f15925247734624eabd93245698c"
+}

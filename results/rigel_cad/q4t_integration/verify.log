@@ -1,0 +1,69 @@
+06:54:31 TASK mpdd_a2711 0 bracket_black keys 2266 {'Q4T_fit_equal_cached': True, 'V1_fit_equal_cached': True, 'state_equal_research': {'codes': True, 'scale': True, 'keys_fp32': True, 'S_tri': True, 'n': True, 'W': True}, 'n_keys': 2266, 'bytes_logical': 2055868, 'v1_n_keys': 2266}
+06:54:43 TASK mpdd_a2711 1 bracket_brown keys 3717 {'Q4T_fit_equal_cached': True, 'V1_fit_equal_cached': True, 'state_equal_research': {'codes': True, 'scale': True, 'keys_fp32': True, 'S_tri': True, 'n': True, 'W': True}, 'n_keys': 3717, 'bytes_logical': 2615954, 'v1_n_keys': 3717}
+06:54:50 TASK mpdd_a2711 2 bracket_white keys 4580 {'Q4T_fit_equal_cached': True, 'V1_fit_equal_cached': True, 'state_equal_research': {'codes': True, 'scale': True, 'keys_fp32': True, 'S_tri': True, 'n': True, 'W': True}, 'n_keys': 4580, 'bytes_logical': 2949072, 'v1_n_keys': 3925, 'saved_for_resume': 'results/rigel_cad/q4t_integration/states/mpdd_a2711_after3_int4tri.rigel'}
+06:55:00 TASK mpdd_a2711 3 connector keys 5584 {'Q4T_fit_equal_cached': True, 'V1_fit_equal_cached': True, 'state_equal_research': {'codes': True, 'scale': True, 'keys_fp32': True, 'S_tri': True, 'n': True, 'W': True}, 'n_keys': 5584, 'bytes_logical': 3336616, 'v1_n_keys': 3925, 'resumed_equal': True}
+06:55:03 TASK mpdd_a2711 4 metal_plate keys 6008 {'Q4T_fit_equal_cached': True, 'V1_fit_equal_cached': True, 'state_equal_research': {'codes': True, 'scale': True, 'keys_fp32': True, 'S_tri': True, 'n': True, 'W': True}, 'n_keys': 6008, 'bytes_logical': 3500280, 'v1_n_keys': 3925, 'resumed_equal': True}
+06:55:12 TASK mpdd_a2711 5 tubes keys 6965 {'Q4T_fit_equal_cached': True, 'V1_fit_equal_cached': True, 'state_equal_research': {'codes': True, 'scale': True, 'keys_fp32': True, 'S_tri': True, 'n': True, 'W': True}, 'n_keys': 6965, 'bytes_logical': 3869682, 'v1_n_keys': 3925, 'resumed_equal': True}
+06:55:32 GRIDS mpdd_a2711 bracket_black {'Q4T': True, 'V1': True}
+06:55:48 GRIDS mpdd_a2711 bracket_brown {'Q4T': True, 'V1': True}
+06:55:59 GRIDS mpdd_a2711 bracket_white {'Q4T': True, 'V1': True}
+06:56:05 GRIDS mpdd_a2711 connector {'Q4T': True, 'V1': True}
+06:56:17 GRIDS mpdd_a2711 metal_plate {'Q4T': True, 'V1': True}
+06:56:27 GRIDS mpdd_a2711 tubes {'Q4T': True, 'V1': True}
+06:56:30 DONE mpdd_a2711 fit True state True grids {'Q4T': {'all': True, 'n': 6}, 'V1': {'all': True, 'n': 6}} metrics {'Q4T': True, 'V1': True} ckpt {'q4': True, 'scale': True, 'S_tri': True, 'n': True} resume {'after_task': 3, 'equal_all': True, 'n_compared': 3} Q4T AP 0.5170 AUROC 0.9598
+06:56:49 TASK mvtec_a2711 0 bottle keys 1639 {'Q4T_fit_equal_cached': True, 'V1_fit_equal_cached': True, 'state_equal_research': {'codes': True, 'scale': True, 'keys_fp32': True, 'S_tri': True, 'n': True, 'W': True}, 'n_keys': 1639, 'bytes_logical': 1813846, 'v1_n_keys': 1639}
+06:57:06 TASK mvtec_a2711 1 cable keys 3396 {'Q4T_fit_equal_cached': True, 'V1_fit_equal_cached': True, 'state_equal_research': {'codes': True, 'scale': True, 'keys_fp32': True, 'S_tri': True, 'n': True, 'W': True}, 'n_keys': 3396, 'bytes_logical': 2492048, 'v1_n_keys': 3396}
+06:57:25 TASK mvtec_a2711 2 capsule keys 5113 {'Q4T_fit_equal_cached': True, 'V1_fit_equal_cached': True, 'state_equal_research': {'codes': True, 'scale': True, 'keys_fp32': True, 'S_tri': True, 'n': True, 'W': True}, 'n_keys': 5113, 'bytes_logical': 3154810, 'v1_n_keys': 3925}
+06:57:50 TASK mvtec_a2711 3 carpet keys 7309 {'Q4T_fit_equal_cached': True, 'V1_fit_equal_cached': True, 'state_equal_research': {'codes': True, 'scale': True, 'keys_fp32': True, 'S_tri': True, 'n': True, 'W': True}, 'n_keys': 7309, 'bytes_logical': 4002466, 'v1_n_keys': 3925}
+06:58:12 TASK mvtec_a2711 4 grid keys 9379 {'Q4T_fit_equal_cached': True, 'V1_fit_equal_cached': True, 'state_equal_research': {'codes': True, 'scale': True, 'keys_fp32': True, 'S_tri': True, 'n': True, 'W': True}, 'n_keys': 9379, 'bytes_logical': 4801486, 'v1_n_keys': 3925}
+06:58:55 TASK mvtec_a2711 5 hazelnut keys 12445 {'Q4T_fit_equal_cached': True, 'V1_fit_equal_cached': True, 'state_equal_research': {'codes': True, 'scale': True, 'keys_fp32': True, 'S_tri': True, 'n': True, 'W': True}, 'n_keys': 12445, 'bytes_logical': 5984962, 'v1_n_keys': 3925}
+06:59:15 TASK mvtec_a2711 6 leather keys 14366 {'Q4T_fit_equal_cached': True, 'V1_fit_equal_cached': True, 'state_equal_research': {'codes': True, 'scale': True, 'keys_fp32': True, 'S_tri': True, 'n': True, 'W': True}, 'n_keys': 14366, 'bytes_logical': 6726468, 'v1_n_keys': 3925, 'saved_for_resume': 'results/rigel_cad/q4t_integration/states/mvtec_a2711_after7_int4tri.rigel'}
+06:59:38 TASK mvtec_a2711 7 metal_nut keys 16091 {'Q4T_fit_equal_cached': True, 'V1_fit_equal_cached': True, 'state_equal_research': {'codes': True, 'scale': True, 'keys_fp32': True, 'S_tri': True, 'n': True, 'W': True}, 'n_keys': 16091, 'bytes_logical': 7392318, 'v1_n_keys': 3925, 'resumed_equal': True}
+07:00:09 TASK mvtec_a2711 8 pill keys 18185 {'Q4T_fit_equal_cached': True, 'V1_fit_equal_cached': True, 'state_equal_research': {'codes': True, 'scale': True, 'keys_fp32': True, 'S_tri': True, 'n': True, 'W': True}, 'n_keys': 18185, 'bytes_logical': 8200602, 'v1_n_keys': 3925, 'resumed_equal': True}
+07:01:07 TASK mvtec_a2711 9 screw keys 18672 {'Q4T_fit_equal_cached': True, 'V1_fit_equal_cached': True, 'state_equal_research': {'codes': True, 'scale': True, 'keys_fp32': True, 'S_tri': True, 'n': True, 'W': True}, 'n_keys': 18672, 'bytes_logical': 8388584, 'v1_n_keys': 3925, 'resumed_equal': True}
+07:01:49 TASK mvtec_a2711 10 tile keys 18672 {'Q4T_fit_equal_cached': True, 'V1_fit_equal_cached': True, 'state_equal_research': {'codes': True, 'scale': True, 'keys_fp32': True, 'S_tri': True, 'n': True, 'W': True}, 'n_keys': 18672, 'bytes_logical': 8388584, 'v1_n_keys': 3925, 'resumed_equal': True}
+07:02:08 TASK mvtec_a2711 11 toothbrush keys 18672 {'Q4T_fit_equal_cached': True, 'V1_fit_equal_cached': True, 'state_equal_research': {'codes': True, 'scale': True, 'keys_fp32': True, 'S_tri': True, 'n': True, 'W': True}, 'n_keys': 18672, 'bytes_logical': 8388584, 'v1_n_keys': 3925, 'resumed_equal': True}
+07:02:49 TASK mvtec_a2711 12 transistor keys 18672 {'Q4T_fit_equal_cached': True, 'V1_fit_equal_cached': True, 'state_equal_research': {'codes': True, 'scale': True, 'keys_fp32': True, 'S_tri': True, 'n': True, 'W': True}, 'n_keys': 18672, 'bytes_logical': 8388584, 'v1_n_keys': 3925, 'resumed_equal': True}
+07:03:36 TASK mvtec_a2711 13 wood keys 18672 {'Q4T_fit_equal_cached': True, 'V1_fit_equal_cached': True, 'state_equal_research': {'codes': True, 'scale': True, 'keys_fp32': True, 'S_tri': True, 'n': True, 'W': True}, 'n_keys': 18672, 'bytes_logical': 8388584, 'v1_n_keys': 3925, 'resumed_equal': True}
+07:04:14 TASK mvtec_a2711 14 zipper keys 18672 {'Q4T_fit_equal_cached': True, 'V1_fit_equal_cached': True, 'state_equal_research': {'codes': True, 'scale': True, 'keys_fp32': True, 'S_tri': True, 'n': True, 'W': True}, 'n_keys': 18672, 'bytes_logical': 8388584, 'v1_n_keys': 3925, 'resumed_equal': True}
+07:04:52 GRIDS mvtec_a2711 bottle {'Q4T': True, 'V1': True}
+07:05:58 GRIDS mvtec_a2711 cable {'Q4T': True, 'V1': True}
+07:06:53 GRIDS mvtec_a2711 capsule {'Q4T': True, 'V1': True}
+07:07:40 GRIDS mvtec_a2711 carpet {'Q4T': True, 'V1': True}
+07:08:10 GRIDS mvtec_a2711 grid {'Q4T': True, 'V1': True}
+07:08:48 GRIDS mvtec_a2711 hazelnut {'Q4T': True, 'V1': True}
+07:09:26 GRIDS mvtec_a2711 leather {'Q4T': True, 'V1': True}
+07:09:52 GRIDS mvtec_a2711 metal_nut {'Q4T': True, 'V1': True}
+07:10:29 GRIDS mvtec_a2711 pill {'Q4T': True, 'V1': True}
+07:11:08 GRIDS mvtec_a2711 screw {'Q4T': True, 'V1': True}
+07:11:30 GRIDS mvtec_a2711 tile {'Q4T': True, 'V1': True}
+07:11:37 GRIDS mvtec_a2711 toothbrush {'Q4T': True, 'V1': True}
+07:11:52 GRIDS mvtec_a2711 transistor {'Q4T': True, 'V1': True}
+07:12:03 GRIDS mvtec_a2711 wood {'Q4T': True, 'V1': True}
+07:12:18 GRIDS mvtec_a2711 zipper {'Q4T': True, 'V1': True}
+07:12:23 DONE mvtec_a2711 fit True state True grids {'Q4T': {'all': True, 'n': 15}, 'V1': {'all': True, 'n': 15}} metrics {'Q4T': True, 'V1': True} ckpt {'q4': True, 'scale': True, 'S_tri': True, 'n': True} resume {'after_task': 7, 'equal_all': True, 'n_compared': 8} Q4T AP 0.6304 AUROC 0.9926
+07:15:29 TASK visa_a2711 0 candle keys 7056 {'Q4T_fit_equal_cached': True, 'V1_fit_equal_cached': True, 'state_equal_research': {'codes': True, 'scale': True, 'keys_fp32': True, 'S_tri': True, 'n': True, 'W': True}, 'n_keys': 7056, 'bytes_logical': 3904808, 'v1_n_keys': 3925}
+07:16:38 TASK visa_a2711 1 capsules keys 11306 {'Q4T_fit_equal_cached': True, 'V1_fit_equal_cached': True, 'state_equal_research': {'codes': True, 'scale': True, 'keys_fp32': True, 'S_tri': True, 'n': True, 'W': True}, 'n_keys': 11306, 'bytes_logical': 5545308, 'v1_n_keys': 3925}
+07:17:28 TASK visa_a2711 2 cashew keys 14834 {'Q4T_fit_equal_cached': True, 'V1_fit_equal_cached': True, 'state_equal_research': {'codes': True, 'scale': True, 'keys_fp32': True, 'S_tri': True, 'n': True, 'W': True}, 'n_keys': 14834, 'bytes_logical': 6907116, 'v1_n_keys': 3925}
+07:18:18 TASK visa_a2711 3 chewinggum keys 18386 {'Q4T_fit_equal_cached': True, 'V1_fit_equal_cached': True, 'state_equal_research': {'codes': True, 'scale': True, 'keys_fp32': True, 'S_tri': True, 'n': True, 'W': True}, 'n_keys': 18386, 'bytes_logical': 8278188, 'v1_n_keys': 3925}
+07:19:18 TASK visa_a2711 4 fryum keys 18672 {'Q4T_fit_equal_cached': True, 'V1_fit_equal_cached': True, 'state_equal_research': {'codes': True, 'scale': True, 'keys_fp32': True, 'S_tri': True, 'n': True, 'W': True}, 'n_keys': 18672, 'bytes_logical': 8388584, 'v1_n_keys': 3925}
+07:22:25 TASK visa_a2711 5 macaroni1 keys 18672 {'Q4T_fit_equal_cached': True, 'V1_fit_equal_cached': True, 'state_equal_research': {'codes': True, 'scale': True, 'keys_fp32': True, 'S_tri': True, 'n': True, 'W': True}, 'n_keys': 18672, 'bytes_logical': 8388584, 'v1_n_keys': 3925}
+07:25:32 TASK visa_a2711 6 macaroni2 keys 18672 {'Q4T_fit_equal_cached': True, 'V1_fit_equal_cached': True, 'state_equal_research': {'codes': True, 'scale': True, 'keys_fp32': True, 'S_tri': True, 'n': True, 'W': True}, 'n_keys': 18672, 'bytes_logical': 8388584, 'v1_n_keys': 3925}
+07:28:42 TASK visa_a2711 7 pcb1 keys 18672 {'Q4T_fit_equal_cached': True, 'V1_fit_equal_cached': True, 'state_equal_research': {'codes': True, 'scale': True, 'keys_fp32': True, 'S_tri': True, 'n': True, 'W': True}, 'n_keys': 18672, 'bytes_logical': 8388584, 'v1_n_keys': 3925}
+07:31:49 TASK visa_a2711 8 pcb2 keys 18672 {'Q4T_fit_equal_cached': True, 'V1_fit_equal_cached': True, 'state_equal_research': {'codes': True, 'scale': True, 'keys_fp32': True, 'S_tri': True, 'n': True, 'W': True}, 'n_keys': 18672, 'bytes_logical': 8388584, 'v1_n_keys': 3925}
+07:34:58 TASK visa_a2711 9 pcb3 keys 18672 {'Q4T_fit_equal_cached': True, 'V1_fit_equal_cached': True, 'state_equal_research': {'codes': True, 'scale': True, 'keys_fp32': True, 'S_tri': True, 'n': True, 'W': True}, 'n_keys': 18672, 'bytes_logical': 8388584, 'v1_n_keys': 3925}
+07:38:10 TASK visa_a2711 10 pcb4 keys 18672 {'Q4T_fit_equal_cached': True, 'V1_fit_equal_cached': True, 'state_equal_research': {'codes': True, 'scale': True, 'keys_fp32': True, 'S_tri': True, 'n': True, 'W': True}, 'n_keys': 18672, 'bytes_logical': 8388584, 'v1_n_keys': 3925}
+07:39:10 TASK visa_a2711 11 pipe_fryum keys 18672 {'Q4T_fit_equal_cached': True, 'V1_fit_equal_cached': True, 'state_equal_research': {'codes': True, 'scale': True, 'keys_fp32': True, 'S_tri': True, 'n': True, 'W': True}, 'n_keys': 18672, 'bytes_logical': 8388584, 'v1_n_keys': 3925}
+07:40:43 GRIDS visa_a2711 candle {'Q4T': True, 'V1': True}
+07:41:53 GRIDS visa_a2711 capsules {'Q4T': True, 'V1': True}
+07:42:55 GRIDS visa_a2711 cashew {'Q4T': True, 'V1': True}
+07:43:50 GRIDS visa_a2711 chewinggum {'Q4T': True, 'V1': True}
+07:44:41 GRIDS visa_a2711 fryum {'Q4T': True, 'V1': True}
+07:45:44 GRIDS visa_a2711 macaroni1 {'Q4T': True, 'V1': True}
+07:46:39 GRIDS visa_a2711 macaroni2 {'Q4T': True, 'V1': True}
+07:47:24 GRIDS visa_a2711 pcb1 {'Q4T': True, 'V1': True}
+07:48:05 GRIDS visa_a2711 pcb2 {'Q4T': True, 'V1': True}
+07:48:37 GRIDS visa_a2711 pcb3 {'Q4T': True, 'V1': True}
+07:49:03 GRIDS visa_a2711 pcb4 {'Q4T': True, 'V1': True}
+07:49:17 GRIDS visa_a2711 pipe_fryum {'Q4T': True, 'V1': True}
+07:49:21 DONE visa_a2711 fit True state True grids {'Q4T': {'all': True, 'n': 12}, 'V1': {'all': True, 'n': 12}} metrics {'Q4T': True, 'V1': True} ckpt {'q4': True, 'scale': True, 'S_tri': True, 'n': True} resume None Q4T AP 0.4749 AUROC 0.9707

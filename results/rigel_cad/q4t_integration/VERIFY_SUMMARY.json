@@ -1,0 +1,53 @@
+{
+ "mvtec": {
+  "pass": true,
+  "Q4T": {
+   "pixel_ap": 0.6303641577561696,
+   "image_auroc": 0.9926092780061385,
+   "forgetting_ap": 0.007415986486843654,
+   "acquisition_ap": 0.6268549601236979,
+   "prequential_ap": 0.6558606695614827
+  },
+  "V1": {
+   "pixel_ap": 0.5926523824532827,
+   "image_auroc": 0.9826164429616465,
+   "forgetting_ap": 0.033254582967076986,
+   "acquisition_ap": 0.6129276752471924,
+   "prequential_ap": 0.6395172587162186
+  }
+ },
+ "visa": {
+  "pass": true,
+  "Q4T": {
+   "pixel_ap": 0.4748539999127388,
+   "image_auroc": 0.970657783278328,
+   "forgetting_ap": 0.0052703185514970255,
+   "acquisition_ap": 0.46797894189755124,
+   "prequential_ap": 0.49738923655289796
+  },
+  "V1": {
+   "pixel_ap": 0.4602507644643386,
+   "image_auroc": 0.9349114961496149,
+   "forgetting_ap": 0.011919595978476784,
+   "acquisition_ap": 0.4637832759569089,
+   "prequential_ap": 0.4934113950188396
+  }
+ },
+ "mpdd": {
+  "pass": true,
+  "Q4T": {
+   "pixel_ap": 0.5170489177107811,
+   "image_auroc": 0.9598162456531272,
+   "forgetting_ap": 0.0012250766158103943,
+   "acquisition_ap": 0.5174832008779049,
+   "prequential_ap": 0.34749192992846173
+  },
+  "V1": {
+   "pixel_ap": 0.5082262977957726,
+   "image_auroc": 0.9399078490516836,
+   "forgetting_ap": 0.012806892395019531,
+   "acquisition_ap": 0.5162597137192885,
+   "prequential_ap": 0.3433117847061819
+  }
+ }
+}

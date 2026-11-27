@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import argparse
 
-from rigel_cad.config import DEFAULT_SEED, RigelConfig
+from rigel_cad.config import DEFAULT_SEED, STORAGES, RigelConfig
 
 
 def _budget(v: str):
@@ -12,7 +12,7 @@ def _budget(v: str):
 
 def _config(a) -> RigelConfig:
     return RigelConfig(budget_mib=a.budget_mib, slow_level=not a.fast_only, selection=a.selection, seed=a.seed,
-                       backbone=a.backbone, device=a.device)
+                       backbone=a.backbone, device=a.device, storage=a.storage)
 
 
 def main(argv=None):
@@ -29,6 +29,8 @@ def main(argv=None):
         s.add_argument('--selection', choices=('kcenter', 'fifo'), default='kcenter')
         s.add_argument('--backbone', choices=('dinov2_vitb14_reg4', 'vit_b8_in21k'), default='dinov2_vitb14_reg4')
         s.add_argument('--device', default='cuda')
+        s.add_argument('--storage', choices=STORAGES, default='fp16',
+                       help="persistent-state format: 'fp16' (default, v1) or 'int4_triangular' (compact memory)")
         if name == 'stream':
             s.add_argument('--dataset', choices=('mvtec', 'visa', 'mpdd'), required=True)
             s.add_argument('--order', choices=('a', 'b', 'c'), default='a')

@@ -5,7 +5,8 @@ seed 2711 (the T1 cell of G3E-PAPER-01 and the NL03-MULTIRATE-01 benchmark cell)
   1. encoder tokens == cached canonical test tokens;
   2. RIGEL-CAD @ 8 MiB, unbounded, fast-only (F) and FIFO grids == locked grids at every stage;
   3. metrics on the locked grids == the locked METRICS json (per stage) and bootstrap replicates;
-  4. task orders == the registered orders.
+  4. task orders == the registered orders;
+  5. storage='int4_triangular' == the research Q4T implementation (key state, whitener and grids at every stage).
 """
 import json
 from pathlib import Path
@@ -105,6 +106,46 @@ def test_stream_grids_bitwise():
             assert ref['rows'] == rows and ref['stages'] == list(range(j, len(order)))
             mine = torch.stack([m.patch_energy_grid(q, m.state_at(l)) for l in ref['stages']])
             assert torch.equal(mine, ref['grid']), (a, c)
+
+
+CC01 = Path('/mnt/k/NLCAD/cache/rigel_cc01')
+need_q4 = pytest.mark.skipif(not (torch.cuda.is_available() and (CC01 / 'grids' / 'mpdd_a2711' / 'Q4T').exists()
+                                  and METRICS.exists()), reason='needs CUDA and the RIGEL-CC-01 Q4T caches')
+
+
+@need_q4
+def test_int4_triangular_bitwise_research():
+    """storage='int4_triangular' == the research Q4T implementation (exps/rigel_q8/d1.py::ArmQ4 via
+    exps/rigel_cc01/cc.Stream, fed the cached v1 fits): int4 codes, scales, fp32 triangle, count and whitener after
+    every task, every stage's grid (cached RIGEL-CC-01 grids) and the persisted state, MPDD order a seed 2711."""
+    FN, RN, PC, G = _ctx()
+    from exps.rigel_cc01 import cc
+    from exps.rigel_gg01 import gg
+    from rigel_cad import RigelCAD, RigelConfig
+    order = FN.bench_order('mpdd', 'a')
+    m = RigelCAD(RigelConfig(budget_mib=8, storage='int4_triangular'), keep_history=True)
+    ref = cc.Stream(['Q4T'], 2711)
+    arm = ref.arms['Q4T']
+    for l, t in enumerate(order):
+        x16, _ = RN.fit_tokens(G, t, order=FN.train_rows_sorted(G, t))
+        m.fit_task(x16, t)
+        del x16
+        d = torch.load(CC01 / 'fit' / 'mpdd' / f'{t.split("/")[1]}_s2711.pt', weights_only=True)
+        ref.task(l, gg.Fit(kc=d['kc'], S=d['S'], n=d['n'], n_tokens=d['n_tokens'], keys16=d['keys16']))
+        assert torch.equal(m.fast.q, arm.q) and torch.equal(m.fast.scale, arm.scale), t
+        assert torch.equal(m.slow.S_tri.cpu(), arm.S_tri.cpu()) and m.slow.n == ref.n, t
+        assert torch.equal(m.history[l].W, ref.W_tri['Q4T'][l]), t
+    ex = PC.extract_rec(G, 'mpdd')
+    for j, t in enumerate(order):
+        c = t.split('/')[1]
+        q, rows = G.load_test('mpdd', c, ex)
+        r = torch.load(CC01 / 'grids' / 'mpdd_a2711' / 'Q4T' / f'{c}.pt', weights_only=True)
+        assert list(r['rows']) == list(rows) and r['stages'] == list(range(j, len(order)))
+        mine = torch.stack([m.patch_energy_grid(q, m.state_at(l)) for l in r['stages']])
+        assert torch.equal(mine, r['grid']), c
+    st = torch.load(CC01 / 'states' / 'mpdd_a2711' / 'Q4T.pt', weights_only=True)
+    q4, scale = m.fast.packed()
+    assert torch.equal(q4, st['q4']) and torch.equal(scale, st['scale']) and torch.equal(m.slow.S_tri, st['S_tri'])
 
 
 @need

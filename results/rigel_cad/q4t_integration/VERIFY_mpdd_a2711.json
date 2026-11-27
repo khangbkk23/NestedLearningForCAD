@@ -1,0 +1,265 @@
+{
+ "tag": "mpdd_a2711",
+ "dataset": "mpdd",
+ "order": [
+  "mpdd/bracket_black",
+  "mpdd/bracket_brown",
+  "mpdd/bracket_white",
+  "mpdd/connector",
+  "mpdd/metal_plate",
+  "mpdd/tubes"
+ ],
+ "package_sha256": {
+  "config.py": "83f84933a6356f46527b5a6bfc75b8194eccecb9004e82058ddb113c00fb4fe6",
+  "model.py": "69c6b9fd94a6ab65a7200301ea25bf8781d308d16f836605afe015abeea5bf3b",
+  "storage.py": "c7369a3c1952283fa91abbd22ac6d83631e8d88d2df0b9e5a128a04d020e22b7",
+  "ops.py": "020875417fc19cb71c796cda45bfcf2e13f34759b99faad1843fb187b740ffa8"
+ },
+ "research_sha256": {
+  "exps/rigel_q8/d1.py": "b044b4357f97d4eec23d7f5382ce8f0cc3cf8f5bbd46ff7da664a410a4d41102",
+  "exps/rigel_q8/q8.py": "3d862fa284ba50675f6eb6c2f78ae4fc91981b7c1e4abcfe535e6d7fce68e5c6",
+  "exps/rigel_cc01/cc.py": "314d5faefaf9e20c0c1c4705ebd8f318cdccb0b254e3cb8d7e7fe5adb44b4c3f"
+ },
+ "per_task": [
+  {
+   "task": "mpdd/bracket_black",
+   "Q4T_fit_equal_cached": true,
+   "V1_fit_equal_cached": true,
+   "state_equal_research": {
+    "codes": true,
+    "scale": true,
+    "keys_fp32": true,
+    "S_tri": true,
+    "n": true,
+    "W": true
+   },
+   "n_keys": 2266,
+   "bytes_logical": 2055868,
+   "v1_n_keys": 2266
+  },
+  {
+   "task": "mpdd/bracket_brown",
+   "Q4T_fit_equal_cached": true,
+   "V1_fit_equal_cached": true,
+   "state_equal_research": {
+    "codes": true,
+    "scale": true,
+    "keys_fp32": true,
+    "S_tri": true,
+    "n": true,
+    "W": true
+   },
+   "n_keys": 3717,
+   "bytes_logical": 2615954,
+   "v1_n_keys": 3717
+  },
+  {
+   "task": "mpdd/bracket_white",
+   "Q4T_fit_equal_cached": true,
+   "V1_fit_equal_cached": true,
+   "state_equal_research": {
+    "codes": true,
+    "scale": true,
+    "keys_fp32": true,
+    "S_tri": true,
+    "n": true,
+    "W": true
+   },
+   "n_keys": 4580,
+   "bytes_logical": 2949072,
+   "v1_n_keys": 3925,
+   "saved_for_resume": "results/rigel_cad/q4t_integration/states/mpdd_a2711_after3_int4tri.rigel"
+  },
+  {
+   "task": "mpdd/connector",
+   "Q4T_fit_equal_cached": true,
+   "V1_fit_equal_cached": true,
+   "state_equal_research": {
+    "codes": true,
+    "scale": true,
+    "keys_fp32": true,
+    "S_tri": true,
+    "n": true,
+    "W": true
+   },
+   "n_keys": 5584,
+   "bytes_logical": 3336616,
+   "v1_n_keys": 3925,
+   "resumed_equal": true
+  },
+  {
+   "task": "mpdd/metal_plate",
+   "Q4T_fit_equal_cached": true,
+   "V1_fit_equal_cached": true,
+   "state_equal_research": {
+    "codes": true,
+    "scale": true,
+    "keys_fp32": true,
+    "S_tri": true,
+    "n": true,
+    "W": true
+   },
+   "n_keys": 6008,
+   "bytes_logical": 3500280,
+   "v1_n_keys": 3925,
+   "resumed_equal": true
+  },
+  {
+   "task": "mpdd/tubes",
+   "Q4T_fit_equal_cached": true,
+   "V1_fit_equal_cached": true,
+   "state_equal_research": {
+    "codes": true,
+    "scale": true,
+    "keys_fp32": true,
+    "S_tri": true,
+    "n": true,
+    "W": true
+   },
+   "n_keys": 6965,
+   "bytes_logical": 3869682,
+   "v1_n_keys": 3925,
+   "resumed_equal": true
+  }
+ ],
+ "fit_equal_cached_all": true,
+ "state_equal_research_all": true,
+ "resume": {
+  "after_task": 3,
+  "equal_all": true,
+  "n_compared": 3
+ },
+ "grid_equal": {
+  "Q4T": {
+   "all": true,
+   "n": 6
+  },
+  "V1": {
+   "all": true,
+   "n": 6
+  }
+ },
+ "metric_cells_equal_locked": {
+  "Q4T": true,
+  "V1": true
+ },
+ "summary": {
+  "Q4T": {
+   "pixel_ap": 0.5170489177107811,
+   "image_auroc": 0.9598162456531272,
+   "forgetting_ap": 0.0012250766158103943,
+   "acquisition_ap": 0.5174832008779049,
+   "prequential_ap": 0.34749192992846173,
+   "per_task_final": {
+    "mpdd/bracket_black": {
+     "ap": 0.1905060112476349,
+     "i_auroc": 0.855718085106383
+    },
+    "mpdd/bracket_brown": {
+     "ap": 0.43577730655670166,
+     "i_auroc": 0.9766214177978884
+    },
+    "mpdd/bracket_white": {
+     "ap": 0.07847683131694794,
+     "i_auroc": 0.98
+    },
+    "mpdd/connector": {
+     "ap": 0.7472923994064331,
+     "i_auroc": 1.0
+    },
+    "mpdd/metal_plate": {
+     "ap": 0.8772357106208801,
+     "i_auroc": 1.0
+    },
+    "mpdd/tubes": {
+     "ap": 0.7730052471160889,
+     "i_auroc": 0.9465579710144927
+    }
+   }
+  },
+  "V1": {
+   "pixel_ap": 0.5082262977957726,
+   "image_auroc": 0.9399078490516836,
+   "forgetting_ap": 0.012806892395019531,
+   "acquisition_ap": 0.5162597137192885,
+   "prequential_ap": 0.3433117847061819,
+   "per_task_final": {
+    "mpdd/bracket_black": {
+     "ap": 0.18228191137313843,
+     "i_auroc": 0.8424202127659575
+    },
+    "mpdd/bracket_brown": {
+     "ap": 0.3831247091293335,
+     "i_auroc": 0.9223227752639517
+    },
+    "mpdd/bracket_white": {
+     "ap": 0.060734882950782776,
+     "i_auroc": 0.9322222222222223
+    },
+    "mpdd/connector": {
+     "ap": 0.7666935920715332,
+     "i_auroc": 1.0
+    },
+    "mpdd/metal_plate": {
+     "ap": 0.8843340277671814,
+     "i_auroc": 1.0
+    },
+    "mpdd/tubes": {
+     "ap": 0.772188663482666,
+     "i_auroc": 0.942481884057971
+    }
+   }
+  }
+ },
+ "reference_owner_4dp": {
+  "pixel_ap": 0.517,
+  "image_auroc": 0.9598,
+  "match": true
+ },
+ "checkpoint_equal_research": {
+  "q4": true,
+  "scale": true,
+  "S_tri": true,
+  "n": true
+ },
+ "load_energy_equal": true,
+ "accounting": {
+  "Q4T": {
+   "n_keys": 6965,
+   "L_logical": 3869682,
+   "L_logical_max": 3869682,
+   "P_tensor_payload": 3869682,
+   "F_file": 3872324,
+   "R_model_resident_gpu": 26759530,
+   "R_scoring_resident_keys_W_mW": 45152256,
+   "peak_scoring_alloc_above_base": 89518080,
+   "base_allocated": 101573120
+  },
+  "V1": {
+   "n_keys": 3925,
+   "L_logical": 8388104,
+   "P_tensor_payload": 10747400,
+   "F_file": 10749925,
+   "R_model_resident_gpu": 6028800,
+   "R_scoring_resident_keys_W_mW": 26474496,
+   "peak_scoring_alloc_above_base": 52162560,
+   "base_allocated": 101573120
+  }
+ },
+ "update_seconds_total": {
+  "Q4T": 19.490139722824097,
+  "V1": 21.158971786499023
+ },
+ "update_seconds_per_task_median": {
+  "Q4T": 1.9559193849563599,
+  "V1": 2.4883288145065308
+ },
+ "latency_ms_per_img_p50": {
+  "Q4T": 3.4299470201323303,
+  "V1": 2.5140997729723966
+ },
+ "learn_s": 67.06626057624817,
+ "seconds": 145.1394546031952,
+ "torch": "2.10.0+cu126",
+ "gpu": "NVIDIA GeForce RTX 4050 Laptop GPU"
+}

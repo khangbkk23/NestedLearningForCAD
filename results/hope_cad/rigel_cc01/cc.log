@@ -1,0 +1,960 @@
+17:55:57 AUDIT ad2 mask {'good': 379, 'bad': 705, 'wrong': 0, 'ok': True}
+17:55:57 AUDIT representations {'fp16_lossless': True, 'int8_range': True, 'int8_idem': True, 'int4_range': True, 'int4_idem': True, 'int4_pack_roundtrip': True, 'int4_packed_bytes_per_key': 386, 'int8_bytes_per_key': 770, 'ok': True}
+17:55:58 AUDIT triangle {'roundtrip_equals_fp32_full': True, 'W_tri_equals_W_fp32_full': True, 'W_fp32_vs_fp64_rel': 6.301075390430001e-09, 'packed_numel': 295296, 'ok': True}
+17:57:22 AUDIT restore V1 {'keys_bitwise': True, 'W_bitwise': True, 'W_rel_diff': 0.0, 'energy_max_rel_diff': 0.0, 'payload_bytes_after3': 10747400, 'file_bytes_after3': 10749555, 'class': 'mathematical_equivalence', 'ok': True}
+17:57:25 AUDIT restore T16 {'keys_bitwise': True, 'W_bitwise': True, 'W_rel_diff': 0.0, 'energy_max_rel_diff': 0.0, 'payload_bytes_after3': 8216072, 'file_bytes_after3': 8218236, 'class': 'mathematical_equivalence', 'ok': True}
+17:57:26 AUDIT restore Q8 {'keys_bitwise': True, 'W_bitwise': False, 'W_rel_diff': 2.0835306813182797e-08, 'energy_max_rel_diff': 6.335670150292572e-06, 'payload_bytes_after3': 5885904, 'file_bytes_after3': 5888305, 'class': 'numerical_approximation', 'ok': True}
+17:57:27 AUDIT restore Q8T {'keys_bitwise': True, 'W_bitwise': True, 'W_rel_diff': 0.0, 'energy_max_rel_diff': 0.0, 'payload_bytes_after3': 4707792, 'file_bytes_after3': 4710203, 'class': 'mathematical_equivalence', 'ok': True}
+17:57:28 AUDIT restore Q4T {'keys_bitwise': True, 'W_bitwise': True, 'W_rel_diff': 0.0, 'energy_max_rel_diff': 0.0, 'payload_bytes_after3': 2949072, 'file_bytes_after3': 2951483, 'class': 'mathematical_equivalence', 'ok': True}
+17:57:28 AUDIT restore F8 {'keys_bitwise': True, 'W_bitwise': True, 'W_rel_diff': 0.0, 'energy_max_rel_diff': 0.0, 'payload_bytes_after3': 3526600, 'file_bytes_after3': 3528501, 'class': 'mathematical_equivalence', 'ok': True}
+17:57:29 AUDIT restore F4 {'keys_bitwise': True, 'W_bitwise': True, 'W_rel_diff': 0.0, 'energy_max_rel_diff': 0.0, 'payload_bytes_after3': 1767880, 'file_bytes_after3': 1769781, 'class': 'mathematical_equivalence', 'ok': True}
+17:57:29 AUDIT PASS
+17:57:47 STREAM mpdd_a2711 0 bracket_black {'V1': 2266, 'T16': 2266, 'Q8': 2266, 'Q8T': 2266, 'Q4T': 2266, 'F8': 2266, 'F4': 2266}
+17:57:51 STREAM mpdd_a2711 1 bracket_brown {'V1': 3717, 'T16': 3717, 'Q8': 3717, 'Q8T': 3717, 'Q4T': 3717, 'F8': 3717, 'F4': 3717}
+17:57:58 STREAM mpdd_a2711 2 bracket_white {'V1': 3925, 'T16': 4580, 'Q8': 4580, 'Q8T': 4580, 'Q4T': 4580, 'F8': 4580, 'F4': 4580}
+17:58:12 STREAM mpdd_a2711 3 connector {'V1': 3925, 'T16': 4692, 'Q8': 5584, 'Q8T': 5584, 'Q4T': 5584, 'F8': 5584, 'F4': 5584}
+17:58:15 STREAM mpdd_a2711 4 metal_plate {'V1': 3925, 'T16': 4692, 'Q8': 6008, 'Q8T': 6008, 'Q4T': 6008, 'F8': 6008, 'F4': 6008}
+17:58:19 STREAM mpdd_a2711 5 tubes {'V1': 3925, 'T16': 4692, 'Q8': 6965, 'Q8T': 6965, 'Q4T': 6965, 'F8': 6965, 'F4': 6965}
+17:58:29 GRIDS mpdd_a2711 bracket_black V1 parity True
+17:58:37 GRIDS mpdd_a2711 bracket_brown V1 parity True
+17:58:43 GRIDS mpdd_a2711 bracket_white V1 parity True
+17:58:46 GRIDS mpdd_a2711 connector V1 parity True
+17:58:53 GRIDS mpdd_a2711 metal_plate V1 parity True
+17:58:57 GRIDS mpdd_a2711 tubes V1 parity True
+17:58:58 STREAM DONE mpdd_a2711 75s parity all True
+17:59:10 STREAM mvtec_a2711 0 bottle {'V1': 1639, 'T16': 1639, 'Q8': 1639, 'Q8T': 1639, 'Q4T': 1639, 'F8': 1639, 'F4': 1639}
+17:59:19 STREAM mvtec_a2711 1 cable {'V1': 3396, 'T16': 3396, 'Q8': 3396, 'Q8T': 3396, 'Q4T': 3396, 'F8': 3396, 'F4': 3396}
+17:59:56 STREAM mvtec_a2711 2 capsule {'V1': 3925, 'T16': 4692, 'Q8': 5113, 'Q8T': 5113, 'Q4T': 5113, 'F8': 5113, 'F4': 5113}
+18:00:14 METRIC mpdd_a2711 mpdd/bracket_brown {'V1': 0.3831, 'T16': 0.343, 'Q8': 0.4072, 'Q8T': 0.4072, 'Q4T': 0.4358, 'F8': 0.3538, 'F4': 0.3515} 72s
+18:00:23 METRIC mpdd_a2711 mpdd/bracket_black {'V1': 0.1823, 'T16': 0.1844, 'Q8': 0.1969, 'Q8T': 0.1969, 'Q4T': 0.1905, 'F8': 0.219, 'F4': 0.214} 81s
+18:00:31 STREAM mvtec_a2711 3 carpet {'V1': 3925, 'T16': 4692, 'Q8': 7309, 'Q8T': 7309, 'Q4T': 7309, 'F8': 7309, 'F4': 7309}
+18:01:06 METRIC mpdd_a2711 mpdd/connector {'V1': 0.7667, 'T16': 0.7457, 'Q8': 0.7579, 'Q8T': 0.7579, 'Q4T': 0.7473, 'F8': 0.7357, 'F4': 0.725} 41s
+18:01:10 METRIC mpdd_a2711 mpdd/bracket_white {'V1': 0.0607, 'T16': 0.076, 'Q8': 0.0802, 'Q8T': 0.0802, 'Q4T': 0.0785, 'F8': 0.038, 'F4': 0.0359} 54s
+18:01:55 METRIC mpdd_a2711 mpdd/tubes {'V1': 0.7722, 'T16': 0.7756, 'Q8': 0.7769, 'Q8T': 0.7769, 'Q4T': 0.773, 'F8': 0.7598, 'F4': 0.7507} 41s
+18:01:57 METRIC mpdd_a2711 mpdd/metal_plate {'V1': 0.8843, 'T16': 0.8854, 'Q8': 0.8852, 'Q8T': 0.8852, 'Q4T': 0.8772, 'F8': 0.8456, 'F4': 0.833} 47s
+18:01:58 METRICS DONE mpdd_a2711 True
+18:01:59 STREAM mvtec_a2711 4 grid {'V1': 3925, 'T16': 4692, 'Q8': 7830, 'Q8T': 9360, 'Q4T': 9379, 'F8': 9379, 'F4': 9379}
+18:02:14 STREAM mvtec_a2711 5 hazelnut {'V1': 3925, 'T16': 4692, 'Q8': 7830, 'Q8T': 9360, 'Q4T': 12445, 'F8': 10894, 'F4': 12445}
+18:02:26 STREAM mvtec_a2711 6 leather {'V1': 3925, 'T16': 4692, 'Q8': 7830, 'Q8T': 9360, 'Q4T': 14366, 'F8': 10894, 'F4': 14366}
+18:02:39 STREAM mvtec_a2711 7 metal_nut {'V1': 3925, 'T16': 4692, 'Q8': 7830, 'Q8T': 9360, 'Q4T': 16091, 'F8': 10894, 'F4': 16091}
+18:02:50 STREAM mvtec_a2711 8 pill {'V1': 3925, 'T16': 4692, 'Q8': 7830, 'Q8T': 9360, 'Q4T': 18185, 'F8': 10894, 'F4': 18185}
+18:03:08 STREAM mvtec_a2711 9 screw {'V1': 3925, 'T16': 4692, 'Q8': 7830, 'Q8T': 9360, 'Q4T': 18672, 'F8': 10894, 'F4': 20694}
+18:03:31 STREAM mvtec_a2711 10 tile {'V1': 3925, 'T16': 4692, 'Q8': 7830, 'Q8T': 9360, 'Q4T': 18672, 'F8': 10894, 'F4': 21732}
+18:03:49 STREAM mvtec_a2711 11 toothbrush {'V1': 3925, 'T16': 4692, 'Q8': 7830, 'Q8T': 9360, 'Q4T': 18672, 'F8': 10894, 'F4': 21732}
+18:04:11 STREAM mvtec_a2711 12 transistor {'V1': 3925, 'T16': 4692, 'Q8': 7830, 'Q8T': 9360, 'Q4T': 18672, 'F8': 10894, 'F4': 21732}
+18:04:33 STREAM mvtec_a2711 13 wood {'V1': 3925, 'T16': 4692, 'Q8': 7830, 'Q8T': 9360, 'Q4T': 18672, 'F8': 10894, 'F4': 21732}
+18:04:55 STREAM mvtec_a2711 14 zipper {'V1': 3925, 'T16': 4692, 'Q8': 7830, 'Q8T': 9360, 'Q4T': 18672, 'F8': 10894, 'F4': 21732}
+18:05:32 GRIDS mvtec_a2711 bottle V1 parity True
+18:06:46 GRIDS mvtec_a2711 cable V1 parity True
+18:07:41 GRIDS mvtec_a2711 capsule V1 parity True
+18:08:30 GRIDS mvtec_a2711 carpet V1 parity True
+18:08:59 GRIDS mvtec_a2711 grid V1 parity True
+18:09:38 GRIDS mvtec_a2711 hazelnut V1 parity True
+18:10:18 GRIDS mvtec_a2711 leather V1 parity True
+18:10:52 GRIDS mvtec_a2711 metal_nut V1 parity True
+18:11:35 GRIDS mvtec_a2711 pill V1 parity True
+18:12:12 GRIDS mvtec_a2711 screw V1 parity True
+18:12:35 GRIDS mvtec_a2711 tile V1 parity True
+18:12:42 GRIDS mvtec_a2711 toothbrush V1 parity True
+18:12:55 GRIDS mvtec_a2711 transistor V1 parity True
+18:13:03 GRIDS mvtec_a2711 wood V1 parity True
+18:13:12 GRIDS mvtec_a2711 zipper V1 parity True
+18:13:13 STREAM DONE mvtec_a2711 853s parity all True
+18:14:38 STREAM visa_a2711 0 candle {'V1': 3925, 'T16': 4692, 'Q8': 7056, 'Q8T': 7056, 'Q4T': 7056, 'F8': 7056, 'F4': 7056}
+18:15:14 STREAM visa_a2711 1 capsules {'V1': 3925, 'T16': 4692, 'Q8': 7830, 'Q8T': 9360, 'Q4T': 11306, 'F8': 10894, 'F4': 11306}
+18:15:44 METRIC mvtec_a2711 mvtec/bottle {'V1': 0.8334, 'T16': 0.8439, 'Q8': 0.8369, 'Q8T': 0.8337, 'Q4T': 0.8453, 'F8': 0.8523, 'F4': 0.8509} 147s
+18:17:44 STREAM visa_a2711 2 cashew {'V1': 3925, 'T16': 4692, 'Q8': 7830, 'Q8T': 9360, 'Q4T': 14834, 'F8': 10894, 'F4': 14834}
+18:18:04 METRIC mvtec_a2711 mvtec/cable {'V1': 0.4846, 'T16': 0.5103, 'Q8': 0.5339, 'Q8T': 0.5365, 'Q4T': 0.5241, 'F8': 0.5341, 'F4': 0.5437} 286s
+18:18:13 STREAM visa_a2711 3 chewinggum {'V1': 3925, 'T16': 4692, 'Q8': 7830, 'Q8T': 9360, 'Q4T': 18386, 'F8': 10894, 'F4': 18386}
+18:19:55 METRIC mvtec_a2711 mvtec/capsule {'V1': 0.4722, 'T16': 0.4886, 'Q8': 0.5432, 'Q8T': 0.5312, 'Q4T': 0.5748, 'F8': 0.4747, 'F4': 0.5466} 246s
+18:20:30 STREAM visa_a2711 4 fryum {'V1': 3925, 'T16': 4692, 'Q8': 7830, 'Q8T': 9360, 'Q4T': 18672, 'F8': 10894, 'F4': 21732}
+18:21:15 METRIC mvtec_a2711 mvtec/carpet {'V1': 0.7028, 'T16': 0.7166, 'Q8': 0.7712, 'Q8T': 0.7548, 'Q4T': 0.7283, 'F8': 0.7672, 'F4': 0.7358} 189s
+18:21:34 STREAM visa_a2711 5 macaroni1 {'V1': 3925, 'T16': 4692, 'Q8': 7830, 'Q8T': 9360, 'Q4T': 18672, 'F8': 10894, 'F4': 21732}
+18:21:58 METRIC mvtec_a2711 mvtec/grid {'V1': 0.485, 'T16': 0.4929, 'Q8': 0.4913, 'Q8T': 0.4992, 'Q4T': 0.502, 'F8': 0.4651, 'F4': 0.4775} 120s
+18:22:34 STREAM visa_a2711 6 macaroni2 {'V1': 3925, 'T16': 4692, 'Q8': 7830, 'Q8T': 9360, 'Q4T': 18672, 'F8': 10894, 'F4': 21732}
+18:23:34 METRIC mvtec_a2711 mvtec/hazelnut {'V1': 0.7562, 'T16': 0.7846, 'Q8': 0.7858, 'Q8T': 0.7917, 'Q4T': 0.8041, 'F8': 0.7879, 'F4': 0.8046} 137s
+18:23:34 STREAM visa_a2711 7 pcb1 {'V1': 3925, 'T16': 4692, 'Q8': 7830, 'Q8T': 9360, 'Q4T': 18672, 'F8': 10894, 'F4': 21732}
+18:24:39 METRIC mvtec_a2711 mvtec/leather {'V1': 0.4268, 'T16': 0.4708, 'Q8': 0.4524, 'Q8T': 0.5091, 'Q4T': 0.4828, 'F8': 0.4014, 'F4': 0.4085} 159s
+18:24:40 STREAM visa_a2711 8 pcb2 {'V1': 3925, 'T16': 4692, 'Q8': 7830, 'Q8T': 9360, 'Q4T': 18672, 'F8': 10894, 'F4': 21732}
+18:25:06 METRIC mvtec_a2711 mvtec/metal_nut {'V1': 0.6367, 'T16': 0.6532, 'Q8': 0.7008, 'Q8T': 0.7094, 'Q4T': 0.7304, 'F8': 0.6881, 'F4': 0.7189} 91s
+18:25:48 STREAM visa_a2711 9 pcb3 {'V1': 3925, 'T16': 4692, 'Q8': 7830, 'Q8T': 9360, 'Q4T': 18672, 'F8': 10894, 'F4': 21732}
+18:26:34 METRIC mvtec_a2711 mvtec/pill {'V1': 0.51, 'T16': 0.5313, 'Q8': 0.5382, 'Q8T': 0.5251, 'Q4T': 0.5439, 'F8': 0.4862, 'F4': 0.5419} 113s
+18:26:50 STREAM visa_a2711 10 pcb4 {'V1': 3925, 'T16': 4692, 'Q8': 7830, 'Q8T': 9360, 'Q4T': 18672, 'F8': 10894, 'F4': 21732}
+18:27:23 METRIC mvtec_a2711 mvtec/screw {'V1': 0.4912, 'T16': 0.4877, 'Q8': 0.4695, 'Q8T': 0.5338, 'Q4T': 0.5702, 'F8': 0.4183, 'F4': 0.556} 134s
+18:27:32 STREAM visa_a2711 11 pipe_fryum {'V1': 3925, 'T16': 4692, 'Q8': 7830, 'Q8T': 9360, 'Q4T': 18672, 'F8': 10894, 'F4': 21732}
+18:27:46 METRIC mvtec_a2711 mvtec/tile {'V1': 0.7251, 'T16': 0.7261, 'Q8': 0.7322, 'Q8T': 0.7318, 'Q4T': 0.7194, 'F8': 0.6583, 'F4': 0.651} 71s
+18:28:07 METRIC mvtec_a2711 mvtec/toothbrush {'V1': 0.661, 'T16': 0.6517, 'Q8': 0.6547, 'Q8T': 0.6572, 'Q4T': 0.6605, 'F8': 0.652, 'F4': 0.6591} 44s
+18:28:42 METRIC mvtec_a2711 mvtec/transistor {'V1': 0.4492, 'T16': 0.4342, 'Q8': 0.4538, 'Q8T': 0.4766, 'Q4T': 0.5024, 'F8': 0.4715, 'F4': 0.5212} 55s
+18:28:47 METRIC mvtec_a2711 mvtec/wood {'V1': 0.6693, 'T16': 0.6677, 'Q8': 0.67, 'Q8T': 0.6673, 'Q4T': 0.676, 'F8': 0.6496, 'F4': 0.656} 39s
+18:29:07 GRIDS visa_a2711 candle V1 parity True
+18:29:17 METRIC mvtec_a2711 mvtec/zipper {'V1': 0.5864, 'T16': 0.5936, 'Q8': 0.6165, 'Q8T': 0.6208, 'Q4T': 0.5912, 'F8': 0.5268, 'F4': 0.5451} 33s
+18:29:17 METRICS DONE mvtec_a2711 True
+18:30:10 GRIDS visa_a2711 capsules V1 parity True
+18:31:04 GRIDS visa_a2711 cashew V1 parity True
+18:31:53 GRIDS visa_a2711 chewinggum V1 parity True
+18:32:37 GRIDS visa_a2711 fryum V1 parity True
+18:33:29 GRIDS visa_a2711 macaroni1 V1 parity True
+18:34:14 GRIDS visa_a2711 macaroni2 V1 parity True
+18:34:53 GRIDS visa_a2711 pcb1 V1 parity True
+18:35:27 GRIDS visa_a2711 pcb2 V1 parity True
+18:35:56 GRIDS visa_a2711 pcb3 V1 parity True
+18:36:19 GRIDS visa_a2711 pcb4 V1 parity True
+18:36:28 GRIDS visa_a2711 pipe_fryum V1 parity True
+18:36:29 STREAM DONE visa_a2711 1393s parity all True
+18:40:46 METRIC visa_a2711 visa/capsules {'V1': 0.6055, 'T16': 0.603, 'Q8': 0.6106, 'Q8T': 0.6125, 'Q4T': 0.6112, 'F8': 0.5767, 'F4': 0.5889} 253s
+18:42:03 METRIC visa_a2711 visa/candle {'V1': 0.4221, 'T16': 0.4339, 'Q8': 0.4426, 'Q8T': 0.4399, 'Q4T': 0.4204, 'F8': 0.3932, 'F4': 0.4009} 330s
+18:44:01 METRIC visa_a2711 visa/cashew {'V1': 0.6518, 'T16': 0.648, 'Q8': 0.6675, 'Q8T': 0.6711, 'Q4T': 0.7034, 'F8': 0.6118, 'F4': 0.6256} 193s
+18:45:21 METRIC visa_a2711 visa/chewinggum {'V1': 0.6708, 'T16': 0.683, 'Q8': 0.6742, 'Q8T': 0.6832, 'Q4T': 0.7004, 'F8': 0.5825, 'F4': 0.609} 196s
+18:46:39 METRIC visa_a2711 visa/fryum {'V1': 0.4105, 'T16': 0.4239, 'Q8': 0.4375, 'Q8T': 0.4419, 'Q4T': 0.4518, 'F8': 0.2879, 'F4': 0.3241} 157s
+18:48:44 METRIC visa_a2711 visa/macaroni1 {'V1': 0.182, 'T16': 0.1559, 'Q8': 0.1484, 'Q8T': 0.1603, 'Q4T': 0.1793, 'F8': 0.1307, 'F4': 0.1114} 201s
+18:49:40 METRIC visa_a2711 visa/macaroni2 {'V1': 0.0938, 'T16': 0.1283, 'Q8': 0.1076, 'Q8T': 0.1266, 'Q4T': 0.1256, 'F8': 0.079, 'F4': 0.0908} 178s
+18:51:20 METRIC visa_a2711 visa/pcb1 {'V1': 0.7842, 'T16': 0.7213, 'Q8': 0.7759, 'Q8T': 0.7927, 'Q4T': 0.8057, 'F8': 0.7709, 'F4': 0.798} 154s
+18:51:45 METRIC visa_a2711 visa/pcb2 {'V1': 0.4165, 'T16': 0.3962, 'Q8': 0.3935, 'Q8T': 0.3979, 'Q4T': 0.403, 'F8': 0.3778, 'F4': 0.4057} 123s
+18:52:51 METRIC visa_a2711 visa/pcb3 {'V1': 0.3909, 'T16': 0.4177, 'Q8': 0.4108, 'Q8T': 0.4242, 'Q4T': 0.3951, 'F8': 0.3521, 'F4': 0.3484} 88s
+18:52:57 METRIC visa_a2711 visa/pcb4 {'V1': 0.3752, 'T16': 0.352, 'Q8': 0.337, 'Q8T': 0.3396, 'Q4T': 0.3731, 'F8': 0.3112, 'F4': 0.3419} 70s
+18:53:25 METRIC visa_a2711 visa/pipe_fryum {'V1': 0.5197, 'T16': 0.5165, 'Q8': 0.5161, 'Q8T': 0.5155, 'Q4T': 0.5292, 'F8': 0.4755, 'F4': 0.4879} 32s
+18:53:25 METRICS DONE visa_a2711 True
+18:53:27 GATE SELECTED Q4T {'T16': (False, 0.0002), 'Q8': (False, 0.011), 'Q8T': (False, 0.0162), 'Q4T': (True, 0.0204)}
+CHAIN_END
+18:54:54 STREAM mpdd_a2712 0 bracket_black {'V1': 2266, 'Q4T': 2266}
+18:55:01 STREAM mpdd_a2712 1 bracket_brown {'V1': 3717, 'Q4T': 3717}
+18:55:05 STREAM mpdd_a2712 2 bracket_white {'V1': 3925, 'Q4T': 4580}
+18:55:10 STREAM mpdd_a2712 3 connector {'V1': 3925, 'Q4T': 5584}
+18:55:13 STREAM mpdd_a2712 4 metal_plate {'V1': 3925, 'Q4T': 6008}
+18:55:18 STREAM mpdd_a2712 5 tubes {'V1': 3925, 'Q4T': 6965}
+18:55:23 GRIDS mpdd_a2712 bracket_black V1 parity None
+18:55:27 GRIDS mpdd_a2712 bracket_brown V1 parity None
+18:55:29 GRIDS mpdd_a2712 bracket_white V1 parity None
+18:55:31 GRIDS mpdd_a2712 connector V1 parity None
+18:55:34 GRIDS mpdd_a2712 metal_plate V1 parity None
+18:55:38 GRIDS mpdd_a2712 tubes V1 parity None
+18:55:38 STREAM DONE mpdd_a2712 58s parity all None
+18:55:59 STREAM mpdd_a2713 0 bracket_black {'V1': 2266, 'Q4T': 2266}
+18:56:02 METRIC mpdd_a2712 mpdd/bracket_brown {'V1': 0.3591, 'Q4T': 0.3989} 20s
+18:56:04 METRIC mpdd_a2712 mpdd/bracket_black {'V1': 0.2043, 'Q4T': 0.1993} 22s
+18:56:07 STREAM mpdd_a2713 1 bracket_brown {'V1': 3717, 'Q4T': 3717}
+18:56:12 STREAM mpdd_a2713 2 bracket_white {'V1': 3925, 'Q4T': 4580}
+18:56:15 METRIC mpdd_a2712 mpdd/connector {'V1': 0.7275, 'Q4T': 0.7256} 10s
+18:56:15 METRIC mpdd_a2712 mpdd/bracket_white {'V1': 0.1298, 'Q4T': 0.1444} 13s
+18:56:19 STREAM mpdd_a2713 3 connector {'V1': 3925, 'Q4T': 5584}
+18:56:21 STREAM mpdd_a2713 4 metal_plate {'V1': 3925, 'Q4T': 6008}
+18:56:27 STREAM mpdd_a2713 5 tubes {'V1': 3925, 'Q4T': 6965}
+18:56:27 METRIC mpdd_a2712 mpdd/tubes {'V1': 0.7809, 'Q4T': 0.7767} 11s
+18:56:28 METRIC mpdd_a2712 mpdd/metal_plate {'V1': 0.8943, 'Q4T': 0.8916} 12s
+18:56:28 METRICS DONE mpdd_a2712 None
+18:56:30 GRIDS mpdd_a2713 bracket_black V1 parity None
+18:56:34 GRIDS mpdd_a2713 bracket_brown V1 parity None
+18:56:37 GRIDS mpdd_a2713 bracket_white V1 parity None
+18:56:39 GRIDS mpdd_a2713 connector V1 parity None
+18:56:43 GRIDS mpdd_a2713 metal_plate V1 parity None
+18:56:46 GRIDS mpdd_a2713 tubes V1 parity None
+18:56:46 STREAM DONE mpdd_a2713 65s parity all None
+18:56:49 STREAM mpdd_b2711 0 tubes {'V1': 957, 'Q4T': 957}
+18:56:49 STREAM mpdd_b2711 1 metal_plate {'V1': 1381, 'Q4T': 1381}
+18:56:49 STREAM mpdd_b2711 2 connector {'V1': 2385, 'Q4T': 2385}
+18:56:49 STREAM mpdd_b2711 3 bracket_white {'V1': 3248, 'Q4T': 3248}
+18:56:50 STREAM mpdd_b2711 4 bracket_brown {'V1': 3925, 'Q4T': 4699}
+18:56:52 STREAM mpdd_b2711 5 bracket_black {'V1': 3925, 'Q4T': 6965}
+18:57:06 GRIDS mpdd_b2711 tubes V1 parity True
+18:57:12 GRIDS mpdd_b2711 metal_plate V1 parity True
+18:57:12 METRIC mpdd_a2713 mpdd/bracket_brown {'V1': 0.3178, 'Q4T': 0.3864} 22s
+18:57:14 GRIDS mpdd_b2711 connector V1 parity True
+18:57:14 METRIC mpdd_a2713 mpdd/bracket_black {'V1': 0.1963, 'Q4T': 0.2038} 25s
+18:57:17 GRIDS mpdd_b2711 bracket_white V1 parity True
+18:57:20 GRIDS mpdd_b2711 bracket_brown V1 parity True
+18:57:24 GRIDS mpdd_b2711 bracket_black V1 parity True
+18:57:24 STREAM DONE mpdd_b2711 35s parity all True
+18:57:25 METRIC mpdd_a2713 mpdd/connector {'V1': 0.7771, 'Q4T': 0.7581} 10s
+18:57:25 METRIC mpdd_a2713 mpdd/bracket_white {'V1': 0.0888, 'Q4T': 0.0708} 12s
+18:57:35 METRIC mpdd_a2713 mpdd/tubes {'V1': 0.7617, 'Q4T': 0.7667} 10s
+18:57:37 METRIC mpdd_a2713 mpdd/metal_plate {'V1': 0.8917, 'Q4T': 0.8826} 11s
+18:57:37 METRICS DONE mpdd_a2713 None
+18:57:40 STREAM mpdd_b2712 0 tubes {'V1': 957, 'Q4T': 957}
+18:57:40 STREAM mpdd_b2712 1 metal_plate {'V1': 1381, 'Q4T': 1381}
+18:57:40 STREAM mpdd_b2712 2 connector {'V1': 2385, 'Q4T': 2385}
+18:57:40 STREAM mpdd_b2712 3 bracket_white {'V1': 3248, 'Q4T': 3248}
+18:57:41 STREAM mpdd_b2712 4 bracket_brown {'V1': 3925, 'Q4T': 4699}
+18:57:43 STREAM mpdd_b2712 5 bracket_black {'V1': 3925, 'Q4T': 6965}
+18:57:54 GRIDS mpdd_b2712 tubes V1 parity None
+18:57:59 METRIC mpdd_b2711 mpdd/metal_plate {'V1': 0.8837, 'Q4T': 0.8772} 18s
+18:58:01 GRIDS mpdd_b2712 metal_plate V1 parity None
+18:58:04 METRIC mpdd_b2711 mpdd/tubes {'V1': 0.7778, 'Q4T': 0.773} 23s
+18:58:04 GRIDS mpdd_b2712 connector V1 parity None
+18:58:05 METRIC mpdd_b2711 mpdd/connector {'V1': 0.7395, 'Q4T': 0.7473} 5s
+18:58:09 GRIDS mpdd_b2712 bracket_white V1 parity None
+18:58:09 METRIC mpdd_b2711 mpdd/bracket_white {'V1': 0.0678, 'Q4T': 0.0785} 5s
+18:58:10 METRIC mpdd_b2711 mpdd/bracket_brown {'V1': 0.3776, 'Q4T': 0.4358} 4s
+18:58:12 METRIC mpdd_b2711 mpdd/bracket_black {'V1': 0.1713, 'Q4T': 0.1905} 2s
+18:58:12 METRICS DONE mpdd_b2711 True
+18:58:12 GRIDS mpdd_b2712 bracket_brown V1 parity None
+18:58:15 GRIDS mpdd_b2712 bracket_black V1 parity None
+18:58:15 STREAM DONE mpdd_b2712 35s parity all None
+18:58:18 STREAM mpdd_b2713 0 tubes {'V1': 957, 'Q4T': 957}
+18:58:18 STREAM mpdd_b2713 1 metal_plate {'V1': 1381, 'Q4T': 1381}
+18:58:18 STREAM mpdd_b2713 2 connector {'V1': 2385, 'Q4T': 2385}
+18:58:18 STREAM mpdd_b2713 3 bracket_white {'V1': 3248, 'Q4T': 3248}
+18:58:19 STREAM mpdd_b2713 4 bracket_brown {'V1': 3925, 'Q4T': 4699}
+18:58:21 STREAM mpdd_b2713 5 bracket_black {'V1': 3925, 'Q4T': 6965}
+18:58:33 GRIDS mpdd_b2713 tubes V1 parity None
+18:58:37 METRIC mpdd_b2712 mpdd/metal_plate {'V1': 0.8947, 'Q4T': 0.8916} 18s
+18:58:40 GRIDS mpdd_b2713 metal_plate V1 parity None
+18:58:42 METRIC mpdd_b2712 mpdd/tubes {'V1': 0.783, 'Q4T': 0.7767} 23s
+18:58:43 METRIC mpdd_b2712 mpdd/connector {'V1': 0.7458, 'Q4T': 0.7256} 6s
+18:58:43 GRIDS mpdd_b2713 connector V1 parity None
+18:58:47 GRIDS mpdd_b2713 bracket_white V1 parity None
+18:58:48 METRIC mpdd_b2712 mpdd/bracket_white {'V1': 0.1417, 'Q4T': 0.1445} 5s
+18:58:48 METRIC mpdd_b2712 mpdd/bracket_brown {'V1': 0.3417, 'Q4T': 0.3989} 4s
+18:58:50 METRIC mpdd_b2712 mpdd/bracket_black {'V1': 0.1917, 'Q4T': 0.1993} 2s
+18:58:50 METRICS DONE mpdd_b2712 None
+18:58:51 GRIDS mpdd_b2713 bracket_brown V1 parity None
+18:58:53 GRIDS mpdd_b2713 bracket_black V1 parity None
+18:58:53 STREAM DONE mpdd_b2713 35s parity all None
+18:58:56 STREAM mpdd_c2711 0 metal_plate {'V1': 424, 'Q4T': 424}
+18:58:56 STREAM mpdd_c2711 1 connector {'V1': 1428, 'Q4T': 1428}
+18:58:56 STREAM mpdd_c2711 2 bracket_black {'V1': 3694, 'Q4T': 3694}
+18:58:57 STREAM mpdd_c2711 3 bracket_brown {'V1': 3925, 'Q4T': 5145}
+18:58:58 STREAM mpdd_c2711 4 tubes {'V1': 3925, 'Q4T': 6102}
+18:59:01 STREAM mpdd_c2711 5 bracket_white {'V1': 3925, 'Q4T': 6965}
+18:59:16 GRIDS mpdd_c2711 metal_plate V1 parity None
+18:59:20 GRIDS mpdd_c2711 connector V1 parity None
+18:59:20 METRIC mpdd_b2713 mpdd/metal_plate {'V1': 0.8922, 'Q4T': 0.8826} 23s
+18:59:24 METRIC mpdd_b2713 mpdd/tubes {'V1': 0.7691, 'Q4T': 0.7667} 27s
+18:59:26 METRIC mpdd_b2713 mpdd/connector {'V1': 0.7543, 'Q4T': 0.7581} 5s
+18:59:27 GRIDS mpdd_c2711 bracket_black V1 parity None
+18:59:30 METRIC mpdd_b2713 mpdd/bracket_white {'V1': 0.0825, 'Q4T': 0.0708} 5s
+18:59:32 METRIC mpdd_b2713 mpdd/bracket_brown {'V1': 0.3174, 'Q4T': 0.3863} 5s
+18:59:32 GRIDS mpdd_c2711 bracket_brown V1 parity None
+18:59:33 METRIC mpdd_b2713 mpdd/bracket_black {'V1': 0.2013, 'Q4T': 0.2038} 2s
+18:59:33 METRICS DONE mpdd_b2713 None
+18:59:37 GRIDS mpdd_c2711 tubes V1 parity None
+18:59:39 GRIDS mpdd_c2711 bracket_white V1 parity None
+18:59:40 STREAM DONE mpdd_c2711 44s parity all None
+18:59:43 STREAM mpdd_c2712 0 metal_plate {'V1': 424, 'Q4T': 424}
+18:59:43 STREAM mpdd_c2712 1 connector {'V1': 1428, 'Q4T': 1428}
+18:59:43 STREAM mpdd_c2712 2 bracket_black {'V1': 3694, 'Q4T': 3694}
+18:59:44 STREAM mpdd_c2712 3 bracket_brown {'V1': 3925, 'Q4T': 5145}
+18:59:46 STREAM mpdd_c2712 4 tubes {'V1': 3925, 'Q4T': 6102}
+18:59:48 STREAM mpdd_c2712 5 bracket_white {'V1': 3925, 'Q4T': 6965}
+18:59:51 METRIC mpdd_c2711 mpdd/connector {'V1': 0.7488, 'Q4T': 0.7473} 8s
+19:00:01 GRIDS mpdd_c2712 metal_plate V1 parity None
+19:00:04 METRIC mpdd_c2711 mpdd/bracket_black {'V1': 0.1729, 'Q4T': 0.1905} 12s
+19:00:06 GRIDS mpdd_c2712 connector V1 parity None
+19:00:08 METRIC mpdd_c2711 mpdd/metal_plate {'V1': 0.8839, 'Q4T': 0.8772} 24s
+19:00:12 GRIDS mpdd_c2712 bracket_black V1 parity None
+19:00:12 METRIC mpdd_c2711 mpdd/bracket_brown {'V1': 0.3708, 'Q4T': 0.4358} 7s
+19:00:15 METRIC mpdd_c2711 mpdd/bracket_white {'V1': 0.0584, 'Q4T': 0.0785} 2s
+19:00:16 METRIC mpdd_c2711 mpdd/tubes {'V1': 0.7771, 'Q4T': 0.773} 7s
+19:00:16 METRICS DONE mpdd_c2711 None
+19:00:17 GRIDS mpdd_c2712 bracket_brown V1 parity None
+19:00:20 GRIDS mpdd_c2712 tubes V1 parity None
+19:00:22 GRIDS mpdd_c2712 bracket_white V1 parity None
+19:00:22 STREAM DONE mpdd_c2712 40s parity all None
+19:00:25 STREAM mpdd_c2713 0 metal_plate {'V1': 424, 'Q4T': 424}
+19:00:25 STREAM mpdd_c2713 1 connector {'V1': 1428, 'Q4T': 1428}
+19:00:25 STREAM mpdd_c2713 2 bracket_black {'V1': 3694, 'Q4T': 3694}
+19:00:26 STREAM mpdd_c2713 3 bracket_brown {'V1': 3925, 'Q4T': 5145}
+19:00:28 STREAM mpdd_c2713 4 tubes {'V1': 3925, 'Q4T': 6102}
+19:00:30 STREAM mpdd_c2713 5 bracket_white {'V1': 3925, 'Q4T': 6965}
+19:00:34 METRIC mpdd_c2712 mpdd/connector {'V1': 0.7339, 'Q4T': 0.7256} 9s
+19:00:42 GRIDS mpdd_c2713 metal_plate V1 parity None
+19:00:46 GRIDS mpdd_c2713 connector V1 parity None
+19:00:46 METRIC mpdd_c2712 mpdd/bracket_black {'V1': 0.2006, 'Q4T': 0.1993} 11s
+19:00:49 METRIC mpdd_c2712 mpdd/metal_plate {'V1': 0.8966, 'Q4T': 0.8916} 23s
+19:00:51 GRIDS mpdd_c2713 bracket_black V1 parity None
+19:00:54 METRIC mpdd_c2712 mpdd/bracket_brown {'V1': 0.3809, 'Q4T': 0.3989} 7s
+19:00:56 GRIDS mpdd_c2713 bracket_brown V1 parity None
+19:00:57 METRIC mpdd_c2712 mpdd/bracket_white {'V1': 0.1522, 'Q4T': 0.1445} 2s
+19:00:57 METRIC mpdd_c2712 mpdd/tubes {'V1': 0.7819, 'Q4T': 0.7767} 7s
+19:00:57 METRICS DONE mpdd_c2712 None
+19:01:00 GRIDS mpdd_c2713 tubes V1 parity None
+19:01:02 GRIDS mpdd_c2713 bracket_white V1 parity None
+19:01:02 STREAM DONE mpdd_c2713 37s parity all None
+19:01:12 METRIC mpdd_c2713 mpdd/connector {'V1': 0.7644, 'Q4T': 0.7581} 7s
+19:01:18 STREAM mvtec_a2712 0 bottle {'V1': 1639, 'Q4T': 1639}
+19:01:23 METRIC mpdd_c2713 mpdd/bracket_black {'V1': 0.2155, 'Q4T': 0.2038} 10s
+19:01:26 METRIC mpdd_c2713 mpdd/metal_plate {'V1': 0.8868, 'Q4T': 0.8826} 20s
+19:01:31 METRIC mpdd_c2713 mpdd/bracket_brown {'V1': 0.3553, 'Q4T': 0.3864} 7s
+19:01:34 STREAM mvtec_a2712 1 cable {'V1': 3396, 'Q4T': 3396}
+19:01:34 METRIC mpdd_c2713 mpdd/bracket_white {'V1': 0.0945, 'Q4T': 0.0708} 2s
+19:01:35 METRIC mpdd_c2713 mpdd/tubes {'V1': 0.7619, 'Q4T': 0.7667} 7s
+19:01:35 METRICS DONE mpdd_c2713 None
+19:01:44 STREAM mvtec_a2712 2 capsule {'V1': 3925, 'Q4T': 5113}
+19:01:58 STREAM mvtec_a2712 3 carpet {'V1': 3925, 'Q4T': 7309}
+19:02:11 STREAM mvtec_a2712 4 grid {'V1': 3925, 'Q4T': 9379}
+19:02:34 STREAM mvtec_a2712 5 hazelnut {'V1': 3925, 'Q4T': 12445}
+19:02:46 STREAM mvtec_a2712 6 leather {'V1': 3925, 'Q4T': 14366}
+19:02:56 STREAM mvtec_a2712 7 metal_nut {'V1': 3925, 'Q4T': 16091}
+19:03:09 STREAM mvtec_a2712 8 pill {'V1': 3925, 'Q4T': 18185}
+19:03:31 STREAM mvtec_a2712 9 screw {'V1': 3925, 'Q4T': 18672}
+19:03:46 STREAM mvtec_a2712 10 tile {'V1': 3925, 'Q4T': 18672}
+19:03:53 STREAM mvtec_a2712 11 toothbrush {'V1': 3925, 'Q4T': 18672}
+19:04:07 STREAM mvtec_a2712 12 transistor {'V1': 3925, 'Q4T': 18672}
+19:04:24 STREAM mvtec_a2712 13 wood {'V1': 3925, 'Q4T': 18672}
+19:04:40 STREAM mvtec_a2712 14 zipper {'V1': 3925, 'Q4T': 18672}
+19:04:52 GRIDS mvtec_a2712 bottle V1 parity None
+19:05:13 GRIDS mvtec_a2712 cable V1 parity None
+19:05:31 GRIDS mvtec_a2712 capsule V1 parity None
+19:05:47 GRIDS mvtec_a2712 carpet V1 parity None
+19:05:57 GRIDS mvtec_a2712 grid V1 parity None
+19:06:11 GRIDS mvtec_a2712 hazelnut V1 parity None
+19:06:25 GRIDS mvtec_a2712 leather V1 parity None
+19:06:37 GRIDS mvtec_a2712 metal_nut V1 parity None
+19:06:53 GRIDS mvtec_a2712 pill V1 parity None
+19:07:08 GRIDS mvtec_a2712 screw V1 parity None
+19:07:17 GRIDS mvtec_a2712 tile V1 parity None
+19:07:19 GRIDS mvtec_a2712 toothbrush V1 parity None
+19:07:25 GRIDS mvtec_a2712 transistor V1 parity None
+19:07:29 GRIDS mvtec_a2712 wood V1 parity None
+19:07:35 GRIDS mvtec_a2712 zipper V1 parity None
+19:07:35 STREAM DONE mvtec_a2712 391s parity all None
+19:07:52 STREAM mvtec_a2713 0 bottle {'V1': 1639, 'Q4T': 1639}
+19:08:09 STREAM mvtec_a2713 1 cable {'V1': 3396, 'Q4T': 3396}
+19:08:22 METRIC mvtec_a2712 mvtec/bottle {'V1': 0.8249, 'Q4T': 0.8528} 43s
+19:08:24 STREAM mvtec_a2713 2 capsule {'V1': 3925, 'Q4T': 5113}
+19:08:47 STREAM mvtec_a2713 3 carpet {'V1': 3925, 'Q4T': 7309}
+19:08:55 METRIC mvtec_a2712 mvtec/cable {'V1': 0.5289, 'Q4T': 0.5278} 76s
+19:09:06 STREAM mvtec_a2713 4 grid {'V1': 3925, 'Q4T': 9379}
+19:09:26 METRIC mvtec_a2712 mvtec/capsule {'V1': 0.4936, 'Q4T': 0.5712} 62s
+19:09:41 STREAM mvtec_a2713 5 hazelnut {'V1': 3925, 'Q4T': 12445}
+19:09:48 METRIC mvtec_a2712 mvtec/carpet {'V1': 0.7396, 'Q4T': 0.7375} 51s
+19:09:59 STREAM mvtec_a2713 6 leather {'V1': 3925, 'Q4T': 14366}
+19:10:04 METRIC mvtec_a2712 mvtec/grid {'V1': 0.4875, 'Q4T': 0.5033} 37s
+19:10:13 STREAM mvtec_a2713 7 metal_nut {'V1': 3925, 'Q4T': 16091}
+19:10:30 METRIC mvtec_a2712 mvtec/hazelnut {'V1': 0.7872, 'Q4T': 0.7966} 41s
+19:10:35 STREAM mvtec_a2713 8 pill {'V1': 3925, 'Q4T': 18185}
+19:10:47 METRIC mvtec_a2712 mvtec/leather {'V1': 0.4388, 'Q4T': 0.4616} 41s
+19:10:57 METRIC mvtec_a2712 mvtec/metal_nut {'V1': 0.6728, 'Q4T': 0.7282} 25s
+19:11:06 STREAM mvtec_a2713 9 screw {'V1': 3925, 'Q4T': 18672}
+19:11:19 METRIC mvtec_a2712 mvtec/pill {'V1': 0.4616, 'Q4T': 0.556} 30s
+19:11:30 STREAM mvtec_a2713 10 tile {'V1': 3925, 'Q4T': 18672}
+19:11:37 METRIC mvtec_a2712 mvtec/screw {'V1': 0.4831, 'Q4T': 0.5794} 37s
+19:11:39 STREAM mvtec_a2713 11 toothbrush {'V1': 3925, 'Q4T': 18672}
+19:11:42 METRIC mvtec_a2712 mvtec/tile {'V1': 0.7444, 'Q4T': 0.7227} 21s
+19:11:49 METRIC mvtec_a2712 mvtec/toothbrush {'V1': 0.6059, 'Q4T': 0.6236} 12s
+19:11:56 STREAM mvtec_a2713 12 transistor {'V1': 3925, 'Q4T': 18672}
+19:11:58 METRIC mvtec_a2712 mvtec/transistor {'V1': 0.4297, 'Q4T': 0.5025} 15s
+19:12:02 METRIC mvtec_a2712 mvtec/wood {'V1': 0.6659, 'Q4T': 0.6744} 12s
+19:12:09 METRIC mvtec_a2712 mvtec/zipper {'V1': 0.6606, 'Q4T': 0.5877} 9s
+19:12:09 METRICS DONE mvtec_a2712 None
+19:12:14 STREAM mvtec_a2713 13 wood {'V1': 3925, 'Q4T': 18672}
+19:12:30 STREAM mvtec_a2713 14 zipper {'V1': 3925, 'Q4T': 18672}
+19:12:42 GRIDS mvtec_a2713 bottle V1 parity None
+19:13:03 GRIDS mvtec_a2713 cable V1 parity None
+19:13:21 GRIDS mvtec_a2713 capsule V1 parity None
+19:13:36 GRIDS mvtec_a2713 carpet V1 parity None
+19:13:46 GRIDS mvtec_a2713 grid V1 parity None
+19:13:59 GRIDS mvtec_a2713 hazelnut V1 parity None
+19:14:13 GRIDS mvtec_a2713 leather V1 parity None
+19:14:25 GRIDS mvtec_a2713 metal_nut V1 parity None
+19:14:41 GRIDS mvtec_a2713 pill V1 parity None
+19:14:55 GRIDS mvtec_a2713 screw V1 parity None
+19:15:04 GRIDS mvtec_a2713 tile V1 parity None
+19:15:06 GRIDS mvtec_a2713 toothbrush V1 parity None
+19:15:12 GRIDS mvtec_a2713 transistor V1 parity None
+19:15:16 GRIDS mvtec_a2713 wood V1 parity None
+19:15:21 GRIDS mvtec_a2713 zipper V1 parity None
+19:15:21 STREAM DONE mvtec_a2713 464s parity all None
+19:15:24 STREAM mvtec_b2711 0 zipper {'V1': 1882, 'Q4T': 1882}
+19:15:24 STREAM mvtec_b2711 1 wood {'V1': 3819, 'Q4T': 3819}
+19:15:25 STREAM mvtec_b2711 2 transistor {'V1': 3925, 'Q4T': 5489}
+19:15:26 STREAM mvtec_b2711 3 toothbrush {'V1': 3925, 'Q4T': 5960}
+19:15:27 STREAM mvtec_b2711 4 tile {'V1': 3925, 'Q4T': 7764}
+19:15:29 STREAM mvtec_b2711 5 screw {'V1': 3925, 'Q4T': 10273}
+19:15:33 STREAM mvtec_b2711 6 pill {'V1': 3925, 'Q4T': 12367}
+19:15:48 STREAM mvtec_b2711 7 metal_nut {'V1': 3925, 'Q4T': 14092}
+19:16:02 STREAM mvtec_b2711 8 leather {'V1': 3925, 'Q4T': 16013}
+19:16:13 METRIC mvtec_a2713 mvtec/bottle {'V1': 0.8362, 'Q4T': 0.8491} 48s
+19:16:22 STREAM mvtec_b2711 9 hazelnut {'V1': 3925, 'Q4T': 18672}
+19:16:31 STREAM mvtec_b2711 10 grid {'V1': 3925, 'Q4T': 18672}
+19:16:39 STREAM mvtec_b2711 11 carpet {'V1': 3925, 'Q4T': 18672}
+19:16:47 STREAM mvtec_b2711 12 capsule {'V1': 3925, 'Q4T': 18672}
+19:16:54 STREAM mvtec_b2711 13 cable {'V1': 3925, 'Q4T': 18672}
+19:16:55 METRIC mvtec_a2713 mvtec/cable {'V1': 0.4997, 'Q4T': 0.5262} 89s
+19:17:02 STREAM mvtec_b2711 14 bottle {'V1': 3925, 'Q4T': 18672}
+19:17:21 METRIC mvtec_a2713 mvtec/capsule {'V1': 0.4714, 'Q4T': 0.5661} 64s
+19:17:33 GRIDS mvtec_b2711 zipper V1 parity True
+19:17:48 GRIDS mvtec_b2711 wood V1 parity True
+19:17:48 METRIC mvtec_a2713 mvtec/carpet {'V1': 0.7042, 'Q4T': 0.7473} 51s
+19:17:54 METRIC mvtec_a2713 mvtec/grid {'V1': 0.4874, 'Q4T': 0.506} 32s
+19:18:04 GRIDS mvtec_b2711 transistor V1 parity True
+19:18:11 GRIDS mvtec_b2711 toothbrush V1 parity True
+19:18:30 GRIDS mvtec_b2711 tile V1 parity True
+19:18:30 METRIC mvtec_a2713 mvtec/hazelnut {'V1': 0.7701, 'Q4T': 0.7965} 41s
+19:18:36 METRIC mvtec_a2713 mvtec/leather {'V1': 0.4529, 'Q4T': 0.4764} 40s
+19:18:52 GRIDS mvtec_b2711 screw V1 parity True
+19:18:54 METRIC mvtec_a2713 mvtec/metal_nut {'V1': 0.6819, 'Q4T': 0.7401} 22s
+19:19:09 METRIC mvtec_a2713 mvtec/pill {'V1': 0.4857, 'Q4T': 0.5558} 31s
+19:19:17 GRIDS mvtec_b2711 pill V1 parity True
+19:19:31 METRIC mvtec_a2713 mvtec/tile {'V1': 0.7056, 'Q4T': 0.7133} 21s
+19:19:32 GRIDS mvtec_b2711 metal_nut V1 parity True
+19:19:34 METRIC mvtec_a2713 mvtec/screw {'V1': 0.492, 'Q4T': 0.5655} 38s
+19:19:43 METRIC mvtec_a2713 mvtec/toothbrush {'V1': 0.6055, 'Q4T': 0.6343} 12s
+19:19:46 GRIDS mvtec_b2711 leather V1 parity True
+19:19:51 METRIC mvtec_a2713 mvtec/transistor {'V1': 0.4307, 'Q4T': 0.5031} 16s
+19:19:56 METRIC mvtec_a2713 mvtec/wood {'V1': 0.6552, 'Q4T': 0.6736} 12s
+19:19:57 GRIDS mvtec_b2711 hazelnut V1 parity True
+19:20:02 METRIC mvtec_a2713 mvtec/zipper {'V1': 0.5642, 'Q4T': 0.5908} 9s
+19:20:02 METRICS DONE mvtec_a2713 None
+19:20:04 GRIDS mvtec_b2711 grid V1 parity True
+19:20:11 GRIDS mvtec_b2711 carpet V1 parity True
+19:20:18 GRIDS mvtec_b2711 capsule V1 parity True
+19:20:24 GRIDS mvtec_b2711 cable V1 parity True
+19:20:28 GRIDS mvtec_b2711 bottle V1 parity True
+19:20:28 STREAM DONE mvtec_b2711 304s parity all True
+19:20:30 STREAM mvtec_b2712 0 zipper {'V1': 1882, 'Q4T': 1882}
+19:20:31 STREAM mvtec_b2712 1 wood {'V1': 3819, 'Q4T': 3819}
+19:20:31 STREAM mvtec_b2712 2 transistor {'V1': 3925, 'Q4T': 5489}
+19:20:32 STREAM mvtec_b2712 3 toothbrush {'V1': 3925, 'Q4T': 5960}
+19:20:34 STREAM mvtec_b2712 4 tile {'V1': 3925, 'Q4T': 7764}
+19:20:36 STREAM mvtec_b2712 5 screw {'V1': 3925, 'Q4T': 10273}
+19:20:50 STREAM mvtec_b2712 6 pill {'V1': 3925, 'Q4T': 12367}
+19:21:09 STREAM mvtec_b2712 7 metal_nut {'V1': 3925, 'Q4T': 14092}
+19:21:21 METRIC mvtec_b2711 mvtec/wood {'V1': 0.6616, 'Q4T': 0.6767} 49s
+19:21:26 STREAM mvtec_b2712 8 leather {'V1': 3925, 'Q4T': 16013}
+19:21:53 STREAM mvtec_b2712 9 hazelnut {'V1': 3925, 'Q4T': 18672}
+19:22:01 STREAM mvtec_b2712 10 grid {'V1': 3925, 'Q4T': 18672}
+19:22:10 STREAM mvtec_b2712 11 carpet {'V1': 3925, 'Q4T': 18672}
+19:22:12 METRIC mvtec_b2711 mvtec/zipper {'V1': 0.5626, 'Q4T': 0.6095} 99s
+19:22:16 METRIC mvtec_b2711 mvtec/transistor {'V1': 0.3997, 'Q4T': 0.5015} 53s
+19:22:17 STREAM mvtec_b2712 12 capsule {'V1': 3925, 'Q4T': 18672}
+19:22:26 STREAM mvtec_b2712 13 cable {'V1': 3925, 'Q4T': 18672}
+19:22:29 METRIC mvtec_b2711 mvtec/toothbrush {'V1': 0.6695, 'Q4T': 0.66} 17s
+19:22:33 STREAM mvtec_b2712 14 bottle {'V1': 3925, 'Q4T': 18672}
+19:22:49 METRIC mvtec_b2711 mvtec/tile {'V1': 0.7236, 'Q4T': 0.7195} 31s
+19:23:05 GRIDS mvtec_b2712 zipper V1 parity None
+19:23:22 GRIDS mvtec_b2712 wood V1 parity None
+19:23:24 METRIC mvtec_b2711 mvtec/pill {'V1': 0.4859, 'Q4T': 0.5568} 33s
+19:23:25 METRIC mvtec_b2711 mvtec/screw {'V1': 0.4603, 'Q4T': 0.5844} 54s
+19:23:41 GRIDS mvtec_b2712 transistor V1 parity None
+19:23:43 METRIC mvtec_b2711 mvtec/metal_nut {'V1': 0.6516, 'Q4T': 0.7295} 17s
+19:23:50 GRIDS mvtec_b2712 toothbrush V1 parity None
+19:23:54 METRIC mvtec_b2711 mvtec/leather {'V1': 0.4417, 'Q4T': 0.4842} 28s
+19:24:08 METRIC mvtec_b2711 mvtec/grid {'V1': 0.4966, 'Q4T': 0.5049} 13s
+19:24:08 METRIC mvtec_b2711 mvtec/hazelnut {'V1': 0.7603, 'Q4T': 0.8059} 24s
+19:24:11 GRIDS mvtec_b2712 tile V1 parity None
+19:24:22 METRIC mvtec_b2711 mvtec/capsule {'V1': 0.505, 'Q4T': 0.5702} 12s
+19:24:23 METRIC mvtec_b2711 mvtec/carpet {'V1': 0.7336, 'Q4T': 0.7391} 13s
+19:24:26 METRIC mvtec_b2711 mvtec/bottle {'V1': 0.8467, 'Q4T': 0.8468} 2s
+19:24:31 METRIC mvtec_b2711 mvtec/cable {'V1': 0.4955, 'Q4T': 0.5288} 8s
+19:24:31 METRICS DONE mvtec_b2711 True
+19:24:36 GRIDS mvtec_b2712 screw V1 parity None
+19:24:56 GRIDS mvtec_b2712 pill V1 parity None
+19:25:08 GRIDS mvtec_b2712 metal_nut V1 parity None
+19:25:20 GRIDS mvtec_b2712 leather V1 parity None
+19:25:29 GRIDS mvtec_b2712 hazelnut V1 parity None
+19:25:35 GRIDS mvtec_b2712 grid V1 parity None
+19:25:42 GRIDS mvtec_b2712 carpet V1 parity None
+19:25:50 GRIDS mvtec_b2712 capsule V1 parity None
+19:25:56 GRIDS mvtec_b2712 cable V1 parity None
+19:25:58 GRIDS mvtec_b2712 bottle V1 parity None
+19:25:58 STREAM DONE mvtec_b2712 328s parity all None
+19:26:01 STREAM mvtec_b2713 0 zipper {'V1': 1882, 'Q4T': 1882}
+19:26:01 STREAM mvtec_b2713 1 wood {'V1': 3819, 'Q4T': 3819}
+19:26:02 STREAM mvtec_b2713 2 transistor {'V1': 3925, 'Q4T': 5489}
+19:26:03 STREAM mvtec_b2713 3 toothbrush {'V1': 3925, 'Q4T': 5960}
+19:26:04 STREAM mvtec_b2713 4 tile {'V1': 3925, 'Q4T': 7764}
+19:26:05 STREAM mvtec_b2713 5 screw {'V1': 3925, 'Q4T': 10273}
+19:26:07 STREAM mvtec_b2713 6 pill {'V1': 3925, 'Q4T': 12367}
+19:26:08 STREAM mvtec_b2713 7 metal_nut {'V1': 3925, 'Q4T': 14092}
+19:26:11 STREAM mvtec_b2713 8 leather {'V1': 3925, 'Q4T': 16013}
+19:26:29 STREAM mvtec_b2713 9 hazelnut {'V1': 3925, 'Q4T': 18672}
+19:26:38 STREAM mvtec_b2713 10 grid {'V1': 3925, 'Q4T': 18672}
+19:26:45 METRIC mvtec_b2712 mvtec/wood {'V1': 0.666, 'Q4T': 0.6719} 43s
+19:26:46 STREAM mvtec_b2713 11 carpet {'V1': 3925, 'Q4T': 18672}
+19:26:54 STREAM mvtec_b2713 12 capsule {'V1': 3925, 'Q4T': 18672}
+19:27:03 STREAM mvtec_b2713 13 cable {'V1': 3925, 'Q4T': 18672}
+19:27:11 STREAM mvtec_b2713 14 bottle {'V1': 3925, 'Q4T': 18672}
+19:27:26 METRIC mvtec_b2712 mvtec/zipper {'V1': 0.6061, 'Q4T': 0.6143} 82s
+19:27:33 METRIC mvtec_b2712 mvtec/transistor {'V1': 0.4185, 'Q4T': 0.5023} 47s
+19:27:42 METRIC mvtec_b2712 mvtec/toothbrush {'V1': 0.5661, 'Q4T': 0.6242} 16s
+19:27:43 GRIDS mvtec_b2713 zipper V1 parity None
+19:28:00 GRIDS mvtec_b2713 wood V1 parity None
+19:28:02 METRIC mvtec_b2712 mvtec/tile {'V1': 0.7216, 'Q4T': 0.722} 28s
+19:28:18 GRIDS mvtec_b2713 transistor V1 parity None
+19:28:27 GRIDS mvtec_b2713 toothbrush V1 parity None
+19:28:34 METRIC mvtec_b2712 mvtec/screw {'V1': 0.4513, 'Q4T': 0.5681} 49s
+19:28:37 METRIC mvtec_b2712 mvtec/pill {'V1': 0.4969, 'Q4T': 0.562} 32s
+19:28:49 GRIDS mvtec_b2713 tile V1 parity None
+19:28:52 METRIC mvtec_b2712 mvtec/metal_nut {'V1': 0.6833, 'Q4T': 0.7277} 17s
+19:29:09 METRIC mvtec_b2712 mvtec/leather {'V1': 0.4265, 'Q4T': 0.4807} 30s
+19:29:13 METRIC mvtec_b2712 mvtec/hazelnut {'V1': 0.7885, 'Q4T': 0.7975} 20s
+19:29:17 GRIDS mvtec_b2713 screw V1 parity None
+19:29:22 METRIC mvtec_b2712 mvtec/grid {'V1': 0.4825, 'Q4T': 0.5014} 11s
+19:29:28 METRIC mvtec_b2712 mvtec/carpet {'V1': 0.7001, 'Q4T': 0.73} 13s
+19:29:36 METRIC mvtec_b2712 mvtec/capsule {'V1': 0.5341, 'Q4T': 0.5807} 12s
+19:29:39 METRIC mvtec_b2712 mvtec/cable {'V1': 0.5003, 'Q4T': 0.5296} 9s
+19:29:39 METRIC mvtec_b2712 mvtec/bottle {'V1': 0.8449, 'Q4T': 0.8515} 2s
+19:29:39 METRICS DONE mvtec_b2712 None
+19:29:44 GRIDS mvtec_b2713 pill V1 parity None
+19:29:56 GRIDS mvtec_b2713 metal_nut V1 parity None
+19:30:07 GRIDS mvtec_b2713 leather V1 parity None
+19:30:16 GRIDS mvtec_b2713 hazelnut V1 parity None
+19:30:22 GRIDS mvtec_b2713 grid V1 parity None
+19:30:29 GRIDS mvtec_b2713 carpet V1 parity None
+19:30:36 GRIDS mvtec_b2713 capsule V1 parity None
+19:30:42 GRIDS mvtec_b2713 cable V1 parity None
+19:30:45 GRIDS mvtec_b2713 bottle V1 parity None
+19:30:45 STREAM DONE mvtec_b2713 284s parity all None
+19:30:47 STREAM mvtec_c2711 0 screw {'V1': 2509, 'Q4T': 2509}
+19:30:48 STREAM mvtec_c2711 1 hazelnut {'V1': 3925, 'Q4T': 5575}
+19:30:49 STREAM mvtec_c2711 2 leather {'V1': 3925, 'Q4T': 7496}
+19:30:50 STREAM mvtec_c2711 3 toothbrush {'V1': 3925, 'Q4T': 7967}
+19:30:52 STREAM mvtec_c2711 4 wood {'V1': 3925, 'Q4T': 9904}
+19:30:53 STREAM mvtec_c2711 5 bottle {'V1': 3925, 'Q4T': 11543}
+19:30:56 STREAM mvtec_c2711 6 grid {'V1': 3925, 'Q4T': 13613}
+19:31:10 STREAM mvtec_c2711 7 tile {'V1': 3925, 'Q4T': 15417}
+19:31:27 STREAM mvtec_c2711 8 zipper {'V1': 3925, 'Q4T': 17299}
+19:31:38 METRIC mvtec_b2713 mvtec/wood {'V1': 0.6644, 'Q4T': 0.67} 49s
+19:31:54 STREAM mvtec_c2711 9 pill {'V1': 3925, 'Q4T': 18672}
+19:32:02 STREAM mvtec_c2711 10 metal_nut {'V1': 3925, 'Q4T': 18672}
+19:32:11 STREAM mvtec_c2711 11 cable {'V1': 3925, 'Q4T': 18672}
+19:32:20 STREAM mvtec_c2711 12 capsule {'V1': 3925, 'Q4T': 18672}
+19:32:25 METRIC mvtec_b2713 mvtec/zipper {'V1': 0.568, 'Q4T': 0.5657} 95s
+19:32:29 STREAM mvtec_c2711 13 carpet {'V1': 3925, 'Q4T': 18672}
+19:32:36 METRIC mvtec_b2713 mvtec/transistor {'V1': 0.4187, 'Q4T': 0.5023} 55s
+19:32:37 STREAM mvtec_c2711 14 transistor {'V1': 3925, 'Q4T': 18672}
+19:32:42 METRIC mvtec_b2713 mvtec/toothbrush {'V1': 0.5805, 'Q4T': 0.6343} 16s
+19:33:07 METRIC mvtec_b2713 mvtec/tile {'V1': 0.7172, 'Q4T': 0.7153} 30s
+19:33:11 GRIDS mvtec_c2711 screw V1 parity True
+19:33:34 GRIDS mvtec_c2711 hazelnut V1 parity True
+19:33:36 METRIC mvtec_b2713 mvtec/screw {'V1': 0.4033, 'Q4T': 0.5723} 52s
+19:33:42 METRIC mvtec_b2713 mvtec/pill {'V1': 0.5097, 'Q4T': 0.5578} 33s
+19:33:52 METRIC mvtec_b2713 mvtec/metal_nut {'V1': 0.6543, 'Q4T': 0.74} 15s
+19:33:58 GRIDS mvtec_c2711 leather V1 parity True
+19:34:07 GRIDS mvtec_c2711 toothbrush V1 parity True
+19:34:15 METRIC mvtec_b2713 mvtec/leather {'V1': 0.4475, 'Q4T': 0.4909} 31s
+19:34:15 METRIC mvtec_b2713 mvtec/hazelnut {'V1': 0.7767, 'Q4T': 0.7969} 22s
+19:34:21 GRIDS mvtec_c2711 wood V1 parity True
+19:34:28 METRIC mvtec_b2713 mvtec/grid {'V1': 0.4977, 'Q4T': 0.5063} 12s
+19:34:32 METRIC mvtec_b2713 mvtec/carpet {'V1': 0.7224, 'Q4T': 0.7508} 15s
+19:34:35 GRIDS mvtec_c2711 bottle V1 parity True
+19:34:42 METRIC mvtec_b2713 mvtec/capsule {'V1': 0.5168, 'Q4T': 0.5699} 12s
+19:34:42 METRIC mvtec_b2713 mvtec/cable {'V1': 0.4943, 'Q4T': 0.5273} 9s
+19:34:44 METRIC mvtec_b2713 mvtec/bottle {'V1': 0.8464, 'Q4T': 0.8484} 1s
+19:34:44 METRICS DONE mvtec_b2713 None
+19:34:47 GRIDS mvtec_c2711 grid V1 parity True
+19:34:59 GRIDS mvtec_c2711 tile V1 parity True
+19:35:14 GRIDS mvtec_c2711 zipper V1 parity True
+19:35:28 GRIDS mvtec_c2711 pill V1 parity True
+19:35:36 GRIDS mvtec_c2711 metal_nut V1 parity True
+19:35:46 GRIDS mvtec_c2711 cable V1 parity True
+19:35:53 GRIDS mvtec_c2711 capsule V1 parity True
+19:35:57 GRIDS mvtec_c2711 carpet V1 parity True
+19:36:01 GRIDS mvtec_c2711 transistor V1 parity True
+19:36:01 STREAM DONE mvtec_c2711 314s parity all True
+19:36:03 STREAM mvtec_c2712 0 screw {'V1': 2509, 'Q4T': 2509}
+19:36:04 STREAM mvtec_c2712 1 hazelnut {'V1': 3925, 'Q4T': 5575}
+19:36:05 STREAM mvtec_c2712 2 leather {'V1': 3925, 'Q4T': 7496}
+19:36:06 STREAM mvtec_c2712 3 toothbrush {'V1': 3925, 'Q4T': 7967}
+19:36:08 STREAM mvtec_c2712 4 wood {'V1': 3925, 'Q4T': 9904}
+19:36:09 STREAM mvtec_c2712 5 bottle {'V1': 3925, 'Q4T': 11543}
+19:36:11 STREAM mvtec_c2712 6 grid {'V1': 3925, 'Q4T': 13613}
+19:36:25 STREAM mvtec_c2712 7 tile {'V1': 3925, 'Q4T': 15417}
+19:36:43 STREAM mvtec_c2712 8 zipper {'V1': 3925, 'Q4T': 17299}
+19:37:08 STREAM mvtec_c2712 9 pill {'V1': 3925, 'Q4T': 18672}
+19:37:09 METRIC mvtec_c2711 mvtec/hazelnut {'V1': 0.7729, 'Q4T': 0.8066} 65s
+19:37:15 STREAM mvtec_c2712 10 metal_nut {'V1': 3925, 'Q4T': 18672}
+19:37:24 STREAM mvtec_c2712 11 cable {'V1': 3925, 'Q4T': 18672}
+19:37:31 STREAM mvtec_c2712 12 capsule {'V1': 3925, 'Q4T': 18672}
+19:37:36 METRIC mvtec_c2711 mvtec/screw {'V1': 0.4269, 'Q4T': 0.5727} 91s
+19:37:40 STREAM mvtec_c2712 13 carpet {'V1': 3925, 'Q4T': 18672}
+19:37:49 STREAM mvtec_c2712 14 transistor {'V1': 3925, 'Q4T': 18672}
+19:37:55 METRIC mvtec_c2711 mvtec/toothbrush {'V1': 0.6489, 'Q4T': 0.6591} 19s
+19:38:14 METRIC mvtec_c2711 mvtec/leather {'V1': 0.454, 'Q4T': 0.4896} 63s
+19:38:25 GRIDS mvtec_c2712 screw V1 parity None
+19:38:26 METRIC mvtec_c2711 mvtec/wood {'V1': 0.6612, 'Q4T': 0.6732} 30s
+19:38:41 METRIC mvtec_c2711 mvtec/bottle {'V1': 0.847, 'Q4T': 0.845} 25s
+19:38:48 GRIDS mvtec_c2712 hazelnut V1 parity None
+19:38:52 METRIC mvtec_c2711 mvtec/grid {'V1': 0.4934, 'Q4T': 0.5054} 25s
+19:39:05 METRIC mvtec_c2711 mvtec/tile {'V1': 0.7256, 'Q4T': 0.718} 23s
+19:39:14 GRIDS mvtec_c2712 leather V1 parity None
+19:39:24 GRIDS mvtec_c2712 toothbrush V1 parity None
+19:39:30 METRIC mvtec_c2711 mvtec/zipper {'V1': 0.5905, 'Q4T': 0.594} 36s
+19:39:30 METRIC mvtec_c2711 mvtec/pill {'V1': 0.4972, 'Q4T': 0.5469} 22s
+19:39:38 GRIDS mvtec_c2712 wood V1 parity None
+19:39:41 METRIC mvtec_c2711 mvtec/metal_nut {'V1': 0.6495, 'Q4T': 0.7298} 11s
+19:39:52 METRIC mvtec_c2711 mvtec/cable {'V1': 0.4912, 'Q4T': 0.5231} 21s
+19:39:53 GRIDS mvtec_c2712 bottle V1 parity None
+19:39:55 METRIC mvtec_c2711 mvtec/capsule {'V1': 0.5321, 'Q4T': 0.5754} 12s
+19:39:59 METRIC mvtec_c2711 mvtec/transistor {'V1': 0.4259, 'Q4T': 0.5032} 3s
+19:40:00 METRIC mvtec_c2711 mvtec/carpet {'V1': 0.7445, 'Q4T': 0.7361} 7s
+19:40:00 METRICS DONE mvtec_c2711 True
+19:40:04 GRIDS mvtec_c2712 grid V1 parity None
+19:40:16 GRIDS mvtec_c2712 tile V1 parity None
+19:40:30 GRIDS mvtec_c2712 zipper V1 parity None
+19:40:44 GRIDS mvtec_c2712 pill V1 parity None
+19:40:52 GRIDS mvtec_c2712 metal_nut V1 parity None
+19:41:01 GRIDS mvtec_c2712 cable V1 parity None
+19:41:08 GRIDS mvtec_c2712 capsule V1 parity None
+19:41:13 GRIDS mvtec_c2712 carpet V1 parity None
+19:41:16 GRIDS mvtec_c2712 transistor V1 parity None
+19:41:16 STREAM DONE mvtec_c2712 313s parity all None
+19:41:19 STREAM mvtec_c2713 0 screw {'V1': 2509, 'Q4T': 2509}
+19:41:20 STREAM mvtec_c2713 1 hazelnut {'V1': 3925, 'Q4T': 5575}
+19:41:20 STREAM mvtec_c2713 2 leather {'V1': 3925, 'Q4T': 7496}
+19:41:21 STREAM mvtec_c2713 3 toothbrush {'V1': 3925, 'Q4T': 7967}
+19:41:23 STREAM mvtec_c2713 4 wood {'V1': 3925, 'Q4T': 9904}
+19:41:25 STREAM mvtec_c2713 5 bottle {'V1': 3925, 'Q4T': 11543}
+19:41:27 STREAM mvtec_c2713 6 grid {'V1': 3925, 'Q4T': 13613}
+19:41:46 STREAM mvtec_c2713 7 tile {'V1': 3925, 'Q4T': 15417}
+19:42:03 STREAM mvtec_c2713 8 zipper {'V1': 3925, 'Q4T': 17299}
+19:42:23 STREAM mvtec_c2713 9 pill {'V1': 3925, 'Q4T': 18672}
+19:42:24 METRIC mvtec_c2712 mvtec/hazelnut {'V1': 0.779, 'Q4T': 0.7952} 63s
+19:42:31 STREAM mvtec_c2713 10 metal_nut {'V1': 3925, 'Q4T': 18672}
+19:42:39 STREAM mvtec_c2713 11 cable {'V1': 3925, 'Q4T': 18672}
+19:42:47 STREAM mvtec_c2713 12 capsule {'V1': 3925, 'Q4T': 18672}
+19:42:56 STREAM mvtec_c2713 13 carpet {'V1': 3925, 'Q4T': 18672}
+19:42:56 METRIC mvtec_c2712 mvtec/screw {'V1': 0.4796, 'Q4T': 0.5849} 95s
+19:43:04 STREAM mvtec_c2713 14 transistor {'V1': 3925, 'Q4T': 18672}
+19:43:11 METRIC mvtec_c2712 mvtec/toothbrush {'V1': 0.6022, 'Q4T': 0.6239} 15s
+19:43:24 METRIC mvtec_c2712 mvtec/leather {'V1': 0.492, 'Q4T': 0.4785} 59s
+19:43:37 GRIDS mvtec_c2713 screw V1 parity None
+19:43:41 METRIC mvtec_c2712 mvtec/wood {'V1': 0.6849, 'Q4T': 0.674} 28s
+19:43:46 METRIC mvtec_c2712 mvtec/bottle {'V1': 0.8369, 'Q4T': 0.8543} 22s
+19:43:58 GRIDS mvtec_c2713 hazelnut V1 parity None
+19:44:05 METRIC mvtec_c2712 mvtec/grid {'V1': 0.4832, 'Q4T': 0.5042} 23s
+19:44:09 METRIC mvtec_c2712 mvtec/tile {'V1': 0.7223, 'Q4T': 0.7224} 22s
+19:44:22 GRIDS mvtec_c2713 leather V1 parity None
+19:44:31 GRIDS mvtec_c2713 toothbrush V1 parity None
+19:44:33 METRIC mvtec_c2712 mvtec/pill {'V1': 0.4974, 'Q4T': 0.5563} 22s
+19:44:41 METRIC mvtec_c2712 mvtec/zipper {'V1': 0.5653, 'Q4T': 0.5988} 35s
+19:44:44 METRIC mvtec_c2712 mvtec/metal_nut {'V1': 0.6958, 'Q4T': 0.7287} 9s
+19:44:45 GRIDS mvtec_c2713 wood V1 parity None
+19:44:58 METRIC mvtec_c2712 mvtec/capsule {'V1': 0.5362, 'Q4T': 0.5823} 13s
+19:44:59 GRIDS mvtec_c2713 bottle V1 parity None
+19:45:00 METRIC mvtec_c2712 mvtec/cable {'V1': 0.5444, 'Q4T': 0.5235} 17s
+19:45:05 METRIC mvtec_c2712 mvtec/transistor {'V1': 0.4612, 'Q4T': 0.5035} 3s
+19:45:06 METRIC mvtec_c2712 mvtec/carpet {'V1': 0.7171, 'Q4T': 0.7418} 7s
+19:45:06 METRICS DONE mvtec_c2712 None
+19:45:10 GRIDS mvtec_c2713 grid V1 parity None
+19:45:22 GRIDS mvtec_c2713 tile V1 parity None
+19:45:36 GRIDS mvtec_c2713 zipper V1 parity None
+19:45:49 GRIDS mvtec_c2713 pill V1 parity None
+19:45:57 GRIDS mvtec_c2713 metal_nut V1 parity None
+19:46:07 GRIDS mvtec_c2713 cable V1 parity None
+19:46:13 GRIDS mvtec_c2713 capsule V1 parity None
+19:46:18 GRIDS mvtec_c2713 carpet V1 parity None
+19:46:22 GRIDS mvtec_c2713 transistor V1 parity None
+19:46:22 STREAM DONE mvtec_c2713 304s parity all None
+19:47:17 METRIC mvtec_c2713 mvtec/hazelnut {'V1': 0.7687, 'Q4T': 0.7987} 51s
+19:47:42 METRIC mvtec_c2713 mvtec/screw {'V1': 0.4212, 'Q4T': 0.5818} 76s
+19:47:59 METRIC mvtec_c2713 mvtec/toothbrush {'V1': 0.5975, 'Q4T': 0.6341} 16s
+19:48:14 METRIC mvtec_c2713 mvtec/leather {'V1': 0.477, 'Q4T': 0.4779} 56s
+19:48:27 METRIC mvtec_c2713 mvtec/wood {'V1': 0.6663, 'Q4T': 0.6679} 27s
+19:48:27 STREAM visa_a2712 0 candle {'V1': 3925, 'Q4T': 7056}
+19:48:36 METRIC mvtec_c2713 mvtec/bottle {'V1': 0.8403, 'Q4T': 0.8536} 21s
+19:48:48 METRIC mvtec_c2713 mvtec/grid {'V1': 0.4849, 'Q4T': 0.5056} 20s
+19:49:00 METRIC mvtec_c2713 mvtec/tile {'V1': 0.7187, 'Q4T': 0.7165} 23s
+19:49:26 STREAM visa_a2712 1 capsules {'V1': 3925, 'Q4T': 11306}
+19:49:28 METRIC mvtec_c2713 mvtec/pill {'V1': 0.4809, 'Q4T': 0.5545} 25s
+19:49:29 METRIC mvtec_c2713 mvtec/zipper {'V1': 0.5352, 'Q4T': 0.6046} 38s
+19:49:40 METRIC mvtec_c2713 mvtec/metal_nut {'V1': 0.688, 'Q4T': 0.7406} 10s
+19:49:51 METRIC mvtec_c2713 mvtec/cable {'V1': 0.4895, 'Q4T': 0.5236} 20s
+19:49:54 METRIC mvtec_c2713 mvtec/capsule {'V1': 0.5241, 'Q4T': 0.5665} 13s
+19:49:58 METRIC mvtec_c2713 mvtec/transistor {'V1': 0.4373, 'Q4T': 0.5049} 3s
+19:49:59 METRIC mvtec_c2713 mvtec/carpet {'V1': 0.7033, 'Q4T': 0.75} 6s
+19:49:59 METRICS DONE mvtec_c2713 None
+19:50:09 STREAM visa_a2712 2 cashew {'V1': 3925, 'Q4T': 14834}
+19:50:38 STREAM visa_a2712 3 chewinggum {'V1': 3925, 'Q4T': 18386}
+19:51:18 STREAM visa_a2712 4 fryum {'V1': 3925, 'Q4T': 18672}
+19:52:59 STREAM visa_a2712 5 macaroni1 {'V1': 3925, 'Q4T': 18672}
+19:54:40 STREAM visa_a2712 6 macaroni2 {'V1': 3925, 'Q4T': 18672}
+19:56:24 STREAM visa_a2712 7 pcb1 {'V1': 3925, 'Q4T': 18672}
+19:58:05 STREAM visa_a2712 8 pcb2 {'V1': 3925, 'Q4T': 18672}
+19:59:48 STREAM visa_a2712 9 pcb3 {'V1': 3925, 'Q4T': 18672}
+20:01:42 STREAM visa_a2712 10 pcb4 {'V1': 3925, 'Q4T': 18672}
+20:02:16 STREAM visa_a2712 11 pipe_fryum {'V1': 3925, 'Q4T': 18672}
+20:02:43 GRIDS visa_a2712 candle V1 parity None
+20:03:04 GRIDS visa_a2712 capsules V1 parity None
+20:03:30 GRIDS visa_a2712 cashew V1 parity None
+20:03:47 GRIDS visa_a2712 chewinggum V1 parity None
+20:04:03 GRIDS visa_a2712 fryum V1 parity None
+20:04:23 GRIDS visa_a2712 macaroni1 V1 parity None
+20:04:40 GRIDS visa_a2712 macaroni2 V1 parity None
+20:04:55 GRIDS visa_a2712 pcb1 V1 parity None
+20:05:08 GRIDS visa_a2712 pcb2 V1 parity None
+20:05:19 GRIDS visa_a2712 pcb3 V1 parity None
+20:05:28 GRIDS visa_a2712 pcb4 V1 parity None
+20:05:36 GRIDS visa_a2712 pipe_fryum V1 parity None
+20:05:36 STREAM DONE visa_a2712 1152s parity all None
+20:06:59 METRIC visa_a2712 visa/capsules {'V1': 0.6043, 'Q4T': 0.6188} 78s
+20:07:21 METRIC visa_a2712 visa/candle {'V1': 0.4139, 'Q4T': 0.4388} 99s
+20:07:49 STREAM visa_a2713 0 candle {'V1': 3925, 'Q4T': 7056}
+20:08:01 METRIC visa_a2712 visa/cashew {'V1': 0.6572, 'Q4T': 0.6896} 60s
+20:08:25 METRIC visa_a2712 visa/chewinggum {'V1': 0.7046, 'Q4T': 0.7217} 62s
+20:08:38 STREAM visa_a2713 1 capsules {'V1': 3925, 'Q4T': 11306}
+20:08:54 METRIC visa_a2712 visa/fryum {'V1': 0.4302, 'Q4T': 0.4587} 51s
+20:09:17 STREAM visa_a2713 2 cashew {'V1': 3925, 'Q4T': 14834}
+20:09:31 METRIC visa_a2712 visa/macaroni1 {'V1': 0.1801, 'Q4T': 0.1755} 64s
+20:09:50 METRIC visa_a2712 visa/macaroni2 {'V1': 0.098, 'Q4T': 0.1206} 53s
+20:09:54 STREAM visa_a2713 3 chewinggum {'V1': 3925, 'Q4T': 18386}
+20:10:20 METRIC visa_a2712 visa/pcb1 {'V1': 0.7257, 'Q4T': 0.7975} 46s
+20:10:29 METRIC visa_a2712 visa/pcb2 {'V1': 0.3912, 'Q4T': 0.3896} 37s
+20:10:40 STREAM visa_a2713 4 fryum {'V1': 3925, 'Q4T': 18672}
+20:10:52 METRIC visa_a2712 visa/pcb3 {'V1': 0.3821, 'Q4T': 0.4087} 30s
+20:10:55 METRIC visa_a2712 visa/pcb4 {'V1': 0.3188, 'Q4T': 0.3733} 23s
+20:11:04 METRIC visa_a2712 visa/pipe_fryum {'V1': 0.5208, 'Q4T': 0.5196} 10s
+20:11:04 METRICS DONE visa_a2712 None
+20:12:30 STREAM visa_a2713 5 macaroni1 {'V1': 3925, 'Q4T': 18672}
+20:14:11 STREAM visa_a2713 6 macaroni2 {'V1': 3925, 'Q4T': 18672}
+20:15:54 STREAM visa_a2713 7 pcb1 {'V1': 3925, 'Q4T': 18672}
+20:17:35 STREAM visa_a2713 8 pcb2 {'V1': 3925, 'Q4T': 18672}
+20:19:17 STREAM visa_a2713 9 pcb3 {'V1': 3925, 'Q4T': 18672}
+20:20:58 STREAM visa_a2713 10 pcb4 {'V1': 3925, 'Q4T': 18672}
+20:21:32 STREAM visa_a2713 11 pipe_fryum {'V1': 3925, 'Q4T': 18672}
+20:22:04 GRIDS visa_a2713 candle V1 parity None
+20:22:28 GRIDS visa_a2713 capsules V1 parity None
+20:22:46 GRIDS visa_a2713 cashew V1 parity None
+20:23:04 GRIDS visa_a2713 chewinggum V1 parity None
+20:23:19 GRIDS visa_a2713 fryum V1 parity None
+20:23:38 GRIDS visa_a2713 macaroni1 V1 parity None
+20:23:55 GRIDS visa_a2713 macaroni2 V1 parity None
+20:24:11 GRIDS visa_a2713 pcb1 V1 parity None
+20:24:23 GRIDS visa_a2713 pcb2 V1 parity None
+20:24:34 GRIDS visa_a2713 pcb3 V1 parity None
+20:24:44 GRIDS visa_a2713 pcb4 V1 parity None
+20:24:49 GRIDS visa_a2713 pipe_fryum V1 parity None
+20:24:49 STREAM DONE visa_a2713 1150s parity all None
+20:24:53 STREAM visa_b2711 0 pipe_fryum {'V1': 3528, 'Q4T': 3528}
+20:24:54 STREAM visa_b2711 1 pcb4 {'V1': 3925, 'Q4T': 10616}
+20:24:55 STREAM visa_b2711 2 pcb3 {'V1': 3925, 'Q4T': 17712}
+20:25:04 STREAM visa_b2711 3 pcb2 {'V1': 3925, 'Q4T': 18672}
+20:25:14 STREAM visa_b2711 4 pcb1 {'V1': 3925, 'Q4T': 18672}
+20:25:23 STREAM visa_b2711 5 macaroni2 {'V1': 3925, 'Q4T': 18672}
+20:25:32 STREAM visa_b2711 6 macaroni1 {'V1': 3925, 'Q4T': 18672}
+20:25:40 STREAM visa_b2711 7 fryum {'V1': 3925, 'Q4T': 18672}
+20:25:48 STREAM visa_b2711 8 chewinggum {'V1': 3925, 'Q4T': 18672}
+20:25:55 STREAM visa_b2711 9 cashew {'V1': 3925, 'Q4T': 18672}
+20:26:03 STREAM visa_b2711 10 capsules {'V1': 3925, 'Q4T': 18672}
+20:26:13 STREAM visa_b2711 11 candle {'V1': 3925, 'Q4T': 18672}
+20:26:20 METRIC visa_a2713 visa/capsules {'V1': 0.6125, 'Q4T': 0.6104} 86s
+20:26:39 GRIDS visa_b2711 pipe_fryum V1 parity True
+20:26:44 METRIC visa_a2713 visa/candle {'V1': 0.3953, 'Q4T': 0.4418} 110s
+20:27:12 GRIDS visa_b2711 pcb4 V1 parity True
+20:27:29 METRIC visa_a2713 visa/cashew {'V1': 0.6284, 'Q4T': 0.68} 68s
+20:27:43 GRIDS visa_b2711 pcb3 V1 parity True
+20:27:49 METRIC visa_a2713 visa/chewinggum {'V1': 0.6689, 'Q4T': 0.7037} 62s
+20:28:12 GRIDS visa_b2711 pcb2 V1 parity True
+20:28:27 METRIC visa_a2713 visa/fryum {'V1': 0.4162, 'Q4T': 0.4564} 56s
+20:28:40 GRIDS visa_b2711 pcb1 V1 parity True
+20:28:52 METRIC visa_a2713 visa/macaroni1 {'V1': 0.1718, 'Q4T': 0.1942} 60s
+20:29:05 GRIDS visa_b2711 macaroni2 V1 parity True
+20:29:25 METRIC visa_a2713 visa/macaroni2 {'V1': 0.1117, 'Q4T': 0.1324} 55s
+20:29:28 GRIDS visa_b2711 macaroni1 V1 parity True
+20:29:38 METRIC visa_a2713 visa/pcb1 {'V1': 0.7575, 'Q4T': 0.8065} 44s
+20:29:45 GRIDS visa_b2711 fryum V1 parity True
+20:29:59 GRIDS visa_b2711 chewinggum V1 parity True
+20:30:06 METRIC visa_a2713 visa/pcb2 {'V1': 0.3589, 'Q4T': 0.3977} 39s
+20:30:09 METRIC visa_a2713 visa/pcb3 {'V1': 0.3965, 'Q4T': 0.4073} 28s
+20:30:11 GRIDS visa_b2711 cashew V1 parity True
+20:30:22 GRIDS visa_b2711 capsules V1 parity True
+20:30:24 METRIC visa_a2713 visa/pipe_fryum {'V1': 0.5147, 'Q4T': 0.5227} 13s
+20:30:28 METRIC visa_a2713 visa/pcb4 {'V1': 0.3604, 'Q4T': 0.3783} 20s
+20:30:28 METRICS DONE visa_a2713 None
+20:30:30 GRIDS visa_b2711 candle V1 parity True
+20:30:31 STREAM DONE visa_b2711 338s parity all True
+20:30:34 STREAM visa_b2712 0 pipe_fryum {'V1': 3528, 'Q4T': 3528}
+20:30:35 STREAM visa_b2712 1 pcb4 {'V1': 3925, 'Q4T': 10616}
+20:30:36 STREAM visa_b2712 2 pcb3 {'V1': 3925, 'Q4T': 17712}
+20:30:45 STREAM visa_b2712 3 pcb2 {'V1': 3925, 'Q4T': 18672}
+20:30:54 STREAM visa_b2712 4 pcb1 {'V1': 3925, 'Q4T': 18672}
+20:31:04 STREAM visa_b2712 5 macaroni2 {'V1': 3925, 'Q4T': 18672}
+20:31:12 STREAM visa_b2712 6 macaroni1 {'V1': 3925, 'Q4T': 18672}
+20:31:20 STREAM visa_b2712 7 fryum {'V1': 3925, 'Q4T': 18672}
+20:31:28 STREAM visa_b2712 8 chewinggum {'V1': 3925, 'Q4T': 18672}
+20:31:37 STREAM visa_b2712 9 cashew {'V1': 3925, 'Q4T': 18672}
+20:31:45 STREAM visa_b2712 10 capsules {'V1': 3925, 'Q4T': 18672}
+20:31:55 STREAM visa_b2712 11 candle {'V1': 3925, 'Q4T': 18672}
+20:31:59 METRIC visa_b2711 visa/pipe_fryum {'V1': 0.5201, 'Q4T': 0.5243} 83s
+20:32:15 METRIC visa_b2711 visa/pcb4 {'V1': 0.3231, 'Q4T': 0.3556} 100s
+20:32:23 GRIDS visa_b2712 pipe_fryum V1 parity None
+20:33:02 GRIDS visa_b2712 pcb4 V1 parity None
+20:33:28 METRIC visa_b2711 visa/pcb3 {'V1': 0.3767, 'Q4T': 0.3901} 88s
+20:33:32 METRIC visa_b2711 visa/pcb2 {'V1': 0.3732, 'Q4T': 0.395} 74s
+20:33:38 GRIDS visa_b2712 pcb3 V1 parity None
+20:34:10 GRIDS visa_b2712 pcb2 V1 parity None
+20:34:29 METRIC visa_b2711 visa/macaroni2 {'V1': 0.1078, 'Q4T': 0.1297} 55s
+20:34:33 METRIC visa_b2711 visa/pcb1 {'V1': 0.7342, 'Q4T': 0.804} 63s
+20:34:41 GRIDS visa_b2712 pcb1 V1 parity None
+20:35:05 METRIC visa_b2711 visa/fryum {'V1': 0.4387, 'Q4T': 0.4635} 30s
+20:35:11 GRIDS visa_b2712 macaroni2 V1 parity None
+20:35:21 METRIC visa_b2711 visa/macaroni1 {'V1': 0.158, 'Q4T': 0.1734} 50s
+20:35:30 METRIC visa_b2711 visa/chewinggum {'V1': 0.6936, 'Q4T': 0.6991} 23s
+20:35:37 GRIDS visa_b2712 macaroni1 V1 parity None
+20:35:41 METRIC visa_b2711 visa/cashew {'V1': 0.635, 'Q4T': 0.6971} 18s
+20:35:43 METRIC visa_b2711 visa/capsules {'V1': 0.6066, 'Q4T': 0.6172} 11s
+20:35:49 METRIC visa_b2711 visa/candle {'V1': 0.4203, 'Q4T': 0.4355} 5s
+20:35:49 METRICS DONE visa_b2711 True
+20:35:52 GRIDS visa_b2712 fryum V1 parity None
+20:36:02 GRIDS visa_b2712 chewinggum V1 parity None
+20:36:11 GRIDS visa_b2712 cashew V1 parity None
+20:36:18 GRIDS visa_b2712 capsules V1 parity None
+20:36:25 GRIDS visa_b2712 candle V1 parity None
+20:36:25 STREAM DONE visa_b2712 352s parity all None
+20:36:28 STREAM visa_b2713 0 pipe_fryum {'V1': 3528, 'Q4T': 3528}
+20:36:29 STREAM visa_b2713 1 pcb4 {'V1': 3925, 'Q4T': 10616}
+20:36:30 STREAM visa_b2713 2 pcb3 {'V1': 3925, 'Q4T': 17712}
+20:36:39 STREAM visa_b2713 3 pcb2 {'V1': 3925, 'Q4T': 18672}
+20:36:49 STREAM visa_b2713 4 pcb1 {'V1': 3925, 'Q4T': 18672}
+20:36:58 STREAM visa_b2713 5 macaroni2 {'V1': 3925, 'Q4T': 18672}
+20:37:07 STREAM visa_b2713 6 macaroni1 {'V1': 3925, 'Q4T': 18672}
+20:37:15 STREAM visa_b2713 7 fryum {'V1': 3925, 'Q4T': 18672}
+20:37:24 STREAM visa_b2713 8 chewinggum {'V1': 3925, 'Q4T': 18672}
+20:37:32 STREAM visa_b2713 9 cashew {'V1': 3925, 'Q4T': 18672}
+20:37:42 STREAM visa_b2713 10 capsules {'V1': 3925, 'Q4T': 18672}
+20:37:52 STREAM visa_b2713 11 candle {'V1': 3925, 'Q4T': 18672}
+20:37:55 METRIC visa_b2712 visa/pipe_fryum {'V1': 0.5277, 'Q4T': 0.5193} 85s
+20:38:11 METRIC visa_b2712 visa/pcb4 {'V1': 0.2946, 'Q4T': 0.3586} 101s
+20:38:23 GRIDS visa_b2713 pipe_fryum V1 parity None
+20:39:02 GRIDS visa_b2713 pcb4 V1 parity None
+20:39:19 METRIC visa_b2712 visa/pcb3 {'V1': 0.3726, 'Q4T': 0.3868} 82s
+20:39:30 METRIC visa_b2712 visa/pcb2 {'V1': 0.391, 'Q4T': 0.3982} 77s
+20:39:37 GRIDS visa_b2713 pcb3 V1 parity None
+20:40:10 GRIDS visa_b2713 pcb2 V1 parity None
+20:40:21 METRIC visa_b2712 visa/pcb1 {'V1': 0.7615, 'Q4T': 0.7908} 60s
+20:40:30 METRIC visa_b2712 visa/macaroni2 {'V1': 0.1101, 'Q4T': 0.1192} 57s
+20:40:40 GRIDS visa_b2713 pcb1 V1 parity None
+20:41:01 METRIC visa_b2712 visa/fryum {'V1': 0.4017, 'Q4T': 0.455} 29s
+20:41:08 GRIDS visa_b2713 macaroni2 V1 parity None
+20:41:08 METRIC visa_b2712 visa/macaroni1 {'V1': 0.1756, 'Q4T': 0.1448} 45s
+20:41:25 METRIC visa_b2712 visa/chewinggum {'V1': 0.6798, 'Q4T': 0.7105} 22s
+20:41:26 METRIC visa_b2712 visa/cashew {'V1': 0.6323, 'Q4T': 0.6901} 16s
+20:41:33 GRIDS visa_b2713 macaroni1 V1 parity None
+20:41:36 METRIC visa_b2712 visa/candle {'V1': 0.4313, 'Q4T': 0.4386} 7s
+20:41:37 METRIC visa_b2712 visa/capsules {'V1': 0.6186, 'Q4T': 0.6007} 11s
+20:41:37 METRICS DONE visa_b2712 None
+20:41:47 GRIDS visa_b2713 fryum V1 parity None
+20:41:56 GRIDS visa_b2713 chewinggum V1 parity None
+20:42:05 GRIDS visa_b2713 cashew V1 parity None
+20:42:12 GRIDS visa_b2713 capsules V1 parity None
+20:42:18 GRIDS visa_b2713 candle V1 parity None
+20:42:18 STREAM DONE visa_b2713 350s parity all None
+20:42:22 STREAM visa_c2711 0 capsules {'V1': 3925, 'Q4T': 4250}
+20:42:23 STREAM visa_c2711 1 macaroni2 {'V1': 3925, 'Q4T': 11306}
+20:42:24 STREAM visa_c2711 2 fryum {'V1': 3925, 'Q4T': 14834}
+20:42:26 STREAM visa_c2711 3 pipe_fryum {'V1': 3925, 'Q4T': 18362}
+20:42:34 STREAM visa_c2711 4 chewinggum {'V1': 3925, 'Q4T': 18672}
+20:42:43 STREAM visa_c2711 5 pcb4 {'V1': 3925, 'Q4T': 18672}
+20:42:53 STREAM visa_c2711 6 candle {'V1': 3925, 'Q4T': 18672}
+20:43:02 STREAM visa_c2711 7 macaroni1 {'V1': 3925, 'Q4T': 18672}
+20:43:11 STREAM visa_c2711 8 pcb2 {'V1': 3925, 'Q4T': 18672}
+20:43:20 STREAM visa_c2711 9 pcb3 {'V1': 3925, 'Q4T': 18672}
+20:43:29 STREAM visa_c2711 10 pcb1 {'V1': 3925, 'Q4T': 18672}
+20:43:37 STREAM visa_c2711 11 cashew {'V1': 3925, 'Q4T': 18672}
+20:43:45 METRIC visa_b2713 visa/pipe_fryum {'V1': 0.5124, 'Q4T': 0.5225} 81s
+20:43:59 METRIC visa_b2713 visa/pcb4 {'V1': 0.2868, 'Q4T': 0.3587} 96s
+20:44:06 GRIDS visa_c2711 capsules V1 parity True
+20:44:41 GRIDS visa_c2711 macaroni2 V1 parity True
+20:45:06 GRIDS visa_c2711 fryum V1 parity True
+20:45:09 METRIC visa_b2713 visa/pcb3 {'V1': 0.3812, 'Q4T': 0.3934} 82s
+20:45:17 METRIC visa_b2713 visa/pcb2 {'V1': 0.3674, 'Q4T': 0.3905} 75s
+20:45:29 GRIDS visa_c2711 pipe_fryum V1 parity True
+20:45:51 GRIDS visa_c2711 chewinggum V1 parity True
+20:46:14 METRIC visa_b2713 visa/pcb1 {'V1': 0.7391, 'Q4T': 0.8124} 63s
+20:46:17 METRIC visa_b2713 visa/macaroni2 {'V1': 0.0945, 'Q4T': 0.1315} 57s
+20:46:19 GRIDS visa_c2711 pcb4 V1 parity True
+20:46:43 GRIDS visa_c2711 candle V1 parity True
+20:46:48 METRIC visa_b2713 visa/fryum {'V1': 0.4065, 'Q4T': 0.4534} 29s
+20:47:05 METRIC visa_b2713 visa/macaroni1 {'V1': 0.1417, 'Q4T': 0.1779} 49s
+20:47:05 GRIDS visa_c2711 macaroni1 V1 parity True
+20:47:13 METRIC visa_b2713 visa/chewinggum {'V1': 0.6825, 'Q4T': 0.6968} 23s
+20:47:24 METRIC visa_b2713 visa/cashew {'V1': 0.6496, 'Q4T': 0.674} 17s
+20:47:25 GRIDS visa_c2711 pcb2 V1 parity True
+20:47:27 METRIC visa_b2713 visa/capsules {'V1': 0.5949, 'Q4T': 0.616} 12s
+20:47:32 METRIC visa_b2713 visa/candle {'V1': 0.4347, 'Q4T': 0.4455} 6s
+20:47:32 METRICS DONE visa_b2713 None
+20:47:38 GRIDS visa_c2711 pcb3 V1 parity True
+20:47:48 GRIDS visa_c2711 pcb1 V1 parity True
+20:47:54 GRIDS visa_c2711 cashew V1 parity True
+20:47:54 STREAM DONE visa_c2711 332s parity all True
+20:47:58 STREAM visa_c2712 0 capsules {'V1': 3925, 'Q4T': 4250}
+20:47:59 STREAM visa_c2712 1 macaroni2 {'V1': 3925, 'Q4T': 11306}
+20:48:00 STREAM visa_c2712 2 fryum {'V1': 3925, 'Q4T': 14834}
+20:48:03 STREAM visa_c2712 3 pipe_fryum {'V1': 3925, 'Q4T': 18362}
+20:48:11 STREAM visa_c2712 4 chewinggum {'V1': 3925, 'Q4T': 18672}
+20:48:20 STREAM visa_c2712 5 pcb4 {'V1': 3925, 'Q4T': 18672}
+20:48:30 STREAM visa_c2712 6 candle {'V1': 3925, 'Q4T': 18672}
+20:48:40 STREAM visa_c2712 7 macaroni1 {'V1': 3925, 'Q4T': 18672}
+20:48:50 STREAM visa_c2712 8 pcb2 {'V1': 3925, 'Q4T': 18672}
+20:49:00 STREAM visa_c2712 9 pcb3 {'V1': 3925, 'Q4T': 18672}
+20:49:10 STREAM visa_c2712 10 pcb1 {'V1': 3925, 'Q4T': 18672}
+20:49:19 STREAM visa_c2712 11 cashew {'V1': 3925, 'Q4T': 18672}
+20:49:29 METRIC visa_c2711 visa/capsules {'V1': 0.5922, 'Q4T': 0.6154} 91s
+20:49:44 METRIC visa_c2711 visa/macaroni2 {'V1': 0.0961, 'Q4T': 0.1167} 105s
+20:49:52 GRIDS visa_c2712 capsules V1 parity None
+20:50:29 GRIDS visa_c2712 macaroni2 V1 parity None
+20:50:35 METRIC visa_c2711 visa/fryum {'V1': 0.4091, 'Q4T': 0.4617} 64s
+20:50:41 METRIC visa_c2711 visa/pipe_fryum {'V1': 0.5039, 'Q4T': 0.5276} 55s
+20:50:55 GRIDS visa_c2712 fryum V1 parity None
+20:51:20 GRIDS visa_c2712 pipe_fryum V1 parity None
+20:51:26 METRIC visa_c2711 visa/chewinggum {'V1': 0.6991, 'Q4T': 0.6939} 49s
+20:51:39 METRIC visa_c2711 visa/pcb4 {'V1': 0.3056, 'Q4T': 0.3487} 56s
+20:51:42 GRIDS visa_c2712 chewinggum V1 parity None
+20:52:10 GRIDS visa_c2712 pcb4 V1 parity None
+20:52:17 METRIC visa_c2711 visa/candle {'V1': 0.4259, 'Q4T': 0.4294} 48s
+20:52:20 METRIC visa_c2711 visa/macaroni1 {'V1': 0.142, 'Q4T': 0.1795} 38s
+20:52:35 GRIDS visa_c2712 candle V1 parity None
+20:52:47 METRIC visa_c2711 visa/pcb3 {'V1': 0.3895, 'Q4T': 0.4077} 25s
+20:52:51 METRIC visa_c2711 visa/pcb2 {'V1': 0.375, 'Q4T': 0.3847} 32s
+20:52:58 GRIDS visa_c2712 macaroni1 V1 parity None
+20:52:58 METRIC visa_c2711 visa/cashew {'V1': 0.6729, 'Q4T': 0.697} 6s
+20:53:02 METRIC visa_c2711 visa/pcb1 {'V1': 0.7589, 'Q4T': 0.7942} 13s
+20:53:03 METRICS DONE visa_c2711 True
+20:53:13 GRIDS visa_c2712 pcb2 V1 parity None
+20:53:24 GRIDS visa_c2712 pcb3 V1 parity None
+20:53:33 GRIDS visa_c2712 pcb1 V1 parity None
+20:53:39 GRIDS visa_c2712 cashew V1 parity None
+20:53:39 STREAM DONE visa_c2712 342s parity all None
+20:53:43 STREAM visa_c2713 0 capsules {'V1': 3925, 'Q4T': 4250}
+20:53:44 STREAM visa_c2713 1 macaroni2 {'V1': 3925, 'Q4T': 11306}
+20:53:45 STREAM visa_c2713 2 fryum {'V1': 3925, 'Q4T': 14834}
+20:53:46 STREAM visa_c2713 3 pipe_fryum {'V1': 3925, 'Q4T': 18362}
+20:53:55 STREAM visa_c2713 4 chewinggum {'V1': 3925, 'Q4T': 18672}
+20:54:05 STREAM visa_c2713 5 pcb4 {'V1': 3925, 'Q4T': 18672}
+20:54:15 STREAM visa_c2713 6 candle {'V1': 3925, 'Q4T': 18672}
+20:54:24 STREAM visa_c2713 7 macaroni1 {'V1': 3925, 'Q4T': 18672}
+20:54:33 STREAM visa_c2713 8 pcb2 {'V1': 3925, 'Q4T': 18672}
+20:54:43 STREAM visa_c2713 9 pcb3 {'V1': 3925, 'Q4T': 18672}
+20:54:52 STREAM visa_c2713 10 pcb1 {'V1': 3925, 'Q4T': 18672}
+20:55:01 STREAM visa_c2713 11 cashew {'V1': 3925, 'Q4T': 18672}
+20:55:09 METRIC visa_c2712 visa/capsules {'V1': 0.6081, 'Q4T': 0.6024} 85s
+20:55:22 METRIC visa_c2712 visa/macaroni2 {'V1': 0.0941, 'Q4T': 0.1328} 98s
+20:55:32 GRIDS visa_c2713 capsules V1 parity None
+20:56:08 GRIDS visa_c2713 macaroni2 V1 parity None
+20:56:09 METRIC visa_c2712 visa/fryum {'V1': 0.4133, 'Q4T': 0.4436} 58s
+20:56:15 METRIC visa_c2712 visa/pipe_fryum {'V1': 0.4906, 'Q4T': 0.522} 51s
+20:56:33 GRIDS visa_c2713 fryum V1 parity None
+20:56:56 METRIC visa_c2712 visa/chewinggum {'V1': 0.6941, 'Q4T': 0.7188} 44s
+20:56:58 GRIDS visa_c2713 pipe_fryum V1 parity None
+20:57:12 METRIC visa_c2712 visa/pcb4 {'V1': 0.2894, 'Q4T': 0.3686} 55s
+20:57:21 GRIDS visa_c2713 chewinggum V1 parity None
+20:57:45 METRIC visa_c2712 visa/candle {'V1': 0.417, 'Q4T': 0.4348} 47s
+20:57:49 GRIDS visa_c2713 pcb4 V1 parity None
+20:57:54 METRIC visa_c2712 visa/macaroni1 {'V1': 0.1839, 'Q4T': 0.1705} 39s
+20:58:13 GRIDS visa_c2713 candle V1 parity None
+20:58:19 METRIC visa_c2712 visa/pcb2 {'V1': 0.4045, 'Q4T': 0.3963} 32s
+20:58:19 METRIC visa_c2712 visa/pcb3 {'V1': 0.3899, 'Q4T': 0.3976} 23s
+20:58:27 METRIC visa_c2712 visa/cashew {'V1': 0.6623, 'Q4T': 0.6915} 6s
+20:58:34 METRIC visa_c2712 visa/pcb1 {'V1': 0.7764, 'Q4T': 0.7875} 14s
+20:58:34 METRICS DONE visa_c2712 None
+20:58:35 GRIDS visa_c2713 macaroni1 V1 parity None
+20:58:49 GRIDS visa_c2713 pcb2 V1 parity None
+20:59:00 GRIDS visa_c2713 pcb3 V1 parity None
+20:59:09 GRIDS visa_c2713 pcb1 V1 parity None
+20:59:15 GRIDS visa_c2713 cashew V1 parity None
+20:59:15 STREAM DONE visa_c2713 333s parity all None
+21:00:35 METRIC visa_c2713 visa/capsules {'V1': 0.6335, 'Q4T': 0.6143} 76s
+21:00:45 METRIC visa_c2713 visa/macaroni2 {'V1': 0.1112, 'Q4T': 0.1292} 85s
+21:01:32 METRIC visa_c2713 visa/fryum {'V1': 0.412, 'Q4T': 0.4625} 55s
+21:01:32 METRIC visa_c2713 visa/pipe_fryum {'V1': 0.4958, 'Q4T': 0.5327} 45s
+21:02:19 METRIC visa_c2713 visa/chewinggum {'V1': 0.6781, 'Q4T': 0.7117} 46s
+21:02:27 METRIC visa_c2713 visa/pcb4 {'V1': 0.3055, 'Q4T': 0.3645} 53s
+21:03:06 METRIC visa_c2713 visa/candle {'V1': 0.4476, 'Q4T': 0.4492} 45s
+21:03:07 METRIC visa_c2713 visa/macaroni1 {'V1': 0.1701, 'Q4T': 0.1841} 38s
+21:03:30 METRIC visa_c2713 visa/pcb3 {'V1': 0.3837, 'Q4T': 0.4145} 21s
+21:03:36 METRIC visa_c2713 visa/pcb2 {'V1': 0.368, 'Q4T': 0.3947} 28s
+21:03:44 METRIC visa_c2713 visa/cashew {'V1': 0.6577, 'Q4T': 0.6823} 5s
+21:03:45 METRIC visa_c2713 visa/pcb1 {'V1': 0.7791, 'Q4T': 0.7982} 12s
+21:03:45 METRICS DONE visa_c2713 None
+21:03:47 ROBUST COMPRESSION_BENCHMARK_SUPPORTED {'mean_dAP_gt_0_all': True, 'ge2_datasets_7of9': True, 'mean_dAUROC_ge_-0.005_all': True, 'mean_dFM_le_0.005_all': True} {'mvtec': (0.0366, 9), 'visa': (0.0233, 9), 'mpdd': (0.0069, 7)}
+ROBUST_CHAIN_END

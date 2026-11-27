@@ -1,0 +1,407 @@
+{
+ "tag": "visa_a2711",
+ "dataset": "visa",
+ "order": [
+  "visa/candle",
+  "visa/capsules",
+  "visa/cashew",
+  "visa/chewinggum",
+  "visa/fryum",
+  "visa/macaroni1",
+  "visa/macaroni2",
+  "visa/pcb1",
+  "visa/pcb2",
+  "visa/pcb3",
+  "visa/pcb4",
+  "visa/pipe_fryum"
+ ],
+ "package_sha256": {
+  "config.py": "83f84933a6356f46527b5a6bfc75b8194eccecb9004e82058ddb113c00fb4fe6",
+  "model.py": "69c6b9fd94a6ab65a7200301ea25bf8781d308d16f836605afe015abeea5bf3b",
+  "storage.py": "c7369a3c1952283fa91abbd22ac6d83631e8d88d2df0b9e5a128a04d020e22b7",
+  "ops.py": "020875417fc19cb71c796cda45bfcf2e13f34759b99faad1843fb187b740ffa8"
+ },
+ "research_sha256": {
+  "exps/rigel_q8/d1.py": "b044b4357f97d4eec23d7f5382ce8f0cc3cf8f5bbd46ff7da664a410a4d41102",
+  "exps/rigel_q8/q8.py": "3d862fa284ba50675f6eb6c2f78ae4fc91981b7c1e4abcfe535e6d7fce68e5c6",
+  "exps/rigel_cc01/cc.py": "314d5faefaf9e20c0c1c4705ebd8f318cdccb0b254e3cb8d7e7fe5adb44b4c3f"
+ },
+ "per_task": [
+  {
+   "task": "visa/candle",
+   "Q4T_fit_equal_cached": true,
+   "V1_fit_equal_cached": true,
+   "state_equal_research": {
+    "codes": true,
+    "scale": true,
+    "keys_fp32": true,
+    "S_tri": true,
+    "n": true,
+    "W": true
+   },
+   "n_keys": 7056,
+   "bytes_logical": 3904808,
+   "v1_n_keys": 3925
+  },
+  {
+   "task": "visa/capsules",
+   "Q4T_fit_equal_cached": true,
+   "V1_fit_equal_cached": true,
+   "state_equal_research": {
+    "codes": true,
+    "scale": true,
+    "keys_fp32": true,
+    "S_tri": true,
+    "n": true,
+    "W": true
+   },
+   "n_keys": 11306,
+   "bytes_logical": 5545308,
+   "v1_n_keys": 3925
+  },
+  {
+   "task": "visa/cashew",
+   "Q4T_fit_equal_cached": true,
+   "V1_fit_equal_cached": true,
+   "state_equal_research": {
+    "codes": true,
+    "scale": true,
+    "keys_fp32": true,
+    "S_tri": true,
+    "n": true,
+    "W": true
+   },
+   "n_keys": 14834,
+   "bytes_logical": 6907116,
+   "v1_n_keys": 3925
+  },
+  {
+   "task": "visa/chewinggum",
+   "Q4T_fit_equal_cached": true,
+   "V1_fit_equal_cached": true,
+   "state_equal_research": {
+    "codes": true,
+    "scale": true,
+    "keys_fp32": true,
+    "S_tri": true,
+    "n": true,
+    "W": true
+   },
+   "n_keys": 18386,
+   "bytes_logical": 8278188,
+   "v1_n_keys": 3925
+  },
+  {
+   "task": "visa/fryum",
+   "Q4T_fit_equal_cached": true,
+   "V1_fit_equal_cached": true,
+   "state_equal_research": {
+    "codes": true,
+    "scale": true,
+    "keys_fp32": true,
+    "S_tri": true,
+    "n": true,
+    "W": true
+   },
+   "n_keys": 18672,
+   "bytes_logical": 8388584,
+   "v1_n_keys": 3925
+  },
+  {
+   "task": "visa/macaroni1",
+   "Q4T_fit_equal_cached": true,
+   "V1_fit_equal_cached": true,
+   "state_equal_research": {
+    "codes": true,
+    "scale": true,
+    "keys_fp32": true,
+    "S_tri": true,
+    "n": true,
+    "W": true
+   },
+   "n_keys": 18672,
+   "bytes_logical": 8388584,
+   "v1_n_keys": 3925
+  },
+  {
+   "task": "visa/macaroni2",
+   "Q4T_fit_equal_cached": true,
+   "V1_fit_equal_cached": true,
+   "state_equal_research": {
+    "codes": true,
+    "scale": true,
+    "keys_fp32": true,
+    "S_tri": true,
+    "n": true,
+    "W": true
+   },
+   "n_keys": 18672,
+   "bytes_logical": 8388584,
+   "v1_n_keys": 3925
+  },
+  {
+   "task": "visa/pcb1",
+   "Q4T_fit_equal_cached": true,
+   "V1_fit_equal_cached": true,
+   "state_equal_research": {
+    "codes": true,
+    "scale": true,
+    "keys_fp32": true,
+    "S_tri": true,
+    "n": true,
+    "W": true
+   },
+   "n_keys": 18672,
+   "bytes_logical": 8388584,
+   "v1_n_keys": 3925
+  },
+  {
+   "task": "visa/pcb2",
+   "Q4T_fit_equal_cached": true,
+   "V1_fit_equal_cached": true,
+   "state_equal_research": {
+    "codes": true,
+    "scale": true,
+    "keys_fp32": true,
+    "S_tri": true,
+    "n": true,
+    "W": true
+   },
+   "n_keys": 18672,
+   "bytes_logical": 8388584,
+   "v1_n_keys": 3925
+  },
+  {
+   "task": "visa/pcb3",
+   "Q4T_fit_equal_cached": true,
+   "V1_fit_equal_cached": true,
+   "state_equal_research": {
+    "codes": true,
+    "scale": true,
+    "keys_fp32": true,
+    "S_tri": true,
+    "n": true,
+    "W": true
+   },
+   "n_keys": 18672,
+   "bytes_logical": 8388584,
+   "v1_n_keys": 3925
+  },
+  {
+   "task": "visa/pcb4",
+   "Q4T_fit_equal_cached": true,
+   "V1_fit_equal_cached": true,
+   "state_equal_research": {
+    "codes": true,
+    "scale": true,
+    "keys_fp32": true,
+    "S_tri": true,
+    "n": true,
+    "W": true
+   },
+   "n_keys": 18672,
+   "bytes_logical": 8388584,
+   "v1_n_keys": 3925
+  },
+  {
+   "task": "visa/pipe_fryum",
+   "Q4T_fit_equal_cached": true,
+   "V1_fit_equal_cached": true,
+   "state_equal_research": {
+    "codes": true,
+    "scale": true,
+    "keys_fp32": true,
+    "S_tri": true,
+    "n": true,
+    "W": true
+   },
+   "n_keys": 18672,
+   "bytes_logical": 8388584,
+   "v1_n_keys": 3925
+  }
+ ],
+ "fit_equal_cached_all": true,
+ "state_equal_research_all": true,
+ "resume": null,
+ "grid_equal": {
+  "Q4T": {
+   "all": true,
+   "n": 12
+  },
+  "V1": {
+   "all": true,
+   "n": 12
+  }
+ },
+ "metric_cells_equal_locked": {
+  "Q4T": true,
+  "V1": true
+ },
+ "summary": {
+  "Q4T": {
+   "pixel_ap": 0.4748539999127388,
+   "image_auroc": 0.970657783278328,
+   "forgetting_ap": 0.0052703185514970255,
+   "acquisition_ap": 0.46797894189755124,
+   "prequential_ap": 0.49738923655289796,
+   "per_task_final": {
+    "visa/candle": {
+     "ap": 0.42037472128868103,
+     "i_auroc": 0.9702
+    },
+    "visa/capsules": {
+     "ap": 0.6112014651298523,
+     "i_auroc": 0.9641666666666666
+    },
+    "visa/cashew": {
+     "ap": 0.7034150958061218,
+     "i_auroc": 0.9828
+    },
+    "visa/chewinggum": {
+     "ap": 0.7003557085990906,
+     "i_auroc": 0.9874
+    },
+    "visa/fryum": {
+     "ap": 0.451774001121521,
+     "i_auroc": 0.9676
+    },
+    "visa/macaroni1": {
+     "ap": 0.1792590171098709,
+     "i_auroc": 0.9400999999999999
+    },
+    "visa/macaroni2": {
+     "ap": 0.1256420761346817,
+     "i_auroc": 0.9071
+    },
+    "visa/pcb1": {
+     "ap": 0.8057113289833069,
+     "i_auroc": 0.9944
+    },
+    "visa/pcb2": {
+     "ap": 0.40299487113952637,
+     "i_auroc": 0.9678
+    },
+    "visa/pcb3": {
+     "ap": 0.39514461159706116,
+     "i_auroc": 0.9812871287128713
+    },
+    "visa/pcb4": {
+     "ap": 0.37312936782836914,
+     "i_auroc": 0.996039603960396
+    },
+    "visa/pipe_fryum": {
+     "ap": 0.5292457342147827,
+     "i_auroc": 0.989
+    }
+   }
+  },
+  "V1": {
+   "pixel_ap": 0.4602507644643386,
+   "image_auroc": 0.9349114961496149,
+   "forgetting_ap": 0.011919595978476784,
+   "acquisition_ap": 0.4637832759569089,
+   "prequential_ap": 0.4934113950188396,
+   "per_task_final": {
+    "visa/candle": {
+     "ap": 0.4220735430717468,
+     "i_auroc": 0.9055000000000001
+    },
+    "visa/capsules": {
+     "ap": 0.6055200695991516,
+     "i_auroc": 0.9366666666666666
+    },
+    "visa/cashew": {
+     "ap": 0.651757001876831,
+     "i_auroc": 0.9380000000000001
+    },
+    "visa/chewinggum": {
+     "ap": 0.6707891225814819,
+     "i_auroc": 0.9942
+    },
+    "visa/fryum": {
+     "ap": 0.41054555773735046,
+     "i_auroc": 0.9048
+    },
+    "visa/macaroni1": {
+     "ap": 0.1819593459367752,
+     "i_auroc": 0.8671
+    },
+    "visa/macaroni2": {
+     "ap": 0.0938115194439888,
+     "i_auroc": 0.8386
+    },
+    "visa/pcb1": {
+     "ap": 0.7842364311218262,
+     "i_auroc": 0.9547000000000001
+    },
+    "visa/pcb2": {
+     "ap": 0.41654568910598755,
+     "i_auroc": 0.9425
+    },
+    "visa/pcb3": {
+     "ap": 0.3908873200416565,
+     "i_auroc": 0.9711881188118812
+    },
+    "visa/pcb4": {
+     "ap": 0.37522488832473755,
+     "i_auroc": 0.9916831683168317
+    },
+    "visa/pipe_fryum": {
+     "ap": 0.5196586847305298,
+     "i_auroc": 0.974
+    }
+   }
+  }
+ },
+ "reference_owner_4dp": {
+  "pixel_ap": 0.4749,
+  "image_auroc": 0.9707,
+  "match": true
+ },
+ "checkpoint_equal_research": {
+  "q4": true,
+  "scale": true,
+  "S_tri": true,
+  "n": true
+ },
+ "load_energy_equal": true,
+ "accounting": {
+  "Q4T": {
+   "n_keys": 18672,
+   "L_logical": 8388584,
+   "L_logical_max": 8388584,
+   "P_tensor_payload": 8388584,
+   "F_file": 8391364,
+   "R_model_resident_gpu": 71737824,
+   "R_scoring_resident_keys_W_mW": 117080064,
+   "peak_scoring_alloc_above_base": 233373696,
+   "base_allocated": 164740096
+  },
+  "V1": {
+   "n_keys": 3925,
+   "L_logical": 8388104,
+   "P_tensor_payload": 10747400,
+   "F_file": 10749989,
+   "R_model_resident_gpu": 6028800,
+   "R_scoring_resident_keys_W_mW": 26474496,
+   "peak_scoring_alloc_above_base": 52162560,
+   "base_allocated": 164740096
+  }
+ },
+ "update_seconds_total": {
+  "Q4T": 709.4869430065155,
+  "V1": 669.3745634555817
+ },
+ "update_seconds_per_task_median": {
+  "Q4T": 81.759486079216,
+  "V1": 79.14586067199707
+ },
+ "latency_ms_per_img_p50": {
+  "Q4T": 7.956825991471609,
+  "V1": 2.0832954843839007
+ },
+ "learn_s": 1603.5362603664398,
+ "seconds": 2214.5215179920197,
+ "torch": "2.10.0+cu126",
+ "gpu": "NVIDIA GeForce RTX 4050 Laptop GPU"
+}

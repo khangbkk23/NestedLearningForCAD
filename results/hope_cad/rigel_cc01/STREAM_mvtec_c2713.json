@@ -1,0 +1,117 @@
+{
+ "tag": "mvtec_c2713",
+ "dataset": "mvtec",
+ "order": [
+  "mvtec/screw",
+  "mvtec/hazelnut",
+  "mvtec/leather",
+  "mvtec/toothbrush",
+  "mvtec/wood",
+  "mvtec/bottle",
+  "mvtec/grid",
+  "mvtec/tile",
+  "mvtec/zipper",
+  "mvtec/pill",
+  "mvtec/metal_nut",
+  "mvtec/cable",
+  "mvtec/capsule",
+  "mvtec/carpet",
+  "mvtec/transistor"
+ ],
+ "seed": 2713,
+ "arms": [
+  "V1",
+  "Q4T"
+ ],
+ "fit_s_shared": 104.53911995887756,
+ "fit_src": {
+  "screw": "/mnt/k/NLCAD/cache/rigel_cc01/fit/mvtec/screw_s2713.pt",
+  "hazelnut": "/mnt/k/NLCAD/cache/rigel_cc01/fit/mvtec/hazelnut_s2713.pt",
+  "leather": "/mnt/k/NLCAD/cache/rigel_cc01/fit/mvtec/leather_s2713.pt",
+  "toothbrush": "/mnt/k/NLCAD/cache/rigel_cc01/fit/mvtec/toothbrush_s2713.pt",
+  "wood": "/mnt/k/NLCAD/cache/rigel_cc01/fit/mvtec/wood_s2713.pt",
+  "bottle": "/mnt/k/NLCAD/cache/rigel_cc01/fit/mvtec/bottle_s2713.pt",
+  "grid": "/mnt/k/NLCAD/cache/rigel_cc01/fit/mvtec/grid_s2713.pt",
+  "tile": "/mnt/k/NLCAD/cache/rigel_cc01/fit/mvtec/tile_s2713.pt",
+  "zipper": "/mnt/k/NLCAD/cache/rigel_cc01/fit/mvtec/zipper_s2713.pt",
+  "pill": "/mnt/k/NLCAD/cache/rigel_cc01/fit/mvtec/pill_s2713.pt",
+  "metal_nut": "/mnt/k/NLCAD/cache/rigel_cc01/fit/mvtec/metal_nut_s2713.pt",
+  "cable": "/mnt/k/NLCAD/cache/rigel_cc01/fit/mvtec/cable_s2713.pt",
+  "capsule": "/mnt/k/NLCAD/cache/rigel_cc01/fit/mvtec/capsule_s2713.pt",
+  "carpet": "/mnt/k/NLCAD/cache/rigel_cc01/fit/mvtec/carpet_s2713.pt",
+  "transistor": "/mnt/k/NLCAD/cache/rigel_cc01/fit/mvtec/transistor_s2713.pt"
+ },
+ "select_s": {
+  "V1": 57.94262742996216,
+  "Q4T": 39.23632621765137
+ },
+ "update_s": {
+  "V1": 162.48174738883972,
+  "Q4T": 143.77544617652893
+ },
+ "latency_ms_per_img_p50": {
+  "V1": 2.7598082669669233,
+  "Q4T": 8.048589941528107
+ },
+ "logical_bytes_per_stage": {
+  "V1": [
+   6213128,
+   8388104,
+   8388104,
+   8388104,
+   8388104,
+   8388104,
+   8388104,
+   8388104,
+   8388104,
+   8388104,
+   8388104,
+   8388104,
+   8388104,
+   8388104,
+   8388104
+  ],
+  "Q4T": [
+   2149666,
+   3333142,
+   4074648,
+   4256454,
+   5004136,
+   5636790,
+   6435810,
+   7132154,
+   7858606,
+   8388584,
+   8388584,
+   8388584,
+   8388584,
+   8388584,
+   8388584
+  ]
+ },
+ "accounting": {
+  "V1": {
+   "n_keys": 3925,
+   "L_logical_final": 8388104,
+   "L_logical_max": 8388104,
+   "P_persisted": 10747400,
+   "F_file": 10749300,
+   "R_runtime_scoring_peak": 52397568,
+   "R_resident_fp32_keys_W_mW": 26474496
+  },
+  "Q4T": {
+   "n_keys": 18672,
+   "L_logical_final": 8388584,
+   "L_logical_max": 8388584,
+   "P_persisted": 8388584,
+   "F_file": 8390773,
+   "R_runtime_scoring_peak": 233608704,
+   "R_resident_fp32_keys_W_mW": 117080064
+  }
+ },
+ "v1_grid_parity_locked": {},
+ "distortion_on_v1_keys": null,
+ "learn_s": 105.34309720993042,
+ "seconds": 303.5300965309143,
+ "spec_sha256": "f1a26f661e4020e8acf76abe9010442f24b8f15925247734624eabd93245698c"
+}

@@ -1,0 +1,88 @@
+{
+ "tag": "mpdd_b2711",
+ "dataset": "mpdd",
+ "order": [
+  "mpdd/tubes",
+  "mpdd/metal_plate",
+  "mpdd/connector",
+  "mpdd/bracket_white",
+  "mpdd/bracket_brown",
+  "mpdd/bracket_black"
+ ],
+ "seed": 2711,
+ "arms": [
+  "V1",
+  "Q4T"
+ ],
+ "fit_s_shared": 17.684028148651123,
+ "fit_src": {
+  "tubes": "/mnt/k/NLCAD/cache/rigel_cc01/fit/mpdd/tubes_s2711.pt",
+  "metal_plate": "/mnt/k/NLCAD/cache/rigel_cc01/fit/mpdd/metal_plate_s2711.pt",
+  "connector": "/mnt/k/NLCAD/cache/rigel_cc01/fit/mpdd/connector_s2711.pt",
+  "bracket_white": "/mnt/k/NLCAD/cache/rigel_cc01/fit/mpdd/bracket_white_s2711.pt",
+  "bracket_brown": "/mnt/k/NLCAD/cache/rigel_cc01/fit/mpdd/bracket_brown_s2711.pt",
+  "bracket_black": "/mnt/k/NLCAD/cache/rigel_cc01/fit/mpdd/bracket_black_s2711.pt"
+ },
+ "select_s": {
+  "V1": 2.0176661014556885,
+  "Q4T": 0.04999995231628418
+ },
+ "update_s": {
+  "V1": 19.70169425010681,
+  "Q4T": 17.734028100967407
+ },
+ "latency_ms_per_img_p50": {
+  "V1": 2.566836097023704,
+  "Q4T": 2.3530332168730177
+ },
+ "logical_bytes_per_stage": {
+  "V1": [
+   3829256,
+   4480520,
+   6022664,
+   7348232,
+   8388104,
+   8388104
+  ],
+  "Q4T": [
+   1550594,
+   1714258,
+   2101802,
+   2434920,
+   2995006,
+   3869682
+  ]
+ },
+ "accounting": {
+  "V1": {
+   "n_keys": 3925,
+   "L_logical_final": 8388104,
+   "L_logical_max": 8388104,
+   "P_persisted": 10747400,
+   "F_file": 10749300,
+   "R_runtime_scoring_peak": 53458432,
+   "R_resident_fp32_keys_W_mW": 26474496
+  },
+  "Q4T": {
+   "n_keys": 6965,
+   "L_logical_final": 3869682,
+   "L_logical_max": 3869682,
+   "P_persisted": 3869682,
+   "F_file": 3871861,
+   "R_runtime_scoring_peak": 90691072,
+   "R_resident_fp32_keys_W_mW": 45152256
+  }
+ },
+ "v1_grid_parity_locked": {
+  "tubes": true,
+  "metal_plate": true,
+  "connector": true,
+  "bracket_white": true,
+  "bracket_brown": true,
+  "bracket_black": true
+ },
+ "distortion_on_v1_keys": null,
+ "learn_s": 3.7332403659820557,
+ "seconds": 35.114848136901855,
+ "spec_sha256": "f1a26f661e4020e8acf76abe9010442f24b8f15925247734624eabd93245698c"
+}

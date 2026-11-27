@@ -1,0 +1,100 @@
+{
+ "ad2_mask": {
+  "good": 379,
+  "bad": 705,
+  "wrong": 0,
+  "ok": true
+ },
+ "representations": {
+  "fp16_lossless": true,
+  "int8_range": true,
+  "int8_idem": true,
+  "int4_range": true,
+  "int4_idem": true,
+  "int4_pack_roundtrip": true,
+  "int4_packed_bytes_per_key": 386,
+  "int8_bytes_per_key": 770,
+  "ok": true
+ },
+ "triangle": {
+  "roundtrip_equals_fp32_full": true,
+  "W_tri_equals_W_fp32_full": true,
+  "W_fp32_vs_fp64_rel": 6.301075390430001e-09,
+  "packed_numel": 295296,
+  "ok": true
+ },
+ "restore_continue_mpdd": {
+  "V1": {
+   "keys_bitwise": true,
+   "W_bitwise": true,
+   "W_rel_diff": 0.0,
+   "energy_max_rel_diff": 0.0,
+   "payload_bytes_after3": 10747400,
+   "file_bytes_after3": 10749555,
+   "class": "mathematical_equivalence",
+   "ok": true
+  },
+  "T16": {
+   "keys_bitwise": true,
+   "W_bitwise": true,
+   "W_rel_diff": 0.0,
+   "energy_max_rel_diff": 0.0,
+   "payload_bytes_after3": 8216072,
+   "file_bytes_after3": 8218236,
+   "class": "mathematical_equivalence",
+   "ok": true
+  },
+  "Q8": {
+   "keys_bitwise": true,
+   "W_bitwise": false,
+   "W_rel_diff": 2.0835306813182797e-08,
+   "energy_max_rel_diff": 6.335670150292572e-06,
+   "payload_bytes_after3": 5885904,
+   "file_bytes_after3": 5888305,
+   "class": "numerical_approximation",
+   "ok": true
+  },
+  "Q8T": {
+   "keys_bitwise": true,
+   "W_bitwise": true,
+   "W_rel_diff": 0.0,
+   "energy_max_rel_diff": 0.0,
+   "payload_bytes_after3": 4707792,
+   "file_bytes_after3": 4710203,
+   "class": "mathematical_equivalence",
+   "ok": true
+  },
+  "Q4T": {
+   "keys_bitwise": true,
+   "W_bitwise": true,
+   "W_rel_diff": 0.0,
+   "energy_max_rel_diff": 0.0,
+   "payload_bytes_after3": 2949072,
+   "file_bytes_after3": 2951483,
+   "class": "mathematical_equivalence",
+   "ok": true
+  },
+  "F8": {
+   "keys_bitwise": true,
+   "W_bitwise": true,
+   "W_rel_diff": 0.0,
+   "energy_max_rel_diff": 0.0,
+   "payload_bytes_after3": 3526600,
+   "file_bytes_after3": 3528501,
+   "class": "mathematical_equivalence",
+   "ok": true
+  },
+  "F4": {
+   "keys_bitwise": true,
+   "W_bitwise": true,
+   "W_rel_diff": 0.0,
+   "energy_max_rel_diff": 0.0,
+   "payload_bytes_after3": 1767880,
+   "file_bytes_after3": 1769781,
+   "class": "mathematical_equivalence",
+   "ok": true
+  }
+ },
+ "ok": true,
+ "spec_sha256": "f1a26f661e4020e8acf76abe9010442f24b8f15925247734624eabd93245698c"
+}

@@ -1,0 +1,25 @@
+07:57:58 ENCODE mpdd/bracket_black_train 289 27s
+07:58:07 TASK mpdd_a2711_dinov2_vitb14_reg4_B8_int4tri bracket_black keys 2266 bytes 2055868
+07:58:25 ENCODE mpdd/bracket_brown_train 185 19s
+07:58:29 TASK mpdd_a2711_dinov2_vitb14_reg4_B8_int4tri bracket_brown keys 3717 bytes 2615954
+07:58:40 ENCODE mpdd/bracket_white_train 110 11s
+07:58:41 TASK mpdd_a2711_dinov2_vitb14_reg4_B8_int4tri bracket_white keys 4580 bytes 2949072
+07:58:54 ENCODE mpdd/connector_train 128 13s
+07:58:56 TASK mpdd_a2711_dinov2_vitb14_reg4_B8_int4tri connector keys 5584 bytes 3336616
+07:59:01 ENCODE mpdd/metal_plate_train 54 5s
+07:59:02 TASK mpdd_a2711_dinov2_vitb14_reg4_B8_int4tri metal_plate keys 6008 bytes 3500280
+07:59:15 ENCODE mpdd/tubes_train 122 14s
+07:59:17 TASK mpdd_a2711_dinov2_vitb14_reg4_B8_int4tri tubes keys 6965 bytes 3869682
+07:59:24 ENCODE mpdd/bracket_black_test 79 7s
+07:59:33 EVAL mpdd_a2711_dinov2_vitb14_reg4_B8_int4tri bracket_black {'ap': 0.1905, 'i_auroc': 0.8557}
+07:59:41 ENCODE mpdd/bracket_brown_test 77 7s
+07:59:48 EVAL mpdd_a2711_dinov2_vitb14_reg4_B8_int4tri bracket_brown {'ap': 0.4358, 'i_auroc': 0.9766}
+07:59:54 ENCODE mpdd/bracket_white_test 60 6s
+08:00:00 EVAL mpdd_a2711_dinov2_vitb14_reg4_B8_int4tri bracket_white {'ap': 0.0785, 'i_auroc': 0.98}
+08:00:04 ENCODE mpdd/connector_test 44 4s
+08:00:09 EVAL mpdd_a2711_dinov2_vitb14_reg4_B8_int4tri connector {'ap': 0.7473, 'i_auroc': 1.0}
+08:00:17 ENCODE mpdd/metal_plate_test 97 9s
+08:00:23 EVAL mpdd_a2711_dinov2_vitb14_reg4_B8_int4tri metal_plate {'ap': 0.8772, 'i_auroc': 1.0}
+08:00:34 ENCODE mpdd/tubes_test 101 11s
+08:00:38 EVAL mpdd_a2711_dinov2_vitb14_reg4_B8_int4tri tubes {'ap': 0.773, 'i_auroc': 0.9466}
+08:00:39 DONE mpdd_a2711_dinov2_vitb14_reg4_B8_int4tri pixel AP 0.5170 image AUROC 0.9598

@@ -18,6 +18,12 @@ from rigel_cad.encoders import build_encoder, file_sha256
 from rigel_cad.model import RigelCAD
 
 
+def storage_suffix(config: RigelConfig) -> str:
+    """Result / state file-name suffix of the storage format ('' for the v1 default, so v1 file names are unchanged and
+    compact-memory runs never overwrite them)."""
+    return '' if config.storage == 'fp16' else '_int4tri'
+
+
 def log(*a):
     print(time.strftime('%H:%M:%S'), *a, flush=True)
 
@@ -74,7 +80,8 @@ def run_stream(dataset: str, data_root, config: RigelConfig, order: str = 'a', o
     tasks = DATA.stream_orders(dataset)[order]
     budget = 'inf' if config.budget_mib is None else f'{config.budget_mib:g}'
     tag = (f'{dataset}_{order}{config.seed}_{config.backbone}_B{budget}'
-           f'{"" if config.slow_level else "_fastonly"}{"" if config.selection == "kcenter" else "_" + config.selection}')
+           f'{"" if config.slow_level else "_fastonly"}{"" if config.selection == "kcenter" else "_" + config.selection}'
+           f'{storage_suffix(config)}')
     out_dir = Path(out_dir)
     store = TokenStore(config.backbone, config.device, cache_dir)
     model = RigelCAD(config, keep_history=True)
@@ -86,7 +93,7 @@ def run_stream(dataset: str, data_root, config: RigelConfig, order: str = 'a', o
         tok = store.get(f'{dataset}/{c}_train', data_root, [s.relative_path for s in train])
         model.fit_task(tok.reshape(-1, TOKEN_DIM).to(config.device), f'{dataset}/{c}')
         bytes_per_stage.append(model.history[-1].bytes)
-        log('TASK', tag, c, 'keys', len(model.history[-1].keys), 'bytes', bytes_per_stage[-1])
+        log('TASK', tag, c, 'keys', len(model.fast), 'bytes', bytes_per_stage[-1])
         del tok
         torch.cuda.empty_cache() if config.device == 'cuda' else None
     per_task, boots, lat = {}, {}, []
@@ -111,7 +118,8 @@ def run_stream(dataset: str, data_root, config: RigelConfig, order: str = 'a', o
             boots[f'{dataset}/{c}'] = b
         log('EVAL', tag, c, {k: round(v, 4) for k, v in per_task[f'{dataset}/{c}'][T - 1].items()})
     order_names = [f'{dataset}/{c}' for c in tasks]
-    res = {'tag': tag, 'method': 'RIGEL-CAD', 'config': config.to_dict(), 'dataset': dataset, 'order': order_names,
+    res = {'tag': tag, 'method': 'RIGEL-CAD', 'storage': config.storage, 'config': config.to_dict(), 'dataset': dataset,
+           'order': order_names,
            **M.stream_summary(order_names, per_task),
            'per_task_stage': per_task, 'bytes_per_stage': bytes_per_stage, 'bytes_max': max(bytes_per_stage),
            'update_seconds': model.update_seconds, 'latency_ms_per_img_p50': float(np.median(lat) * 1e3),
@@ -158,7 +166,8 @@ def run_ad2(data_root, config: RigelConfig, out_dir='results/rigel_cad/ad2', cac
         g = model.patch_energy_grid(store.get(f'ad2/{s}_validation', root, va))
         theta[s], theta_stats[s] = AD2.validation_threshold(g, hws_of(va))
         log('AD2 TASK', s, 'theta %.3f' % theta[s])
-    sub = out_dir / 'submission'
+    sfx = storage_suffix(config)
+    sub = out_dir / f'submission{sfx}'
     report, mask_audit = {}, {}
     for j, s in enumerate(scens):
         tp = DATA.ad2_files(root, s, 'test_public')
@@ -191,7 +200,7 @@ def run_ad2(data_root, config: RigelConfig, out_dir='results/rigel_cad/ad2', cac
                 AD2.write_maps(sub, s, split, rels, hws_of(rels), g, theta[s])
         log('AD2 EVAL', s, report[s][T - 1])
     fin = {s: report[s][T - 1] for s in scens}
-    res = {'method': 'RIGEL-CAD', 'protocol': 'MVTec AD 2 continual stream (scenarios alphabetical, train/ only)',
+    res = {'method': 'RIGEL-CAD', 'storage': config.storage, 'protocol': 'MVTec AD 2 continual stream (scenarios alphabetical, train/ only)',
            'config': config.to_dict(), 'scenarios': list(scens), 'theta': theta, 'theta_stats': theta_stats,
            'test_public': {'au_pro_0.05': float(np.mean([fin[s]['au_pro_0.05'] for s in scens])),
                            'au_pro_0.30': float(np.mean([fin[s]['au_pro_0.30'] for s in scens])),
@@ -199,6 +208,6 @@ def run_ad2(data_root, config: RigelConfig, out_dir='results/rigel_cad/ad2', cac
                            'mask_audit': mask_audit,
                            **(ad2_stream_summary(report, list(scens)) if per_stage else {})},
            'submission_dir': str(sub) if write_submission else None, 'bytes': model.persistent_bytes(), 'seconds': time.time() - t0}
-    write_json(out_dir / 'RESULTS_ad2.json', res)
-    model.save(out_dir / 'states' / 'ad2.rigel')
+    write_json(out_dir / f'RESULTS_ad2{sfx}.json', res)
+    model.save(out_dir / 'states' / f'ad2{sfx}.rigel')
     return res

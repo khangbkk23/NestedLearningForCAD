@@ -1,0 +1,105 @@
+{
+ "tag": "visa_b2713",
+ "dataset": "visa",
+ "order": [
+  "visa/pipe_fryum",
+  "visa/pcb4",
+  "visa/pcb3",
+  "visa/pcb2",
+  "visa/pcb1",
+  "visa/macaroni2",
+  "visa/macaroni1",
+  "visa/fryum",
+  "visa/chewinggum",
+  "visa/cashew",
+  "visa/capsules",
+  "visa/candle"
+ ],
+ "seed": 2713,
+ "arms": [
+  "V1",
+  "Q4T"
+ ],
+ "fit_s_shared": 667.4410874843597,
+ "fit_src": {
+  "pipe_fryum": "/mnt/k/NLCAD/cache/rigel_cc01/fit/visa/pipe_fryum_s2713.pt",
+  "pcb4": "/mnt/k/NLCAD/cache/rigel_cc01/fit/visa/pcb4_s2713.pt",
+  "pcb3": "/mnt/k/NLCAD/cache/rigel_cc01/fit/visa/pcb3_s2713.pt",
+  "pcb2": "/mnt/k/NLCAD/cache/rigel_cc01/fit/visa/pcb2_s2713.pt",
+  "pcb1": "/mnt/k/NLCAD/cache/rigel_cc01/fit/visa/pcb1_s2713.pt",
+  "macaroni2": "/mnt/k/NLCAD/cache/rigel_cc01/fit/visa/macaroni2_s2713.pt",
+  "macaroni1": "/mnt/k/NLCAD/cache/rigel_cc01/fit/visa/macaroni1_s2713.pt",
+  "fryum": "/mnt/k/NLCAD/cache/rigel_cc01/fit/visa/fryum_s2713.pt",
+  "chewinggum": "/mnt/k/NLCAD/cache/rigel_cc01/fit/visa/chewinggum_s2713.pt",
+  "cashew": "/mnt/k/NLCAD/cache/rigel_cc01/fit/visa/cashew_s2713.pt",
+  "capsules": "/mnt/k/NLCAD/cache/rigel_cc01/fit/visa/capsules_s2713.pt",
+  "candle": "/mnt/k/NLCAD/cache/rigel_cc01/fit/visa/candle_s2713.pt"
+ },
+ "select_s": {
+  "V1": 10.935632705688477,
+  "Q4T": 67.09635996818542
+ },
+ "update_s": {
+  "V1": 678.3767201900482,
+  "Q4T": 734.5374474525452
+ },
+ "latency_ms_per_img_p50": {
+  "V1": 2.7402476469675703,
+  "Q4T": 9.26314673613553
+ },
+ "logical_bytes_per_stage": {
+  "V1": [
+   7778312,
+   8388104,
+   8388104,
+   8388104,
+   8388104,
+   8388104,
+   8388104,
+   8388104,
+   8388104,
+   8388104,
+   8388104,
+   8388104
+  ],
+  "Q4T": [
+   2543000,
+   5278968,
+   8018024,
+   8388584,
+   8388584,
+   8388584,
+   8388584,
+   8388584,
+   8388584,
+   8388584,
+   8388584,
+   8388584
+  ]
+ },
+ "accounting": {
+  "V1": {
+   "n_keys": 3925,
+   "L_logical_final": 8388104,
+   "L_logical_max": 8388104,
+   "P_persisted": 10747400,
+   "F_file": 10749300,
+   "R_runtime_scoring_peak": 52162560,
+   "R_resident_fp32_keys_W_mW": 26474496
+  },
+  "Q4T": {
+   "n_keys": 18672,
+   "L_logical_final": 8388584,
+   "L_logical_max": 8388584,
+   "P_persisted": 8388584,
+   "F_file": 8390773,
+   "R_runtime_scoring_peak": 233373696,
+   "R_resident_fp32_keys_W_mW": 117080064
+  }
+ },
+ "v1_grid_parity_locked": {},
+ "distortion_on_v1_keys": null,
+ "learn_s": 84.41336631774902,
+ "seconds": 350.3493866920471,
+ "spec_sha256": "f1a26f661e4020e8acf76abe9010442f24b8f15925247734624eabd93245698c"
+}

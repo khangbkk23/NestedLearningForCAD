@@ -1,0 +1,12 @@
+07:55:58 ENCODE mpdd/bracket_black_train 289 33s
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/mnt/e/Development/Python/ContinualLearning/NestedLearningForCAD/NestedLearningForCAD/rigel_cad/__main__.py", line 3, in <module>
+    main()
+  File "/mnt/e/Development/Python/ContinualLearning/NestedLearningForCAD/NestedLearningForCAD/rigel_cad/cli.py", line 57, in main
+    pipeline.run_stream(a.dataset, a.data_root, _config(a), a.order, a.out, a.cache_dir,
+  File "/mnt/e/Development/Python/ContinualLearning/NestedLearningForCAD/NestedLearningForCAD/rigel_cad/pipeline.py", line 96, in run_stream
+    log('TASK', tag, c, 'keys', len(model.history[-1].keys), 'bytes', bytes_per_stage[-1])
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: object of type 'NoneType' has no len()

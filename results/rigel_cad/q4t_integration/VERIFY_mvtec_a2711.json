@@ -1,0 +1,495 @@
+{
+ "tag": "mvtec_a2711",
+ "dataset": "mvtec",
+ "order": [
+  "mvtec/bottle",
+  "mvtec/cable",
+  "mvtec/capsule",
+  "mvtec/carpet",
+  "mvtec/grid",
+  "mvtec/hazelnut",
+  "mvtec/leather",
+  "mvtec/metal_nut",
+  "mvtec/pill",
+  "mvtec/screw",
+  "mvtec/tile",
+  "mvtec/toothbrush",
+  "mvtec/transistor",
+  "mvtec/wood",
+  "mvtec/zipper"
+ ],
+ "package_sha256": {
+  "config.py": "83f84933a6356f46527b5a6bfc75b8194eccecb9004e82058ddb113c00fb4fe6",
+  "model.py": "69c6b9fd94a6ab65a7200301ea25bf8781d308d16f836605afe015abeea5bf3b",
+  "storage.py": "c7369a3c1952283fa91abbd22ac6d83631e8d88d2df0b9e5a128a04d020e22b7",
+  "ops.py": "020875417fc19cb71c796cda45bfcf2e13f34759b99faad1843fb187b740ffa8"
+ },
+ "research_sha256": {
+  "exps/rigel_q8/d1.py": "b044b4357f97d4eec23d7f5382ce8f0cc3cf8f5bbd46ff7da664a410a4d41102",
+  "exps/rigel_q8/q8.py": "3d862fa284ba50675f6eb6c2f78ae4fc91981b7c1e4abcfe535e6d7fce68e5c6",
+  "exps/rigel_cc01/cc.py": "314d5faefaf9e20c0c1c4705ebd8f318cdccb0b254e3cb8d7e7fe5adb44b4c3f"
+ },
+ "per_task": [
+  {
+   "task": "mvtec/bottle",
+   "Q4T_fit_equal_cached": true,
+   "V1_fit_equal_cached": true,
+   "state_equal_research": {
+    "codes": true,
+    "scale": true,
+    "keys_fp32": true,
+    "S_tri": true,
+    "n": true,
+    "W": true
+   },
+   "n_keys": 1639,
+   "bytes_logical": 1813846,
+   "v1_n_keys": 1639
+  },
+  {
+   "task": "mvtec/cable",
+   "Q4T_fit_equal_cached": true,
+   "V1_fit_equal_cached": true,
+   "state_equal_research": {
+    "codes": true,
+    "scale": true,
+    "keys_fp32": true,
+    "S_tri": true,
+    "n": true,
+    "W": true
+   },
+   "n_keys": 3396,
+   "bytes_logical": 2492048,
+   "v1_n_keys": 3396
+  },
+  {
+   "task": "mvtec/capsule",
+   "Q4T_fit_equal_cached": true,
+   "V1_fit_equal_cached": true,
+   "state_equal_research": {
+    "codes": true,
+    "scale": true,
+    "keys_fp32": true,
+    "S_tri": true,
+    "n": true,
+    "W": true
+   },
+   "n_keys": 5113,
+   "bytes_logical": 3154810,
+   "v1_n_keys": 3925
+  },
+  {
+   "task": "mvtec/carpet",
+   "Q4T_fit_equal_cached": true,
+   "V1_fit_equal_cached": true,
+   "state_equal_research": {
+    "codes": true,
+    "scale": true,
+    "keys_fp32": true,
+    "S_tri": true,
+    "n": true,
+    "W": true
+   },
+   "n_keys": 7309,
+   "bytes_logical": 4002466,
+   "v1_n_keys": 3925
+  },
+  {
+   "task": "mvtec/grid",
+   "Q4T_fit_equal_cached": true,
+   "V1_fit_equal_cached": true,
+   "state_equal_research": {
+    "codes": true,
+    "scale": true,
+    "keys_fp32": true,
+    "S_tri": true,
+    "n": true,
+    "W": true
+   },
+   "n_keys": 9379,
+   "bytes_logical": 4801486,
+   "v1_n_keys": 3925
+  },
+  {
+   "task": "mvtec/hazelnut",
+   "Q4T_fit_equal_cached": true,
+   "V1_fit_equal_cached": true,
+   "state_equal_research": {
+    "codes": true,
+    "scale": true,
+    "keys_fp32": true,
+    "S_tri": true,
+    "n": true,
+    "W": true
+   },
+   "n_keys": 12445,
+   "bytes_logical": 5984962,
+   "v1_n_keys": 3925
+  },
+  {
+   "task": "mvtec/leather",
+   "Q4T_fit_equal_cached": true,
+   "V1_fit_equal_cached": true,
+   "state_equal_research": {
+    "codes": true,
+    "scale": true,
+    "keys_fp32": true,
+    "S_tri": true,
+    "n": true,
+    "W": true
+   },
+   "n_keys": 14366,
+   "bytes_logical": 6726468,
+   "v1_n_keys": 3925,
+   "saved_for_resume": "results/rigel_cad/q4t_integration/states/mvtec_a2711_after7_int4tri.rigel"
+  },
+  {
+   "task": "mvtec/metal_nut",
+   "Q4T_fit_equal_cached": true,
+   "V1_fit_equal_cached": true,
+   "state_equal_research": {
+    "codes": true,
+    "scale": true,
+    "keys_fp32": true,
+    "S_tri": true,
+    "n": true,
+    "W": true
+   },
+   "n_keys": 16091,
+   "bytes_logical": 7392318,
+   "v1_n_keys": 3925,
+   "resumed_equal": true
+  },
+  {
+   "task": "mvtec/pill",
+   "Q4T_fit_equal_cached": true,
+   "V1_fit_equal_cached": true,
+   "state_equal_research": {
+    "codes": true,
+    "scale": true,
+    "keys_fp32": true,
+    "S_tri": true,
+    "n": true,
+    "W": true
+   },
+   "n_keys": 18185,
+   "bytes_logical": 8200602,
+   "v1_n_keys": 3925,
+   "resumed_equal": true
+  },
+  {
+   "task": "mvtec/screw",
+   "Q4T_fit_equal_cached": true,
+   "V1_fit_equal_cached": true,
+   "state_equal_research": {
+    "codes": true,
+    "scale": true,
+    "keys_fp32": true,
+    "S_tri": true,
+    "n": true,
+    "W": true
+   },
+   "n_keys": 18672,
+   "bytes_logical": 8388584,
+   "v1_n_keys": 3925,
+   "resumed_equal": true
+  },
+  {
+   "task": "mvtec/tile",
+   "Q4T_fit_equal_cached": true,
+   "V1_fit_equal_cached": true,
+   "state_equal_research": {
+    "codes": true,
+    "scale": true,
+    "keys_fp32": true,
+    "S_tri": true,
+    "n": true,
+    "W": true
+   },
+   "n_keys": 18672,
+   "bytes_logical": 8388584,
+   "v1_n_keys": 3925,
+   "resumed_equal": true
+  },
+  {
+   "task": "mvtec/toothbrush",
+   "Q4T_fit_equal_cached": true,
+   "V1_fit_equal_cached": true,
+   "state_equal_research": {
+    "codes": true,
+    "scale": true,
+    "keys_fp32": true,
+    "S_tri": true,
+    "n": true,
+    "W": true
+   },
+   "n_keys": 18672,
+   "bytes_logical": 8388584,
+   "v1_n_keys": 3925,
+   "resumed_equal": true
+  },
+  {
+   "task": "mvtec/transistor",
+   "Q4T_fit_equal_cached": true,
+   "V1_fit_equal_cached": true,
+   "state_equal_research": {
+    "codes": true,
+    "scale": true,
+    "keys_fp32": true,
+    "S_tri": true,
+    "n": true,
+    "W": true
+   },
+   "n_keys": 18672,
+   "bytes_logical": 8388584,
+   "v1_n_keys": 3925,
+   "resumed_equal": true
+  },
+  {
+   "task": "mvtec/wood",
+   "Q4T_fit_equal_cached": true,
+   "V1_fit_equal_cached": true,
+   "state_equal_research": {
+    "codes": true,
+    "scale": true,
+    "keys_fp32": true,
+    "S_tri": true,
+    "n": true,
+    "W": true
+   },
+   "n_keys": 18672,
+   "bytes_logical": 8388584,
+   "v1_n_keys": 3925,
+   "resumed_equal": true
+  },
+  {
+   "task": "mvtec/zipper",
+   "Q4T_fit_equal_cached": true,
+   "V1_fit_equal_cached": true,
+   "state_equal_research": {
+    "codes": true,
+    "scale": true,
+    "keys_fp32": true,
+    "S_tri": true,
+    "n": true,
+    "W": true
+   },
+   "n_keys": 18672,
+   "bytes_logical": 8388584,
+   "v1_n_keys": 3925,
+   "resumed_equal": true
+  }
+ ],
+ "fit_equal_cached_all": true,
+ "state_equal_research_all": true,
+ "resume": {
+  "after_task": 7,
+  "equal_all": true,
+  "n_compared": 8
+ },
+ "grid_equal": {
+  "Q4T": {
+   "all": true,
+   "n": 15
+  },
+  "V1": {
+   "all": true,
+   "n": 15
+  }
+ },
+ "metric_cells_equal_locked": {
+  "Q4T": true,
+  "V1": true
+ },
+ "summary": {
+  "Q4T": {
+   "pixel_ap": 0.6303641577561696,
+   "image_auroc": 0.9926092780061385,
+   "forgetting_ap": 0.007415986486843654,
+   "acquisition_ap": 0.6268549601236979,
+   "prequential_ap": 0.6558606695614827,
+   "per_task_final": {
+    "mvtec/bottle": {
+     "ap": 0.8453188538551331,
+     "i_auroc": 1.0
+    },
+    "mvtec/cable": {
+     "ap": 0.52410489320755,
+     "i_auroc": 0.985007496251874
+    },
+    "mvtec/capsule": {
+     "ap": 0.5747829675674438,
+     "i_auroc": 0.9792580773833267
+    },
+    "mvtec/carpet": {
+     "ap": 0.7283267974853516,
+     "i_auroc": 0.9983948635634029
+    },
+    "mvtec/grid": {
+     "ap": 0.5019930601119995,
+     "i_auroc": 1.0
+    },
+    "mvtec/hazelnut": {
+     "ap": 0.8041059374809265,
+     "i_auroc": 0.9996428571428572
+    },
+    "mvtec/leather": {
+     "ap": 0.48281148076057434,
+     "i_auroc": 1.0
+    },
+    "mvtec/metal_nut": {
+     "ap": 0.7304364442825317,
+     "i_auroc": 1.0
+    },
+    "mvtec/pill": {
+     "ap": 0.5438863039016724,
+     "i_auroc": 0.991543917075832
+    },
+    "mvtec/screw": {
+     "ap": 0.5702200531959534,
+     "i_auroc": 0.960032793605247
+    },
+    "mvtec/tile": {
+     "ap": 0.7194201350212097,
+     "i_auroc": 1.0
+    },
+    "mvtec/toothbrush": {
+     "ap": 0.6604876518249512,
+     "i_auroc": 0.9944444444444445
+    },
+    "mvtec/transistor": {
+     "ap": 0.502355694770813,
+     "i_auroc": 0.9929166666666667
+    },
+    "mvtec/wood": {
+     "ap": 0.6759912967681885,
+     "i_auroc": 0.9894736842105263
+    },
+    "mvtec/zipper": {
+     "ap": 0.5912207961082458,
+     "i_auroc": 0.9984243697478992
+    }
+   }
+  },
+  "V1": {
+   "pixel_ap": 0.5926523824532827,
+   "image_auroc": 0.9826164429616465,
+   "forgetting_ap": 0.033254582967076986,
+   "acquisition_ap": 0.6129276752471924,
+   "prequential_ap": 0.6395172587162186,
+   "per_task_final": {
+    "mvtec/bottle": {
+     "ap": 0.8334002494812012,
+     "i_auroc": 1.0
+    },
+    "mvtec/cable": {
+     "ap": 0.4846082031726837,
+     "i_auroc": 0.9778860569715142
+    },
+    "mvtec/capsule": {
+     "ap": 0.47223448753356934,
+     "i_auroc": 0.8974870362983646
+    },
+    "mvtec/carpet": {
+     "ap": 0.7028050422668457,
+     "i_auroc": 1.0
+    },
+    "mvtec/grid": {
+     "ap": 0.4849756360054016,
+     "i_auroc": 1.0
+    },
+    "mvtec/hazelnut": {
+     "ap": 0.7562412619590759,
+     "i_auroc": 1.0
+    },
+    "mvtec/leather": {
+     "ap": 0.4267740845680237,
+     "i_auroc": 1.0
+    },
+    "mvtec/metal_nut": {
+     "ap": 0.6366724371910095,
+     "i_auroc": 1.0
+    },
+    "mvtec/pill": {
+     "ap": 0.5099627375602722,
+     "i_auroc": 0.9893617021276596
+    },
+    "mvtec/screw": {
+     "ap": 0.4912116229534149,
+     "i_auroc": 0.8866571018651364
+    },
+    "mvtec/tile": {
+     "ap": 0.7251074314117432,
+     "i_auroc": 1.0
+    },
+    "mvtec/toothbrush": {
+     "ap": 0.6609691977500916,
+     "i_auroc": 1.0
+    },
+    "mvtec/transistor": {
+     "ap": 0.44915100932121277,
+     "i_auroc": 0.9958333333333332
+    },
+    "mvtec/wood": {
+     "ap": 0.6693031787872314,
+     "i_auroc": 0.9938596491228071
+    },
+    "mvtec/zipper": {
+     "ap": 0.5863691568374634,
+     "i_auroc": 0.9981617647058824
+    }
+   }
+  }
+ },
+ "reference_owner_4dp": {
+  "pixel_ap": 0.6304,
+  "image_auroc": 0.9926,
+  "match": true
+ },
+ "checkpoint_equal_research": {
+  "q4": true,
+  "scale": true,
+  "S_tri": true,
+  "n": true
+ },
+ "load_energy_equal": true,
+ "accounting": {
+  "Q4T": {
+   "n_keys": 18672,
+   "L_logical": 8388584,
+   "L_logical_max": 8388584,
+   "P_tensor_payload": 8388584,
+   "F_file": 8391437,
+   "R_model_resident_gpu": 71737824,
+   "R_scoring_resident_keys_W_mW": 117080064,
+   "peak_scoring_alloc_above_base": 233734144,
+   "base_allocated": 236127232
+  },
+  "V1": {
+   "n_keys": 3925,
+   "L_logical": 8388104,
+   "P_tensor_payload": 10747400,
+   "F_file": 10750061,
+   "R_model_resident_gpu": 6028800,
+   "R_scoring_resident_keys_W_mW": 26474496,
+   "peak_scoring_alloc_above_base": 53088768,
+   "base_allocated": 236127232
+  }
+ },
+ "update_seconds_total": {
+  "Q4T": 139.58468317985535,
+  "V1": 112.85845303535461
+ },
+ "update_seconds_per_task_median": {
+  "Q4T": 7.828446865081787,
+  "V1": 7.228958606719971
+ },
+ "latency_ms_per_img_p50": {
+  "Q4T": 7.9476675212892705,
+  "V1": 2.172730280005413
+ },
+ "learn_s": 461.0336422920227,
+ "seconds": 950.3521177768707,
+ "torch": "2.10.0+cu126",
+ "gpu": "NVIDIA GeForce RTX 4050 Laptop GPU"
+}
