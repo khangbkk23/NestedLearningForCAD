@@ -31,6 +31,7 @@ def main(argv=None):
         s.add_argument('--device', default='cuda')
         s.add_argument('--storage', choices=STORAGES, default='fp16',
                        help="persistent-state format: 'fp16' (default, v1) or 'int4_triangular' (compact memory)")
+        s.add_argument('--decode-workers', type=int, default=None, help='image decode threads (default min(8, CPUs))')
         if name == 'stream':
             s.add_argument('--dataset', choices=('mvtec', 'visa', 'mpdd'), required=True)
             s.add_argument('--order', choices=('a', 'b', 'c'), default='a')
@@ -47,10 +48,16 @@ def main(argv=None):
     b.add_argument('--seed', type=int, default=DEFAULT_SEED)
     b.add_argument('--n-infer', type=int, default=100)
     b.add_argument('--device', default='cuda')
+    b.add_argument('--storage', choices=STORAGES, default='fp16', help='storage of the budgeted learner E')
+    b.add_argument('--decode-workers', type=int, default=None, help='image decode threads (default min(8, CPUs))')
     a = p.parse_args(argv)
+    if a.decode_workers is not None:
+        from rigel_cad import encoders
+        encoders.DECODE_WORKERS = a.decode_workers
     if a.cmd == 'bench':
         from rigel_cad.bench import run_bench
-        run_bench(a.dataset, a.data_root, a.budget_mib, a.seed, a.device, n_infer=a.n_infer, out_dir=a.out)
+        run_bench(a.dataset, a.data_root, a.budget_mib, a.seed, a.device, n_infer=a.n_infer, out_dir=a.out,
+                  storage=a.storage, decode_workers=a.decode_workers)
         return
     from rigel_cad import pipeline
     if a.cmd == 'stream':

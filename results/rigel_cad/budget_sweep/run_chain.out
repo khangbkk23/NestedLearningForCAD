@@ -1,0 +1,12 @@
+2026-11-27T17:01:39 START pytest
+2026-11-27T17:06:13 END pytest rc=0
+2026-11-27T17:06:13 START sweep mpdd
+2026-11-27T17:08:55 END sweep mpdd rc=0
+2026-11-27T17:08:55 START sweep mvtec
+2026-11-27T17:45:01 END sweep mvtec rc=0
+2026-11-27T17:45:01 START sweep visa
+2026-11-27T18:49:54 END sweep visa rc=0
+2026-11-27T18:49:56 START bench mvtec fp16
+2026-11-27T18:55:28 END bench mvtec fp16 rc=0
+2026-11-27T18:55:28 START bench mvtec int4_triangular
+2026-11-27T19:01:07 END bench mvtec int4_triangular rc=0

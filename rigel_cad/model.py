@@ -54,6 +54,25 @@ class RigelState:
     scale: Optional[torch.Tensor] = None   # [M] fp16 per-key scales ('int4_triangular' only)
 
 
+@dataclass
+class TaskFit:
+    """Budget-independent result of learning one task (RigelCAD.compute_fit)."""
+    keys16: torch.Tensor               # [k, D] fp16 coreset tokens in k-centre order (on device)
+    S: torch.Tensor                    # [D, D] fp64 residual moment of the task (CPU)
+    n: int                             # number of residuals in S
+    n_tokens: int                      # number of task tokens
+
+
+@dataclass
+class Prepared:
+    """Device-resident read-out of a state (RigelCAD.prepare): keys as scored (fp32), W and keys @ W."""
+    keys: torch.Tensor
+    W: Optional[torch.Tensor]
+    mw: Optional[torch.Tensor]
+    n_tasks: int
+    bytes: int
+
+
 class FastKeyMemory:
     """Fast level: per-task 1 % coresets consolidated to a fixed key capacity at every task boundary.
 
@@ -189,29 +208,45 @@ class RigelCAD:
         self.update_seconds = 0.0
         self.keep_history = keep_history
         self.history: List[RigelState] = []
+        self._prep = None                  # (fingerprint, Prepared) of the current state, see prepare()
 
     # ------------------------------------------------------------------ learning
     @torch.no_grad()
     def fit_task(self, tokens16: torch.Tensor, name: Optional[str] = None) -> RigelState:
-        """Learn one task from its normal training tokens.
+        """Learn one task from its normal training tokens (= write_task(compute_fit(tokens16), name)).
 
         tokens16: [N, 768] fp16 unit-norm patch tokens (all training images of the task, images in sorted path order,
         784 tokens per image), ideally already on config.device.
         """
+        t0 = time.time()
+        fit = self.compute_fit(tokens16)
+        return self.write_task(fit, name, seconds=time.time() - t0)
+
+    @torch.no_grad()
+    def compute_fit(self, tokens16: torch.Tensor) -> 'TaskFit':
+        """The budget-independent part of a task update: the task's 1 % greedy k-centre coreset and its residual
+        moment (S_t, n_t). Depends only on the tokens and the seed, not on the memory state or the budget."""
         if tokens16.dtype != torch.float16 or tokens16.ndim != 2 or tokens16.shape[1] != TOKEN_DIM:
             raise ValueError(f'expected [N, {TOKEN_DIM}] fp16 tokens, got {tuple(tokens16.shape)} {tokens16.dtype}')
         x16 = tokens16.to(self.config.device)
-        t0 = time.time()
         k = ops.coreset_size(len(x16))
         kc = ops.greedy_kcenter(x16, k, seed=self.config.seed)
         S_t, n_t = ops.residual_moment(x16.float(), kc[:k].to(x16.device))
-        task_keys = x16[kc[:k].to(x16.device)]
-        self.fast.write(task_keys)
+        return TaskFit(keys16=x16[kc[:k].to(x16.device)], S=S_t, n=n_t, n_tokens=len(x16))
+
+    @torch.no_grad()
+    def write_task(self, fit: 'TaskFit', name: Optional[str] = None, seconds: Optional[float] = None) -> RigelState:
+        """The state-dependent part of a task update: write the task's coreset into the fast level (consolidating to
+        the capacity) and its residual moment into the slow level. `seconds`: update time to account (default: the
+        time of this call)."""
+        t0 = time.time()
+        self.fast.write(fit.keys16.to(self.config.device))
         if self.slow is not None:
-            self.slow.write(S_t, n_t)
-        self.update_seconds += time.time() - t0
+            self.slow.write(fit.S, fit.n)
+        self.update_seconds += (time.time() - t0) if seconds is None else seconds + (time.time() - t0)
         self.n_tasks += 1
         self.task_names.append(name or f'task{self.n_tasks - 1}')
+        self._prep = None
         st = self.state()
         if self.keep_history:
             # unbounded memory: store only the prefix length; keys are re-assembled on demand (no per-stage copies).
@@ -254,16 +289,55 @@ class RigelCAD:
         return st
 
     # ------------------------------------------------------------------ scoring
-    @torch.no_grad()
-    def patch_energy(self, q16: torch.Tensor, state: Optional[RigelState] = None) -> torch.Tensor:
-        """Per-token energy [Nq] (fp32, CPU) of fp16 unit query tokens [Nq, 768]."""
-        st = state or self.state()
-        keys = st.keys.to(self.config.device).float()
-        if st.W is None:
-            return ops.energy_euclidean(q16, keys)
-        return ops.energy_whitened(q16, keys, st.W.to(self.config.device))
+    def _fingerprint(self):
+        """Identity of the current state's tensors (a re-assigned key or moment tensor gives a new fingerprint)."""
+        f, s = self.fast, self.slow
+        keys = len(f.blocks) if f.capacity is None else (f.keys.data_ptr(), tuple(f.keys.shape))
+        slow = None if s is None else (id(s.S), id(s.S_tri), s.n)
+        return self.n_tasks, keys, slow
 
-    def patch_energy_grid(self, tokens: torch.Tensor, state: Optional[RigelState] = None) -> torch.Tensor:
+    @torch.no_grad()
+    def prepare(self, state: Optional[RigelState] = None) -> 'Prepared':
+        """Device-resident read-out of `state` (default: the current state): keys as scored (fp32), W and keys @ W.
+        Scoring with it gives exactly the same energies as scoring with the state; it only avoids recomputing W
+        (current state), moving the keys to the device and multiplying them by W on every call. The current state's
+        read-out is cached by patch_energy(q) until the next write_task / load."""
+        if state is None:
+            fp = self._fingerprint()
+            if self._prep is not None and self._prep[0] == fp:
+                return self._prep[1]
+            p = self.prepare(self.state())
+            self._prep = (fp, p)
+            return p
+        dev = self.config.device
+        keys = state.keys.to(dev).float()
+        W = None if state.W is None else state.W.to(dev)
+        return Prepared(keys=keys, W=W, mw=None if W is None else keys @ W, n_tasks=state.n_tasks, bytes=state.bytes)
+
+    def clear_cache(self) -> None:
+        """Drop the cached device read-out of the current state (frees its GPU memory)."""
+        self._prep = None
+
+    @torch.no_grad()
+    def patch_energy(self, q16: torch.Tensor, state=None) -> torch.Tensor:
+        """Per-token energy [Nq] (fp32, CPU) of fp16 unit query tokens [Nq, 768].
+
+        state: None (current state, cached device read-out), a RigelState (e.g. state_at(l)), or a Prepared."""
+        if isinstance(state, Prepared):
+            p = state
+        elif state is None:
+            p = self.prepare()
+        else:
+            st = state
+            keys = st.keys.to(self.config.device).float()
+            if st.W is None:
+                return ops.energy_euclidean(q16, keys)
+            return ops.energy_whitened(q16, keys, st.W.to(self.config.device))
+        if p.W is None:
+            return ops.energy_euclidean(q16, p.keys)
+        return ops.energy_whitened(q16, p.keys, p.W, mw=p.mw)
+
+    def patch_energy_grid(self, tokens: torch.Tensor, state=None) -> torch.Tensor:
         """tokens: [n_img, 784, 768] or [n_img * 784, 768] fp16 unit tokens. Returns [n_img, 28, 28] fp32 energies."""
         q = tokens.reshape(-1, TOKEN_DIM)
         n = len(q) // TOKENS_PER_IMAGE

@@ -13,6 +13,9 @@ from __future__ import annotations
 
 import hashlib
 import math
+import os
+from collections import deque
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 import numpy as np
@@ -33,6 +36,8 @@ CHECKPOINTS = {
                      '755e9f5f74fcb6d0d8f23228d9a36328bffe183b192004f5e9ef7b3f0a2ea415'),
 }
 DINO_PATCH = 14
+DECODE_WORKERS = min(8, os.cpu_count() or 1)   # image decode threads (engineering only; tokens are unchanged)
+DECODE_AHEAD = 3                               # batches decoded ahead of the backbone
 DINO_TOKEN_BLOCKS = (6, 7, 8, 9)       # 0-based blocks averaged into the token
 
 
@@ -165,13 +170,40 @@ class RigelEncoder:
         f = self.raw_tokens(x)
         return ops.unit(f.reshape(-1, TOKEN_DIM)).half().reshape(len(x), TOKENS_PER_IMAGE, TOKEN_DIM)
 
+    def preprocess_many(self, paths, workers: int = None) -> torch.Tensor:
+        """torch.stack([preprocess(p) for p in paths]) with the decoding spread over `workers` threads (same values)."""
+        paths = list(paths)
+        workers = DECODE_WORKERS if workers is None else workers
+        if workers <= 1 or len(paths) <= 1:
+            return torch.stack([self.preprocess(p) for p in paths])
+        with ThreadPoolExecutor(min(workers, len(paths))) as ex:
+            return torch.stack(list(ex.map(self.preprocess, paths)))
+
     @torch.no_grad()
-    def encode_paths(self, paths, batch: int = 8) -> torch.Tensor:
-        """Unit fp16 tokens [n, 784, 768] (CPU) of image files, in the given order."""
+    def encode_paths(self, paths, batch: int = 8, workers: int = None) -> torch.Tensor:
+        """Unit fp16 tokens [n, 784, 768] (CPU) of image files, in the given order.
+
+        Images are decoded by `workers` threads (default DECODE_WORKERS), DECODE_AHEAD batches ahead of the backbone;
+        every image goes through the same preprocess(), so the tokens are identical to a sequential loop
+        (workers=1)."""
+        paths = list(paths)
+        workers = DECODE_WORKERS if workers is None else workers
         out = []
-        for i in range(0, len(paths), batch):
-            x = torch.stack([self.preprocess(p) for p in paths[i:i + batch]]).to(self.device)
-            out.append(self.tokens(x).cpu())
+        if workers <= 1:
+            for i in range(0, len(paths), batch):
+                x = torch.stack([self.preprocess(p) for p in paths[i:i + batch]]).to(self.device)
+                out.append(self.tokens(x).cpu())
+        else:
+            chunks = [paths[i:i + batch] for i in range(0, len(paths), batch)]
+            with ThreadPoolExecutor(workers) as ex:
+                pending = deque()
+                nxt = 0
+                for _ in range(len(chunks)):
+                    while nxt < len(chunks) and len(pending) < DECODE_AHEAD:
+                        pending.append([ex.submit(self.preprocess, p) for p in chunks[nxt]])
+                        nxt += 1
+                    x = torch.stack([f.result() for f in pending.popleft()]).to(self.device)
+                    out.append(self.tokens(x).cpu())
         return torch.cat(out) if out else torch.empty(0, TOKENS_PER_IMAGE, TOKEN_DIM, dtype=torch.float16)
 
 

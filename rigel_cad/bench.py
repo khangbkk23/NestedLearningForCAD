@@ -2,12 +2,16 @@
 
 For one dataset (order a, seed 2711), the stream is learned task by task from image files. Each task's training
 images are decoded, encoded once, and the same tokens are given to three learners:
-  E  RIGEL-CAD at the budget (default 8 MiB)      F  fast level only at the same budget      U  unbounded
+  E  RIGEL-CAD at the budget (default 8 MiB; storage fp16 or int4_triangular)
+  F  fast level only at the same budget (fp16)    U  unbounded (fp16)
 Timed per task (CUDA-synchronised): image decode + resize (CPU), backbone forward (GPU), and each learner's
 fit_task. After the last task, `n_infer` test images drawn evenly over the categories (seeded) are scored one at a
 time, end to end (decode -> backbone -> patch energy -> 392 px anomaly map -> image score), with every stage timed,
-plus the head alone at batch 1 for E / F / U. Peak GPU memory is recorded per phase, and the final E state is saved
-to measure its size on disk.
+plus the head alone at batch 1 for E / F / U. The head scores with the model's device-resident read-out
+(RigelCAD.prepare: keys, W and keys @ W kept on the GPU, as deployed). Training images are decoded by
+`decode_workers` threads per batch (inference decodes one image at a time). Peak GPU memory is recorded per phase,
+and the final E state is saved to measure its size on disk. Non-default storage adds the '_int4tri' suffix to the
+output names.
 
 Scores are not computed here: accuracy comes from the stream and ad2 commands. Timings depend on the GPU, the
 CPU and the disk; the report states the machine.
@@ -25,11 +29,12 @@ import numpy as np
 import torch
 
 from rigel_cad import data as DATA
+from rigel_cad import encoders as ENC
 from rigel_cad import readout
 from rigel_cad.config import TOKEN_DIM, RigelConfig
 from rigel_cad.encoders import build_encoder
 from rigel_cad.model import RigelCAD
-from rigel_cad.pipeline import log, write_json
+from rigel_cad.pipeline import log, storage_suffix, write_json
 
 
 def _sync(device):
@@ -58,12 +63,14 @@ def _pct(v):
 
 @torch.no_grad()
 def run_bench(dataset: str, data_root, budget_mib: float = 8.0, seed: int = 2711, device: str = 'cuda',
-              batch: int = 8, n_infer: int = 100, out_dir='results/rigel_cad/bench') -> dict:
+              batch: int = 8, n_infer: int = 100, out_dir='results/rigel_cad/bench', storage: str = 'fp16',
+              decode_workers: int = None) -> dict:
     out_dir = Path(out_dir)
+    workers = ENC.DECODE_WORKERS if decode_workers is None else decode_workers
     tasks = _tasks(dataset, data_root)
     enc = build_encoder('dinov2_vitb14_reg4', device)
     cfg = dict(seed=seed, device=device)
-    models = {'E': RigelCAD(RigelConfig(budget_mib=budget_mib, **cfg)),
+    models = {'E': RigelCAD(RigelConfig(budget_mib=budget_mib, storage=storage, **cfg)),
               'F': RigelCAD(RigelConfig(budget_mib=budget_mib, slow_level=False, **cfg)),
               'U': RigelCAD(RigelConfig(budget_mib=None, **cfg))}
     # warm-up (kernels, allocator) on a few real training images; not timed
@@ -78,7 +85,7 @@ def run_bench(dataset: str, data_root, budget_mib: float = 8.0, seed: int = 2711
         toks = []
         for i in range(0, len(train), batch):
             t0 = time.time()
-            x = torch.stack([enc.preprocess(p) for p in train[i:i + batch]])
+            x = enc.preprocess_many(train[i:i + batch], workers)
             t1 = time.time()
             x = x.to(device)
             toks.append(enc.tokens(x).cpu())                        # as TokenStore: tokens leave the GPU
@@ -111,9 +118,7 @@ def run_bench(dataset: str, data_root, budget_mib: float = 8.0, seed: int = 2711
     g = np.random.default_rng(seed)
     per_cat = max(1, int(np.ceil(n_infer / len(tasks))))
     pick = [p for _, _, te in tasks for p in g.choice(te, size=min(per_cat, len(te)), replace=False).tolist()][:n_infer]
-    states = {a: m.state() for a, m in models.items()}
-    for a, st in states.items():                                     # keys / W resident on the device, as deployed
-        states[a] = type(st)(st.keys.to(device), None if st.W is None else st.W.to(device), st.n_tasks, st.bytes)
+    states = {a: m.prepare() for a, m in models.items()}           # keys / W / keys @ W resident on the device
     q = enc.tokens(enc.preprocess(pick[0])[None].to(device))      # warm-up
     for a in models:
         models[a].patch_energy_grid(q, states[a])
@@ -143,14 +148,16 @@ def run_bench(dataset: str, data_root, budget_mib: float = 8.0, seed: int = 2711
             _sync(device)
             tm[f'head_{a}'].append(time.time() - t5)
     peak_inf = torch.cuda.max_memory_allocated() if device.startswith('cuda') else None
-    sp = out_dir / 'states' / f'{dataset}_E.rigel'
+    sfx = storage_suffix(models['E'].config)
+    sp = out_dir / 'states' / f'{dataset}_E{sfx}.rigel'
     models['E'].save(sp)
 
     n_tr = sum(r['n_train'] for r in per_task)
     tot = {k: sum(r[k] for r in per_task) for k in ('decode_s', 'encode_s')}
     fit_tot = {a: sum(r['fit_s'][a] for r in per_task) for a in models}
     res = {'dataset': dataset, 'order': [t[0] for t in tasks], 'seed': seed, 'budget_mib': budget_mib,
-           'batch_train': batch, 'machine': {
+           'storage_E': storage, 'batch_train': batch, 'decode_workers_train': workers,
+           'head_mode': 'prepared (RigelCAD.prepare)', 'machine': {
                'gpu': torch.cuda.get_device_name(0) if device.startswith('cuda') else None,
                'torch': torch.__version__, 'cuda': torch.version.cuda, 'cpu_count': os.cpu_count(),
                'platform': platform.platform(), 'python': platform.python_version()},
@@ -164,6 +171,6 @@ def run_bench(dataset: str, data_root, budget_mib: float = 8.0, seed: int = 2711
                             'keys': {a: len(m.fast) for a, m in models.items()}},
            'state': {a: m.persistent_bytes() for a, m in models.items()},
            'state_file_bytes_E': sp.stat().st_size}
-    write_json(out_dir / f'BENCH_{dataset}.json', res)
+    write_json(out_dir / f'BENCH_{dataset}{sfx}.json', res)
     log('BENCH DONE', dataset, 'train %.0fs, infer p50 %.1f ms/img' % (train_wall, res['infer_batch1']['total_E']['p50_ms']))
     return res

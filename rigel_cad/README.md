@@ -5,6 +5,7 @@ a fixed persistent-memory budget (8 MiB by default) and needs no task identity a
 
 Version 1.1 adds an optional compact storage format, `int4_triangular`. It stores the same two memories in fewer bytes
 per element, so more exemplar keys fit in the same budget. The default format, `fp16`, is RIGEL-CAD 1.0 unchanged.
+Version 1.1.1 is an engineering release: faster coreset fit, image decoding and scoring, with bitwise-identical results.
 
 ## Architecture
 
@@ -91,6 +92,20 @@ model.save('state.rigel')                                      # persistent stat
 model = RigelCAD.load('state.rigel')                           # either format; learning can continue with fit_task
 ```
 
+**Split fit (1.1.1).** `fit_task(tokens)` is `write_task(compute_fit(tokens), name)`:
+- `compute_fit` returns a `TaskFit`: coreset keys, residual moment S_t, count n_t. It does not depend on the budget or
+  the storage format;
+- `write_task` adds a `TaskFit` to the memories and consolidates.
+
+One `TaskFit` can therefore be written into several models (for example a budget sweep), with the same result as
+calling `fit_task` on each of them.
+
+**Prepared scoring (1.1.1).** `patch_energy_grid(tokens)` with no state caches the current read-out on the GPU: keys
+in fp32, W, and keys @ W. The cache is rebuilt after every `write_task`, `load` or change of the stored keys.
+- `prepare(state)` returns the same cache for a past state, `state_at(l)`;
+- `clear_cache()` frees it.
+Scores are bitwise identical to passing the `RigelState`.
+
 **`RigelConfig` options.**
 
 | Option | Values | Effect |
@@ -139,11 +154,15 @@ python -m rigel_cad ad2 --data-root /path/to/mvtec_ad_2 --out results/rigel_cad/
        [--storage int4_triangular]
 ```
 
-**Speed and memory benchmark from raw images** (fp16):
+**Speed and memory benchmark from raw images** (arm E in either storage format):
 
 ```bash
-python -m rigel_cad bench --dataset mvtec --data-root data/mvtec --out results/rigel_cad/bench
+python -m rigel_cad bench --dataset mvtec --data-root data/mvtec --out results/rigel_cad/bench [--storage int4_triangular]
 ```
+
+**Image decoding.** `stream`, `ad2` and `bench` decode training images with a thread pool. `--decode-workers N` sets
+the number of threads (default `min(8, CPU count)`); `1` decodes sequentially. The preprocessing is unchanged, so the
+tokens are identical for any N.
 
 **Outputs** (under `--out`). Non-default storage adds the suffix `_int4tri` to every file name, so a compact-memory run
 never overwrites an fp16 result.
@@ -265,9 +284,57 @@ same `ad2` command, but none of these numbers apply to it.
 | test_private_mixed (official server) | 34.0 % | SegF1 15.3, ClassF1 76.6 |
 | test_public (local, corrected masks) | 0.3594 | AU-PRO 0.30 0.5921, SegF1 0.1680 |
 
+### Budget curve, both storage formats (order a, seed 2711)
+
+Final model, task-agnostic pixel AP. The script is `exps/rigel_budget_00/sweep.py`; it writes
+`results/rigel_cad/budget_sweep/` with image AUROC, forgetting and per-stage metrics.
+- Descriptive only: the test sets were used in earlier development, and nothing is selected from this curve.
+- Where a budget never binds, its state is identical at every stage to a smaller budget's, and the same numbers are shown.
+- The fp16 rows at 4, 8 and 16 MiB and int4 at 8 MiB equal the locked results exactly.
+
+| Budget (MiB) | 2 | 3 | 4 | 6 | 8 | 12 | 16 | 24 | 32 | unbounded |
+|---|---|---|---|---|---|---|---|---|---|---|
+| MVTec AD, fp16 | — | — | 0.5606 | 0.5840 | 0.5927 | 0.6075 | 0.6219 | 0.6281 | 0.6315 | 0.6348 |
+| MVTec AD, int4_triangular | 0.5827 | 0.6090 | 0.6206 | 0.6263 | 0.6304 | 0.6331 | 0.6331 | 0.6331 | | |
+| VisA, fp16 | — | — | 0.3672 | 0.4418 | 0.4603 | 0.4620 | 0.4614 | 0.4744 | 0.4808 | 0.4868 |
+| VisA, int4_triangular | 0.4213 | 0.4532 | 0.4659 | 0.4711 | 0.4749 | 0.4759 | 0.4821 | 0.4869 | | |
+| MPDD, fp16 | — | — | 0.4685 | 0.4889 | 0.5082 | 0.5172 | 0.5175 | 0.5175 | 0.5175 | 0.5175 |
+| MPDD, int4_triangular | 0.4879 | 0.5096 | 0.5170 | 0.5170 | 0.5170 | 0.5170 | 0.5170 | 0.5170 | | |
+
+Notes:
+- fp16 needs at least 2.25 MiB for the slow statistic alone, so it has no 2 or 3 MiB point.
+- The fp16 32 MiB and unbounded columns are locked G3E-PAPER-01 values; they were not recomputed.
+- int4 keeps every coreset key from 12 MiB on for MVTec AD (28,458 keys, 12.2 MB) and from 4 MiB on for MPDD.
+- Without consolidation, its gap to the unbounded fp16 reference is the int4 quantisation: −0.0017 on MVTec AD and
+  −0.0005 on MPDD.
+
 ### Runtime (RTX 4050 Laptop, 6 GB; head only, excluding the encoder)
 
 Measured with CUDA synchronisation, order a, seed 2711, on cached tokens.
+
+**1.1.1** (`exps/rigel_eng_01/check.py`, `results/rigel_cad/eng_01/`):
+
+| | fp16 | int4_triangular |
+|---|---|---|
+| Scoring latency per image, p50, prepared (MVTec AD / VisA / MPDD) | 1.84 / 1.79 / 1.97 ms | 8.20 / 8.23 / 3.00 ms |
+| Same, passing the `RigelState` (keys moved and multiplied per call) | 3.68 / 3.63 / 3.92 ms | 17.9 / 18.0 / 7.02 ms |
+| Coreset fit per stream, `compute_fit` total (MVTec AD / VisA / MPDD) | 37 / 243 / 7 s | same fit |
+| k-centre alone with the 1.1.0 plain loop, same tokens | 92 / 640 / 16 s | same fit |
+| Write + consolidation per stream, `write_task` total (MVTec AD / VisA / MPDD) | 2.6 / 3.0 / 0.8 s | 11.0 / 17.3 / 0.3 s |
+
+Notes:
+- The int4 scoring cost that remains is the fp32 distance computation over 18,672 keys.
+- Lowering it further would need TF32 or fp16 arithmetic, which changes the scores, so it was not done.
+
+**MVTec AD from raw images**, `bench`, 3,629 training images, arms E, F and U:
+- Training wall time is 305 s in 1.1.1 against 682 s in 1.1.0.
+- Decoding takes 76 s against 264 s, and the coreset fit of E 38 s against 104 s.
+- Encoding (115 s) is unchanged.
+- The int4 arm takes 313 s.
+- The saved E states are tensor-for-tensor equal to the 1.1.0 checkpoints.
+- Outputs: `results/rigel_cad/bench_v111/` against `results/rigel_cad/bench/`.
+
+**1.1.0** (before the engineering changes):
 
 | | fp16 | int4_triangular |
 |---|---|---|
@@ -301,6 +368,11 @@ The unit tests cover:
 - save → load → continue for int4, bitwise equal to an uninterrupted run;
 - an unchanged fp16 checkpoint layout;
 - loading a RIGEL-CAD 1.0 checkpoint;
+- 1.1.1:
+  - the CUDA-graph k-centre equals the plain loop;
+  - prepared scoring equals state scoring and is invalidated by every write;
+  - `compute_fit` + `write_task` equals `fit_task`;
+  - threaded decoding equals sequential decoding;
 - metric primitives;
 - the MVTec AD 2 mask lookup.
 
@@ -325,6 +397,17 @@ The encoder differs from the old token caches by at most one fp16 ulp on a tiny 
 - The script is `exps/rigel_q4t_int/verify.py`; it writes `results/rigel_cad/q4t_integration/`.
 - At every stage, the key state and grids are bitwise equal to the research implementation, the metrics are equal to
   the locked values, and the final checkpoint tensors are equal.
+
+**1.1.1 engineering check on all three datasets** (`exps/rigel_eng_01/check.py`, order a, seed 2711):
+- Every task's `compute_fit` equals the cached fit behind the locked results, and the k-centre equals the plain loop.
+- Both formats at 8 MiB, written with `write_task`:
+  - the int4 key count per stage equals the integration run;
+  - the final state equals the saved 1.1.0 checkpoints;
+  - the last category's grids at every stage are bitwise equal across the `RigelState`, the prepared cache and the
+    locked grids.
+- `ALL_BITWISE: true` in `results/rigel_cad/eng_01/CHECK_SUMMARY.json`.
+- The budget sweep re-checks this end to end: fp16 at 4, 8 and 16 MiB and int4 at 8 MiB equal the locked metrics at
+  every stage on all three datasets.
 
 ## Provenance
 
@@ -387,6 +470,16 @@ fast-key arm E with pooled residual whitening. `exps/` is kept unchanged as the 
   2022 MVTec Software GmbH, BSD-style licence).
 
 ## Release notes
+
+**1.1.1** (engineering only; every result is bitwise unchanged)
+- `greedy_kcenter` runs as a captured CUDA graph over row blocks of 8,192, with no host synchronisation per step. The
+  plain loop remains as `greedy_kcenter_reference` (CPU path and test oracle).
+- `RigelCAD.compute_fit` / `write_task` split `fit_task` into its budget-independent and state-dependent parts. New
+  dataclasses: `TaskFit` and `Prepared`.
+- Prepared scoring: `prepare`, `clear_cache`, and a cache for the current state.
+- Threaded training-image decoding in the encoder (`--decode-workers`).
+- `bench --storage` measures arm E in either format; non-default storage writes `_int4tri` files.
+- `paper_tables` adds the 8 MiB storage-format table and the budget-sweep table (`--q4t`, `--sweep`).
 
 **1.1.0**
 - Adds the optional `storage='int4_triangular'` compact-memory format: CLI `--storage`, checkpoint format

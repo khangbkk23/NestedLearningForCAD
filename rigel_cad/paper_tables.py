@@ -1,9 +1,12 @@
 """Export the paper tables under RIGEL-CAD names from the locked research results (read-only).
 
     python -m rigel_cad.paper_tables [--src results/hope_cad/g3e_paper_01/RESULTS.json] [--out results/rigel_cad/paper]
+        [--q4t results/rigel_cad/q4t_integration/VERIFY_SUMMARY.json]
+        [--sweep results/rigel_cad/budget_sweep/SWEEP_SUMMARY.json]
 
 Writes RIGEL_CAD_RESULTS.json (same numbers, renamed methods) and RIGEL_CAD_TABLES.md. The numbers are not
-recomputed; provenance (source file and its sha256) is recorded in the output.
+recomputed; provenance (source file and its sha256) is recorded in the output. The int4_triangular storage table
+(RIGEL-Q4T-INT verification) and the budget sweep (RIGEL-BUDGET-00) are added when their result files exist.
 """
 from __future__ import annotations
 
@@ -39,6 +42,8 @@ def main(argv=None):
     p = argparse.ArgumentParser()
     p.add_argument('--src', default='results/hope_cad/g3e_paper_01/RESULTS.json')
     p.add_argument('--out', default='results/rigel_cad/paper')
+    p.add_argument('--q4t', default='results/rigel_cad/q4t_integration/VERIFY_SUMMARY.json')
+    p.add_argument('--sweep', default='results/rigel_cad/budget_sweep/SWEEP_SUMMARY.json')
     a = p.parse_args(argv)
     src = Path(a.src)
     raw = src.read_bytes()
@@ -47,6 +52,14 @@ def main(argv=None):
     out.mkdir(parents=True, exist_ok=True)
     res = {'method': 'RIGEL-CAD', 'source': str(src), 'source_sha256': hashlib.sha256(raw).hexdigest(),
            'names': NAMES, 'tables': _rename({k: v for k, v in r.items() if k != 'plan_status'})}
+    extra = {}
+    for key in ('q4t', 'sweep'):
+        f = Path(getattr(a, key))
+        if f.exists():
+            b = f.read_bytes()
+            extra[key] = (json.loads(b), {'source': str(f), 'source_sha256': hashlib.sha256(b).hexdigest()})
+            res[f'{key}_source'] = extra[key][1]
+            res[f'{key}_tables'] = extra[key][0]
     (out / 'RIGEL_CAD_RESULTS.json').write_text(json.dumps(res, indent=1))
     L = ['# RIGEL-CAD paper tables', '', f'Source: `{src}` (sha256 {res["source_sha256"][:16]}…). Final model, '
          'task-agnostic; native binned pixel AP, image AUROC; FM = forgetting.', '',
@@ -88,6 +101,28 @@ def main(argv=None):
             if isinstance(d, dict):
                 for k in ('U', 'E@8', 'F'):
                     L.append(f'| {DATASETS[ds]} | {NAMES[k]} | {_f(d[k]["pixel_ap"])} | {_f(d[k]["image_auroc"])} |')
+    if 'q4t' in extra:
+        q, prov = extra['q4t']
+        L += ['', '## Storage formats at 8 MiB (order a, seed 2711)', '',
+              f'Source: `{prov["source"]}` (sha256 {prov["source_sha256"][:16]}…). fp16 = RIGEL-CAD v1 (default); '
+              'int4_triangular = optional compact memory (same algorithm, 18,672 int4 keys).', '',
+              '| Dataset | Storage | Pixel AP | Image AUROC | FM |', '|---|---|---|---|---|']
+        for ds in ('mvtec', 'visa', 'mpdd'):
+            if ds in q:
+                for k, lab in (('V1', 'fp16'), ('Q4T', 'int4_triangular')):
+                    x = q[ds][k]
+                    L.append(f'| {DATASETS[ds]} | {lab} | {_f(x["pixel_ap"])} | {_f(x["image_auroc"])} | '
+                             f'{_f(x["forgetting_ap"])} |')
+    if 'sweep' in extra:
+        w, prov = extra['sweep']
+        L += ['', '## Budget sweep, both storage formats (order a, seed 2711)', '',
+              f'Source: `{prov["source"]}` (sha256 {prov["source_sha256"][:16]}…). Descriptive (exposed test sets).', '',
+              '| Dataset | Storage | Budget (MiB) | Keys (final) | Pixel AP | Image AUROC | FM |',
+              '|---|---|---|---|---|---|---|']
+        for ds, d in w.items():
+            for n, x in d['configs'].items():
+                L.append(f'| {DATASETS[ds]} | {x["storage"]} | {x["budget_mib"]:g} | {x["keys_final"]:,} | '
+                         f'{_f(x["pixel_ap"])} | {_f(x["image_auroc"])} | {_f(x["forgetting_ap"])} |')
     (out / 'RIGEL_CAD_TABLES.md').write_text('\n'.join(L) + '\n')
     print('wrote', out / 'RIGEL_CAD_RESULTS.json', out / 'RIGEL_CAD_TABLES.md')
 

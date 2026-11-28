@@ -1,0 +1,557 @@
+{
+ "mvtec": {
+  "anchors_all_equal": true,
+  "configs": {
+   "fp16@4": {
+    "storage": "fp16",
+    "budget_mib": 4,
+    "key_capacity": 1194,
+    "bytes_max": 4193288,
+    "pixel_ap": 0.5606380989154179,
+    "image_auroc": 0.9662302960811171,
+    "forgetting_ap": 0.04952868499926159,
+    "identical_to": null,
+    "capacity_binds": true,
+    "keys_final": 1194
+   },
+   "fp16@6": {
+    "storage": "fp16",
+    "budget_mib": 6,
+    "key_capacity": 2559,
+    "bytes_max": 6289928,
+    "pixel_ap": 0.5839763979117075,
+    "image_auroc": 0.9796940261404451,
+    "forgetting_ap": 0.03491625828402383,
+    "identical_to": null,
+    "capacity_binds": true,
+    "keys_final": 2559
+   },
+   "fp16@8": {
+    "storage": "fp16",
+    "budget_mib": 8,
+    "key_capacity": 3925,
+    "bytes_max": 8388104,
+    "pixel_ap": 0.5926523824532827,
+    "image_auroc": 0.9826164429616465,
+    "forgetting_ap": 0.033254582967076986,
+    "identical_to": null,
+    "capacity_binds": true,
+    "keys_final": 3925
+   },
+   "fp16@12": {
+    "storage": "fp16",
+    "budget_mib": 12,
+    "key_capacity": 6655,
+    "bytes_max": 12581384,
+    "pixel_ap": 0.6074677964051565,
+    "image_auroc": 0.9846853601699697,
+    "forgetting_ap": 0.026349729725292752,
+    "identical_to": null,
+    "capacity_binds": true,
+    "keys_final": 6655
+   },
+   "fp16@16": {
+    "storage": "fp16",
+    "budget_mib": 16,
+    "key_capacity": 9386,
+    "bytes_max": 16776200,
+    "pixel_ap": 0.6218650460243225,
+    "image_auroc": 0.9913662307772706,
+    "forgetting_ap": 0.017036284719194685,
+    "identical_to": null,
+    "capacity_binds": true,
+    "keys_final": 9386
+   },
+   "fp16@24": {
+    "storage": "fp16",
+    "budget_mib": 24,
+    "key_capacity": 14847,
+    "bytes_max": 25164296,
+    "pixel_ap": 0.6281310280164083,
+    "image_auroc": 0.9911554742616379,
+    "forgetting_ap": 0.011314700756754194,
+    "identical_to": null,
+    "capacity_binds": true,
+    "keys_final": 14847
+   },
+   "q4t@2": {
+    "storage": "int4_triangular",
+    "budget_mib": 2,
+    "key_capacity": 2372,
+    "bytes_max": 2096784,
+    "pixel_ap": 0.5827134907245636,
+    "image_auroc": 0.9737676398356385,
+    "forgetting_ap": 0.03600603129182543,
+    "identical_to": null,
+    "capacity_binds": true,
+    "keys_final": 2372
+   },
+   "q4t@3": {
+    "storage": "int4_triangular",
+    "budget_mib": 3,
+    "key_capacity": 5089,
+    "bytes_max": 3145546,
+    "pixel_ap": 0.6090075353781382,
+    "image_auroc": 0.9865087135205789,
+    "forgetting_ap": 0.023473443729536875,
+    "identical_to": null,
+    "capacity_binds": true,
+    "keys_final": 5089
+   },
+   "q4t@4": {
+    "storage": "int4_triangular",
+    "budget_mib": 4,
+    "key_capacity": 7805,
+    "bytes_max": 4193922,
+    "pixel_ap": 0.6205644289652507,
+    "image_auroc": 0.9894745007222663,
+    "forgetting_ap": 0.015588460224015372,
+    "identical_to": null,
+    "capacity_binds": true,
+    "keys_final": 7805
+   },
+   "q4t@6": {
+    "storage": "int4_triangular",
+    "budget_mib": 6,
+    "key_capacity": 13239,
+    "bytes_max": 6291446,
+    "pixel_ap": 0.6263207574685414,
+    "image_auroc": 0.99169471331624,
+    "forgetting_ap": 0.011533496635300773,
+    "identical_to": null,
+    "capacity_binds": true,
+    "keys_final": 13239
+   },
+   "q4t@8": {
+    "storage": "int4_triangular",
+    "budget_mib": 8,
+    "key_capacity": 18672,
+    "bytes_max": 8388584,
+    "pixel_ap": 0.6303641577561696,
+    "image_auroc": 0.9926092780061385,
+    "forgetting_ap": 0.007415986486843654,
+    "identical_to": null,
+    "capacity_binds": true,
+    "keys_final": 18672
+   },
+   "q4t@12": {
+    "storage": "int4_triangular",
+    "budget_mib": 12,
+    "key_capacity": 29538,
+    "bytes_max": 12165980,
+    "pixel_ap": 0.6330526928106944,
+    "image_auroc": 0.9934323360482968,
+    "forgetting_ap": 0.003083295055798122,
+    "identical_to": null,
+    "capacity_binds": false,
+    "keys_final": 28458
+   },
+   "q4t@16": {
+    "storage": "int4_triangular",
+    "budget_mib": 16,
+    "key_capacity": 40404,
+    "bytes_max": 12165980,
+    "pixel_ap": 0.6330526928106944,
+    "image_auroc": 0.9934323360482968,
+    "forgetting_ap": 0.003083295055798122,
+    "identical_to": "q4t@12",
+    "capacity_binds": false,
+    "keys_final": 28458
+   },
+   "q4t@24": {
+    "storage": "int4_triangular",
+    "budget_mib": 24,
+    "key_capacity": 62136,
+    "bytes_max": 12165980,
+    "pixel_ap": 0.6330526928106944,
+    "image_auroc": 0.9934323360482968,
+    "forgetting_ap": 0.003083295055798122,
+    "identical_to": "q4t@12",
+    "capacity_binds": false,
+    "keys_final": 28458
+   }
+  },
+  "locked_E@32": {
+   "bytes_max": 33553928,
+   "pixel_ap": 0.6315312723318736,
+   "image_auroc": 0.9940548434300425,
+   "fm": 0.007247929062162127
+  },
+  "locked_U": {
+   "bytes_max": 46070792,
+   "pixel_ap": 0.6347502728303274,
+   "image_auroc": 0.9953228347787344,
+   "fm": 0.003360001104218619
+  }
+ },
+ "visa": {
+  "anchors_all_equal": true,
+  "configs": {
+   "fp16@4": {
+    "storage": "fp16",
+    "budget_mib": 4,
+    "key_capacity": 1194,
+    "bytes_max": 4193288,
+    "pixel_ap": 0.36719781160354614,
+    "image_auroc": 0.8955546754675469,
+    "forgetting_ap": 0.07924263653430072,
+    "identical_to": null,
+    "capacity_binds": true,
+    "keys_final": 1194
+   },
+   "fp16@6": {
+    "storage": "fp16",
+    "budget_mib": 6,
+    "key_capacity": 2559,
+    "bytes_max": 6289928,
+    "pixel_ap": 0.44184251067539054,
+    "image_auroc": 0.9340943344334433,
+    "forgetting_ap": 0.02745583721182563,
+    "identical_to": null,
+    "capacity_binds": true,
+    "keys_final": 2559
+   },
+   "fp16@8": {
+    "storage": "fp16",
+    "budget_mib": 8,
+    "key_capacity": 3925,
+    "bytes_max": 8388104,
+    "pixel_ap": 0.4602507644643386,
+    "image_auroc": 0.9349114961496149,
+    "forgetting_ap": 0.011919595978476784,
+    "identical_to": null,
+    "capacity_binds": true,
+    "keys_final": 3925
+   },
+   "fp16@12": {
+    "storage": "fp16",
+    "budget_mib": 12,
+    "key_capacity": 6655,
+    "bytes_max": 12581384,
+    "pixel_ap": 0.46204053921004135,
+    "image_auroc": 0.9594852310231025,
+    "forgetting_ap": 0.012642674148082733,
+    "identical_to": null,
+    "capacity_binds": true,
+    "keys_final": 6655
+   },
+   "fp16@16": {
+    "storage": "fp16",
+    "budget_mib": 16,
+    "key_capacity": 9386,
+    "bytes_max": 16776200,
+    "pixel_ap": 0.4613829342027505,
+    "image_auroc": 0.964252709020902,
+    "forgetting_ap": 0.013323582031510094,
+    "identical_to": null,
+    "capacity_binds": true,
+    "keys_final": 9386
+   },
+   "fp16@24": {
+    "storage": "fp16",
+    "budget_mib": 24,
+    "key_capacity": 14847,
+    "bytes_max": 25164296,
+    "pixel_ap": 0.4744117297232151,
+    "image_auroc": 0.9703945269526951,
+    "forgetting_ap": 0.008060337467627092,
+    "identical_to": null,
+    "capacity_binds": true,
+    "keys_final": 14847
+   },
+   "q4t@2": {
+    "storage": "int4_triangular",
+    "budget_mib": 2,
+    "key_capacity": 2372,
+    "bytes_max": 2096784,
+    "pixel_ap": 0.4213227421666185,
+    "image_auroc": 0.9140401677667768,
+    "forgetting_ap": 0.037587164816531266,
+    "identical_to": null,
+    "capacity_binds": true,
+    "keys_final": 2372
+   },
+   "q4t@3": {
+    "storage": "int4_triangular",
+    "budget_mib": 3,
+    "key_capacity": 5089,
+    "bytes_max": 3145546,
+    "pixel_ap": 0.45319146787126857,
+    "image_auroc": 0.9535385038503851,
+    "forgetting_ap": 0.019390868869694797,
+    "identical_to": null,
+    "capacity_binds": true,
+    "keys_final": 5089
+   },
+   "q4t@4": {
+    "storage": "int4_triangular",
+    "budget_mib": 4,
+    "key_capacity": 7805,
+    "bytes_max": 4193922,
+    "pixel_ap": 0.46593177256484825,
+    "image_auroc": 0.9539954620462047,
+    "forgetting_ap": 0.013020468706434423,
+    "identical_to": null,
+    "capacity_binds": true,
+    "keys_final": 7805
+   },
+   "q4t@6": {
+    "storage": "int4_triangular",
+    "budget_mib": 6,
+    "key_capacity": 13239,
+    "bytes_max": 6291446,
+    "pixel_ap": 0.47105536858240765,
+    "image_auroc": 0.9675688118811884,
+    "forgetting_ap": 0.010157031091776762,
+    "identical_to": null,
+    "capacity_binds": true,
+    "keys_final": 13239
+   },
+   "q4t@8": {
+    "storage": "int4_triangular",
+    "budget_mib": 8,
+    "key_capacity": 18672,
+    "bytes_max": 8388584,
+    "pixel_ap": 0.4748539999127388,
+    "image_auroc": 0.970657783278328,
+    "forgetting_ap": 0.0052703185514970255,
+    "identical_to": null,
+    "capacity_binds": true,
+    "keys_final": 18672
+   },
+   "q4t@12": {
+    "storage": "int4_triangular",
+    "budget_mib": 12,
+    "key_capacity": 29538,
+    "bytes_max": 12582860,
+    "pixel_ap": 0.47591633598009747,
+    "image_auroc": 0.9711864961496149,
+    "forgetting_ap": 0.009890064597129822,
+    "identical_to": null,
+    "capacity_binds": true,
+    "keys_final": 29538
+   },
+   "q4t@16": {
+    "storage": "int4_triangular",
+    "budget_mib": 16,
+    "key_capacity": 40404,
+    "bytes_max": 16777136,
+    "pixel_ap": 0.4821028336882591,
+    "image_auroc": 0.9741226622662267,
+    "forgetting_ap": 0.005654157562689347,
+    "identical_to": null,
+    "capacity_binds": true,
+    "keys_final": 40404
+   },
+   "q4t@24": {
+    "storage": "int4_triangular",
+    "budget_mib": 24,
+    "key_capacity": 62136,
+    "bytes_max": 25165688,
+    "pixel_ap": 0.4868796579539776,
+    "image_auroc": 0.9722953520352036,
+    "forgetting_ap": 0.0030785528096285734,
+    "identical_to": null,
+    "capacity_binds": true,
+    "keys_final": 62136
+   }
+  },
+  "locked_E@32": {
+   "bytes_max": 33553928,
+   "pixel_ap": 0.48078925907611847,
+   "image_auroc": 0.9696152090209019,
+   "fm": 0.003560748967257413
+  },
+  "locked_U": {
+   "bytes_max": 106638344,
+   "pixel_ap": 0.4867558827002843,
+   "image_auroc": 0.9746025302530255,
+   "fm": 0.0030171288685365157
+  }
+ },
+ "mpdd": {
+  "anchors_all_equal": true,
+  "configs": {
+   "fp16@4": {
+    "storage": "fp16",
+    "budget_mib": 4,
+    "key_capacity": 1194,
+    "bytes_max": 4193288,
+    "pixel_ap": 0.46851555816829205,
+    "image_auroc": 0.9195015000097779,
+    "forgetting_ap": 0.0431720070540905,
+    "identical_to": null,
+    "capacity_binds": true,
+    "keys_final": 1194
+   },
+   "fp16@6": {
+    "storage": "fp16",
+    "budget_mib": 6,
+    "key_capacity": 2559,
+    "bytes_max": 6289928,
+    "pixel_ap": 0.48886818438768387,
+    "image_auroc": 0.9299551504326836,
+    "forgetting_ap": 0.024580776691436768,
+    "identical_to": null,
+    "capacity_binds": true,
+    "keys_final": 2559
+   },
+   "fp16@8": {
+    "storage": "fp16",
+    "budget_mib": 8,
+    "key_capacity": 3925,
+    "bytes_max": 8388104,
+    "pixel_ap": 0.5082262977957726,
+    "image_auroc": 0.9399078490516836,
+    "forgetting_ap": 0.012806892395019531,
+    "identical_to": null,
+    "capacity_binds": true,
+    "keys_final": 3925
+   },
+   "fp16@12": {
+    "storage": "fp16",
+    "budget_mib": 12,
+    "key_capacity": 6655,
+    "bytes_max": 12581384,
+    "pixel_ap": 0.5172263346612453,
+    "image_auroc": 0.962705623490096,
+    "forgetting_ap": 0.0015085965394973754,
+    "identical_to": null,
+    "capacity_binds": true,
+    "keys_final": 6655
+   },
+   "fp16@16": {
+    "storage": "fp16",
+    "budget_mib": 16,
+    "key_capacity": 9386,
+    "bytes_max": 13057544,
+    "pixel_ap": 0.5174698183933893,
+    "image_auroc": 0.962705623490096,
+    "forgetting_ap": 0.0012212559580802918,
+    "identical_to": null,
+    "capacity_binds": false,
+    "keys_final": 6965
+   },
+   "fp16@24": {
+    "storage": "fp16",
+    "budget_mib": 24,
+    "key_capacity": 14847,
+    "bytes_max": 13057544,
+    "pixel_ap": 0.5174698183933893,
+    "image_auroc": 0.962705623490096,
+    "forgetting_ap": 0.0012212559580802918,
+    "identical_to": "fp16@16",
+    "capacity_binds": false,
+    "keys_final": 6965
+   },
+   "q4t@2": {
+    "storage": "int4_triangular",
+    "budget_mib": 2,
+    "key_capacity": 2372,
+    "bytes_max": 2096784,
+    "pixel_ap": 0.4879375994205475,
+    "image_auroc": 0.9229298791751179,
+    "forgetting_ap": 0.01857438385486603,
+    "identical_to": null,
+    "capacity_binds": true,
+    "keys_final": 2372
+   },
+   "q4t@3": {
+    "storage": "int4_triangular",
+    "budget_mib": 3,
+    "key_capacity": 5089,
+    "bytes_max": 3145546,
+    "pixel_ap": 0.5095793604850769,
+    "image_auroc": 0.9558964073643089,
+    "forgetting_ap": 0.009797896444797515,
+    "identical_to": null,
+    "capacity_binds": true,
+    "keys_final": 5089
+   },
+   "q4t@4": {
+    "storage": "int4_triangular",
+    "budget_mib": 4,
+    "key_capacity": 7805,
+    "bytes_max": 3869682,
+    "pixel_ap": 0.5170489177107811,
+    "image_auroc": 0.9598162456531272,
+    "forgetting_ap": 0.0012250766158103943,
+    "identical_to": null,
+    "capacity_binds": false,
+    "keys_final": 6965
+   },
+   "q4t@6": {
+    "storage": "int4_triangular",
+    "budget_mib": 6,
+    "key_capacity": 13239,
+    "bytes_max": 3869682,
+    "pixel_ap": 0.5170489177107811,
+    "image_auroc": 0.9598162456531272,
+    "forgetting_ap": 0.0012250766158103943,
+    "identical_to": "q4t@4",
+    "capacity_binds": false,
+    "keys_final": 6965
+   },
+   "q4t@8": {
+    "storage": "int4_triangular",
+    "budget_mib": 8,
+    "key_capacity": 18672,
+    "bytes_max": 3869682,
+    "pixel_ap": 0.5170489177107811,
+    "image_auroc": 0.9598162456531272,
+    "forgetting_ap": 0.0012250766158103943,
+    "identical_to": "q4t@4",
+    "capacity_binds": false,
+    "keys_final": 6965
+   },
+   "q4t@12": {
+    "storage": "int4_triangular",
+    "budget_mib": 12,
+    "key_capacity": 29538,
+    "bytes_max": 3869682,
+    "pixel_ap": 0.5170489177107811,
+    "image_auroc": 0.9598162456531272,
+    "forgetting_ap": 0.0012250766158103943,
+    "identical_to": "q4t@4",
+    "capacity_binds": false,
+    "keys_final": 6965
+   },
+   "q4t@16": {
+    "storage": "int4_triangular",
+    "budget_mib": 16,
+    "key_capacity": 40404,
+    "bytes_max": 3869682,
+    "pixel_ap": 0.5170489177107811,
+    "image_auroc": 0.9598162456531272,
+    "forgetting_ap": 0.0012250766158103943,
+    "identical_to": "q4t@4",
+    "capacity_binds": false,
+    "keys_final": 6965
+   },
+   "q4t@24": {
+    "storage": "int4_triangular",
+    "budget_mib": 24,
+    "key_capacity": 62136,
+    "bytes_max": 3869682,
+    "pixel_ap": 0.5170489177107811,
+    "image_auroc": 0.9598162456531272,
+    "forgetting_ap": 0.0012250766158103943,
+    "identical_to": "q4t@4",
+    "capacity_binds": false,
+    "keys_final": 6965
+   }
+  },
+  "locked_E@32": {
+   "bytes_max": 13057544,
+   "pixel_ap": 0.5174698183933893,
+   "image_auroc": 0.962705623490096,
+   "fm": 0.0012212559580802918
+  },
+  "locked_U": {
+   "bytes_max": 13057544,
+   "pixel_ap": 0.5174698183933893,
+   "image_auroc": 0.962705623490096,
+   "fm": 0.0012212559580802918
+  }
+ }
+}

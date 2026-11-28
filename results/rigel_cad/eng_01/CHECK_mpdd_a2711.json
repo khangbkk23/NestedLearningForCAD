@@ -1,0 +1,122 @@
+{
+ "dataset": "mpdd",
+ "tag": "mpdd_a2711",
+ "per_task": [
+  {
+   "task": "mpdd/bracket_black",
+   "n_tokens": 226576,
+   "k": 2266,
+   "fit_equal_cached": true,
+   "kcenter_equal_reference": true,
+   "fit_s_new": 3.286224603652954,
+   "kcenter_s_reference": 8.043435335159302,
+   "write_s_v1": 0.04659676551818848,
+   "n_keys_v1": 2266,
+   "write_s_q4t": 0.0694272518157959,
+   "n_keys_q4t": 2266
+  },
+  {
+   "task": "mpdd/bracket_brown",
+   "n_tokens": 145040,
+   "k": 1451,
+   "fit_equal_cached": true,
+   "kcenter_equal_reference": true,
+   "fit_s_new": 1.3085241317749023,
+   "kcenter_s_reference": 3.409543991088867,
+   "write_s_v1": 0.04834580421447754,
+   "n_keys_v1": 3717,
+   "write_s_q4t": 0.05442643165588379,
+   "n_keys_q4t": 3717
+  },
+  {
+   "task": "mpdd/bracket_white",
+   "n_tokens": 86240,
+   "k": 863,
+   "fit_equal_cached": true,
+   "kcenter_equal_reference": true,
+   "fit_s_new": 0.6915237903594971,
+   "kcenter_s_reference": 1.2136759757995605,
+   "write_s_v1": 0.17294740676879883,
+   "n_keys_v1": 3925,
+   "write_s_q4t": 0.04488492012023926,
+   "n_keys_q4t": 4580
+  },
+  {
+   "task": "mpdd/connector",
+   "n_tokens": 100352,
+   "k": 1004,
+   "fit_equal_cached": true,
+   "kcenter_equal_reference": true,
+   "fit_s_new": 0.8397469520568848,
+   "kcenter_s_reference": 1.6373176574707031,
+   "write_s_v1": 0.16959714889526367,
+   "n_keys_v1": 3925,
+   "write_s_q4t": 0.04479861259460449,
+   "n_keys_q4t": 5584
+  },
+  {
+   "task": "mpdd/metal_plate",
+   "n_tokens": 42336,
+   "k": 424,
+   "fit_equal_cached": true,
+   "kcenter_equal_reference": true,
+   "fit_s_new": 0.14963650703430176,
+   "kcenter_s_reference": 0.28953027725219727,
+   "write_s_v1": 0.16891193389892578,
+   "n_keys_v1": 3925,
+   "write_s_q4t": 0.04177236557006836,
+   "n_keys_q4t": 6008
+  },
+  {
+   "task": "mpdd/tubes",
+   "n_tokens": 95648,
+   "k": 957,
+   "fit_equal_cached": true,
+   "kcenter_equal_reference": true,
+   "fit_s_new": 0.8532896041870117,
+   "kcenter_s_reference": 1.4961411952972412,
+   "write_s_v1": 0.17141461372375488,
+   "n_keys_v1": 3925,
+   "write_s_q4t": 0.05098104476928711,
+   "n_keys_q4t": 6965
+  }
+ ],
+ "fit_equal_cached_all": true,
+ "kcenter_equal_reference_all": true,
+ "fit_s_new_total": 7.128945589065552,
+ "kcenter_s_reference_total": 16.08964443206787,
+ "q4t_keys_per_stage_equal_integration": true,
+ "final_state_equal_saved": {
+  "v1_keys": true,
+  "v1_S": true,
+  "v1_n": true,
+  "q4t_codes": true,
+  "q4t_scale": true,
+  "q4t_S_tri": true,
+  "q4t_n": true
+ },
+ "final_state_equal_saved_all": true,
+ "scoring_last_category": {
+  "category": "tubes",
+  "v1": {
+   "state_eq_prepared": true,
+   "state_eq_current_cached": true,
+   "state_eq_locked": true,
+   "head_ms_p50": {
+    "state": 3.9212703704833984,
+    "prepared": 1.9712448120117188
+   }
+  },
+  "q4t": {
+   "state_eq_prepared": true,
+   "state_eq_current_cached": true,
+   "state_eq_locked": true,
+   "head_ms_p50": {
+    "state": 7.017374038696289,
+    "prepared": 3.003358840942383
+   }
+  }
+ },
+ "gpu": "NVIDIA GeForce RTX 4050 Laptop GPU",
+ "torch": "2.10.0+cu126"
+}

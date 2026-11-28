@@ -1,4 +1,4 @@
-"""RIGEL-CAD unit tests (CPU; no dataset or checkpoint needed)."""
+"""RIGEL-CAD unit tests (CPU; no dataset or checkpoint needed; the CUDA k-centre test is skipped without a GPU)."""
 from pathlib import Path
 
 import numpy as np
@@ -330,3 +330,84 @@ def test_stream_pipeline_int4_unbounded_and_v1_file_names(tmp_path, monkeypatch)
     for r in res.values():
         assert (out / f"RESULTS_{r['tag']}.json").exists() and (out / 'states' / f"{r['tag']}.rigel").exists()
     assert res['q4']['bytes_max'] == 2 * 6 * 8 * 386 + SLOW_TRI_BYTES      # 8 keys per task, never consolidated
+
+
+# ---------------------------------------------------------------------------------------------- 1.1.1 engineering
+cuda = pytest.mark.skipif(not torch.cuda.is_available(), reason='needs CUDA')
+
+
+@cuda
+def test_kcenter_cuda_graph_matches_reference():
+    """The CUDA-graph k-centre selects exactly the indices of the plain loop (several blocks, a partial last block,
+    fp16 and fp32 inputs, n = 1, and n equal to the number of rows)."""
+    for N, n, dt in ((30_001, 700, torch.float16), (5_000, 4_999, torch.float32), (8_192, 1, torch.float16),
+                     (300, 300, torch.float32)):
+        x = _tokens(N, N).to('cuda', dt)
+        assert torch.equal(ops.greedy_kcenter(x, n, seed=2711), ops.greedy_kcenter_reference(x, n, seed=2711)), N
+    x = _tokens(20_000, 3).cuda()
+    assert torch.equal(ops.greedy_kcenter(x, 50, seed=7), ops.greedy_kcenter(x, 500, seed=7)[:50])   # prefix
+
+
+def _learn(m, n_tasks=4, n_img=6):
+    for t in range(n_tasks):
+        m.fit_task(_tokens(784 * n_img, 40 + t), f't{t}')
+    return m
+
+
+@pytest.mark.parametrize('kw', [dict(budget_mib=2.5), dict(budget_mib=1.5, storage='int4_triangular'),
+                                dict(budget_mib=None), dict(budget_mib=2.5, slow_level=False)])
+def test_prepared_readout_scores_identically_and_is_invalidated(kw):
+    m = _learn(RigelCAD(RigelConfig(**kw), keep_history=True), 3)
+    q = _tokens(784 * 2, 99)
+    ref = m.patch_energy(q, m.state())
+    assert torch.equal(m.patch_energy(q), ref)                        # cached current read-out
+    assert m.patch_energy(q) is not None and m._prep is not None
+    assert torch.equal(m.patch_energy(q, m.prepare(m.state_at(1))), m.patch_energy(q, m.state_at(1)))
+    m.fit_task(_tokens(784 * 6, 77), 'new')                           # a new task invalidates the cache
+    assert torch.equal(m.patch_energy(q), m.patch_energy(q, m.state()))
+    assert not torch.equal(m.patch_energy(q), ref)
+
+
+def test_reassigned_keys_are_not_served_from_cache():
+    m = _learn(RigelCAD(RigelConfig(budget_mib=8)), 2)
+    q = _tokens(784, 5)
+    m.patch_energy(q)
+    m.fast.keys = m.fast.keys[:100].clone()
+    assert torch.equal(m.patch_energy(q), m.patch_energy(q, m.state()))
+
+
+@pytest.mark.parametrize('storage', ['fp16', 'int4_triangular'])
+def test_compute_fit_then_write_task_equals_fit_task(storage):
+    a = RigelCAD(RigelConfig(budget_mib=2.5 if storage == 'fp16' else 1.4, storage=storage), keep_history=True)
+    b = RigelCAD(RigelConfig(budget_mib=2.5 if storage == 'fp16' else 1.4, storage=storage), keep_history=True)
+    for t in range(4):
+        x = _tokens(784 * 6, 60 + t)
+        a.fit_task(x, f't{t}')
+        b.write_task(b.compute_fit(x), f't{t}')
+    q = _tokens(784, 1)
+    for l in range(4):
+        assert torch.equal(a.patch_energy(q, a.state_at(l)), b.patch_energy(q, b.state_at(l)))
+    assert torch.equal(a.state().keys, b.state().keys) and a.task_names == b.task_names
+    assert a.persistent_bytes() == b.persistent_bytes()
+
+
+def test_parallel_decode_is_identical(tmp_path):
+    from PIL import Image
+    from rigel_cad import encoders
+    rng = np.random.default_rng(0)
+    paths = []
+    for i in range(13):
+        p = tmp_path / f'{i}.{"png" if i % 2 else "jpg"}'
+        Image.fromarray(rng.integers(0, 255, (300 + 7 * i, 410, 3), dtype=np.uint8)).save(p)
+        paths.append(p)
+
+    class Stub(encoders.RigelEncoder):
+        device = 'cpu'
+
+        def tokens(self, x):
+            return x.reshape(len(x), -1)[:, :1000].half()
+
+    e = Stub()
+    seq = e.encode_paths(paths, batch=4, workers=1)
+    assert torch.equal(e.encode_paths(paths, batch=4, workers=6), seq)
+    assert torch.equal(e.preprocess_many(paths, workers=6), torch.stack([e.preprocess(p) for p in paths]))

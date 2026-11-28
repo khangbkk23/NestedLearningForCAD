@@ -1,0 +1,200 @@
+{
+ "dataset": "visa",
+ "tag": "visa_a2711",
+ "per_task": [
+  {
+   "task": "visa/candle",
+   "n_tokens": 705600,
+   "k": 7056,
+   "fit_equal_cached": true,
+   "kcenter_equal_reference": true,
+   "fit_s_new": 28.864779710769653,
+   "kcenter_s_reference": 76.10514569282532,
+   "write_s_v1": 0.21676087379455566,
+   "n_keys_v1": 3925,
+   "write_s_q4t": 0.10076212882995605,
+   "n_keys_q4t": 7056
+  },
+  {
+   "task": "visa/capsules",
+   "n_tokens": 424928,
+   "k": 4250,
+   "fit_equal_cached": true,
+   "kcenter_equal_reference": true,
+   "fit_s_new": 10.57071328163147,
+   "kcenter_s_reference": 27.818698167800903,
+   "write_s_v1": 0.22263765335083008,
+   "n_keys_v1": 3925,
+   "write_s_q4t": 0.05769968032836914,
+   "n_keys_q4t": 11306
+  },
+  {
+   "task": "visa/cashew",
+   "n_tokens": 352800,
+   "k": 3528,
+   "fit_equal_cached": true,
+   "kcenter_equal_reference": true,
+   "fit_s_new": 7.324176073074341,
+   "kcenter_s_reference": 19.28707003593445,
+   "write_s_v1": 0.2106764316558838,
+   "n_keys_v1": 3925,
+   "write_s_q4t": 0.05903935432434082,
+   "n_keys_q4t": 14834
+  },
+  {
+   "task": "visa/chewinggum",
+   "n_tokens": 355152,
+   "k": 3552,
+   "fit_equal_cached": true,
+   "kcenter_equal_reference": true,
+   "fit_s_new": 7.4401257038116455,
+   "kcenter_s_reference": 19.548590183258057,
+   "write_s_v1": 0.2082664966583252,
+   "n_keys_v1": 3925,
+   "write_s_q4t": 0.06098198890686035,
+   "n_keys_q4t": 18386
+  },
+  {
+   "task": "visa/fryum",
+   "n_tokens": 352800,
+   "k": 3528,
+   "fit_equal_cached": true,
+   "kcenter_equal_reference": true,
+   "fit_s_new": 7.407637357711792,
+   "kcenter_s_reference": 19.290229082107544,
+   "write_s_v1": 0.21435832977294922,
+   "n_keys_v1": 3925,
+   "write_s_q4t": 1.8525190353393555,
+   "n_keys_q4t": 18672
+  },
+  {
+   "task": "visa/macaroni1",
+   "n_tokens": 705600,
+   "k": 7056,
+   "fit_equal_cached": true,
+   "kcenter_equal_reference": true,
+   "fit_s_new": 28.823105812072754,
+   "kcenter_s_reference": 76.09094572067261,
+   "write_s_v1": 0.2745392322540283,
+   "n_keys_v1": 3925,
+   "write_s_q4t": 2.2160375118255615,
+   "n_keys_q4t": 18672
+  },
+  {
+   "task": "visa/macaroni2",
+   "n_tokens": 705600,
+   "k": 7056,
+   "fit_equal_cached": true,
+   "kcenter_equal_reference": true,
+   "fit_s_new": 28.77330780029297,
+   "kcenter_s_reference": 75.89070773124695,
+   "write_s_v1": 0.27524662017822266,
+   "n_keys_v1": 3925,
+   "write_s_q4t": 2.2343430519104004,
+   "n_keys_q4t": 18672
+  },
+  {
+   "task": "visa/pcb1",
+   "n_tokens": 708736,
+   "k": 7088,
+   "fit_equal_cached": true,
+   "kcenter_equal_reference": true,
+   "fit_s_new": 29.048579216003418,
+   "kcenter_s_reference": 76.73520064353943,
+   "write_s_v1": 0.2757244110107422,
+   "n_keys_v1": 3925,
+   "write_s_q4t": 2.1809089183807373,
+   "n_keys_q4t": 18672
+  },
+  {
+   "task": "visa/pcb2",
+   "n_tokens": 706384,
+   "k": 7064,
+   "fit_equal_cached": true,
+   "kcenter_equal_reference": true,
+   "fit_s_new": 28.878178119659424,
+   "kcenter_s_reference": 76.05111074447632,
+   "write_s_v1": 0.2772531509399414,
+   "n_keys_v1": 3925,
+   "write_s_q4t": 2.202578067779541,
+   "n_keys_q4t": 18672
+  },
+  {
+   "task": "visa/pcb3",
+   "n_tokens": 709520,
+   "k": 7096,
+   "fit_equal_cached": true,
+   "kcenter_equal_reference": true,
+   "fit_s_new": 29.056013822555542,
+   "kcenter_s_reference": 76.87240934371948,
+   "write_s_v1": 0.29281091690063477,
+   "n_keys_v1": 3925,
+   "write_s_q4t": 2.2417209148406982,
+   "n_keys_q4t": 18672
+  },
+  {
+   "task": "visa/pcb4",
+   "n_tokens": 708736,
+   "k": 7088,
+   "fit_equal_cached": true,
+   "kcenter_equal_reference": true,
+   "fit_s_new": 29.05184769630432,
+   "kcenter_s_reference": 76.58584761619568,
+   "write_s_v1": 0.28148579597473145,
+   "n_keys_v1": 3925,
+   "write_s_q4t": 2.2612690925598145,
+   "n_keys_q4t": 18672
+  },
+  {
+   "task": "visa/pipe_fryum",
+   "n_tokens": 352800,
+   "k": 3528,
+   "fit_equal_cached": true,
+   "kcenter_equal_reference": true,
+   "fit_s_new": 7.327501058578491,
+   "kcenter_s_reference": 19.38531994819641,
+   "write_s_v1": 0.20273900032043457,
+   "n_keys_v1": 3925,
+   "write_s_q4t": 1.8658671379089355,
+   "n_keys_q4t": 18672
+  }
+ ],
+ "fit_equal_cached_all": true,
+ "kcenter_equal_reference_all": true,
+ "fit_s_new_total": 242.56596565246582,
+ "kcenter_s_reference_total": 639.6612749099731,
+ "q4t_keys_per_stage_equal_integration": true,
+ "final_state_equal_saved": {
+  "v1_keys": true,
+  "v1_S": true,
+  "v1_n": true,
+  "q4t_codes": true,
+  "q4t_scale": true,
+  "q4t_S_tri": true,
+  "q4t_n": true
+ },
+ "final_state_equal_saved_all": true,
+ "scoring_last_category": {
+  "category": "pipe_fryum",
+  "v1": {
+   "state_eq_prepared": true,
+   "state_eq_current_cached": true,
+   "state_eq_locked": true,
+   "head_ms_p50": {
+    "state": 3.626585006713867,
+    "prepared": 1.7910003662109375
+   }
+  },
+  "q4t": {
+   "state_eq_prepared": true,
+   "state_eq_current_cached": true,
+   "state_eq_locked": true,
+   "head_ms_p50": {
+    "state": 18.003463745117188,
+    "prepared": 8.232593536376953
+   }
+  }
+ },
+ "gpu": "NVIDIA GeForce RTX 4050 Laptop GPU",
+ "torch": "2.10.0+cu126"
+}

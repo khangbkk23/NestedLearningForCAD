@@ -1,0 +1,239 @@
+{
+ "dataset": "mvtec",
+ "tag": "mvtec_a2711",
+ "per_task": [
+  {
+   "task": "mvtec/bottle",
+   "n_tokens": 163856,
+   "k": 1639,
+   "fit_equal_cached": true,
+   "kcenter_equal_reference": true,
+   "fit_s_new": 1.8828725814819336,
+   "kcenter_s_reference": 4.244211673736572,
+   "write_s_v1": 0.044419050216674805,
+   "n_keys_v1": 1639,
+   "write_s_q4t": 0.08556199073791504,
+   "n_keys_q4t": 1639
+  },
+  {
+   "task": "mvtec/cable",
+   "n_tokens": 175616,
+   "k": 1757,
+   "fit_equal_cached": true,
+   "kcenter_equal_reference": true,
+   "fit_s_new": 2.191300630569458,
+   "kcenter_s_reference": 4.889721155166626,
+   "write_s_v1": 0.049252986907958984,
+   "n_keys_v1": 3396,
+   "write_s_q4t": 0.04505562782287598,
+   "n_keys_q4t": 3396
+  },
+  {
+   "task": "mvtec/capsule",
+   "n_tokens": 171696,
+   "k": 1717,
+   "fit_equal_cached": true,
+   "kcenter_equal_reference": true,
+   "fit_s_new": 1.9462320804595947,
+   "kcenter_s_reference": 4.678937911987305,
+   "write_s_v1": 0.17504477500915527,
+   "n_keys_v1": 3925,
+   "write_s_q4t": 0.03982257843017578,
+   "n_keys_q4t": 5113
+  },
+  {
+   "task": "mvtec/carpet",
+   "n_tokens": 219520,
+   "k": 2196,
+   "fit_equal_cached": true,
+   "kcenter_equal_reference": true,
+   "fit_s_new": 2.9031617641448975,
+   "kcenter_s_reference": 7.6237711906433105,
+   "write_s_v1": 0.19456076622009277,
+   "n_keys_v1": 3925,
+   "write_s_q4t": 0.061881065368652344,
+   "n_keys_q4t": 7309
+  },
+  {
+   "task": "mvtec/grid",
+   "n_tokens": 206976,
+   "k": 2070,
+   "fit_equal_cached": true,
+   "kcenter_equal_reference": true,
+   "fit_s_new": 2.784000873565674,
+   "kcenter_s_reference": 6.76228141784668,
+   "write_s_v1": 0.19795918464660645,
+   "n_keys_v1": 3925,
+   "write_s_q4t": 0.06939053535461426,
+   "n_keys_q4t": 9379
+  },
+  {
+   "task": "mvtec/hazelnut",
+   "n_tokens": 306544,
+   "k": 3066,
+   "fit_equal_cached": true,
+   "kcenter_equal_reference": true,
+   "fit_s_new": 5.577299356460571,
+   "kcenter_s_reference": 14.708890676498413,
+   "write_s_v1": 0.20470547676086426,
+   "n_keys_v1": 3925,
+   "write_s_q4t": 0.05675053596496582,
+   "n_keys_q4t": 12445
+  },
+  {
+   "task": "mvtec/leather",
+   "n_tokens": 192080,
+   "k": 1921,
+   "fit_equal_cached": true,
+   "kcenter_equal_reference": true,
+   "fit_s_new": 2.3360183238983154,
+   "kcenter_s_reference": 5.937222719192505,
+   "write_s_v1": 0.18603873252868652,
+   "n_keys_v1": 3925,
+   "write_s_q4t": 0.0812685489654541,
+   "n_keys_q4t": 14366
+  },
+  {
+   "task": "mvtec/metal_nut",
+   "n_tokens": 172480,
+   "k": 1725,
+   "fit_equal_cached": true,
+   "kcenter_equal_reference": true,
+   "fit_s_new": 1.9291677474975586,
+   "kcenter_s_reference": 4.757174491882324,
+   "write_s_v1": 0.18274331092834473,
+   "n_keys_v1": 3925,
+   "write_s_q4t": 0.06651568412780762,
+   "n_keys_q4t": 16091
+  },
+  {
+   "task": "mvtec/pill",
+   "n_tokens": 209328,
+   "k": 2094,
+   "fit_equal_cached": true,
+   "kcenter_equal_reference": true,
+   "fit_s_new": 2.8369455337524414,
+   "kcenter_s_reference": 6.9568846225738525,
+   "write_s_v1": 0.18650031089782715,
+   "n_keys_v1": 3925,
+   "write_s_q4t": 0.062401533126831055,
+   "n_keys_q4t": 18185
+  },
+  {
+   "task": "mvtec/screw",
+   "n_tokens": 250880,
+   "k": 2509,
+   "fit_equal_cached": true,
+   "kcenter_equal_reference": true,
+   "fit_s_new": 3.781425952911377,
+   "kcenter_s_reference": 9.892770290374756,
+   "write_s_v1": 0.2342822551727295,
+   "n_keys_v1": 3925,
+   "write_s_q4t": 1.7750194072723389,
+   "n_keys_q4t": 18672
+  },
+  {
+   "task": "mvtec/tile",
+   "n_tokens": 180320,
+   "k": 1804,
+   "fit_equal_cached": true,
+   "kcenter_equal_reference": true,
+   "fit_s_new": 2.1633596420288086,
+   "kcenter_s_reference": 5.171396970748901,
+   "write_s_v1": 0.18344807624816895,
+   "n_keys_v1": 3925,
+   "write_s_q4t": 1.7538056373596191,
+   "n_keys_q4t": 18672
+  },
+  {
+   "task": "mvtec/toothbrush",
+   "n_tokens": 47040,
+   "k": 471,
+   "fit_equal_cached": true,
+   "kcenter_equal_reference": true,
+   "fit_s_new": 0.17122650146484375,
+   "kcenter_s_reference": 0.34857821464538574,
+   "write_s_v1": 0.16769623756408691,
+   "n_keys_v1": 3925,
+   "write_s_q4t": 1.6770761013031006,
+   "n_keys_q4t": 18672
+  },
+  {
+   "task": "mvtec/transistor",
+   "n_tokens": 166992,
+   "k": 1670,
+   "fit_equal_cached": true,
+   "kcenter_equal_reference": true,
+   "fit_s_new": 2.01973819732666,
+   "kcenter_s_reference": 4.435263633728027,
+   "write_s_v1": 0.18981170654296875,
+   "n_keys_v1": 3925,
+   "write_s_q4t": 1.7440381050109863,
+   "n_keys_q4t": 18672
+  },
+  {
+   "task": "mvtec/wood",
+   "n_tokens": 193648,
+   "k": 1937,
+   "fit_equal_cached": true,
+   "kcenter_equal_reference": true,
+   "fit_s_new": 2.4136452674865723,
+   "kcenter_s_reference": 5.93814492225647,
+   "write_s_v1": 0.18293046951293945,
+   "n_keys_v1": 3925,
+   "write_s_q4t": 1.7677936553955078,
+   "n_keys_q4t": 18672
+  },
+  {
+   "task": "mvtec/zipper",
+   "n_tokens": 188160,
+   "k": 1882,
+   "fit_equal_cached": true,
+   "kcenter_equal_reference": true,
+   "fit_s_new": 2.3144290447235107,
+   "kcenter_s_reference": 5.60558819770813,
+   "write_s_v1": 0.1805884838104248,
+   "n_keys_v1": 3925,
+   "write_s_q4t": 1.7583560943603516,
+   "n_keys_q4t": 18672
+  }
+ ],
+ "fit_equal_cached_all": true,
+ "kcenter_equal_reference_all": true,
+ "fit_s_new_total": 37.25082349777222,
+ "kcenter_s_reference_total": 91.95083808898926,
+ "q4t_keys_per_stage_equal_integration": true,
+ "final_state_equal_saved": {
+  "v1_keys": true,
+  "v1_S": true,
+  "v1_n": true,
+  "q4t_codes": true,
+  "q4t_scale": true,
+  "q4t_S_tri": true,
+  "q4t_n": true
+ },
+ "final_state_equal_saved_all": true,
+ "scoring_last_category": {
+  "category": "zipper",
+  "v1": {
+   "state_eq_prepared": true,
+   "state_eq_current_cached": true,
+   "state_eq_locked": true,
+   "head_ms_p50": {
+    "state": 3.684520721435547,
+    "prepared": 1.844644546508789
+   }
+  },
+  "q4t": {
+   "state_eq_prepared": true,
+   "state_eq_current_cached": true,
+   "state_eq_locked": true,
+   "head_ms_p50": {
+    "state": 17.938852310180664,
+    "prepared": 8.201122283935547
+   }
+  }
+ },
+ "gpu": "NVIDIA GeForce RTX 4050 Laptop GPU",
+ "torch": "2.10.0+cu126"
+}

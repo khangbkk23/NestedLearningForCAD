@@ -1,0 +1,16 @@
+18:50:19 BENCH TRAIN mvtec bottle 209 decode 3.0s encode 6.6s {'E': 1.76, 'F': 1.65, 'U': 1.68}
+18:50:39 BENCH TRAIN mvtec cable 224 decode 6.2s encode 7.1s {'E': 1.91, 'F': 1.86, 'U': 1.9}
+18:50:57 BENCH TRAIN mvtec capsule 219 decode 5.4s encode 6.9s {'E': 1.97, 'F': 1.79, 'U': 1.82}
+18:51:24 BENCH TRAIN mvtec carpet 280 decode 9.6s encode 9.0s {'E': 3.08, 'F': 3.11, 'U': 2.95}
+18:51:44 BENCH TRAIN mvtec grid 264 decode 3.3s encode 8.3s {'E': 2.77, 'F': 2.82, 'U': 2.62}
+18:52:24 BENCH TRAIN mvtec hazelnut 391 decode 9.8s encode 12.4s {'E': 5.74, 'F': 5.83, 'U': 5.58}
+18:52:45 BENCH TRAIN mvtec leather 245 decode 6.5s encode 7.8s {'E': 2.44, 'F': 2.47, 'U': 2.27}
+18:53:01 BENCH TRAIN mvtec metal_nut 220 decode 2.8s encode 6.9s {'E': 2.02, 'F': 2.07, 'U': 1.86}
+18:53:23 BENCH TRAIN mvtec pill 267 decode 4.2s encode 8.4s {'E': 2.89, 'F': 2.86, 'U': 2.75}
+18:53:48 BENCH TRAIN mvtec screw 320 decode 3.7s encode 10.1s {'E': 3.98, 'F': 4.0, 'U': 3.79}
+18:54:07 BENCH TRAIN mvtec tile 230 decode 4.9s encode 7.3s {'E': 2.18, 'F': 2.25, 'U': 2.04}
+18:54:11 BENCH TRAIN mvtec toothbrush 60 decode 1.5s encode 1.9s {'E': 0.37, 'F': 0.37, 'U': 0.22}
+18:54:30 BENCH TRAIN mvtec transistor 213 decode 5.6s encode 6.8s {'E': 1.91, 'F': 1.94, 'U': 1.75}
+18:54:52 BENCH TRAIN mvtec wood 247 decode 7.2s encode 7.9s {'E': 2.53, 'F': 2.51, 'U': 2.34}
+18:55:10 BENCH TRAIN mvtec zipper 240 decode 2.7s encode 7.6s {'E': 2.36, 'F': 2.37, 'U': 2.18}
+18:55:27 BENCH DONE mvtec train 305s, infer p50 162.6 ms/img
